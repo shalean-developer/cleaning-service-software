@@ -1,0 +1,172 @@
+import type { BookingId, BookingStatus } from "../types";
+
+/** Who initiated a command (never read from editable user_metadata for auth). */
+export const BOOKING_ACTOR_TYPES = [
+  "customer",
+  "cleaner",
+  "admin",
+  "system",
+  "service",
+] as const;
+
+export type BookingActorType = (typeof BOOKING_ACTOR_TYPES)[number];
+
+export const BOOKING_COMMAND_TYPES = [
+  "CREATE_BOOKING_DRAFT",
+  "MARK_PAYMENT_PENDING",
+  "FINALIZE_PAYMENT_SUCCESS",
+  "MARK_PAYMENT_FAILED",
+  "MOVE_TO_PENDING_ASSIGNMENT",
+  "OFFER_TO_CLEANER",
+  "ACCEPT_CLEANER_ASSIGNMENT",
+  "DECLINE_CLEANER_ASSIGNMENT",
+  "MARK_IN_PROGRESS",
+  "MARK_COMPLETED",
+  "CANCEL_BOOKING",
+  "ADMIN_OVERRIDE_STATUS",
+] as const;
+
+export type BookingCommandType = (typeof BOOKING_COMMAND_TYPES)[number];
+
+export type BookingCommandActor = {
+  actorType: BookingActorType;
+  /** profiles.id when the actor is authenticated */
+  profileId: string | null;
+};
+
+type BaseCommand = {
+  actor: BookingCommandActor;
+  /** Human-readable justification (required for admin override). */
+  reason?: string | null;
+  /** Correlates duplicate webhooks / retries; stored on audit when set. */
+  idempotencyKey?: string | null;
+  /** Extra structured context mirrored to audit.metadata / payload. */
+  metadata?: Record<string, unknown> | null;
+};
+
+export type CreateBookingDraftCommand = BaseCommand & {
+  type: "CREATE_BOOKING_DRAFT";
+  customerId: string;
+  scheduledStart: string;
+  scheduledEnd: string;
+  priceCents: number;
+  currency?: string;
+  serviceId?: string | null;
+};
+
+export type MarkPaymentPendingCommand = BaseCommand & {
+  type: "MARK_PAYMENT_PENDING";
+  bookingId: BookingId;
+  /** Used to create or upsert the payments row (matches DB idempotency_key). */
+  paymentIdempotencyKey: string;
+  provider?: string;
+};
+
+export type FinalizePaymentSuccessCommand = BaseCommand & {
+  type: "FINALIZE_PAYMENT_SUCCESS";
+  bookingId: BookingId;
+  paymentId: string;
+  /** Required — duplicate finalize must reuse the same key (e.g. provider event id). */
+  idempotencyKey: string;
+};
+
+export type MarkPaymentFailedCommand = BaseCommand & {
+  type: "MARK_PAYMENT_FAILED";
+  bookingId: BookingId;
+  paymentId: string;
+  idempotencyKey?: string | null;
+};
+
+export type MoveToPendingAssignmentCommand = BaseCommand & {
+  type: "MOVE_TO_PENDING_ASSIGNMENT";
+  bookingId: BookingId;
+};
+
+export type OfferToCleanerCommand = BaseCommand & {
+  type: "OFFER_TO_CLEANER";
+  bookingId: BookingId;
+  cleanerId: string;
+  expiresAt?: string | null;
+};
+
+export type AcceptCleanerAssignmentCommand = BaseCommand & {
+  type: "ACCEPT_CLEANER_ASSIGNMENT";
+  bookingId: BookingId;
+  offerId: string;
+};
+
+export type DeclineCleanerAssignmentCommand = BaseCommand & {
+  type: "DECLINE_CLEANER_ASSIGNMENT";
+  bookingId: BookingId;
+  offerId: string;
+};
+
+export type MarkInProgressCommand = BaseCommand & {
+  type: "MARK_IN_PROGRESS";
+  bookingId: BookingId;
+};
+
+export type MarkCompletedCommand = BaseCommand & {
+  type: "MARK_COMPLETED";
+  bookingId: BookingId;
+  /** When true, persists an earning line only if cents are provided (no implicit splits). */
+  recordEarningsSnapshot?: boolean;
+  earningsSnapshotCents?: number | null;
+  earningsCleanerId?: string | null;
+};
+
+export type CancelBookingCommand = BaseCommand & {
+  type: "CANCEL_BOOKING";
+  bookingId: BookingId;
+};
+
+export type AdminOverrideStatusCommand = BaseCommand & {
+  type: "ADMIN_OVERRIDE_STATUS";
+  bookingId: BookingId;
+  nextStatus: BookingStatus;
+  reason: string;
+};
+
+export type BookingCommand =
+  | CreateBookingDraftCommand
+  | MarkPaymentPendingCommand
+  | FinalizePaymentSuccessCommand
+  | MarkPaymentFailedCommand
+  | MoveToPendingAssignmentCommand
+  | OfferToCleanerCommand
+  | AcceptCleanerAssignmentCommand
+  | DeclineCleanerAssignmentCommand
+  | MarkInProgressCommand
+  | MarkCompletedCommand
+  | CancelBookingCommand
+  | AdminOverrideStatusCommand;
+
+export type BookingCommandErrorCode =
+  | "FORBIDDEN"
+  | "INVALID_TRANSITION"
+  | "INVALID_PAYLOAD"
+  | "BOOKING_NOT_FOUND"
+  | "PAYMENT_NOT_FOUND"
+  | "PAYMENT_NOT_PAID"
+  | "OFFER_NOT_FOUND"
+  | "OFFER_NOT_OPEN"
+  | "ASSIGNMENT_CONFLICT"
+  | "TERMINAL_STATE"
+  | "PERSISTENCE_ERROR"
+  | "CONCURRENCY_CONFLICT"
+  | "IDEMPOTENCY_REQUIRED";
+
+export type BookingCommandFailure = {
+  ok: false;
+  code: BookingCommandErrorCode;
+  message: string;
+};
+
+export type BookingCommandSuccess = {
+  ok: true;
+  bookingId: BookingId;
+  status: BookingStatus;
+  idempotent: boolean;
+};
+
+export type BookingCommandResult = BookingCommandSuccess | BookingCommandFailure;
