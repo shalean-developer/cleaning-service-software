@@ -157,6 +157,16 @@ export function assertTransitionShape(
     return null;
   }
 
+  if (cmd.type === "MARK_PAYMENT_PENDING" && current === "payment_failed") {
+    return nextStatusForCommand(cmd, current) === null
+      ? {
+          ok: false,
+          code: "INVALID_TRANSITION",
+          message: `Command "${cmd.type}" is not valid from "${current}".`,
+        }
+      : null;
+  }
+
   if (terminal.has(current)) {
     return {
       ok: false,

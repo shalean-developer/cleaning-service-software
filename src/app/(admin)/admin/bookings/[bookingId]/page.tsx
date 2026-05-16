@@ -8,6 +8,7 @@ import { AdminPayoutActions } from "@/components/dashboard/AdminPayoutActions";
 import { LifecycleTimeline } from "@/components/dashboard/LifecycleTimeline";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
+import { labelForAdminPaymentFailureAttention } from "@/features/bookings/server/paymentFailureDisplay";
 import {
   labelForAssignmentAttention,
   labelForBookingStatus,
@@ -58,6 +59,12 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
             label={labelForPaymentStatus(b.paymentStatus)}
             tone={toneForPaymentStatus(b.paymentStatus)}
           />
+          {b.status === "payment_failed" ? (
+            <StatusBadge
+              label={labelForAdminPaymentFailureAttention(b.paymentFailureReason)}
+              tone="danger"
+            />
+          ) : null}
           {b.assignmentAttention ? (
             <StatusBadge
               label={labelForAssignmentAttention(b.assignmentAttention)}
@@ -65,6 +72,16 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
             />
           ) : null}
         </section>
+
+        {b.status === "payment_failed" ? (
+          <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+            Payment did not complete
+            {b.paymentFailureReason === "checkout_expired"
+              ? " — checkout expired before Paystack confirmed payment."
+              : "."}{" "}
+            No assignment or earnings until the customer pays successfully.
+          </p>
+        ) : null}
 
         <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
           <section>

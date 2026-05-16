@@ -37,6 +37,29 @@ describe("bookingCommandGuards", () => {
     expect(nextStatusForCommand(cmd, "pending_payment")).toBe("payment_failed");
   });
 
+  it("allows MARK_PAYMENT_PENDING from payment_failed for retry", () => {
+    const cmd = {
+      type: "MARK_PAYMENT_PENDING" as const,
+      actor: systemActor,
+      bookingId: "b1",
+      paymentIdempotencyKey: "retry-pay-1",
+    };
+    expect(assertTransitionShape(cmd, "payment_failed")).toBeNull();
+    expect(nextStatusForCommand(cmd, "payment_failed")).toBe("pending_payment");
+  });
+
+  it("blocks MARK_PAYMENT_PENDING from completed and paid_out", () => {
+    const cmd = {
+      type: "MARK_PAYMENT_PENDING" as const,
+      actor: systemActor,
+      bookingId: "b1",
+      paymentIdempotencyKey: "retry-pay-2",
+    };
+    expect(assertTransitionShape(cmd, "completed")?.code).toBe("INVALID_TRANSITION");
+    expect(assertTransitionShape(cmd, "paid_out")?.code).toBe("TERMINAL_STATE");
+    expect(assertTransitionShape(cmd, "cancelled")?.code).toBe("TERMINAL_STATE");
+  });
+
   it("requires pending_assignment before OFFER_TO_CLEANER", () => {
     const cmd = {
       type: "OFFER_TO_CLEANER" as const,
@@ -296,5 +319,63 @@ describe("executeBookingCommand", () => {
       /executeBookingCommand/,
     );
     expect(() => forbidBookingStatusInPatch({ price_cents: 1 })).not.toThrow();
+  });
+
+  it("allows MARK_PAYMENT_PENDING retry from payment_failed after checkout expiry", async () => {
+    const backend = new InMemoryBookingCommandBackend();
+    const custId = "cust-retry-pay";
+    const draft = await executeBookingCommand(
+      backend,
+      {
+        type: "CREATE_BOOKING_DRAFT",
+        actor: adminActor,
+        customerId: custId,
+        scheduledStart: new Date().toISOString(),
+        scheduledEnd: new Date(Date.now() + 3600_000).toISOString(),
+        priceCents: 9000,
+      },
+      {},
+    );
+    if (!draft.ok) throw new Error("draft");
+    const bookingId = draft.bookingId;
+
+    await executeBookingCommand(
+      backend,
+      {
+        type: "MARK_PAYMENT_PENDING",
+        actor: adminActor,
+        bookingId,
+        paymentIdempotencyKey: "pay-retry-1",
+      },
+      {},
+    );
+    const payment = [...backend.payments.values()][0]!;
+
+    const failed = await executeBookingCommand(
+      backend,
+      {
+        type: "MARK_PAYMENT_FAILED",
+        actor: systemActor,
+        bookingId,
+        paymentId: payment.id,
+        metadata: { failure_reason: "checkout_expired" },
+      },
+      {},
+    );
+    expect(failed.ok).toBe(true);
+
+    const retry = await executeBookingCommand(
+      backend,
+      {
+        type: "MARK_PAYMENT_PENDING",
+        actor: adminActor,
+        bookingId,
+        paymentIdempotencyKey: "pay-retry-2",
+      },
+      {},
+    );
+    expect(retry.ok).toBe(true);
+    if (!retry.ok) throw new Error("retry");
+    expect(retry.status).toBe("pending_payment");
   });
 });

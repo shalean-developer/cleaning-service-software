@@ -32,6 +32,7 @@ export type BookingPaymentLockSuccess = {
 
 export type BookingLockErrorCode =
   | "QUOTE_MISMATCH"
+  | "QUOTE_STALE"
   | "LOCK_EXPIRED"
   | "LOCK_INPUT_MISMATCH"
   | "INVALID_SCHEDULE"
@@ -41,7 +42,17 @@ export type BookingLockErrorCode =
   | "INVALID_PAYLOAD"
   | "PERSISTENCE_ERROR"
   | "LOCK_NOT_FOUND"
-  | "LOCK_NOT_ACTIVE";
+  | "LOCK_NOT_ACTIVE"
+  | "RETRY_NOT_ELIGIBLE"
+  | "RETRY_NOT_SUPPORTED"
+  | "ACTIVE_LOCK_EXISTS"
+  | "BOOKING_NOT_FOUND";
+
+export type PaymentRetryLockInput = {
+  checkoutIdempotencyKey: string;
+};
+
+export type PaymentRetryLockResult = BookingPaymentLockResult;
 
 export type BookingPaymentLockFailure = {
   ok: false;

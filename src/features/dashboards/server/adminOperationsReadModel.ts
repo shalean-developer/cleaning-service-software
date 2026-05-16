@@ -3,7 +3,9 @@ import "server-only";
 import type { CurrentUser } from "@/lib/auth/types";
 import { isOfferOpenForOps } from "@/features/assignments/server/buildOfferExpiry";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { AssignmentOfferRow, PaymentRow } from "@/lib/database/types";
+import type { AssignmentOfferRow, BookingStateAuditRow, PaymentRow } from "@/lib/database/types";
+import type { BookingStatus } from "@/features/bookings/server/types";
+import { resolvePaymentFailureReason } from "@/features/bookings/server/paymentFailureDisplay";
 import { buildLifecycleTimeline } from "./lifecycleTimeline";
 import {
   formatScheduleRange,
@@ -53,6 +55,22 @@ async function resolveCleanerLabel(
 function latestPayment(payments: PaymentRow[]): PaymentRow | null {
   if (!payments.length) return null;
   return [...payments].sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0]!;
+}
+
+async function loadPaymentFailureReason(
+  client: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+  bookingId: string,
+  status: BookingStatus,
+): Promise<string | null> {
+  if (status !== "payment_failed") return null;
+  const { data: audits } = await client
+    .from("booking_state_audit")
+    .select("command, metadata, created_at")
+    .eq("booking_id", bookingId)
+    .eq("command", "MARK_PAYMENT_FAILED")
+    .order("created_at", { ascending: false })
+    .limit(5);
+  return resolvePaymentFailureReason((audits ?? []) as BookingStateAuditRow[]);
 }
 
 async function mapOffers(
@@ -106,10 +124,16 @@ export async function listAdminBookings(
     const { data: payments } = await client.from("payments").select("*").eq("booking_id", row.id);
     const payment = latestPayment(payments ?? []);
     const display = parseBookingDisplay(row.metadata);
+    const paymentFailureReason = await loadPaymentFailureReason(
+      client,
+      row.id,
+      row.status,
+    );
     items.push({
       id: row.id,
       status: row.status,
       paymentStatus: payment?.status ?? null,
+      paymentFailureReason,
       customerLabel: await resolveCustomerLabel(client, row.customer_id),
       cleanerLabel: await resolveCleanerLabel(client, row.cleaner_id),
       serviceLabel: display.serviceLabel,
@@ -167,6 +191,7 @@ export async function getAdminBookingDetail(
   const paymentList = payments ?? [];
   const payment = latestPayment(paymentList);
   const display = parseBookingDisplay(row.metadata);
+  const paymentFailureReason = resolvePaymentFailureReason(audits ?? []);
 
   const { data: earningRows } = await client
     .from("earning_lines")
@@ -194,6 +219,7 @@ export async function getAdminBookingDetail(
       id: row.id,
       status: row.status,
       paymentStatus: payment?.status ?? null,
+      paymentFailureReason,
       customerId: row.customer_id,
       cleanerId: row.cleaner_id,
       customerLabel: await resolveCustomerLabel(client, row.customer_id),
@@ -210,6 +236,7 @@ export async function getAdminBookingDetail(
         updatedAt: row.updated_at,
         payments: paymentList,
         audits: audits ?? [],
+        paymentFailureReason,
       }),
       payments: paymentList.map((p) => ({
         id: p.id,

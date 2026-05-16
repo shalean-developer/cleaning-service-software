@@ -1,4 +1,5 @@
 import type { AssignmentOfferStatus, PaymentStatus } from "@/lib/database/types";
+import type { PaymentFailureReason } from "@/features/bookings/server/paymentFailureDisplay";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { LifecycleEvent } from "./lifecycleTimeline";
 import type { BookingDisplayFields } from "./parseBookingDisplay";
@@ -26,6 +27,8 @@ export type CustomerBookingListItem = {
   id: string;
   status: BookingStatus;
   paymentStatus: PaymentStatus | null;
+  paymentFailureReason: PaymentFailureReason;
+  isUpcoming: boolean;
   scheduledStart: string;
   scheduledEnd: string;
   priceCents: number;
@@ -40,6 +43,8 @@ export type CustomerBookingDetail = CustomerBookingListItem & {
   timeline: LifecycleEvent[];
   payments: PaymentSummary[];
   cleanerPreferenceLabel: string;
+  /** Same-booking Paystack retry via payment-retry-lock (detail page only). */
+  canRetryPayment: boolean;
 };
 
 export type CleanerOfferListItem = {
@@ -86,6 +91,7 @@ export type AdminBookingListItem = {
   id: string;
   status: BookingStatus;
   paymentStatus: PaymentStatus | null;
+  paymentFailureReason: PaymentFailureReason;
   customerLabel: string;
   cleanerLabel: string | null;
   serviceLabel: string;

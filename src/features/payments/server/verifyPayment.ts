@@ -18,6 +18,7 @@ export type VerifyPaymentResult =
       status: string;
       paid: boolean;
       idempotent: boolean;
+      recoveredFromAlreadyFinalized?: boolean;
     }
   | {
       ok: false;
@@ -128,5 +129,8 @@ export async function verifyPayment(
     status: finalized.status,
     paid: true,
     idempotent: finalized.idempotent,
+    ...(finalized.recoveredFromAlreadyFinalized
+      ? { recoveredFromAlreadyFinalized: true as const }
+      : {}),
   };
 }

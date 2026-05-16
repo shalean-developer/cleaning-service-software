@@ -5,10 +5,11 @@ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getCustomerBookingDetail } from "@/features/dashboards/server/customerBookingReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { LifecycleTimeline } from "@/components/dashboard/LifecycleTimeline";
+import { PaymentIssuePanel } from "@/components/dashboard/PaymentIssuePanel";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
+import { labelForCustomerBookingStatus } from "@/features/bookings/server/paymentFailureDisplay";
 import {
-  labelForBookingStatus,
   labelForPaymentStatus,
   toneForBookingStatus,
   toneForPaymentStatus,
@@ -30,6 +31,7 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
   if (!result.ok) notFound();
 
   const b = result.booking;
+  const customerEmail = user.authUser.email?.trim() ?? "";
 
   return (
     <DashboardShell
@@ -47,7 +49,10 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
 
       <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
         <section className="flex flex-wrap gap-2">
-          <StatusBadge label={labelForBookingStatus(b.status)} tone={toneForBookingStatus(b.status)} />
+          <StatusBadge
+            label={labelForCustomerBookingStatus(b.status, b.paymentFailureReason)}
+            tone={toneForBookingStatus(b.status)}
+          />
           <StatusBadge
             label={labelForPaymentStatus(b.paymentStatus)}
             tone={toneForPaymentStatus(b.paymentStatus)}
@@ -85,6 +90,15 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
           </p>
         ) : null}
       </section>
+
+      {b.status === "payment_failed" ? (
+        <PaymentIssuePanel
+          bookingId={b.id}
+          customerEmail={customerEmail}
+          paymentFailureReason={b.paymentFailureReason}
+          canRetryPayment={b.canRetryPayment}
+        />
+      ) : null}
 
       <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
         <h2 className="text-sm font-semibold text-zinc-900">Payments</h2>

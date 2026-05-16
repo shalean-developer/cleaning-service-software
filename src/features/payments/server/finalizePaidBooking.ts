@@ -11,6 +11,10 @@ import { getPaymentById } from "./paymentRepository";
 import { paystackFinalizeIdempotencyKey } from "./mapPaystackCharge";
 import type { PaystackChargeSuccess } from "./paystackTypes";
 import { recordPaymentEvent } from "./recordPaymentEvent";
+import {
+  isRecoverableFinalizeCommandFailure,
+  tryRecoverAlreadyFinalizedPayment,
+} from "./paymentFinalizeRecovery";
 import { runAssignmentAfterPayment } from "@/features/assignments/server/runAssignmentAfterPayment";
 
 export type FinalizePaidBookingInput = {
@@ -21,7 +25,10 @@ export type FinalizePaidBookingInput = {
 };
 
 export type FinalizePaidBookingResult =
-  | (BookingCommandResult & { paymentEvent: "inserted" | "duplicate" })
+  | (BookingCommandResult & {
+      paymentEvent: "inserted" | "duplicate";
+      recoveredFromAlreadyFinalized?: boolean;
+    })
   | {
       ok: false;
       code:
@@ -115,6 +122,24 @@ export async function finalizePaidBookingWithDeps(
   });
 
   if (!commandResult.ok) {
+    if (isRecoverableFinalizeCommandFailure(commandResult)) {
+      const recovered = await tryRecoverAlreadyFinalizedPayment(
+        client,
+        backend,
+        input.bookingId,
+        payment.id,
+      );
+      if (recovered) {
+        return {
+          ok: true,
+          bookingId: recovered.bookingId,
+          status: recovered.status,
+          idempotent: true,
+          recoveredFromAlreadyFinalized: true,
+          paymentEvent,
+        };
+      }
+    }
     return {
       ok: false,
       code: "PERSISTENCE_ERROR",

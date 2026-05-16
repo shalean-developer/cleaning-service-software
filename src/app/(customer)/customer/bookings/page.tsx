@@ -5,9 +5,9 @@ import { listCustomerBookings } from "@/features/dashboards/server/customerBooki
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { labelForCustomerBookingStatus } from "@/features/bookings/server/paymentFailureDisplay";
 import {
   labelForAssignmentAttention,
-  labelForBookingStatus,
   labelForPaymentStatus,
   toneForBookingStatus,
   toneForPaymentStatus,
@@ -56,14 +56,17 @@ export default async function CustomerBookingsPage() {
               >
                 <section className="flex flex-wrap gap-2">
                   <StatusBadge
-                    label={labelForBookingStatus(b.status)}
+                    label={labelForCustomerBookingStatus(b.status, b.paymentFailureReason)}
                     tone={toneForBookingStatus(b.status)}
                   />
-                  <StatusBadge
-                    label={labelForPaymentStatus(b.paymentStatus)}
-                    tone={toneForPaymentStatus(b.paymentStatus)}
-                  />
-                  {b.display.assignmentAttention === "attention_required" ? (
+                  {b.status !== "payment_failed" ? (
+                    <StatusBadge
+                      label={labelForPaymentStatus(b.paymentStatus)}
+                      tone={toneForPaymentStatus(b.paymentStatus)}
+                    />
+                  ) : null}
+                  {b.display.assignmentAttention === "attention_required" &&
+                  b.status !== "payment_failed" ? (
                     <StatusBadge label={labelForAssignmentAttention("attention_required")} tone="warning" />
                   ) : null}
                 </section>
@@ -72,6 +75,10 @@ export default async function CustomerBookingsPage() {
                 <p className="mt-1 text-sm text-zinc-500">{b.display.locationSummary}</p>
                 {b.assignedCleanerLabel ? (
                   <p className="mt-2 text-sm text-emerald-700">{b.assignedCleanerLabel}</p>
+                ) : b.status === "payment_failed" ? (
+                  <p className="mt-2 text-sm text-red-700">
+                    Payment incomplete — no cleaner assigned until checkout succeeds.
+                  </p>
                 ) : null}
               </Link>
             </li>

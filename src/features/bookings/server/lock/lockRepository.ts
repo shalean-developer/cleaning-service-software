@@ -20,7 +20,7 @@ export async function findLockByIdempotencyKey(
   return data;
 }
 
-export async function findLockByBookingId(
+export async function findActiveLockByBookingId(
   client: SupabaseClient<Database>,
   bookingId: string,
 ): Promise<BookingLockRow | null> {
@@ -28,10 +28,21 @@ export async function findLockByBookingId(
     .from("booking_locks")
     .select("*")
     .eq("booking_id", bookingId)
+    .eq("status", "active")
+    .order("locked_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (error) throw new Error(error.message);
   return data;
+}
+
+/** Returns the current active checkout lock for a booking, if any. */
+export async function findLockByBookingId(
+  client: SupabaseClient<Database>,
+  bookingId: string,
+): Promise<BookingLockRow | null> {
+  return findActiveLockByBookingId(client, bookingId);
 }
 
 export async function findLockById(

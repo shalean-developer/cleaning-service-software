@@ -16,6 +16,7 @@ export type ProcessPaystackChargeResult =
       status: string;
       idempotent: boolean;
       paymentEvent: "inserted" | "duplicate";
+      recoveredFromAlreadyFinalized?: boolean;
     }
   | {
       ok: false;
@@ -70,5 +71,8 @@ export async function processPaystackChargeSuccessWithDeps(
     status: result.status,
     idempotent: result.idempotent,
     paymentEvent: result.paymentEvent,
+    ...(result.recoveredFromAlreadyFinalized
+      ? { recoveredFromAlreadyFinalized: true as const }
+      : {}),
   };
 }

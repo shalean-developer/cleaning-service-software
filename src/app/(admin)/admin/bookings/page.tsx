@@ -5,6 +5,7 @@ import { listAdminBookings } from "@/features/dashboards/server/adminOperationsR
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { labelForAdminPaymentFailureAttention } from "@/features/bookings/server/paymentFailureDisplay";
 import {
   labelForAssignmentAttention,
   labelForBookingStatus,
@@ -52,6 +53,12 @@ export default async function AdminBookingsPage() {
                     label={labelForPaymentStatus(b.paymentStatus)}
                     tone={toneForPaymentStatus(b.paymentStatus)}
                   />
+                  {b.status === "payment_failed" ? (
+                    <StatusBadge
+                      label={labelForAdminPaymentFailureAttention(b.paymentFailureReason)}
+                      tone="danger"
+                    />
+                  ) : null}
                   {b.assignmentAttention === "attention_required" ? (
                     <StatusBadge
                       label={labelForAssignmentAttention("attention_required")}

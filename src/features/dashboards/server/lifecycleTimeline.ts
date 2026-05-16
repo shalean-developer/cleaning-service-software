@@ -1,5 +1,9 @@
 import type { BookingStateAuditRow, PaymentRow } from "@/lib/database/types";
 import type { BookingStatus } from "@/features/bookings/server/types";
+import {
+  labelForCustomerBookingStatus,
+  type PaymentFailureReason,
+} from "@/features/bookings/server/paymentFailureDisplay";
 import { labelForBookingStatus, labelForPaymentStatus } from "@/features/bookings/server/statusLabels";
 
 export type LifecycleEvent = {
@@ -16,6 +20,7 @@ export function buildLifecycleTimeline(params: {
   updatedAt: string;
   payments: PaymentRow[];
   audits: BookingStateAuditRow[];
+  paymentFailureReason?: PaymentFailureReason;
 }): LifecycleEvent[] {
   const events: LifecycleEvent[] = [
     {
@@ -39,10 +44,14 @@ export function buildLifecycleTimeline(params: {
 
   for (const audit of params.audits) {
     if (!audit.to_status) continue;
+    const title =
+      audit.to_status === "payment_failed"
+        ? labelForCustomerBookingStatus("payment_failed", params.paymentFailureReason)
+        : labelForBookingStatus(audit.to_status);
     events.push({
       id: `audit-${audit.id}`,
       at: audit.created_at,
-      title: labelForBookingStatus(audit.to_status),
+      title,
       detail: audit.command ?? null,
       kind: "audit",
     });
@@ -51,7 +60,7 @@ export function buildLifecycleTimeline(params: {
   events.push({
     id: "current",
     at: params.updatedAt,
-    title: `Current: ${labelForBookingStatus(params.bookingStatus)}`,
+    title: `Current: ${labelForCustomerBookingStatus(params.bookingStatus, params.paymentFailureReason)}`,
     detail: null,
     kind: "booking",
   });

@@ -171,6 +171,154 @@ describe("dashboard read models", () => {
     if (!result.ok) expect(result.code).toBe("NOT_FOUND");
   });
 
+  it("sets canRetryPayment on payment_failed detail when metadata and price match", async () => {
+    const quoteInput = {
+      serviceSlug: "regular-cleaning" as const,
+      bedrooms: 2,
+      bathrooms: 1,
+    };
+    const { buildBookingQuoteMetadata } = await import("@/features/pricing/server/metadata");
+    const { calculateQuote } = await import("@/features/pricing/server/calculateQuote");
+    const quote = calculateQuote(quoteInput);
+    if (!quote.ok) throw new Error("quote");
+
+    createSupabaseServerClientMock.mockResolvedValue({
+      from: vi.fn((table: string) => {
+        if (table === "bookings") {
+          return chainable({
+            id: "booking-failed",
+            status: "payment_failed",
+            customer_id: "cust-1",
+            cleaner_id: null,
+            scheduled_start: "2026-05-20T08:00:00.000Z",
+            scheduled_end: "2026-05-20T10:00:00.000Z",
+            price_cents: quote.breakdown.totalCents,
+            currency: "ZAR",
+            metadata: { ...buildBookingQuoteMetadata(quoteInput, quote.breakdown), suburb: "Sea Point" },
+            created_at: "2026-05-16T09:00:00.000Z",
+            updated_at: "2026-05-16T10:00:00.000Z",
+          });
+        }
+        if (table === "payments") return chainable([]);
+        if (table === "booking_state_audit") return chainable([]);
+        return chainable([]);
+      }),
+    });
+
+    const prevLock = process.env.BOOKING_LOCK_REQUIRED;
+    process.env.BOOKING_LOCK_REQUIRED = "true";
+
+    const { getCustomerBookingDetail } = await import("./customerBookingReadModel");
+    const result = await getCustomerBookingDetail(customerUser, "booking-failed");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.booking.canRetryPayment).toBe(true);
+    }
+
+    if (prevLock === undefined) delete process.env.BOOKING_LOCK_REQUIRED;
+    else process.env.BOOKING_LOCK_REQUIRED = prevLock;
+  });
+
+  it("sets canRetryPayment false when payment_failed booking lacks quote metadata", async () => {
+    createSupabaseServerClientMock.mockResolvedValue({
+      from: vi.fn((table: string) => {
+        if (table === "bookings") {
+          return chainable({
+            id: "booking-failed",
+            status: "payment_failed",
+            customer_id: "cust-1",
+            cleaner_id: null,
+            scheduled_start: "2026-05-20T08:00:00.000Z",
+            scheduled_end: "2026-05-20T10:00:00.000Z",
+            price_cents: 50_000,
+            currency: "ZAR",
+            metadata: { suburb: "Sea Point" },
+            created_at: "2026-05-16T09:00:00.000Z",
+            updated_at: "2026-05-16T10:00:00.000Z",
+          });
+        }
+        if (table === "payments") return chainable([]);
+        if (table === "booking_state_audit") return chainable([]);
+        return chainable([]);
+      }),
+    });
+
+    const prevLock = process.env.BOOKING_LOCK_REQUIRED;
+    process.env.BOOKING_LOCK_REQUIRED = "true";
+
+    const { getCustomerBookingDetail } = await import("./customerBookingReadModel");
+    const result = await getCustomerBookingDetail(customerUser, "booking-failed");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.booking.canRetryPayment).toBe(false);
+    }
+
+    if (prevLock === undefined) delete process.env.BOOKING_LOCK_REQUIRED;
+    else process.env.BOOKING_LOCK_REQUIRED = prevLock;
+  });
+
+  it("surfaces payment_failed with checkout_expired for customer and admin", async () => {
+    createSupabaseServerClientMock.mockResolvedValue({
+      from: vi.fn((table: string) => {
+        if (table === "bookings") {
+          return chainable([
+            {
+              id: "booking-failed",
+              status: "payment_failed",
+              customer_id: "cust-1",
+              cleaner_id: null,
+              scheduled_start: "2026-05-20T08:00:00.000Z",
+              scheduled_end: "2026-05-20T10:00:00.000Z",
+              price_cents: 50000,
+              currency: "ZAR",
+              metadata: wizardBookingMetadata("deep-cleaning"),
+              updated_at: "2026-05-16T10:00:00.000Z",
+              created_at: "2026-05-16T09:00:00.000Z",
+            },
+          ]);
+        }
+        if (table === "payments") {
+          return chainable([
+            {
+              id: "pay-1",
+              booking_id: "booking-failed",
+              status: "failed",
+              updated_at: "2026-05-16T10:00:00.000Z",
+            },
+          ]);
+        }
+        if (table === "booking_state_audit") {
+          return chainable([
+            {
+              command: "MARK_PAYMENT_FAILED",
+              metadata: { failure_reason: "checkout_expired" },
+              created_at: "2026-05-16T10:00:00.000Z",
+            },
+          ]);
+        }
+        if (table === "customers") return chainable({ company_name: "Acme Co" });
+        return chainable([]);
+      }),
+    });
+
+    const { listCustomerBookings } = await import("./customerBookingReadModel");
+    const customer = await listCustomerBookings(customerUser);
+    expect(customer.ok).toBe(true);
+    if (customer.ok) {
+      expect(customer.bookings[0]?.status).toBe("payment_failed");
+      expect(customer.bookings[0]?.paymentFailureReason).toBe("checkout_expired");
+      expect(customer.bookings[0]?.isUpcoming).toBe(false);
+      expect(customer.bookings[0]?.assignedCleanerLabel).toBeNull();
+    }
+
+    const { listAdminBookings } = await import("./adminOperationsReadModel");
+    const admin = await listAdminBookings(adminUser);
+    expect(admin.ok).toBe(true);
+    if (admin.ok) {
+      expect(admin.bookings[0]?.paymentFailureReason).toBe("checkout_expired");
+    }
+  });
+
   it("customer booking list items do not expose admin-only fields", async () => {
     const { listCustomerBookings } = await import("./customerBookingReadModel");
     const result = await listCustomerBookings(customerUser);

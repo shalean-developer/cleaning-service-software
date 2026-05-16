@@ -18,6 +18,15 @@ export class InMemoryLockStore {
     return this.locks.get(id) ?? null;
   }
 
+  async findActiveByBookingId(bookingId: string): Promise<BookingLockRow | null> {
+    let latest: BookingLockRow | null = null;
+    for (const lock of this.locks.values()) {
+      if (lock.booking_id !== bookingId || lock.status !== "active") continue;
+      if (!latest || lock.locked_at > latest.locked_at) latest = lock;
+    }
+    return latest;
+  }
+
   async insert(params: {
     bookingId: string;
     customerId: string;

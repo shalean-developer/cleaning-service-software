@@ -4,14 +4,22 @@ import type { CurrentUser } from "@/lib/auth/types";
 import { customerProvisioningApiFailure } from "@/lib/auth/customerReadiness";
 import { resolveActorScope } from "@/lib/auth/resolveActorScope";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { BookingStatus } from "@/features/bookings/server/types";
 import type { PaymentRow } from "@/lib/database/types";
 import {
   formatScheduleRange,
   formatZar,
   parseBookingDisplay,
 } from "./parseBookingDisplay";
+import {
+  isUpcomingCustomerBooking,
+  resolvePaymentFailureReason,
+  showsPrePaymentAssignmentExpectation,
+} from "@/features/bookings/server/paymentFailureDisplay";
+import { assessPaymentRetryEligibility } from "@/features/bookings/server/paymentRetryEligibility";
 import { buildLifecycleTimeline } from "./lifecycleTimeline";
 import type { CustomerBookingDetail, CustomerBookingListItem, PaymentSummary } from "./types";
+import type { BookingRow, BookingStateAuditRow } from "@/lib/database/types";
 
 function latestPayment(payments: PaymentRow[]): PaymentRow | null {
   if (payments.length === 0) return null;
@@ -29,11 +37,33 @@ function toPaymentSummaries(payments: PaymentRow[]): PaymentSummary[] {
   }));
 }
 
-function cleanerPreferenceLabel(display: ReturnType<typeof parseBookingDisplay>): string {
+function cleanerPreferenceLabel(
+  display: ReturnType<typeof parseBookingDisplay>,
+  bookingStatus: BookingStatus,
+): string {
+  if (!showsPrePaymentAssignmentExpectation(bookingStatus)) {
+    return "No cleaner assigned until payment is completed";
+  }
   if (display.cleanerPreferenceMode === "selected" && display.preferredCleanerId) {
     return "Selected cleaner (pending acceptance)";
   }
   return "Best available";
+}
+
+async function loadPaymentFailureReason(
+  client: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+  bookingId: string,
+  status: BookingStatus,
+): Promise<string | null> {
+  if (status !== "payment_failed") return null;
+  const { data: audits } = await client
+    .from("booking_state_audit")
+    .select("command, metadata, created_at")
+    .eq("booking_id", bookingId)
+    .eq("command", "MARK_PAYMENT_FAILED")
+    .order("created_at", { ascending: false })
+    .limit(5);
+  return resolvePaymentFailureReason((audits ?? []) as BookingStateAuditRow[]);
 }
 
 type BookingRowSlice = {
@@ -48,19 +78,28 @@ type BookingRowSlice = {
   metadata_raw: import("@/lib/database/types").Json;
 };
 
-function mapListItem(booking: BookingRowSlice, payment: PaymentRow | null): CustomerBookingListItem {
+function mapListItem(
+  booking: BookingRowSlice,
+  payment: PaymentRow | null,
+  paymentFailureReason: string | null,
+): CustomerBookingListItem {
   const display = parseBookingDisplay(booking.metadata_raw);
   return {
     id: booking.id,
     status: booking.status,
     paymentStatus: payment?.status ?? null,
+    paymentFailureReason,
+    isUpcoming: isUpcomingCustomerBooking(booking.status),
     scheduledStart: booking.scheduled_start,
     scheduledEnd: booking.scheduled_end,
     priceCents: booking.price_cents,
     currency: booking.currency,
     display,
     scheduleLabel: formatScheduleRange(booking.scheduled_start, booking.scheduled_end),
-    assignedCleanerLabel: booking.cleaner_id ? "Cleaner assigned" : null,
+    assignedCleanerLabel:
+      booking.cleaner_id && showsPrePaymentAssignmentExpectation(booking.status)
+        ? "Cleaner assigned"
+        : null,
     updatedAt: booking.updated_at,
   };
 }
@@ -103,6 +142,11 @@ export async function listCustomerBookings(
       .from("payments")
       .select("*")
       .eq("booking_id", row.id);
+    const paymentFailureReason = await loadPaymentFailureReason(
+      client,
+      row.id,
+      row.status,
+    );
     items.push(
       mapListItem(
         {
@@ -117,6 +161,7 @@ export async function listCustomerBookings(
           metadata_raw: row.metadata,
         },
         latestPayment(payments ?? []),
+        paymentFailureReason,
       ),
     );
   }
@@ -170,6 +215,8 @@ export async function getCustomerBookingDetail(
   const display = parseBookingDisplay(row.metadata);
   const paymentList = payments ?? [];
 
+  const paymentFailureReason = resolvePaymentFailureReason(audits ?? []);
+
   const base = mapListItem(
     {
       id: row.id,
@@ -183,6 +230,7 @@ export async function getCustomerBookingDetail(
       metadata_raw: row.metadata,
     },
     latestPayment(paymentList),
+    paymentFailureReason,
   );
 
   return {
@@ -195,9 +243,11 @@ export async function getCustomerBookingDetail(
         updatedAt: row.updated_at,
         payments: paymentList,
         audits: audits ?? [],
+        paymentFailureReason,
       }),
       payments: toPaymentSummaries(paymentList),
-      cleanerPreferenceLabel: cleanerPreferenceLabel(display),
+      cleanerPreferenceLabel: cleanerPreferenceLabel(display, row.status),
+      canRetryPayment: assessPaymentRetryEligibility(row as BookingRow, paymentList),
     },
   };
 }
