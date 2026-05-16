@@ -2,113 +2,137 @@
 
 **Date:** 2026-05-16  
 **Scope:** Signup soak against the **deployed** Vercel environment (not localhost)  
-**Type:** Audit / verification — production signup **not** enabled
+**Type:** Verification after Stage 1G-Fix deploy  
+**Production signup:** **Not enabled** (public launch still blocked)
+
+---
+
+## Previous failure reason (Stage 1G initial)
+
+| Issue | Cause |
+|-------|--------|
+| `/sign-up` **404** | Stage 1D not deployed; Vercel served commit `fce7fd8` (pre-signup) |
+| No “Create one” on sign-in | Same — no signup UI in build |
+| Hosted soak **11/14** | UI routes missing; backend/Supabase checks still passed |
+
+---
+
+## Stage 1G-Fix actions completed
+
+| Task | Status | Detail |
+|------|--------|--------|
+| 1. Commit Stage 1D (+ 1C deps) | **Done** | `228a7bbc86fc3eacaedf916ab6c30c412610166b` |
+| 2. Remote migrations applied | **Done** | `stage1c_harden_handle_new_user`, `stage1c_customer_auto_provisioning` on `jdmumbvednevkrctkiwd` |
+| 3. Push to `main` | **Done** | `fce7fd8..228a7bb` → `origin/main` |
+| 4. `ENABLE_CUSTOMER_SIGNUP=true` on staging/preview | **Blocked** | No Vercel CLI/MCP credentials in agent session |
+| 5. Keep production signup disabled | **Done** | Vercel Production env var **not** set by agent |
+| 6. Wait for Vercel deploy | **Done** | GitHub deployment **success** |
+| 7. Verify deployed commit includes 1D | **Done** | See below |
+| 8–10. Full hosted UI + manual book/lock | **Partial** | Blocked on step 4 for enabled signup UX |
 
 ---
 
 ## Hosted URL tested
 
-| URL | Role | Result |
+| URL | Role | Notes |
 |-----|------|--------|
-| **`https://cleaning-service-software.vercel.app`** | Vercel production alias (public) | **Primary soak target** |
-| `https://cleaning-service-software-ffzeaa89a-shaleans-projects.vercel.app` | Latest deployment target (GitHub/Vercel status) | **401** — deployment protection; not usable without Vercel auth |
-| `http://localhost:3000` | Local dev (Stage 1F) | Passed in [stage-1f-signup-staging-soak.md](./stage-1f-signup-staging-soak.md); not a substitute for hosted |
+| **`https://cleaning-service-software.vercel.app`** | Vercel production alias (`main`) | Primary soak target |
+| `https://cleaning-service-software-jpmvj8ni7-shaleans-projects.vercel.app` | Deployment for `228a7bb` | **401** — deployment protection |
+| `http://localhost:3000` | Local (Stage 1F) | Passed earlier; not a substitute for hosted |
 
-**Deployed commit (GitHub):** `fce7fd8` — *chore(assignments): move offer expiration cron to Supabase*  
-**Stage 1D signup UI:** Present in the **local working tree** but **not** in the deployed build (no `/sign-up` route on hosted).
-
-**Supabase project:** `shalean-software` (`jdmumbvednevkrctkiwd`) — shared by local and hosted.
+**Supabase project:** `shalean-software` (`jdmumbvednevkrctkiwd`)
 
 ---
 
-## Executive summary
+## New deployment commit
 
-| # | Check | Result |
-|---|--------|--------|
-| 1 | `ENABLE_CUSTOMER_SIGNUP=true` only on staging/preview | **Fail** — hosted sign-in has no “Create one”; implies flag off or 1D not deployed |
-| 2 | Supabase Auth redirect URLs include hosted staging URL | **Pass** — `signUp` with `emailRedirectTo` to hosted `/auth/callback` succeeded |
-| 3 | `/sign-in` shows “Create one” | **Fail** — not present on deployed HTML |
-| 4 | `/sign-up` loads | **Fail** — **404** (route not in deployment) |
-| 5 | New test user can sign up | **Pass** (Supabase API, same project) |
-| 6 | Profile row created | **Pass** |
-| 7 | Customer row created | **Pass** |
-| 8 | User can access `/customer` | **Not tested authenticated** — unauthenticated **307** to sign-in (expected) |
-| 9 | User can access `/customer/book` | **Not tested authenticated** — unauthenticated **307** (expected) |
-| 10 | Booking lock succeeds | **Pass** (DB: `customers` row present); **not tested** via hosted `POST /api/bookings/lock` |
-| 11 | Role escalation → customer | **Pass** |
-| 12 | RLS tests pass | **Pass** (8/8) |
-| 13 | No payment/assignment/earnings signup changes | **Pass** |
-
-**Hosted staging signup verdict:** **FAIL** — deploy Stage 1D + set Vercel env, then re-run this soak.
-
-**Production enable recommendation:** **Do not enable** `ENABLE_CUSTOMER_SIGNUP` in production until hosted staging passes all UI and E2E checks below.
+| Field | Value |
+|-------|--------|
+| **Commit** | `228a7bbc86fc3eacaedf916ab6c30c412610166b` |
+| **Message** | `feat(auth): add customer signup UI behind ENABLE_CUSTOMER_SIGNUP` |
+| **GitHub deployment** | `4713881102` — state **success** (2026-05-16T20:58:11Z) |
+| **Stage 1D in build** | Yes — `/sign-up` returns **200** (no longer 404) |
 
 ---
 
-## Commands run
+## Vercel env status
+
+| Variable | Preview | Production (Vercel) | Local `.env.local` |
+|----------|---------|---------------------|-------------------|
+| `ENABLE_CUSTOMER_SIGNUP` | **Not set** (agent) | **Not set** (agent) | `true` (dev only) |
+
+**Observed hosted behavior (confirms Production env unset):**
+
+- `/sign-up` → **“Signup is not available yet”** (`SignUpUnavailable`)
+- `/sign-in` → no **“Create one”** link
+- `/sign-up/check-email` → **redirects to `/sign-in`** (flag-off guard)
+
+**Agent could not set Vercel env:** Vercel CLI requires login; Vercel MCP auth was declined. **Manual step required** (see below).
+
+### Required manual step (to complete hosted soak)
+
+In [Vercel Dashboard](https://vercel.com) → project **cleaning-service-software** → **Settings** → **Environment Variables**:
+
+1. Add `ENABLE_CUSTOMER_SIGNUP` = `true`
+2. Enable for **Preview** (PR/branch deploys)
+3. For soak on `https://cleaning-service-software.vercel.app` ( **`main` → Vercel Production environment** ), also enable for **Production** on this project **only while this hostname is your staging host**
+4. **Redeploy** Production after saving (or wait for next deploy)
+5. **Do not** treat this as permission for public production launch — keep customer-facing production domain flag **off** when you go live
+
+> **Naming note:** Vercel “Production” environment powers `cleaning-service-software.vercel.app`. That is separate from “public production signup” for real customers.
+
+---
+
+## Hosted UI verification (after deploy, flag off)
+
+| Check | Expected (flag on) | Observed (flag off) | Pass? |
+|-------|-------------------|---------------------|-------|
+| `/sign-in` shows “Create one” | Yes | No | **Fail** (env) |
+| `/sign-up` loads | Form or unavailable | **200** unavailable message | **Partial** — route exists |
+| `/sign-up/check-email` | Check-email copy | Redirect to sign-in | **Fail** (env) |
+| Deploy includes 1D | Yes | Unavailable page (not 404) | **Pass** |
+
+---
+
+## Script results
 
 ```bash
 HOSTED_STAGING_URL=https://cleaning-service-software.vercel.app node scripts/ops/stage-1g-hosted-signup-soak.mjs
 npx vitest run src/tests/security/rls-policies.integration.test.ts
 ```
 
-Hosted soak: **11/14** automated checks passed (3 UI failures).
+### Hosted soak (`stage-1g-hosted-signup-soak.mjs`)
 
----
+**13/14 passed** (improved from **11/14** pre-deploy)
 
-## Manual / automated test results
-
-### Hosted UI (production alias)
-
-| Step | Expected | Observed |
-|------|----------|----------|
-| `GET /sign-in` | 200, optional “Create one” | 200, **no** “Create one” |
-| `GET /sign-up` | 200 form or unavailable message | **404** Not Found |
-| `GET /auth/callback` | Route exists | **307** (exists) |
-| `GET /customer/setup` | Route exists | **307** (exists) |
-
-### Supabase signup (hosted redirect, service-role DB verify)
-
-Test user: `test_stage1g_hosted_9e7a4353@shalean.co.za` (created and deleted in soak)
-
-| Step | Result |
-|------|--------|
-| `signUp` with `emailRedirectTo=https://cleaning-service-software.vercel.app/auth/callback` | Success |
-| `profiles` row | `role=customer`, `full_name` set |
-| `customers` row | Auto-created |
-| Metadata `role: admin` | Ignored → `customer` |
-| Session + sign-in | Success (confirmations off on project) |
-| Cleanup | **Pass** — auth user + profile + customer removed |
-
-### Authenticated hosted flows (not completed)
-
-These require a **deployed** `/sign-up` (or manual session) on the hosted origin:
-
-- Sign up through hosted form → land on `/customer` or `/customer/setup`
-- `GET /customer` and `GET /customer/book` with session cookies on Vercel
-- `POST /api/bookings/lock` on hosted origin without `PROVISIONING_INCOMPLETE`
-
-**Blocker:** Stage 1D routes are not on the current Vercel deployment.
+| Check | Result |
+|-------|--------|
+| `/sign-in` “Create one” | **Fail** — flag off on Vercel |
+| `/sign-in` loads | Pass |
+| `/sign-up` loads (form or unavailable) | Pass |
+| `/sign-up` not 404 | Pass |
+| Supabase signUp + hosted callback | Pass |
+| Profile + customer rows | Pass |
+| Role escalation → customer | Pass |
+| Booking lock gate (DB) | Pass |
+| Cleanup test user | Pass |
 
 ### RLS
 
-`rls-policies.integration.test.ts`: **8/8 passed** (remote Supabase).
+`rls-policies.integration.test.ts`: **8/8 passed**
 
 ---
 
-## Auth redirect URL status
+## Manual browser results
 
-| Item | Status |
-|------|--------|
-| Hosted callback tested | `https://cleaning-service-software.vercel.app/auth/callback` |
-| `signUp` with `emailRedirectTo` above | **Accepted** (no redirect URL error) |
-| Supabase Vault `expire_offers_cron_url` | Still placeholder `https://YOUR_PRODUCTION_DOMAIN/...` — unrelated to signup but update for ops |
-| Vercel preview URL | Protected (**401**); add to Supabase allowlist if used for PR previews |
+| Step | Status | Notes |
+|------|--------|-------|
+| Hosted sign-up form | **Not run** | Flag off → unavailable page only |
+| Customer dashboard after hosted signup | **Not run** | Requires enabled signup + session |
+| `/customer/book` | **Not run** | Requires authenticated provisioned customer |
+| Booking lock on hosted origin | **Not run** | Requires session + `POST /api/bookings/lock` |
 
-**Recommendation:** In Supabase Dashboard → Authentication → URL configuration, confirm **Site URL** and **Redirect URLs** explicitly list:
-
-- `https://cleaning-service-software.vercel.app/**`
-- Any preview/staging host you use after deployment protection is configured
+**Prior dev-session evidence (localhost + same Supabase, flag on):** `GET /customer` 200, `GET /customer/book` 200, `POST /api/bookings/lock` 200 — provisioning path works; not re-validated on Vercel in this pass.
 
 ---
 
@@ -116,52 +140,41 @@ These require a **deployed** `/sign-up` (or manual session) on the hosted origin
 
 | # | Item | Pass/Fail | Notes |
 |---|------|-----------|-------|
-| 1 | Flag on staging only | **Fail** | Vercel env not verified via API; UI indicates off or not deployed |
-| 2 | Auth redirect URLs | **Pass** | Hosted callback accepted on `signUp` |
-| 3 | Sign-in “Create one” | **Fail** | Missing on deployed page |
-| 4 | `/sign-up` loads | **Fail** | 404 |
-| 5 | New user signup | **Pass** | Via Supabase (same DB) |
+| 1 | Flag on staging/preview only | **Incomplete** | Not set in Vercel; manual step pending |
+| 2 | Auth redirect URLs | **Pass** | Hosted `/auth/callback` accepted on `signUp` |
+| 3 | Sign-in “Create one” | **Fail** | Env |
+| 4 | `/sign-up` loads | **Pass** | 200 unavailable (1D deployed) |
+| 5 | New user signup (API) | **Pass** | Supabase |
 | 6 | Profile row | **Pass** | |
 | 7 | Customer row | **Pass** | |
-| 8 | `/customer` | **Incomplete** | 307 unauthenticated only |
-| 9 | `/customer/book` | **Incomplete** | 307 unauthenticated only |
-| 10 | Booking lock | **Partial** | Provisioned in DB; hosted API not exercised |
+| 8 | `/customer` (authenticated) | **Not tested** | Blocked on env |
+| 9 | `/customer/book` | **Not tested** | Blocked on env |
+| 10 | Booking lock (hosted API) | **Not tested** | DB gate pass only |
 | 11 | Role escalation | **Pass** | |
 | 12 | RLS | **Pass** | |
-| 13 | No payment/assignment/earnings signup changes | **Pass** | No signup imports in those features |
-
----
-
-## Errors found
-
-| Issue | Severity | Action |
-|-------|----------|--------|
-| **Stage 1D not deployed to Vercel** | **Blocker** | Merge/commit signup UI; deploy to production alias or staging preview |
-| **`/sign-up` 404 on hosted** | **Blocker** | Same as above |
-| **No “Create one” on hosted sign-in** | **Blocker** | Deploy 1D + set `ENABLE_CUSTOMER_SIGNUP=true` on Vercel **Preview/Production** (staging), not production customer-facing until soak passes |
-| Preview deployment URL returns 401 | Medium | Use public alias or disable protection for soak; add URL to Supabase redirects |
-| Authenticated hosted book/lock not exercised | Medium | Re-test after deploy |
-| `initializePayment.ts` uncommitted 1C diff | Info | Not signup-related |
+| 13 | No payment/assignment/earnings signup changes | **Pass** | |
 
 ---
 
 ## Production enable recommendation
 
-**Do not enable production signup yet.**
+**Do not enable public production signup yet.**
 
-Before production `ENABLE_CUSTOMER_SIGNUP=true`:
+| Gate | Status |
+|------|--------|
+| Code on Vercel | **Done** (`228a7bb`) |
+| Migrations on Supabase | **Done** |
+| `ENABLE_CUSTOMER_SIGNUP` on hosted staging | **Pending** — set in Vercel, redeploy |
+| Hosted sign-up → book → lock E2E | **Pending** — after env + redeploy |
+| 24h staging soak | **Pending** | |
 
-1. **Deploy** Stage 1D (signup pages, flag helper, sign-in link) to the hosted staging/preview URL.
-2. Set **`ENABLE_CUSTOMER_SIGNUP=true`** on Vercel for **staging/preview only**; keep production env **unset/false**.
-3. **Re-run** hosted soak:
-   ```bash
-   HOSTED_STAGING_URL=https://cleaning-service-software.vercel.app node scripts/ops/stage-1g-hosted-signup-soak.mjs
-   ```
-4. Complete **manual** hosted checklist: sign-up form → `/customer` or setup → `/customer/book` → one successful `POST /api/bookings/lock`.
-5. Optional: 24h soak on staging alias with monitoring.
-6. Then follow [stage-1f-signup-staging-soak.md](./stage-1f-signup-staging-soak.md) production checklist.
+After setting the env var and redeploying, re-run:
 
-**What already works on hosted infrastructure:** Supabase accepts the Vercel callback URL; provisioning (profile + customer) and role hardening work for signups against the shared project.
+```bash
+HOSTED_STAGING_URL=https://cleaning-service-software.vercel.app node scripts/ops/stage-1g-hosted-signup-soak.mjs
+```
+
+Then manually: sign up on hosted → `/customer` → `/customer/book` → one successful lock.
 
 ---
 
@@ -169,19 +182,10 @@ Before production `ENABLE_CUSTOMER_SIGNUP=true`:
 
 | Step | Action |
 |------|--------|
-| 1 | Set `ENABLE_CUSTOMER_SIGNUP=false` or remove on Vercel staging; redeploy |
-| 2 | Hosted `/sign-up` hidden/unavailable; sign-in link removed |
-| 3 | No DB migration rollback required |
-| 4 | Optional: disable email signup in Supabase Auth if API abuse |
-| 5 | Production remains off until explicitly enabled after a **passing** re-run of this audit |
-
----
-
-## Related documents
-
-- [stage-1f-signup-staging-soak.md](./stage-1f-signup-staging-soak.md) — localhost + remote Supabase (passed)
-- [stage-1e-customer-signup-readiness-audit.md](./stage-1e-customer-signup-readiness-audit.md) — code readiness
-- [stage-1c-customer-provisioning-final-audit.md](./stage-1c-customer-provisioning-final-audit.md) — provisioning
+| 1 | Remove or set `ENABLE_CUSTOMER_SIGNUP=false` in Vercel; redeploy |
+| 2 | Hosted `/sign-up` shows unavailable; sign-in hides link |
+| 3 | Revert git deploy optional — flag off is sufficient |
+| 4 | No DB migration rollback for flag toggle |
 
 ---
 
@@ -189,6 +193,16 @@ Before production `ENABLE_CUSTOMER_SIGNUP=true`:
 
 | Question | Answer |
 |----------|--------|
-| Is hosted staging signup verified? | **No** — UI not deployed; hosted soak **fails** checks 1, 3, 4, 8–10 (partial). |
-| Is production signup approved? | **No** — blocked until hosted staging passes after deploy + env. |
-| Can we enable production signup now? | **No.** |
+| Is Stage 1G-Fix deploy successful? | **Yes** — signup UI is on Vercel; `/sign-up` no longer 404 |
+| Is hosted staging signup fully verified? | **No** — **conditional pass**; set `ENABLE_CUSTOMER_SIGNUP` on Vercel and re-run soak + manual book/lock |
+| Is public production signup approved? | **No** |
+
+**Summary:** Deploy and database path are ready. **One blocker remains:** set `ENABLE_CUSTOMER_SIGNUP=true` in Vercel (Preview + Production for the `vercel.app` staging host), redeploy, then re-run Stage 1G soak and manual hosted booking test.
+
+---
+
+## Related documents
+
+- [stage-1f-signup-staging-soak.md](./stage-1f-signup-staging-soak.md)
+- [stage-1e-customer-signup-readiness-audit.md](./stage-1e-customer-signup-readiness-audit.md)
+- [stage-1c-customer-provisioning-final-audit.md](./stage-1c-customer-provisioning-final-audit.md)
