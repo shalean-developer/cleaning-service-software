@@ -305,6 +305,10 @@ export type Database = {
       earning_payout_status: EarningPayoutStatus;
     };
     Functions: {
+      ensure_customer_provisioned: {
+        Args: { profile_id: string };
+        Returns: string | null;
+      };
       booking_apply_transition: {
         Args: Record<string, unknown>;
         Returns: Json;

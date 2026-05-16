@@ -40,6 +40,22 @@ export function resolvePostSignInPath(
   return homePathForRole(role);
 }
 
+export const CUSTOMER_SETUP_PATH = "/customer/setup" as const;
+
+/** Builds `/customer/setup?redirectedFrom=…` for incomplete customer provisioning. */
+export function buildCustomerSetupRedirectPath(redirectedFrom?: string | null): string {
+  const trimmed = redirectedFrom?.trim();
+  if (
+    trimmed &&
+    trimmed !== CUSTOMER_SETUP_PATH &&
+    isDashboardPathAllowedForRole(trimmed, "customer")
+  ) {
+    const params = new URLSearchParams({ redirectedFrom: trimmed });
+    return `${CUSTOMER_SETUP_PATH}?${params.toString()}`;
+  }
+  return CUSTOMER_SETUP_PATH;
+}
+
 /** Builds `/sign-in?redirectedFrom=…` for unauthenticated dashboard access. */
 export function buildSignInRedirectPath(redirectedFrom?: string | null): string {
   if (!redirectedFrom?.trim()) {

@@ -114,7 +114,12 @@ export async function getBookingCleaners(
 
   if (parsed.bookingId) {
     if (user.role === "customer" && !ctx.actingCustomerId) {
-      return forbidden("Customer profile is not linked.");
+      return {
+        ok: false,
+        code: "PROVISIONING_INCOMPLETE",
+        message: "Account setup is not complete.",
+        status: 403,
+      };
     }
 
     const booking =

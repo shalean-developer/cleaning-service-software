@@ -119,6 +119,16 @@ describe("dashboard read models", () => {
     });
   });
 
+  it("returns PROVISIONING_INCOMPLETE when customer row is missing", async () => {
+    resolveActorScopeMock.mockResolvedValue({ actingCustomerId: null });
+    const { listCustomerBookings } = await import("./customerBookingReadModel");
+    const result = await listCustomerBookings(customerUser);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe("PROVISIONING_INCOMPLETE");
+    expect(result.status).toBe(403);
+  });
+
   it("customer sees own bookings only", async () => {
     const { listCustomerBookings } = await import("./customerBookingReadModel");
     const result = await listCustomerBookings(customerUser);

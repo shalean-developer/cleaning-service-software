@@ -20,7 +20,7 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 vi.mock("@/lib/auth/resolveActorScope", () => ({
-  resolveActorScope: async () => ({ actingCustomerId: "customer-1" }),
+  resolveActorScope: vi.fn(async () => ({ actingCustomerId: "customer-1" })),
 }));
 
 const lockStore = new InMemoryLockStore();
@@ -83,6 +83,18 @@ describe("createBookingPaymentLock", () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("returns PROVISIONING_INCOMPLETE when customer row is missing", async () => {
+    const { resolveActorScope } = await import("@/lib/auth/resolveActorScope");
+    vi.mocked(resolveActorScope).mockResolvedValueOnce({});
+
+    const { createBookingPaymentLock } = await import("./createBookingPaymentLock");
+    const result = await createBookingPaymentLock(user, baseInput());
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe("PROVISIONING_INCOMPLETE");
+    expect(result.status).toBe(403);
   });
 
   it("rejects client quote mismatch", async () => {

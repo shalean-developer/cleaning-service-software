@@ -1,12 +1,32 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildCustomerSetupRedirectPath,
   buildSignInRedirectPath,
+  CUSTOMER_SETUP_PATH,
   homePathForRole,
   isDashboardPathAllowedForRole,
   requiredRoleForDashboardPath,
   resolvePostSignInPath,
   SIGN_IN_PATH,
 } from "./redirects";
+
+describe("buildCustomerSetupRedirectPath", () => {
+  it("returns bare setup path when no redirect target", () => {
+    expect(buildCustomerSetupRedirectPath()).toBe(CUSTOMER_SETUP_PATH);
+    expect(buildCustomerSetupRedirectPath(null)).toBe(CUSTOMER_SETUP_PATH);
+  });
+
+  it("includes redirectedFrom for allowed customer paths", () => {
+    expect(buildCustomerSetupRedirectPath("/customer/book")).toBe(
+      "/customer/setup?redirectedFrom=%2Fcustomer%2Fbook",
+    );
+  });
+
+  it("ignores setup path and foreign role namespaces", () => {
+    expect(buildCustomerSetupRedirectPath("/customer/setup")).toBe(CUSTOMER_SETUP_PATH);
+    expect(buildCustomerSetupRedirectPath("/admin")).toBe(CUSTOMER_SETUP_PATH);
+  });
+});
 
 describe("buildSignInRedirectPath", () => {
   it("returns bare sign-in path when no redirect target", () => {

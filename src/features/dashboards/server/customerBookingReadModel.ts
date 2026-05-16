@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { CurrentUser } from "@/lib/auth/types";
+import { customerProvisioningApiFailure } from "@/lib/auth/customerReadiness";
 import { resolveActorScope } from "@/lib/auth/resolveActorScope";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { PaymentRow } from "@/lib/database/types";
@@ -81,7 +82,7 @@ export async function listCustomerBookings(
 
   const ctx = await resolveActorScope(client, user.profileId, user.role);
   if (!ctx.actingCustomerId) {
-    return { ok: false, code: "FORBIDDEN", message: "Customer profile not linked.", status: 403 };
+    return customerProvisioningApiFailure();
   }
 
   const { data: bookings, error } = await client
@@ -141,7 +142,7 @@ export async function getCustomerBookingDetail(
 
   const ctx = await resolveActorScope(client, user.profileId, user.role);
   if (!ctx.actingCustomerId) {
-    return { ok: false, code: "FORBIDDEN", message: "Customer profile not linked.", status: 403 };
+    return customerProvisioningApiFailure();
   }
 
   const { data: row, error } = await client

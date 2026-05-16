@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import { BookingWizard } from "@/features/booking-wizard";
-import { buildSignInRedirectPath } from "@/lib/auth/redirects";
-import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+import { checkCustomerReadiness } from "@/lib/auth/customerReadiness";
+import { requireCustomerReady } from "@/lib/auth/requireCustomerReady";
 
 export const metadata: Metadata = {
   title: "Book a clean",
@@ -11,13 +9,14 @@ export const metadata: Metadata = {
 };
 
 export default async function CustomerBookPage() {
-  const user = await getCurrentUser();
-  if (!user) {
-    const pathname = (await headers()).get("x-pathname") ?? "/customer/book";
-    redirect(buildSignInRedirectPath(pathname));
+  await requireCustomerReady("/customer/book");
+
+  const readiness = await checkCustomerReadiness();
+  if (readiness.status !== "ready") {
+    return null;
   }
 
-  const email = user.authUser.email?.trim() ?? "";
+  const email = readiness.user.authUser.email?.trim() ?? "";
 
   return <BookingWizard customerEmail={email} />;
 }

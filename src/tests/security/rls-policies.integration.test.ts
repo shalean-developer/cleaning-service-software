@@ -4,6 +4,7 @@ import type { Database } from "@/lib/database/types";
 import {
   cleanupPhase2Run,
   createUserScopedClient,
+  ensurePhase2CustomerRow,
   phase2RunId,
   provisionPhase2AuthUser,
   resolveRlsIntegrationGate,
@@ -72,27 +73,16 @@ describe("RLS role security (Supabase integration)", () => {
     cleanerEmail = cleaner.email;
     adminEmail = admin.email;
 
-    const { data: rowA, error: errA } = await serviceClient
-      .from("customers")
-      .insert({
-        profile_id: customerA.profileId,
-        company_name: `${runId}_customer_a`,
-      })
-      .select("id")
-      .single();
-    if (errA) throw new Error(errA.message);
-    customerAId = rowA.id;
-
-    const { data: rowB, error: errB } = await serviceClient
-      .from("customers")
-      .insert({
-        profile_id: customerB.profileId,
-        company_name: `${runId}_customer_b`,
-      })
-      .select("id")
-      .single();
-    if (errB) throw new Error(errB.message);
-    customerBId = rowB.id;
+    customerAId = await ensurePhase2CustomerRow(
+      serviceClient,
+      customerA.profileId,
+      `${runId}_customer_a`,
+    );
+    customerBId = await ensurePhase2CustomerRow(
+      serviceClient,
+      customerB.profileId,
+      `${runId}_customer_b`,
+    );
 
     const { data: cleanerRow, error: cleanerErr } = await serviceClient
       .from("cleaners")

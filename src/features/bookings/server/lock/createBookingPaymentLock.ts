@@ -64,7 +64,7 @@ export async function createBookingPaymentLock(
   );
 
   if (!ctx.actingCustomerId) {
-    return fail("FORBIDDEN", "Customer profile is not linked.", 403);
+    return fail("PROVISIONING_INCOMPLETE", "Account setup is not complete.", 403);
   }
 
   const cleanerCheck = await validateCleanerPreferenceForLock(input);

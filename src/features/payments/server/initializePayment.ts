@@ -113,8 +113,8 @@ export async function initializePayment(
   if (!ctx.actingCustomerId) {
     return {
       ok: false,
-      code: "FORBIDDEN",
-      message: "Customer profile is not linked to a customers row.",
+      code: "PROVISIONING_INCOMPLETE",
+      message: "Account setup is not complete.",
       status: 403,
     };
   }

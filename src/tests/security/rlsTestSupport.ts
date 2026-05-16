@@ -154,6 +154,39 @@ export async function provisionPhase2AuthUser(
   return { profileId, email };
 }
 
+/** Uses auto-provisioned customers row when present (Stage 1C-2), else inserts. */
+export async function ensurePhase2CustomerRow(
+  serviceClient: SupabaseClient<Database>,
+  profileId: string,
+  companyName: string,
+): Promise<string> {
+  const { data: existing, error: fetchError } = await serviceClient
+    .from("customers")
+    .select("id, company_name")
+    .eq("profile_id", profileId)
+    .maybeSingle();
+  if (fetchError) throw new Error(fetchError.message);
+
+  if (existing) {
+    if (existing.company_name !== companyName) {
+      const { error: updateError } = await serviceClient
+        .from("customers")
+        .update({ company_name: companyName })
+        .eq("id", existing.id);
+      if (updateError) throw new Error(updateError.message);
+    }
+    return existing.id;
+  }
+
+  const { data: created, error: insertError } = await serviceClient
+    .from("customers")
+    .insert({ profile_id: profileId, company_name: companyName })
+    .select("id")
+    .single();
+  if (insertError) throw new Error(insertError.message);
+  return created.id;
+}
+
 export async function signInAs(
   client: SupabaseClient<Database>,
   email: string,

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
+import { SIGN_UP_PATH } from "@/lib/auth/customerSignup";
+import { isCustomerSignupEnabled } from "@/lib/auth/customerSignupFlag";
 import { SignInForm } from "./SignInForm";
 
 export const metadata: Metadata = {
@@ -9,6 +11,8 @@ export const metadata: Metadata = {
 };
 
 export default function SignInPage() {
+  const signupEnabled = isCustomerSignupEnabled();
+
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-4 py-16">
       <section>
@@ -24,6 +28,17 @@ export default function SignInPage() {
       <Suspense fallback={<p className="text-sm text-zinc-600">Loading…</p>}>
         <SignInForm />
       </Suspense>
+      {signupEnabled ? (
+        <p className="text-center text-sm text-zinc-600">
+          Don&apos;t have an account?{" "}
+          <Link
+            href={SIGN_UP_PATH}
+            className="font-medium text-zinc-900 underline-offset-2 hover:underline"
+          >
+            Create one
+          </Link>
+        </p>
+      ) : null}
       <p className="text-center text-sm text-zinc-600">
         <Link href="/" className="font-medium text-zinc-900 underline-offset-2 hover:underline">
           Back to home
