@@ -9,6 +9,13 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "integration:ensure-customer": "node scripts/ensure-phase1-integration-customer.mjs",
+    "e2e:seed": "node scripts/e2e/seed.mjs",
+    "e2e:cleanup": "node scripts/e2e/cleanup.mjs",
+    "e2e:inspect:booking": "node scripts/e2e/inspect-booking.mjs",
+    "e2e:inspect:offers": "node scripts/e2e/inspect-offers.mjs",
+    "e2e:inspect:earnings": "node scripts/e2e/inspect-earnings.mjs",
+    "e2e:repair:assignments": "node scripts/e2e/repair-orphaned-assignments.mjs",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
@@ -19,7 +26,8 @@
     "@supabase/supabase-js": "^2.105.4",
     "next": "16.2.6",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

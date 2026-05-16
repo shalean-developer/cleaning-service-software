@@ -7,8 +7,9 @@ import type {
 } from "./types";
 
 const terminal: ReadonlySet<BookingStatus> = new Set([
-  "completed",
   "cancelled",
+  "paid_out",
+  "payment_failed",
 ]);
 
 export function isTerminalBookingStatus(status: BookingStatus): boolean {
@@ -57,13 +58,20 @@ function commandActorPolicy(
     case "DECLINE_CLEANER_ASSIGNMENT":
       return cleanerOrAdmin;
     case "MARK_IN_PROGRESS":
+    case "MARK_BOOKING_IN_PROGRESS":
       return cleanerAdminSystem;
     case "MARK_COMPLETED":
+    case "MARK_BOOKING_COMPLETED":
       return cleanerAdminSystem;
+    case "MARK_BOOKING_PAYOUT_READY":
+    case "MARK_BOOKING_PAID_OUT":
+      return adminOnly;
     case "CANCEL_BOOKING":
       return customerOrAdmin;
     case "ADMIN_OVERRIDE_STATUS":
       return adminOnly;
+    case "RECORD_ASSIGNMENT_ATTENTION":
+      return systemish;
   }
 }
 
@@ -118,14 +126,22 @@ export function nextStatusForCommand(
     case "ACCEPT_CLEANER_ASSIGNMENT":
       return current === "pending_assignment" ? "assigned" : null;
     case "MARK_IN_PROGRESS":
+    case "MARK_BOOKING_IN_PROGRESS":
       return current === "assigned" ? "in_progress" : null;
     case "MARK_COMPLETED":
+    case "MARK_BOOKING_COMPLETED":
       return current === "in_progress" ? "completed" : null;
+    case "MARK_BOOKING_PAYOUT_READY":
+      return current === "completed" ? "payout_ready" : null;
+    case "MARK_BOOKING_PAID_OUT":
+      return current === "payout_ready" ? "paid_out" : null;
     case "CANCEL_BOOKING":
       if (terminal.has(current)) return null;
       return "cancelled";
     case "ADMIN_OVERRIDE_STATUS":
       return cmd.nextStatus;
+    case "RECORD_ASSIGNMENT_ATTENTION":
+      return null;
     default: {
       const _exhaustive: never = cmd;
       return _exhaustive;
@@ -137,7 +153,7 @@ export function assertTransitionShape(
   cmd: BookingCommand,
   current: BookingStatus,
 ): BookingCommandFailure | null {
-  if (cmd.type === "ADMIN_OVERRIDE_STATUS") {
+  if (cmd.type === "ADMIN_OVERRIDE_STATUS" || cmd.type === "RECORD_ASSIGNMENT_ATTENTION") {
     return null;
   }
 

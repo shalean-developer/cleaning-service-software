@@ -14,6 +14,8 @@ export const BOOKING_STATUSES = [
   "assigned",
   "in_progress",
   "completed",
+  "payout_ready",
+  "paid_out",
   "cancelled",
   "payment_failed",
 ] as const;

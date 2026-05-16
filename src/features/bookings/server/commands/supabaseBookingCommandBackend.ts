@@ -1,0 +1,284 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type {
+  AssignmentOfferRow,
+  BookingRow,
+  BookingStateAuditRow,
+  Database,
+  EarningLineRow,
+  Json,
+  PaymentRow,
+} from "@/lib/database/types";
+import type { BookingStatus } from "../types";
+import type { BookingCommandBackend, TransitionResult } from "./bookingCommandBackend";
+import { buildAuditEnvelope } from "./bookingCommandAudit";
+import {
+  parseRpcTransitionResult,
+  rethrowRpcError,
+  rpcAuditArgs,
+} from "./bookingCommandRpc";
+import type { BookingCommand } from "./types";
+
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+/**
+ * Postgres-backed booking command port. Status changes use `booking_*` RPCs;
+ * drafts, offers, payments, outbox, and earnings use service-role DML in the same
+ * orchestration order as {@link executeBookingCommand}.
+ */
+export class SupabaseBookingCommandBackend implements BookingCommandBackend {
+  constructor(private readonly client: SupabaseClient<Database>) {}
+
+  async getBooking(bookingId: string): Promise<BookingRow | null> {
+    const { data, error } = await this.client
+      .from("bookings")
+      .select("*")
+      .eq("id", bookingId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data;
+  }
+
+  async getPayment(paymentId: string): Promise<PaymentRow | null> {
+    const { data, error } = await this.client
+      .from("payments")
+      .select("*")
+      .eq("id", paymentId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data;
+  }
+
+  async getOffer(offerId: string): Promise<AssignmentOfferRow | null> {
+    const { data, error } = await this.client
+      .from("assignment_offers")
+      .select("*")
+      .eq("id", offerId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data;
+  }
+
+  async findPaymentByIdempotencyKey(key: string): Promise<PaymentRow | null> {
+    const { data, error } = await this.client
+      .from("payments")
+      .select("*")
+      .eq("idempotency_key", key)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data;
+  }
+
+  async listPaymentsForBooking(bookingId: string): Promise<PaymentRow[]> {
+    const { data, error } = await this.client
+      .from("payments")
+      .select("*")
+      .eq("booking_id", bookingId);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  }
+
+  async listOffersForBooking(bookingId: string): Promise<AssignmentOfferRow[]> {
+    const { data, error } = await this.client
+      .from("assignment_offers")
+      .select("*")
+      .eq("booking_id", bookingId)
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  }
+
+  async findAuditsByBookingAndKey(
+    bookingId: string,
+    key: string | null | undefined,
+  ): Promise<BookingStateAuditRow[]> {
+    if (!key) return [];
+    const { data, error } = await this.client
+      .from("booking_state_audit")
+      .select("*")
+      .eq("booking_id", bookingId)
+      .eq("idempotency_key", key);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  }
+
+  async hasPaidPaymentForBooking(bookingId: string): Promise<boolean> {
+    const { count, error } = await this.client
+      .from("payments")
+      .select("*", { count: "exact", head: true })
+      .eq("booking_id", bookingId)
+      .eq("status", "paid");
+    if (error) throw new Error(error.message);
+    return (count ?? 0) > 0;
+  }
+
+  async insertBooking(row: BookingRow): Promise<void> {
+    const { error } = await this.client.from("bookings").insert(row);
+    if (error) throw new Error(error.message);
+  }
+
+  async updateBookingMetadata(bookingId: string, metadata: Json): Promise<void> {
+    const { error } = await this.client
+      .from("bookings")
+      .update({ metadata, updated_at: nowIso() })
+      .eq("id", bookingId);
+    if (error) throw new Error(error.message);
+  }
+
+  async insertPayment(payment: PaymentRow): Promise<void> {
+    const { error } = await this.client.from("payments").insert(payment);
+    if (error) throw new Error(error.message);
+  }
+
+  async insertOffer(offer: AssignmentOfferRow): Promise<void> {
+    const { error } = await this.client.from("assignment_offers").insert(offer);
+    if (error) throw new Error(error.message);
+  }
+
+  async updateOffer(offer: AssignmentOfferRow): Promise<void> {
+    const { id, ...patch } = offer;
+    const { error } = await this.client.from("assignment_offers").update(patch).eq("id", id);
+    if (error) throw new Error(error.message);
+  }
+
+  async appendAudit(
+    cmd: BookingCommand,
+    bookingId: string,
+    from: BookingStatus | null,
+    to: BookingStatus,
+  ): Promise<void> {
+    const env = buildAuditEnvelope(cmd, from, to);
+    const { error } = await this.client.from("booking_state_audit").insert({
+      booking_id: bookingId,
+      from_status: from,
+      to_status: to,
+      command: env.commandName,
+      actor_profile_id: cmd.actor.profileId,
+      payload: env.payload,
+      actor_type: cmd.actor.actorType,
+      reason: cmd.reason ?? null,
+      idempotency_key: cmd.idempotencyKey ?? null,
+      metadata: env.metadata,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  async applyTransition(
+    cmd: BookingCommand,
+    bookingId: string,
+    from: BookingStatus,
+    to: BookingStatus,
+    cleanerId?: string | null,
+  ): Promise<TransitionResult> {
+    const audit = rpcAuditArgs(cmd, from, to);
+    const { data, error } = await this.client.rpc("booking_apply_transition", {
+      p_booking_id: bookingId,
+      p_expected_from: from,
+      p_to: to,
+      p_cleaner_id: cleanerId ?? null,
+      ...audit,
+    });
+    if (error) rethrowRpcError(error);
+    return parseRpcTransitionResult(data);
+  }
+
+  async finalizePaymentSuccess(
+    cmd: BookingCommand & { type: "FINALIZE_PAYMENT_SUCCESS" },
+    bookingId: string,
+    paymentId: string,
+  ): Promise<TransitionResult> {
+    const audit = rpcAuditArgs(cmd, "pending_payment", "confirmed");
+    const { data, error } = await this.client.rpc("booking_finalize_payment_success", {
+      p_booking_id: bookingId,
+      p_payment_id: paymentId,
+      ...audit,
+    });
+    if (error) rethrowRpcError(error);
+    return parseRpcTransitionResult(data);
+  }
+
+  async recordPaymentFailure(
+    cmd: BookingCommand & { type: "MARK_PAYMENT_FAILED" },
+    bookingId: string,
+    paymentId: string,
+  ): Promise<TransitionResult> {
+    const audit = rpcAuditArgs(cmd, "pending_payment", "payment_failed");
+    const { data, error } = await this.client.rpc("booking_record_payment_failure", {
+      p_booking_id: bookingId,
+      p_payment_id: paymentId,
+      ...audit,
+    });
+    if (error) rethrowRpcError(error);
+    return parseRpcTransitionResult(data);
+  }
+
+  async adminOverrideStatus(
+    cmd: BookingCommand & { type: "ADMIN_OVERRIDE_STATUS" },
+    booking: BookingRow,
+  ): Promise<BookingStatus> {
+    const from = booking.status;
+    if (from === cmd.nextStatus) {
+      return cmd.nextStatus;
+    }
+    const r = await this.applyTransition(cmd, booking.id, from, cmd.nextStatus);
+    return r.status;
+  }
+
+  async enqueueNotification(channel: string, recipient: string, payload: Json): Promise<void> {
+    const ts = nowIso();
+    const { error } = await this.client.from("notification_outbox").insert({
+      channel,
+      recipient,
+      payload,
+      status: "pending",
+      attempts: 0,
+      next_retry_at: null,
+      last_error: null,
+      created_at: ts,
+      updated_at: ts,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  async appendEarningLine(line: Omit<EarningLineRow, "id" | "created_at">): Promise<void> {
+    const payoutAmount = line.payout_amount_cents ?? line.amount_cents;
+    const { error } = await this.client.from("earning_lines").insert({
+      ...line,
+      amount_cents: line.amount_cents ?? payoutAmount,
+      gross_amount_cents: line.gross_amount_cents ?? payoutAmount,
+      payout_amount_cents: payoutAmount,
+      payout_status: line.payout_status ?? "pending",
+      payout_batch_id: line.payout_batch_id ?? null,
+      calculation_metadata: line.calculation_metadata ?? {},
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  async listEarningLinesForBooking(bookingId: string): Promise<EarningLineRow[]> {
+    const { data, error } = await this.client
+      .from("earning_lines")
+      .select("*")
+      .eq("booking_id", bookingId);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  }
+
+  async updateEarningLinesPayoutStatus(
+    bookingId: string,
+    from: EarningLineRow["payout_status"],
+    to: EarningLineRow["payout_status"],
+    payoutBatchId?: string | null,
+  ): Promise<number> {
+    const patch: Partial<EarningLineRow> = { payout_status: to };
+    if (payoutBatchId) patch.payout_batch_id = payoutBatchId;
+    const { data, error } = await this.client
+      .from("earning_lines")
+      .update(patch)
+      .eq("booking_id", bookingId)
+      .eq("payout_status", from)
+      .select("id");
+    if (error) throw new Error(error.message);
+    return data?.length ?? 0;
+  }
+}

@@ -286,9 +286,9 @@ describe("executeBookingCommand", () => {
       },
       { actingCleanerId: cleanerId },
     );
-    expect(acceptAgain.ok).toBe(false);
-    if (acceptAgain.ok) throw new Error("expected failure");
-    expect(acceptAgain.code).toBe("INVALID_TRANSITION");
+    expect(acceptAgain.ok).toBe(true);
+    if (!acceptAgain.ok) throw new Error("expected idempotent accept");
+    expect(acceptAgain.idempotent).toBe(true);
   });
 
   it("forbids direct status patches at the application layer", () => {

@@ -1,7 +1,9 @@
 import "server-only";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { UserRole } from "@/lib/database/types";
+import { buildSignInRedirectPath, homePathForRole } from "./redirects";
 import { getCurrentUser } from "./getCurrentUser";
 
 export class ForbiddenError extends Error {
@@ -14,18 +16,17 @@ export class ForbiddenError extends Error {
 
 /**
  * Ensures the current session profile has one of the allowed roles.
- * Redirects to `/` when unauthenticated; throws {@link ForbiddenError} when authenticated but unauthorized.
+ * Redirects to `/sign-in` when unauthenticated; redirects to the user's home dashboard on role mismatch.
  */
 export async function requireProfileRole(
   allowed: ReadonlyArray<UserRole>,
 ): Promise<void> {
   const user = await getCurrentUser();
   if (!user) {
-    redirect("/");
+    const pathname = (await headers()).get("x-pathname");
+    redirect(buildSignInRedirectPath(pathname));
   }
   if (!allowed.includes(user.role)) {
-    throw new ForbiddenError(
-      `This area requires one of: ${allowed.join(", ")} (current role: ${user.role}).`,
-    );
+    redirect(homePathForRole(user.role));
   }
 }

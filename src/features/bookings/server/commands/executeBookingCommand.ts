@@ -1,11 +1,15 @@
-import type { AssignmentOfferRow, BookingRow, PaymentRow } from "@/lib/database/types";
+import type { AssignmentOfferRow, BookingRow, Json } from "@/lib/database/types";
+import { mergeBookingMetadataAssignment } from "@/features/assignments/server/assignmentMetadata";
+import { markBookingEarningsPaid } from "@/features/earnings/server/markPaidOut";
+import { markBookingEarningsPayoutReady } from "@/features/earnings/server/markPayoutReady";
+import { recordEarningsForBooking } from "@/features/earnings/server/recordEarningsForBooking";
 import type { BookingId, BookingStatus } from "../types";
 import { BOOKING_STATUSES } from "../types";
 import {
   assertActorAuthorizedForCommand,
   assertTransitionShape,
 } from "./bookingCommandGuards";
-import { InMemoryBookingCommandBackend } from "./inMemoryBookingCommandBackend";
+import type { BookingCommandBackend } from "./bookingCommandBackend";
 import type {
   BookingCommand,
   BookingCommandFailure,
@@ -39,33 +43,9 @@ function ok(
   return { ok: true, bookingId, status, idempotent };
 }
 
-function isPaidForBooking(
-  backend: InMemoryBookingCommandBackend,
-  bookingId: string,
-): boolean {
-  for (const p of backend.payments.values()) {
-    if (p.booking_id === bookingId && p.status === "paid") return true;
-  }
-  return false;
-}
-
-function getPayment(
-  backend: InMemoryBookingCommandBackend,
-  paymentId: string,
-): PaymentRow | undefined {
-  return backend.payments.get(paymentId);
-}
-
-function getOffer(
-  backend: InMemoryBookingCommandBackend,
-  offerId: string,
-): AssignmentOfferRow | undefined {
-  return backend.offers.get(offerId);
-}
-
 function assertCustomerOwnsBooking(
   cmd: BookingCommand,
-  booking: BookingRow,
+  booking: { customer_id: string },
   ctx: BookingCommandRunContext | undefined,
 ): BookingCommandResult | null {
   if (cmd.actor.actorType !== "customer") return null;
@@ -79,6 +59,29 @@ function assertCustomerOwnsBooking(
     return fail("FORBIDDEN", "Customer cannot act on another customer's booking.");
   }
   return null;
+}
+
+function isOfferExpired(offer: { expires_at: string | null }): boolean {
+  if (!offer.expires_at) return false;
+  return new Date(offer.expires_at).getTime() <= Date.now();
+}
+
+async function expireOtherOpenOffers(
+  backend: BookingCommandBackend,
+  bookingId: string,
+  exceptOfferId: string,
+): Promise<void> {
+  const offers = await backend.listOffersForBooking(bookingId);
+  const now = new Date().toISOString();
+  for (const o of offers) {
+    if (o.id === exceptOfferId || o.status !== "offered") continue;
+    await backend.updateOffer({
+      ...o,
+      status: "cancelled",
+      responded_at: now,
+      updated_at: now,
+    });
+  }
 }
 
 function assertCleanerIs(
@@ -100,12 +103,11 @@ function assertCleanerIs(
 }
 
 /**
- * Central booking command executor (in-memory reference implementation).
- * Server deployments should use the same guard ordering with a Supabase-backed
- * runtime that calls `booking_*` RPCs for atomic transitions.
+ * Central booking command executor. Guards run in-process; persistence is delegated
+ * to the injected {@link BookingCommandBackend} (in-memory for unit tests, Supabase for production).
  */
 export async function executeBookingCommand(
-  backend: InMemoryBookingCommandBackend,
+  backend: BookingCommandBackend,
   cmd: BookingCommand,
   ctx?: BookingCommandRunContext,
 ): Promise<BookingCommandResult> {
@@ -122,32 +124,35 @@ export async function executeBookingCommand(
       }
       const bid = crypto.randomUUID();
       const ts = new Date().toISOString();
-      const row: BookingRow = {
-        id: bid,
-        customer_id: cmd.customerId,
-        cleaner_id: null,
-        service_id: cmd.serviceId ?? null,
-        status: "draft",
-        scheduled_start: cmd.scheduledStart,
-        scheduled_end: cmd.scheduledEnd,
-        price_cents: cmd.priceCents,
-        currency: cmd.currency ?? "USD",
-        series_id: null,
-        metadata: {},
-        created_at: ts,
-        updated_at: ts,
-      };
-      backend.bookings.set(bid, row);
-      backend.appendAudit(cmd, bid, null, "draft");
-      backend.enqueueNotification("email", cmd.customerId, {
-        template: "booking_draft_created",
-        bookingId: bid,
-      });
-      return ok(bid, "draft", false);
+      try {
+        await backend.insertBooking({
+          id: bid,
+          customer_id: cmd.customerId,
+          cleaner_id: null,
+          service_id: cmd.serviceId ?? null,
+          status: "draft",
+          scheduled_start: cmd.scheduledStart,
+          scheduled_end: cmd.scheduledEnd,
+          price_cents: cmd.priceCents,
+          currency: cmd.currency ?? "USD",
+          series_id: null,
+          metadata: (cmd.metadata ?? {}) as BookingRow["metadata"],
+          created_at: ts,
+          updated_at: ts,
+        });
+        await backend.appendAudit(cmd, bid, null, "draft");
+        await backend.enqueueNotification("email", cmd.customerId, {
+          template: "booking_draft_created",
+          bookingId: bid,
+        });
+        return ok(bid, "draft", false);
+      } catch {
+        return fail("PERSISTENCE_ERROR", "Could not create booking draft.");
+      }
     }
 
     case "MARK_PAYMENT_PENDING": {
-      const booking = backend.bookings.get(cmd.bookingId);
+      const booking = await backend.getBooking(cmd.bookingId);
       if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
       const own = assertCustomerOwnsBooking(cmd, booking, ctx);
       if (own) return own;
@@ -155,42 +160,45 @@ export async function executeBookingCommand(
       const shape = assertTransitionShape(cmd, booking.status);
       if (shape) return shape;
 
-      for (const p of backend.payments.values()) {
-        if (p.idempotency_key === cmd.paymentIdempotencyKey) {
-          if (p.booking_id !== cmd.bookingId) {
-            return fail(
-              "INVALID_PAYLOAD",
-              "paymentIdempotencyKey already belongs to another booking.",
-            );
-          }
-          if (booking.status === "pending_payment") {
-            return ok(booking.id, "pending_payment", true);
-          }
+      const existingPayment = await backend.findPaymentByIdempotencyKey(
+        cmd.paymentIdempotencyKey,
+      );
+      if (existingPayment) {
+        if (existingPayment.booking_id !== cmd.bookingId) {
+          return fail(
+            "INVALID_PAYLOAD",
+            "paymentIdempotencyKey already belongs to another booking.",
+          );
+        }
+        if (booking.status === "pending_payment") {
+          return ok(booking.id, "pending_payment", true);
         }
       }
 
-      const payment: PaymentRow = {
-        id: crypto.randomUUID(),
-        booking_id: booking.id,
-        status: "pending",
-        provider: cmd.provider ?? "paystack",
-        provider_ref: null,
-        idempotency_key: cmd.paymentIdempotencyKey,
-        amount_cents: booking.price_cents,
-        currency: booking.currency,
-        metadata: {},
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      backend.payments.set(payment.id, payment);
+      const paymentId = crypto.randomUUID();
+      const paymentTs = new Date().toISOString();
       try {
-        const r = backend.applyTransition(
+        await backend.insertPayment({
+          id: paymentId,
+          booking_id: booking.id,
+          status: "pending",
+          provider: cmd.provider ?? "paystack",
+          provider_ref: null,
+          idempotency_key: cmd.paymentIdempotencyKey,
+          amount_cents: booking.price_cents,
+          currency: booking.currency,
+          payment_link_expires_at: null,
+          metadata: {},
+          created_at: paymentTs,
+          updated_at: paymentTs,
+        });
+        const r = await backend.applyTransition(
           cmd,
           booking.id,
           booking.status,
           "pending_payment",
         );
-        backend.enqueueNotification("email", booking.customer_id, {
+        await backend.enqueueNotification("email", booking.customer_id, {
           template: "payment_pending",
           bookingId: booking.id,
         });
@@ -204,12 +212,14 @@ export async function executeBookingCommand(
       if (!cmd.idempotencyKey?.trim()) {
         return fail("IDEMPOTENCY_REQUIRED", "FINALIZE_PAYMENT_SUCCESS requires idempotencyKey.");
       }
-      const booking = backend.bookings.get(cmd.bookingId);
+      const booking = await backend.getBooking(cmd.bookingId);
       if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
-      if (backend.findAuditsByBookingAndKey(cmd.bookingId, cmd.idempotencyKey).length > 0) {
+      if (
+        (await backend.findAuditsByBookingAndKey(cmd.bookingId, cmd.idempotencyKey)).length > 0
+      ) {
         return ok(booking.id, booking.status, true);
       }
-      const payment = getPayment(backend, cmd.paymentId);
+      const payment = await backend.getPayment(cmd.paymentId);
       if (!payment || payment.booking_id !== booking.id) {
         return fail("PAYMENT_NOT_FOUND", "Payment not found for this booking.");
       }
@@ -217,9 +227,9 @@ export async function executeBookingCommand(
       if (shape) return shape;
 
       try {
-        const r = backend.finalizePaymentSuccess(cmd, booking.id, payment.id);
+        const r = await backend.finalizePaymentSuccess(cmd, booking.id, payment.id);
         if (!r.idempotent) {
-          backend.enqueueNotification("email", booking.customer_id, {
+          await backend.enqueueNotification("email", booking.customer_id, {
             template: "payment_confirmed",
             bookingId: booking.id,
           });
@@ -231,9 +241,9 @@ export async function executeBookingCommand(
     }
 
     case "MARK_PAYMENT_FAILED": {
-      const booking = backend.bookings.get(cmd.bookingId);
+      const booking = await backend.getBooking(cmd.bookingId);
       if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
-      const payment = getPayment(backend, cmd.paymentId);
+      const payment = await backend.getPayment(cmd.paymentId);
       if (!payment || payment.booking_id !== booking.id) {
         return fail("PAYMENT_NOT_FOUND", "Payment not found for this booking.");
       }
@@ -241,8 +251,8 @@ export async function executeBookingCommand(
       if (shape) return shape;
 
       try {
-        const r = backend.recordPaymentFailure(cmd, booking.id, payment.id);
-        backend.enqueueNotification("email", booking.customer_id, {
+        const r = await backend.recordPaymentFailure(cmd, booking.id, payment.id);
+        await backend.enqueueNotification("email", booking.customer_id, {
           template: "payment_failed",
           bookingId: booking.id,
         });
@@ -253,24 +263,24 @@ export async function executeBookingCommand(
     }
 
     case "MOVE_TO_PENDING_ASSIGNMENT": {
-      const booking = backend.bookings.get(cmd.bookingId);
+      const booking = await backend.getBooking(cmd.bookingId);
       if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
       const shape = assertTransitionShape(cmd, booking.status);
       if (shape) return shape;
-      if (!isPaidForBooking(backend, booking.id)) {
+      if (!(await backend.hasPaidPaymentForBooking(booking.id))) {
         return fail(
           "PAYMENT_NOT_PAID",
           "Cannot enter pending_assignment until at least one payment is paid for this booking.",
         );
       }
       try {
-        const r = backend.applyTransition(
+        const r = await backend.applyTransition(
           cmd,
           booking.id,
           "confirmed",
           "pending_assignment",
         );
-        backend.enqueueNotification("email", booking.customer_id, {
+        await backend.enqueueNotification("email", booking.customer_id, {
           template: "pending_assignment",
           bookingId: booking.id,
         });
@@ -281,56 +291,113 @@ export async function executeBookingCommand(
     }
 
     case "OFFER_TO_CLEANER": {
-      const booking = backend.bookings.get(cmd.bookingId);
+      const booking = await backend.getBooking(cmd.bookingId);
       if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
       const shape = assertTransitionShape(cmd, booking.status);
       if (shape) return shape;
+      if (booking.cleaner_id && booking.cleaner_id !== cmd.cleanerId) {
+        return fail(
+          "ASSIGNMENT_CONFLICT",
+          "Booking is already assigned to another cleaner.",
+        );
+      }
+      const existingOffers = await backend.listOffersForBooking(booking.id);
+      for (const existing of existingOffers) {
+        if (existing.cleaner_id !== cmd.cleanerId) continue;
+        if (existing.status === "accepted") {
+          return ok(booking.id, booking.status, true);
+        }
+        if (existing.status === "offered") {
+          if (isOfferExpired(existing)) {
+            const expired: AssignmentOfferRow = {
+              ...existing,
+              status: "expired",
+              updated_at: new Date().toISOString(),
+            };
+            await backend.updateOffer(expired);
+          } else {
+            return ok(booking.id, booking.status, true);
+          }
+        }
+      }
       const ts = new Date().toISOString();
       const oid = crypto.randomUUID();
-      const offer: AssignmentOfferRow = {
-        id: oid,
-        booking_id: booking.id,
-        cleaner_id: cmd.cleanerId,
-        status: "offered",
-        offered_at: ts,
-        responded_at: null,
-        expires_at: cmd.expiresAt ?? null,
-        created_at: ts,
-        updated_at: ts,
-      };
-      backend.offers.set(oid, offer);
-      backend.enqueueNotification("push", cmd.cleanerId, {
-        template: "assignment_offer",
-        bookingId: booking.id,
-        offerId: oid,
-      });
-      return ok(booking.id, booking.status, false);
+      try {
+        await backend.insertOffer({
+          id: oid,
+          booking_id: booking.id,
+          cleaner_id: cmd.cleanerId,
+          status: "offered",
+          offered_at: ts,
+          responded_at: null,
+          expires_at: cmd.expiresAt ?? null,
+          created_at: ts,
+          updated_at: ts,
+        });
+        await backend.enqueueNotification("push", cmd.cleanerId, {
+          template: "assignment_offer",
+          bookingId: booking.id,
+          offerId: oid,
+        });
+        return ok(booking.id, booking.status, false);
+      } catch {
+        return fail("PERSISTENCE_ERROR", "Could not create assignment offer.");
+      }
     }
 
     case "DECLINE_CLEANER_ASSIGNMENT": {
-      const booking = backend.bookings.get(cmd.bookingId);
+      const booking = await backend.getBooking(cmd.bookingId);
       if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
       const shape = assertTransitionShape(cmd, booking.status);
       if (shape) return shape;
-      const offer = getOffer(backend, cmd.offerId);
+      const offer = await backend.getOffer(cmd.offerId);
       if (!offer || offer.booking_id !== booking.id) {
         return fail("OFFER_NOT_FOUND", "Offer not found for this booking.");
       }
       const cln = assertCleanerIs(cmd, offer.cleaner_id, ctx);
       if (cln) return cln;
+      if (offer.status === "declined") {
+        return ok(booking.id, booking.status, true);
+      }
       if (offer.status !== "offered") {
         return fail("OFFER_NOT_OPEN", "Offer is not in offered state.");
+      }
+      if (isOfferExpired(offer)) {
+        const expired: AssignmentOfferRow = {
+          ...offer,
+          status: "expired",
+          updated_at: new Date().toISOString(),
+        };
+        await backend.updateOffer(expired);
+        return fail("OFFER_NOT_OPEN", "Offer has expired.");
       }
       offer.status = "declined";
       offer.responded_at = new Date().toISOString();
       offer.updated_at = offer.responded_at;
-      backend.offers.set(offer.id, offer);
-      return ok(booking.id, booking.status, false);
+      try {
+        await backend.updateOffer(offer);
+        return ok(booking.id, booking.status, false);
+      } catch {
+        return fail("PERSISTENCE_ERROR", "Could not decline assignment offer.");
+      }
     }
 
     case "ACCEPT_CLEANER_ASSIGNMENT": {
-      const booking = backend.bookings.get(cmd.bookingId);
+      const booking = await backend.getBooking(cmd.bookingId);
       if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
+      const offer = await backend.getOffer(cmd.offerId);
+      if (!offer || offer.booking_id !== booking.id) {
+        return fail("OFFER_NOT_FOUND", "Offer not found for this booking.");
+      }
+      const cln = assertCleanerIs(cmd, offer.cleaner_id, ctx);
+      if (cln) return cln;
+      if (
+        offer.status === "accepted" &&
+        booking.status === "assigned" &&
+        booking.cleaner_id === offer.cleaner_id
+      ) {
+        return ok(booking.id, booking.status, true);
+      }
       const shape = assertTransitionShape(cmd, booking.status);
       if (shape) return shape;
       if (booking.status !== "pending_assignment") {
@@ -339,20 +406,23 @@ export async function executeBookingCommand(
           "Booking is not awaiting assignment acceptance.",
         );
       }
-      const offer = getOffer(backend, cmd.offerId);
-      if (!offer || offer.booking_id !== booking.id) {
-        return fail("OFFER_NOT_FOUND", "Offer not found for this booking.");
-      }
-      const cln = assertCleanerIs(cmd, offer.cleaner_id, ctx);
-      if (cln) return cln;
       if (offer.status !== "offered") {
         return fail("OFFER_NOT_OPEN", "Offer is not open for acceptance.");
+      }
+      if (isOfferExpired(offer)) {
+        const expired: AssignmentOfferRow = {
+          ...offer,
+          status: "expired",
+          updated_at: new Date().toISOString(),
+        };
+        await backend.updateOffer(expired);
+        return fail("OFFER_NOT_OPEN", "Offer has expired.");
       }
       if (booking.cleaner_id && booking.cleaner_id !== offer.cleaner_id) {
         return fail("ASSIGNMENT_CONFLICT", "Booking already assigned to a different cleaner.");
       }
       try {
-        const r = backend.applyTransition(
+        const r = await backend.applyTransition(
           cmd,
           booking.id,
           "pending_assignment",
@@ -362,8 +432,9 @@ export async function executeBookingCommand(
         offer.status = "accepted";
         offer.responded_at = new Date().toISOString();
         offer.updated_at = offer.responded_at;
-        backend.offers.set(offer.id, offer);
-        backend.enqueueNotification("email", booking.customer_id, {
+        await backend.updateOffer(offer);
+        await expireOtherOpenOffers(backend, booking.id, offer.id);
+        await backend.enqueueNotification("email", booking.customer_id, {
           template: "cleaner_assigned",
           bookingId: booking.id,
         });
@@ -373,9 +444,13 @@ export async function executeBookingCommand(
       }
     }
 
-    case "MARK_IN_PROGRESS": {
-      const booking = backend.bookings.get(cmd.bookingId);
+    case "MARK_IN_PROGRESS":
+    case "MARK_BOOKING_IN_PROGRESS": {
+      const booking = await backend.getBooking(cmd.bookingId);
       if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
+      if (booking.status === "in_progress") {
+        return ok(booking.id, booking.status, true);
+      }
       if (cmd.actor.actorType === "cleaner") {
         if (!booking.cleaner_id) {
           return fail("ASSIGNMENT_CONFLICT", "No cleaner assigned on this booking.");
@@ -386,15 +461,110 @@ export async function executeBookingCommand(
       const shape = assertTransitionShape(cmd, booking.status);
       if (shape) return shape;
       try {
-        const r = backend.applyTransition(cmd, booking.id, "assigned", "in_progress");
+        const r = await backend.applyTransition(cmd, booking.id, "assigned", "in_progress");
         return ok(booking.id, r.status, r.idempotent);
       } catch {
         return fail("PERSISTENCE_ERROR", "Mark in progress failed.");
       }
     }
 
+    case "MARK_BOOKING_COMPLETED": {
+      const booking = await backend.getBooking(cmd.bookingId);
+      if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
+      if (!booking.cleaner_id) {
+        return fail("ASSIGNMENT_CONFLICT", "No cleaner assigned on this booking.");
+      }
+      if (cmd.actor.actorType === "cleaner") {
+        const cln = assertCleanerIs(cmd, booking.cleaner_id, ctx);
+        if (cln) return cln;
+      }
+      if (!(await backend.hasPaidPaymentForBooking(booking.id))) {
+        return fail(
+          "PAYMENT_NOT_PAID",
+          "Cannot complete booking until payment is confirmed.",
+        );
+      }
+      if (!Number.isFinite(booking.price_cents) || booking.price_cents <= 0) {
+        return fail(
+          "INVALID_PAYLOAD",
+          "Booking total must be positive to complete.",
+        );
+      }
+
+      if (booking.status === "completed") {
+        const earnings = await recordEarningsForBooking(backend, booking);
+        if (!earnings.ok) {
+          return fail(earnings.code as BookingCommandFailure["code"], earnings.message);
+        }
+        return ok(booking.id, booking.status, true);
+      }
+
+      const shape = assertTransitionShape(cmd, booking.status);
+      if (shape) return shape;
+
+      try {
+        const r = await backend.applyTransition(cmd, booking.id, "in_progress", "completed");
+        const fresh = (await backend.getBooking(booking.id)) ?? booking;
+        const earnings = await recordEarningsForBooking(backend, fresh);
+        if (!earnings.ok) {
+          return fail(earnings.code as BookingCommandFailure["code"], earnings.message);
+        }
+        return ok(booking.id, r.status, r.idempotent);
+      } catch {
+        return fail("PERSISTENCE_ERROR", "Mark completed failed.");
+      }
+    }
+
+    case "MARK_BOOKING_PAYOUT_READY": {
+      const booking = await backend.getBooking(cmd.bookingId);
+      if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
+      if (booking.status === "payout_ready") {
+        return ok(booking.id, booking.status, true);
+      }
+      const shape = assertTransitionShape(cmd, booking.status);
+      if (shape) return shape;
+
+      const earningsReady = await markBookingEarningsPayoutReady(backend, booking.id);
+      if (!earningsReady.ok) {
+        return fail(earningsReady.code as BookingCommandFailure["code"], earningsReady.message);
+      }
+
+      try {
+        const r = await backend.applyTransition(cmd, booking.id, "completed", "payout_ready");
+        return ok(booking.id, r.status, r.idempotent);
+      } catch {
+        return fail("PERSISTENCE_ERROR", "Mark payout-ready failed.");
+      }
+    }
+
+    case "MARK_BOOKING_PAID_OUT": {
+      const booking = await backend.getBooking(cmd.bookingId);
+      if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
+      if (booking.status === "paid_out") {
+        return ok(booking.id, booking.status, true);
+      }
+      const shape = assertTransitionShape(cmd, booking.status);
+      if (shape) return shape;
+
+      const paid = await markBookingEarningsPaid(
+        backend,
+        booking.id,
+        cmd.payoutBatchId ?? null,
+      );
+      if (!paid.ok) {
+        return fail(paid.code as BookingCommandFailure["code"], paid.message);
+      }
+
+      try {
+        const r = await backend.applyTransition(cmd, booking.id, "payout_ready", "paid_out");
+        return ok(booking.id, r.status, r.idempotent);
+      } catch {
+        return fail("PERSISTENCE_ERROR", "Mark paid-out failed.");
+      }
+    }
+
     case "MARK_COMPLETED": {
-      const booking = backend.bookings.get(cmd.bookingId);
+      const booking = await backend.getBooking(cmd.bookingId);
       if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
       if (cmd.actor.actorType === "cleaner") {
         if (!booking.cleaner_id) {
@@ -418,15 +588,21 @@ export async function executeBookingCommand(
       const shape = assertTransitionShape(cmd, booking.status);
       if (shape) return shape;
       try {
-        const r = backend.applyTransition(cmd, booking.id, "in_progress", "completed");
+        const r = await backend.applyTransition(cmd, booking.id, "in_progress", "completed");
         if (cmd.recordEarningsSnapshot) {
-          backend.appendEarningLine({
+          const payout = cmd.earningsSnapshotCents!;
+          await backend.appendEarningLine({
             cleaner_id: cmd.earningsCleanerId!,
             booking_id: booking.id,
-            amount_cents: cmd.earningsSnapshotCents!,
+            amount_cents: payout,
+            gross_amount_cents: booking.price_cents,
+            payout_amount_cents: payout,
+            payout_status: "pending",
+            payout_batch_id: null,
             line_type: "booking_completion_snapshot",
             description: "Explicit snapshot from MARK_COMPLETED",
             metadata: { guarded: true },
+            calculation_metadata: { source: "MARK_COMPLETED_snapshot" },
           });
         }
         return ok(booking.id, r.status, r.idempotent);
@@ -436,14 +612,19 @@ export async function executeBookingCommand(
     }
 
     case "CANCEL_BOOKING": {
-      const booking = backend.bookings.get(cmd.bookingId);
+      const booking = await backend.getBooking(cmd.bookingId);
       if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
       const own = assertCustomerOwnsBooking(cmd, booking, ctx);
       if (own) return own;
       const shape = assertTransitionShape(cmd, booking.status);
       if (shape) return shape;
       try {
-        const r = backend.applyTransition(cmd, booking.id, booking.status, "cancelled");
+        const r = await backend.applyTransition(
+          cmd,
+          booking.id,
+          booking.status,
+          "cancelled",
+        );
         return ok(booking.id, r.status, r.idempotent);
       } catch {
         return fail("PERSISTENCE_ERROR", "Cancel booking failed.");
@@ -457,14 +638,27 @@ export async function executeBookingCommand(
       if (!(BOOKING_STATUSES as readonly string[]).includes(cmd.nextStatus)) {
         return fail("INVALID_PAYLOAD", "Invalid target status for admin override.");
       }
-      const booking = backend.bookings.get(cmd.bookingId);
+      const booking = await backend.getBooking(cmd.bookingId);
       if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
-      const from = booking.status;
-      booking.status = cmd.nextStatus;
-      booking.updated_at = new Date().toISOString();
-      backend.bookings.set(booking.id, booking);
-      backend.appendAudit(cmd, booking.id, from, cmd.nextStatus);
-      return ok(booking.id, cmd.nextStatus, false);
+      try {
+        const status = await backend.adminOverrideStatus(cmd, booking);
+        return ok(booking.id, status, false);
+      } catch {
+        return fail("PERSISTENCE_ERROR", "Admin override failed.");
+      }
+    }
+
+    case "RECORD_ASSIGNMENT_ATTENTION": {
+      const booking = await backend.getBooking(cmd.bookingId);
+      if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
+      try {
+        const merged = mergeBookingMetadataAssignment(booking.metadata, cmd.assignment);
+        await backend.updateBookingMetadata(booking.id, merged as Json);
+        await backend.appendAudit(cmd, booking.id, booking.status, booking.status);
+        return ok(booking.id, booking.status, false);
+      } catch {
+        return fail("PERSISTENCE_ERROR", "Could not record assignment metadata.");
+      }
     }
 
     default: {

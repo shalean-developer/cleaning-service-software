@@ -1,16 +1,30 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/database/types";
+import {
+  buildSignInRedirectPath,
+  homePathForRole,
+  requiredRoleForDashboardPath,
+} from "@/lib/auth/redirects";
 import { getSupabasePublicEnv } from "@/lib/supabase/publicEnv";
 
 export async function middleware(request: NextRequest) {
   const env = getSupabasePublicEnv();
-  const response = NextResponse.next({ request });
+  const pathname = request.nextUrl.pathname;
 
   if (!env) {
-    response.headers.set("x-auth-enforcement", "disabled");
-    return response;
+    const signInUrl = new URL(
+      buildSignInRedirectPath(pathname),
+      request.url,
+    );
+    return NextResponse.redirect(signInUrl);
   }
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", pathname);
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
 
   const supabase = createServerClient<Database>(env.url, env.anonKey, {
     cookies: {
@@ -30,27 +44,32 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    url.searchParams.set("redirectedFrom", request.nextUrl.pathname);
-    return NextResponse.redirect(url);
+    const signInUrl = new URL(
+      buildSignInRedirectPath(pathname),
+      request.url,
+    );
+    return NextResponse.redirect(signInUrl);
   }
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("*")
+    .select("role")
     .eq("id", user.id)
     .maybeSingle();
 
-  const path = request.nextUrl.pathname;
-  if (path.startsWith("/admin") && profile?.role !== "admin") {
-    return NextResponse.redirect(new URL("/", request.url));
+  if (!profile?.role) {
+    const signInUrl = new URL(
+      buildSignInRedirectPath(pathname),
+      request.url,
+    );
+    return NextResponse.redirect(signInUrl);
   }
-  if (path.startsWith("/cleaner") && profile?.role !== "cleaner") {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-  if (path.startsWith("/customer") && profile?.role !== "customer") {
-    return NextResponse.redirect(new URL("/", request.url));
+
+  const requiredRole = requiredRoleForDashboardPath(pathname);
+  if (requiredRole && profile.role !== requiredRole) {
+    return NextResponse.redirect(
+      new URL(homePathForRole(profile.role), request.url),
+    );
   }
 
   return response;

@@ -35,6 +35,9 @@ export const ASSIGNMENT_OFFER_STATUSES = [
 ] as const;
 export type AssignmentOfferStatus = (typeof ASSIGNMENT_OFFER_STATUSES)[number];
 
+export const BOOKING_LOCK_STATUSES = ["active", "consumed", "expired"] as const;
+export type BookingLockStatus = (typeof BOOKING_LOCK_STATUSES)[number];
+
 export const NOTIFICATION_OUTBOX_STATUSES = [
   "pending",
   "processing",
@@ -66,8 +69,43 @@ export type CleanerRow = {
   profile_id: string;
   phone: string | null;
   active: boolean;
+  suspended_at: string | null;
+  average_rating: number | null;
   created_at: string;
   updated_at: string;
+};
+
+export type CleanerServiceAreaRow = {
+  id: string;
+  cleaner_id: string;
+  area_slug: string;
+  created_at: string;
+};
+
+export type CleanerServiceCapabilityRow = {
+  id: string;
+  cleaner_id: string;
+  service_slug: string;
+  created_at: string;
+};
+
+export type CleanerAvailabilityRow = {
+  id: string;
+  cleaner_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  timezone: string;
+  created_at: string;
+};
+
+export type CleanerTimeOffRow = {
+  id: string;
+  cleaner_id: string;
+  start_at: string;
+  end_at: string;
+  reason: string | null;
+  created_at: string;
 };
 
 export type ServiceRow = {
@@ -107,7 +145,32 @@ export type PaymentRow = {
   idempotency_key: string;
   amount_cents: number;
   currency: string;
+  payment_link_expires_at: string | null;
   metadata: Json;
+  created_at: string;
+  updated_at: string;
+};
+
+export type BookingLockRow = {
+  id: string;
+  booking_id: string;
+  customer_id: string;
+  idempotency_key: string;
+  status: BookingLockStatus;
+  locked_at: string;
+  expires_at: string;
+  locked_price_cents: number;
+  locked_currency: string;
+  locked_service_slug: string;
+  locked_schedule_start: string;
+  locked_schedule_end: string;
+  locked_schedule_timezone: string;
+  locked_area_slug: string;
+  locked_cleaner_preference: Json;
+  locked_metadata: Json;
+  client_quote_total_cents: number | null;
+  inputs_hash: string;
+  lock_version: number;
   created_at: string;
   updated_at: string;
 };
@@ -133,15 +196,36 @@ export type AssignmentOfferRow = {
   updated_at: string;
 };
 
+export const EARNING_PAYOUT_STATUSES = ["pending", "payout_ready", "paid"] as const;
+export type EarningPayoutStatus = (typeof EARNING_PAYOUT_STATUSES)[number];
+
 export type EarningLineRow = {
   id: string;
   cleaner_id: string;
   booking_id: string | null;
   amount_cents: number;
+  gross_amount_cents: number;
+  payout_amount_cents: number;
+  payout_status: EarningPayoutStatus;
+  payout_batch_id: string | null;
   line_type: string;
   description: string | null;
   metadata: Json;
+  calculation_metadata: Json;
   created_at: string;
+};
+
+export type PayoutBatchRow = {
+  id: string;
+  label: string | null;
+  status: string;
+  total_payout_cents: number;
+  currency: string;
+  metadata: Json;
+  created_by_profile_id: string | null;
+  created_at: string;
+  updated_at: string;
+  settled_at: string | null;
 };
 
 export type NotificationOutboxRow = {
@@ -189,12 +273,18 @@ export type Database = {
       profiles: PublicTable<ProfileRow>;
       customers: PublicTable<CustomerRow>;
       cleaners: PublicTable<CleanerRow>;
+      cleaner_service_areas: PublicTable<CleanerServiceAreaRow>;
+      cleaner_service_capabilities: PublicTable<CleanerServiceCapabilityRow>;
+      cleaner_availability: PublicTable<CleanerAvailabilityRow>;
+      cleaner_time_off: PublicTable<CleanerTimeOffRow>;
       services: PublicTable<ServiceRow>;
       bookings: PublicTable<BookingRow>;
+      booking_locks: PublicTable<BookingLockRow>;
       payments: PublicTable<PaymentRow>;
       payment_events: PublicTable<PaymentEventRow>;
       assignment_offers: PublicTable<AssignmentOfferRow>;
       earning_lines: PublicTable<EarningLineRow>;
+      payout_batches: PublicTable<PayoutBatchRow>;
       notification_outbox: PublicTable<NotificationOutboxRow>;
       booking_state_audit: PublicTable<BookingStateAuditRow>;
     };
@@ -211,6 +301,8 @@ export type Database = {
       payment_status: PaymentStatus;
       assignment_offer_status: AssignmentOfferStatus;
       notification_outbox_status: NotificationOutboxStatus;
+      booking_lock_status: BookingLockStatus;
+      earning_payout_status: EarningPayoutStatus;
     };
     Functions: {
       booking_apply_transition: {

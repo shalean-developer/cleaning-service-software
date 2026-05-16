@@ -22,8 +22,13 @@ export const BOOKING_COMMAND_TYPES = [
   "DECLINE_CLEANER_ASSIGNMENT",
   "MARK_IN_PROGRESS",
   "MARK_COMPLETED",
+  "MARK_BOOKING_IN_PROGRESS",
+  "MARK_BOOKING_COMPLETED",
+  "MARK_BOOKING_PAYOUT_READY",
+  "MARK_BOOKING_PAID_OUT",
   "CANCEL_BOOKING",
   "ADMIN_OVERRIDE_STATUS",
+  "RECORD_ASSIGNMENT_ATTENTION",
 ] as const;
 
 export type BookingCommandType = (typeof BOOKING_COMMAND_TYPES)[number];
@@ -49,9 +54,14 @@ export type CreateBookingDraftCommand = BaseCommand & {
   customerId: string;
   scheduledStart: string;
   scheduledEnd: string;
+  /** Customer total from `calculateQuote()` (ZAR cents). */
   priceCents: number;
   currency?: string;
   serviceId?: string | null;
+  /**
+   * Persist quote snapshot via `buildBookingQuoteMetadata()` from `@/features/pricing`
+   * (e.g. `metadata.quote` on the booking row).
+   */
 };
 
 export type MarkPaymentPendingCommand = BaseCommand & {
@@ -115,6 +125,27 @@ export type MarkCompletedCommand = BaseCommand & {
   earningsCleanerId?: string | null;
 };
 
+export type MarkBookingInProgressCommand = BaseCommand & {
+  type: "MARK_BOOKING_IN_PROGRESS";
+  bookingId: BookingId;
+};
+
+export type MarkBookingCompletedCommand = BaseCommand & {
+  type: "MARK_BOOKING_COMPLETED";
+  bookingId: BookingId;
+};
+
+export type MarkBookingPayoutReadyCommand = BaseCommand & {
+  type: "MARK_BOOKING_PAYOUT_READY";
+  bookingId: BookingId;
+};
+
+export type MarkBookingPaidOutCommand = BaseCommand & {
+  type: "MARK_BOOKING_PAID_OUT";
+  bookingId: BookingId;
+  payoutBatchId?: string | null;
+};
+
 export type CancelBookingCommand = BaseCommand & {
   type: "CANCEL_BOOKING";
   bookingId: BookingId;
@@ -125,6 +156,13 @@ export type AdminOverrideStatusCommand = BaseCommand & {
   bookingId: BookingId;
   nextStatus: BookingStatus;
   reason: string;
+};
+
+/** System/service only — records assignment outcome in booking.metadata without status change. */
+export type RecordAssignmentAttentionCommand = BaseCommand & {
+  type: "RECORD_ASSIGNMENT_ATTENTION";
+  bookingId: BookingId;
+  assignment: import("@/features/assignments/server/types").AssignmentMetadata;
 };
 
 export type BookingCommand =
@@ -138,8 +176,13 @@ export type BookingCommand =
   | DeclineCleanerAssignmentCommand
   | MarkInProgressCommand
   | MarkCompletedCommand
+  | MarkBookingInProgressCommand
+  | MarkBookingCompletedCommand
+  | MarkBookingPayoutReadyCommand
+  | MarkBookingPaidOutCommand
   | CancelBookingCommand
-  | AdminOverrideStatusCommand;
+  | AdminOverrideStatusCommand
+  | RecordAssignmentAttentionCommand;
 
 export type BookingCommandErrorCode =
   | "FORBIDDEN"
@@ -154,7 +197,9 @@ export type BookingCommandErrorCode =
   | "TERMINAL_STATE"
   | "PERSISTENCE_ERROR"
   | "CONCURRENCY_CONFLICT"
-  | "IDEMPOTENCY_REQUIRED";
+  | "IDEMPOTENCY_REQUIRED"
+  | "EARNINGS_NOT_FOUND"
+  | "EARNINGS_INVALID";
 
 export type BookingCommandFailure = {
   ok: false;

@@ -8,6 +8,7 @@ import type {
   EarningLineRow,
 } from "@/lib/database/types";
 import type { BookingStatus } from "../types";
+import type { BookingCommandBackend, TransitionResult } from "./bookingCommandBackend";
 import { buildAuditEnvelope } from "./bookingCommandAudit";
 import type { BookingCommand } from "./types";
 
@@ -19,7 +20,7 @@ function id(): string {
   return crypto.randomUUID();
 }
 
-export class InMemoryBookingCommandBackend {
+export class InMemoryBookingCommandBackend implements BookingCommandBackend {
   bookings = new Map<string, BookingRow>();
   payments = new Map<string, PaymentRow>();
   offers = new Map<string, AssignmentOfferRow>();
@@ -28,22 +29,80 @@ export class InMemoryBookingCommandBackend {
   earnings: EarningLineRow[] = [];
   private auditSeq = 1;
 
-  findAuditsByBookingAndKey(
+  async getBooking(bookingId: string): Promise<BookingRow | null> {
+    return this.bookings.get(bookingId) ?? null;
+  }
+
+  async getPayment(paymentId: string): Promise<PaymentRow | null> {
+    return this.payments.get(paymentId) ?? null;
+  }
+
+  async getOffer(offerId: string): Promise<AssignmentOfferRow | null> {
+    return this.offers.get(offerId) ?? null;
+  }
+
+  async findPaymentByIdempotencyKey(key: string): Promise<PaymentRow | null> {
+    for (const p of this.payments.values()) {
+      if (p.idempotency_key === key) return p;
+    }
+    return null;
+  }
+
+  async listPaymentsForBooking(bookingId: string): Promise<PaymentRow[]> {
+    return [...this.payments.values()].filter((p) => p.booking_id === bookingId);
+  }
+
+  async listOffersForBooking(bookingId: string): Promise<AssignmentOfferRow[]> {
+    return [...this.offers.values()].filter((o) => o.booking_id === bookingId);
+  }
+
+  async findAuditsByBookingAndKey(
     bookingId: string,
     key: string | null | undefined,
-  ): BookingStateAuditRow[] {
+  ): Promise<BookingStateAuditRow[]> {
     if (!key) return [];
     return this.audits.filter(
       (a) => a.booking_id === bookingId && a.idempotency_key === key,
     );
   }
 
-  appendAudit(
+  async hasPaidPaymentForBooking(bookingId: string): Promise<boolean> {
+    for (const p of this.payments.values()) {
+      if (p.booking_id === bookingId && p.status === "paid") return true;
+    }
+    return false;
+  }
+
+  async insertBooking(row: BookingRow): Promise<void> {
+    this.bookings.set(row.id, row);
+  }
+
+  async updateBookingMetadata(bookingId: string, metadata: Json): Promise<void> {
+    const booking = this.bookings.get(bookingId);
+    if (!booking) throw new Error("BOOKING_NOT_FOUND");
+    booking.metadata = metadata;
+    booking.updated_at = nowIso();
+    this.bookings.set(bookingId, booking);
+  }
+
+  async insertPayment(payment: PaymentRow): Promise<void> {
+    this.payments.set(payment.id, payment);
+  }
+
+  async insertOffer(offer: AssignmentOfferRow): Promise<void> {
+    this.offers.set(offer.id, offer);
+  }
+
+  async updateOffer(offer: AssignmentOfferRow): Promise<void> {
+    this.offers.set(offer.id, offer);
+  }
+
+  async appendAudit(
     cmd: BookingCommand,
     bookingId: string,
     from: BookingStatus | null,
     to: BookingStatus,
-  ): BookingStateAuditRow {
+  ): Promise<void> {
     const env = buildAuditEnvelope(cmd, from, to);
     const row: BookingStateAuditRow = {
       id: this.auditSeq++,
@@ -60,10 +119,9 @@ export class InMemoryBookingCommandBackend {
       metadata: env.metadata,
     };
     this.audits.push(row);
-    return row;
   }
 
-  enqueueNotification(channel: string, recipient: string, payload: Json): void {
+  async enqueueNotification(channel: string, recipient: string, payload: Json): Promise<void> {
     const ts = nowIso();
     this.notifications.push({
       id: id(),
@@ -79,22 +137,52 @@ export class InMemoryBookingCommandBackend {
     });
   }
 
-  appendEarningLine(line: Omit<EarningLineRow, "id" | "created_at">): EarningLineRow {
+  async appendEarningLine(line: Omit<EarningLineRow, "id" | "created_at">): Promise<void> {
+    const payoutAmount = line.payout_amount_cents ?? line.amount_cents;
     const row: EarningLineRow = {
       ...line,
+      amount_cents: line.amount_cents ?? payoutAmount,
+      gross_amount_cents: line.gross_amount_cents ?? payoutAmount,
+      payout_amount_cents: payoutAmount,
+      payout_status: line.payout_status ?? "pending",
+      payout_batch_id: line.payout_batch_id ?? null,
+      calculation_metadata: line.calculation_metadata ?? {},
       id: id(),
       created_at: nowIso(),
     };
     this.earnings.push(row);
-    return row;
   }
 
-  finalizePaymentSuccess(
+  async listEarningLinesForBooking(bookingId: string): Promise<EarningLineRow[]> {
+    return this.earnings.filter((e) => e.booking_id === bookingId);
+  }
+
+  async updateEarningLinesPayoutStatus(
+    bookingId: string,
+    from: EarningLineRow["payout_status"],
+    to: EarningLineRow["payout_status"],
+    payoutBatchId?: string | null,
+  ): Promise<number> {
+    let count = 0;
+    for (let i = 0; i < this.earnings.length; i++) {
+      const line = this.earnings[i]!;
+      if (line.booking_id !== bookingId || line.payout_status !== from) continue;
+      this.earnings[i] = {
+        ...line,
+        payout_status: to,
+        payout_batch_id: payoutBatchId ?? line.payout_batch_id,
+      };
+      count++;
+    }
+    return count;
+  }
+
+  async finalizePaymentSuccess(
     cmd: BookingCommand & { type: "FINALIZE_PAYMENT_SUCCESS" },
     bookingId: string,
     paymentId: string,
-  ): { status: BookingStatus; idempotent: boolean } {
-    if (this.findAuditsByBookingAndKey(bookingId, cmd.idempotencyKey).length) {
+  ): Promise<TransitionResult> {
+    if ((await this.findAuditsByBookingAndKey(bookingId, cmd.idempotencyKey)).length) {
       const b = this.bookings.get(bookingId)!;
       return { status: b.status, idempotent: true };
     }
@@ -117,18 +205,18 @@ export class InMemoryBookingCommandBackend {
     booking.status = "confirmed";
     booking.updated_at = nowIso();
     this.bookings.set(booking.id, booking);
-    this.appendAudit(cmd, booking.id, from, "confirmed");
+    await this.appendAudit(cmd, booking.id, from, "confirmed");
     return { status: "confirmed", idempotent: false };
   }
 
-  recordPaymentFailure(
+  async recordPaymentFailure(
     cmd: BookingCommand & { type: "MARK_PAYMENT_FAILED" },
     bookingId: string,
     paymentId: string,
-  ): { status: BookingStatus; idempotent: boolean } {
+  ): Promise<TransitionResult> {
     if (
       cmd.idempotencyKey &&
-      this.findAuditsByBookingAndKey(bookingId, cmd.idempotencyKey).length
+      (await this.findAuditsByBookingAndKey(bookingId, cmd.idempotencyKey)).length
     ) {
       return { status: this.bookings.get(bookingId)!.status, idempotent: true };
     }
@@ -144,20 +232,20 @@ export class InMemoryBookingCommandBackend {
     booking.status = "payment_failed";
     booking.updated_at = nowIso();
     this.bookings.set(booking.id, booking);
-    this.appendAudit(cmd, booking.id, from, "payment_failed");
+    await this.appendAudit(cmd, booking.id, from, "payment_failed");
     return { status: "payment_failed", idempotent: false };
   }
 
-  applyTransition(
+  async applyTransition(
     cmd: BookingCommand,
     bookingId: string,
     from: BookingStatus,
     to: BookingStatus,
     cleanerId?: string | null,
-  ): { status: BookingStatus; idempotent: boolean } {
+  ): Promise<TransitionResult> {
     if (
       cmd.idempotencyKey &&
-      this.findAuditsByBookingAndKey(bookingId, cmd.idempotencyKey).length
+      (await this.findAuditsByBookingAndKey(bookingId, cmd.idempotencyKey)).length
     ) {
       return { status: this.bookings.get(bookingId)!.status, idempotent: true };
     }
@@ -170,7 +258,19 @@ export class InMemoryBookingCommandBackend {
     booking.updated_at = nowIso();
     if (cleanerId) booking.cleaner_id = cleanerId;
     this.bookings.set(booking.id, booking);
-    this.appendAudit(cmd, booking.id, from, to);
+    await this.appendAudit(cmd, booking.id, from, to);
     return { status: to, idempotent: false };
+  }
+
+  async adminOverrideStatus(
+    cmd: BookingCommand & { type: "ADMIN_OVERRIDE_STATUS" },
+    booking: BookingRow,
+  ): Promise<BookingStatus> {
+    const from = booking.status;
+    booking.status = cmd.nextStatus;
+    booking.updated_at = nowIso();
+    this.bookings.set(booking.id, booking);
+    await this.appendAudit(cmd, booking.id, from, cmd.nextStatus);
+    return cmd.nextStatus;
   }
 }

@@ -1,7 +1,8 @@
 import type { BookingId, BookingStatus } from "./types";
 
 /**
- * Read models for bookings. Replace with Supabase queries + RLS-safe clients later.
+ * Legacy booking query helpers. Dashboards use
+ * `@/features/dashboards/server/*ReadModel` with RLS-scoped clients instead.
  */
 
 export type BookingRecord = {

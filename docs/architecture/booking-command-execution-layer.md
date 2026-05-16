@@ -4,44 +4,82 @@
 
 All booking lifecycle mutations, payment state transitions that affect bookings, cleaner assignment transitions, audit rows, notification outbox rows, and guarded earnings snapshots must flow through **`executeBookingCommand()`** (`src/features/bookings/server/commands/executeBookingCommand.ts`).
 
-The in-memory backend (`InMemoryBookingCommandBackend`) is the reference implementation used by unit tests. Production wiring should call the same guards, then persist using:
+Persistence is delegated to a **`BookingCommandBackend`** port:
 
-1. **Postgres RPCs** in `supabase/migrations/20260515203000_booking_command_layer.sql` (`booking_apply_transition`, `booking_finalize_payment_success`, `booking_record_payment_failure`) for atomic booking + payment + audit updates where applicable, and  
-2. **Supabase server client** (`src/lib/supabase/server.ts`) with the **service role** only inside trusted server code (never in the browser).
+| Backend | When used |
+|---------|-----------|
+| `InMemoryBookingCommandBackend` | Unit tests; local dev when `BOOKING_COMMAND_BACKEND=memory` and no service role key |
+| `SupabaseBookingCommandBackend` | Production and integration tests when `SUPABASE_SERVICE_ROLE_KEY` is set |
 
-## Command types
+Use **`runBookingCommand()`** (`runBookingCommand.ts`) from server code to pick the backend automatically.
 
-Typed discriminated unions live in `src/features/bookings/server/commands/types.ts`. Initial supported commands:
+## Guard ordering (unchanged)
 
-| Command | Booking status effect | Notes |
-|--------|------------------------|--------|
-| `CREATE_BOOKING_DRAFT` | → `draft` | Creates row + audit |
-| `MARK_PAYMENT_PENDING` | `draft` / `payment_failed` → `pending_payment` | Creates `payments` row |
-| `FINALIZE_PAYMENT_SUCCESS` | `pending_payment` → `confirmed` | **Idempotent** via `idempotency_key` on audit + executor short-circuit |
-| `MARK_PAYMENT_FAILED` | `pending_payment` → `payment_failed` | Optional idempotency on audit |
-| `MOVE_TO_PENDING_ASSIGNMENT` | `confirmed` → `pending_assignment` | Blocked unless a **paid** payment exists for the booking |
-| `OFFER_TO_CLEANER` | (none) | Inserts `assignment_offers` only |
-| `DECLINE_CLEANER_ASSIGNMENT` | (none) | Updates offer |
-| `ACCEPT_CLEANER_ASSIGNMENT` | `pending_assignment` → `assigned` | Sets `cleaner_id` |
-| `MARK_IN_PROGRESS` | `assigned` → `in_progress` | Cleaner-scoped when actor is cleaner |
-| `MARK_COMPLETED` | `in_progress` → `completed` | Earnings only with explicit cents + cleaner id |
-| `CANCEL_BOOKING` | → `cancelled` | Customer ownership enforced via run context |
-| `ADMIN_OVERRIDE_STATUS` | arbitrary | Admin-only; requires `reason`; always audited |
+1. `assertActorAuthorizedForCommand`
+2. Ownership context (`actingCustomerId` / `actingCleanerId` from `resolveActorScope.ts`)
+3. `assertTransitionShape`
+4. Backend persist (RPC or DML)
 
-## Guards & audit
+## Who may mutate `bookings.status`
 
-- **Role / actor policy:** `bookingCommandGuards.ts` → `assertActorAuthorizedForCommand`  
-- **Transition shape:** `assertTransitionShape` + `nextStatusForCommand`  
-- **Audit envelope:** `bookingCommandAudit.ts` → `buildAuditEnvelope` (payload + metadata mirror for DB compatibility)
+| Allowed | Mechanism |
+|---------|-----------|
+| Yes | `booking_apply_transition`, `booking_finalize_payment_success`, `booking_record_payment_failure` (Postgres RPCs) |
+| Yes | `SupabaseBookingCommandBackend` calling those RPCs only |
+| Yes | `InMemoryBookingCommandBackend` (tests) |
+| No | Direct `supabase.from('bookings').update({ status })` in app code |
+| No | Patches that include `status` — blocked by `forbidBookingStatusInPatch()` |
 
-## Direct mutation guard
+A static Vitest scan (`bookingStatusMutationGuard.test.ts`) fails CI if application code introduces direct booking status updates outside the approved adapters.
 
-`forbidBookingStatusInPatch()` (`src/features/bookings/server/directMutationGuard.ts`) throws if application code attempts to patch `status` on booking-shaped objects. Wrap repository update payloads where helpful.
+## Command → persistence mapping
 
-## Persistence gaps (intentional)
+| Command | Booking status effect | Persistence |
+|--------|------------------------|-------------|
+| `CREATE_BOOKING_DRAFT` | → `draft` | Insert `bookings` + audit |
+| `MARK_PAYMENT_PENDING` | → `pending_payment` | Insert `payments` + `booking_apply_transition` |
+| `FINALIZE_PAYMENT_SUCCESS` | → `confirmed` | `booking_finalize_payment_success` |
+| `MARK_PAYMENT_FAILED` | → `payment_failed` | `booking_record_payment_failure` |
+| `MOVE_TO_PENDING_ASSIGNMENT` | → `pending_assignment` | `booking_apply_transition` (requires paid payment) |
+| `OFFER_TO_CLEANER` | (none) | Insert `assignment_offers` |
+| `DECLINE_CLEANER_ASSIGNMENT` | (none) | Update offer |
+| `ACCEPT_CLEANER_ASSIGNMENT` | → `assigned` | `booking_apply_transition` + offer update |
+| `MARK_IN_PROGRESS` | → `in_progress` | `booking_apply_transition` |
+| `MARK_COMPLETED` | → `completed` | `booking_apply_transition` + optional `earning_lines` |
+| `CANCEL_BOOKING` | → `cancelled` | `booking_apply_transition` |
+| `ADMIN_OVERRIDE_STATUS` | arbitrary | `booking_apply_transition` from current status |
 
-- `executeBookingCommand` ships with the **in-memory** backend; a thin Supabase adapter that calls the new RPCs and mirrors the same guard ordering is the next wiring step.  
-- `OFFER_TO_CLEANER` / `DECLINE_*` / notification inserts are not yet inside the same Postgres RPC as status changes (documented trade-off until a single `execute_booking_command` RPC is justified).
+## Server-only clients
+
+- **User session:** `src/lib/supabase/server.ts` (anon key + cookies)
+- **Commands / webhooks:** `src/lib/supabase/serviceRole.ts` — never import from client bundles (`import "server-only"`)
+
+## Actor scope
+
+`src/lib/auth/resolveActorScope.ts` maps `profiles.id` + role to `customers.id` / `cleaners.id` for `BookingCommandRunContext`.
+
+## Environment
+
+| Variable | Effect |
+|----------|--------|
+| `SUPABASE_SERVICE_ROLE_KEY` | Enables Supabase backend when `BOOKING_COMMAND_BACKEND` is unset |
+| `BOOKING_COMMAND_BACKEND` | `memory` \| `supabase` (explicit override) |
+| `SUPABASE_URL` or `NEXT_PUBLIC_SUPABASE_URL` | API URL for service role client |
+| `BOOKING_COMMAND_RUN_REMOTE_INTEGRATION` | Must be `true` to run integration tests against remote Supabase |
+
+## Integration tests
+
+See [booking-command-integration-tests.md](../testing/booking-command-integration-tests.md) for local vs remote setup, opt-in rules, and cleanup behavior.
+
+## Blocked until later phases
+
+| Concern | Phase |
+|---------|-------|
+| Row Level Security on user-facing tables | Phase 2 |
+| Deny `authenticated` direct `bookings.status` updates | Phase 2 |
+| Paystack initialize / webhook / verify | Implemented — see [paystack-foundation.md](../payments/paystack-foundation.md) |
+| Unified `execute_booking_command(jsonb)` RPC | Optional follow-up |
+| Profile bootstrap trigger on signup | Phase 2 |
 
 ## Related migrations
 

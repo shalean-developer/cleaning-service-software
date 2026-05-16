@@ -9,8 +9,10 @@ Canonical statuses (TypeScript + Postgres enum `public.booking_status`):
 | `confirmed` | Payment succeeded; booking is firm before assignment pool. |
 | `pending_assignment` | Paid; dispatch can offer cleaners / accept assignment. |
 | `assigned` | Cleaner locked in. |
-| `in_progress` | Job started. |
-| `completed` | Job finished successfully (terminal). |
+| `in_progress` | Job started by assigned cleaner. |
+| `completed` | Job finished; earnings ledger line created. |
+| `payout_ready` | Admin approved earnings for settlement. |
+| `paid_out` | Admin marked paid (ledger only; terminal). |
 | `cancelled` | Cancelled from an allowed prior state (terminal). |
 | `payment_failed` | Payment did not succeed; customer may retry to `pending_payment`. |
 
@@ -29,6 +31,20 @@ Pure helpers:
 ## Payment → assignment invariant
 
 `MOVE_TO_PENDING_ASSIGNMENT` is only valid from `confirmed` **and** requires at least one `payments` row in `paid` for the booking. Cleaner offers require `pending_assignment`.
+
+## Completion and payouts (Phase 10)
+
+After `assigned`, the assigned cleaner runs:
+
+1. `MARK_BOOKING_IN_PROGRESS` (`assigned` → `in_progress`)
+2. `MARK_BOOKING_COMPLETED` (`in_progress` → `completed`) — creates `earning_lines` via pricing snapshot
+
+Admin settlement:
+
+3. `MARK_BOOKING_PAYOUT_READY` (`completed` → `payout_ready`)
+4. `MARK_BOOKING_PAID_OUT` (`payout_ready` → `paid_out`)
+
+See [earnings and payouts](./earnings/earnings-and-payouts.md).
 
 ## Legacy note
 
