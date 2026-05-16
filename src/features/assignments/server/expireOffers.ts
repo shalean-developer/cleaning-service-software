@@ -2,29 +2,39 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database/types";
-import { isOfferPastExpiry } from "./buildOfferExpiry";
-import { recordAssignmentOutcome } from "./recordAssignmentOutcome";
 import type { BookingCommandBackend } from "@/features/bookings/server/commands/bookingCommandBackend";
 import { createBookingCommandBackend } from "@/features/bookings/server/commands/runBookingCommand";
+import { EXPIRE_OFFERS_BATCH_SIZE } from "./constants";
+import { processBookingAfterOfferExpiry } from "./processBookingAfterOfferExpiry";
 
 export type ExpireOffersResult = {
   expiredCount: number;
   bookingIds: string[];
+  redispatchedBookingIds: string[];
+  attentionBookingIds: string[];
 };
 
 /**
  * Marks stale `offered` rows as `expired` and flags bookings for admin redispatch.
- * Safe to call manually or from a future cron job.
+ * Idempotent: already-expired rows are not selected; updates use status = offered guard.
+ * Safe to call from cron or manual ops.
  */
 export async function expireStaleAssignmentOffers(
   client: SupabaseClient<Database>,
   backend: BookingCommandBackend = createBookingCommandBackend(),
   now: Date = new Date(),
+  batchSize: number = EXPIRE_OFFERS_BATCH_SIZE,
 ): Promise<ExpireOffersResult> {
+  const nowIso = now.toISOString();
+
   const { data, error } = await client
     .from("assignment_offers")
     .select("*")
-    .eq("status", "offered");
+    .eq("status", "offered")
+    .not("expires_at", "is", null)
+    .lte("expires_at", nowIso)
+    .order("expires_at", { ascending: true })
+    .limit(batchSize);
 
   if (error) throw new Error(error.message);
 
@@ -32,31 +42,35 @@ export async function expireStaleAssignmentOffers(
   let expiredCount = 0;
 
   for (const offer of data ?? []) {
-    if (!isOfferPastExpiry(offer.expires_at, now)) continue;
-
-    const ts = now.toISOString();
-    const { error: updateError } = await client
+    const { data: updated, error: updateError } = await client
       .from("assignment_offers")
-      .update({ status: "expired", updated_at: ts })
+      .update({ status: "expired", updated_at: nowIso })
       .eq("id", offer.id)
-      .eq("status", "offered");
+      .eq("status", "offered")
+      .select("id");
 
-    if (updateError) continue;
+    if (updateError || !updated?.length) continue;
 
     expiredCount += 1;
     bookingIds.add(offer.booking_id);
+  }
 
-    const booking = await backend.getBooking(offer.booking_id);
-    if (booking?.status === "pending_assignment" && !booking.cleaner_id) {
-      await recordAssignmentOutcome(backend, offer.booking_id, {
-        status: "attention_required",
-        path: null,
-        cleanerId: offer.cleaner_id,
-        offerId: offer.id,
-        reason: "Assignment offer expired; booking needs redispatch.",
-      });
+  const redispatchedBookingIds: string[] = [];
+  const attentionBookingIds: string[] = [];
+
+  for (const bookingId of bookingIds) {
+    const outcome = await processBookingAfterOfferExpiry(client, backend, bookingId, now);
+    if (outcome.redispatched) {
+      redispatchedBookingIds.push(bookingId);
+    } else if (outcome.attentionRequired) {
+      attentionBookingIds.push(bookingId);
     }
   }
 
-  return { expiredCount, bookingIds: [...bookingIds] };
+  return {
+    expiredCount,
+    bookingIds: [...bookingIds],
+    redispatchedBookingIds,
+    attentionBookingIds,
+  };
 }

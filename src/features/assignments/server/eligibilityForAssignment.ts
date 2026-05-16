@@ -90,3 +90,36 @@ export async function pickBestEligibleCleanerId(
   const best = pickBestAvailable(listed.cleaners);
   return best?.cleanerId ?? null;
 }
+
+export async function pickBestEligibleCleanerIdExcluding(
+  client: SupabaseClient<Database>,
+  context: AssignmentContext,
+  excludeCleanerIds: ReadonlySet<string>,
+): Promise<string | null> {
+  const candidates = await loadCleanerCandidates(client);
+  const conflicts = await loadConflictingCleanerIds(
+    client,
+    context.scheduledStart,
+    context.scheduledEnd,
+    context.bookingId,
+  );
+
+  const listed = listEligibleCleaners({
+    candidates,
+    query: {
+      serviceSlug: context.serviceSlug as ServiceSlug,
+      areaSlug: context.areaSlug,
+      slot: {
+        scheduledStart: context.scheduledStart,
+        scheduledEnd: context.scheduledEnd,
+      },
+    },
+    conflictingCleanerIds: conflicts,
+    pricingInput: context.pricingInput,
+  });
+
+  if ("ok" in listed) return null;
+  const eligible = listed.cleaners.filter((c) => !excludeCleanerIds.has(c.cleanerId));
+  const best = pickBestAvailable(eligible);
+  return best?.cleanerId ?? null;
+}

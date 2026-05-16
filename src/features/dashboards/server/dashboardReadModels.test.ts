@@ -368,6 +368,52 @@ describe("dashboard read models", () => {
     }
   });
 
+  it("admin queue does not treat past-expiry offered rows as open", async () => {
+    createSupabaseServerClientMock.mockResolvedValue({
+      from: vi.fn((table: string) => {
+        if (table === "bookings") {
+          return chainable([
+            {
+              id: "booking-stale-offer",
+              status: "pending_assignment",
+              customer_id: "cust-1",
+              scheduled_start: "2026-05-20T08:00:00.000Z",
+              scheduled_end: "2026-05-20T10:00:00.000Z",
+              metadata: wizardBookingMetadata("deep-cleaning"),
+              updated_at: "2026-05-16T10:00:00.000Z",
+            },
+          ]);
+        }
+        if (table === "assignment_offers") {
+          return chainable([
+            {
+              id: "offer-stale",
+              booking_id: "booking-stale-offer",
+              cleaner_id: "cleaner-1",
+              status: "offered",
+              offered_at: "2026-05-14T10:00:00.000Z",
+              expires_at: "2026-05-15T10:00:00.000Z",
+              responded_at: null,
+            },
+          ]);
+        }
+        if (table === "customers") return chainable({ company_name: "Acme Co" });
+        if (table === "cleaners") return chainable({ profile_id: "profile-cleaner-b" });
+        if (table === "profiles") return chainable({ full_name: "Sam Cleaner" });
+        return chainable([]);
+      }),
+    });
+
+    const { listAdminAssignmentQueue } = await import("./adminOperationsReadModel");
+    const result = await listAdminAssignmentQueue(adminUser);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const item = result.items.find((i) => i.bookingId === "booking-stale-offer");
+      expect(item).toBeDefined();
+      expect(item?.openOffers).toHaveLength(0);
+    }
+  });
+
   it("cleaner can accept own offer through API", async () => {
     getCurrentUserMock.mockResolvedValue(cleanerUser);
 

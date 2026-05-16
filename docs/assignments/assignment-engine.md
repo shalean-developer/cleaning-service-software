@@ -47,7 +47,7 @@ Rules: own offers only; expired offers rejected; duplicate accept idempotent; ac
 ## Expiry and redispatch
 
 - Default offer TTL: **48 hours** (`ASSIGNMENT_OFFER_TTL_HOURS`)
-- `expireStaleAssignmentOffers()` — safe to run manually or from future cron
+- `expireStaleAssignmentOffers()` — run by Supabase Cron hourly (see [expire-assignment-offers-cron](../operations/expire-assignment-offers-cron.md)); manual `POST /api/cron/expire-assignment-offers` fallback
 - Expired/declined bookings remain visible with `metadata.assignment` for admin ops
 
 ## Data integrity
@@ -60,7 +60,7 @@ Rules: own offers only; expired offers rejected; duplicate accept idempotent; ac
 
 - Customer/cleaner/admin dashboards (Phase 9)
 - Payouts and earning lines on completion (Phase 10)
-- Automated cron for offer expiry (manual function provided)
+- Expiry push notifications to cleaner/admin
 
 ## Related
 

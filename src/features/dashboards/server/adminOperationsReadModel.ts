@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { CurrentUser } from "@/lib/auth/types";
+import { isOfferOpenForOps } from "@/features/assignments/server/buildOfferExpiry";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { AssignmentOfferRow, PaymentRow } from "@/lib/database/types";
 import { buildLifecycleTimeline } from "./lifecycleTimeline";
@@ -281,7 +282,7 @@ export async function listAdminAssignmentQueue(
       .select("*")
       .eq("booking_id", row.id);
 
-    const openOffers = (offers ?? []).filter((o) => o.status === "offered");
+    const openOffers = (offers ?? []).filter((o) => isOfferOpenForOps(o));
 
     if (
       display.assignmentAttention !== "attention_required" &&
