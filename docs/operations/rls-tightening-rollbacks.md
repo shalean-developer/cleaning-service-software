@@ -137,6 +137,60 @@ Expect both admin `FOR ALL` policies to appear again in `pg_policies`.
 
 ---
 
+## Phase 5F-a — notification_outbox admin write
+
+**Forward migration:** `supabase/migrations/20260518200000_rls_notification_outbox_admin_select_only.sql`  
+**Effect:** Drops `notification_outbox_admin` (`FOR ALL`); creates `notification_outbox_select_admin` (`FOR SELECT` only). Enqueue, worker, and requeue remain on service role.
+
+### Rollback SQL (restore pre–5F-a admin `FOR ALL` on notification_outbox)
+
+```sql
+-- Reverts 20260518200000_rls_notification_outbox_admin_select_only.sql
+-- Source: 20260516160000_rls_role_security.sql
+
+drop policy if exists notification_outbox_select_admin on public.notification_outbox;
+
+create policy notification_outbox_admin on public.notification_outbox
+  for all to authenticated
+  using (public.auth_is_admin())
+  with check (public.auth_is_admin());
+```
+
+### Verify after rollback
+
+```bash
+psql "$DATABASE_URL" -f supabase/tests/rls_role_security_checks.sql
+```
+
+Expect `notification_outbox_admin` (`ALL`) in the policy listing; `notification_outbox_select_admin` absent.
+
+---
+
+## Phase 5G-a — notification_worker_runs (append-only run log)
+
+**Forward migration:** `supabase/migrations/20260518210000_notification_worker_runs.sql`  
+**Effect:** New table; admin `SELECT` only; `service_role` `INSERT` only; append-only trigger.
+
+### Rollback SQL (drop run log table)
+
+```sql
+-- Reverts 20260518210000_notification_worker_runs.sql
+
+drop trigger if exists notification_worker_runs_append_only on public.notification_worker_runs;
+drop policy if exists notification_worker_runs_select_admin on public.notification_worker_runs;
+drop table if exists public.notification_worker_runs;
+```
+
+### Verify after rollback
+
+```bash
+psql "$DATABASE_URL" -f supabase/tests/notification_outbox_rls_phase5f_checks.sql
+```
+
+Set `NOTIFICATION_WORKER_RUN_LOGGING=false` on the app before or during rollback so cron does not reference a missing table.
+
+---
+
 ## Phase 5+ (not yet implemented)
 
 Document rollbacks here when `booking_locks`, `payout_batches`, and other phases ship.

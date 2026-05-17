@@ -83,6 +83,7 @@ export async function auditAdminNotificationRequeue(
     newStatus?: string | null;
     deliveryDedupeWouldBlock?: boolean;
     priorUpdatedAt?: string | null;
+    dryRunRequeue?: boolean;
   },
 ): Promise<void> {
   logAdminNotificationRequeue({
@@ -121,6 +122,7 @@ export async function auditAdminNotificationRequeue(
       oldStatus: payload.oldStatus ?? undefined,
       newStatus: payload.newStatus ?? undefined,
       deliveryDedupeWouldBlock: payload.deliveryDedupeWouldBlock,
+      dryRunRequeue: payload.dryRunRequeue,
     },
   });
 }

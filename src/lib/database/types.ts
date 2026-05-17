@@ -241,6 +241,47 @@ export type NotificationOutboxRow = {
   updated_at: string;
 };
 
+export type NotificationWorkerRunTriggerSource = "cron" | "manual";
+
+export type NotificationWorkerRunRow = {
+  id: string;
+  started_at: string | null;
+  completed_at: string;
+  ok: boolean;
+  delivery_enabled: boolean;
+  email_provider: string | null;
+  trigger_source: NotificationWorkerRunTriggerSource;
+  reclaimed: number;
+  scanned: number;
+  sent: number;
+  skipped: number;
+  failed: number;
+  dry_run: number;
+  error_count: number;
+  errors: Json;
+  created_at: string;
+};
+
+export type NotificationMetricsHourlyRow = {
+  bucket_start: string;
+  run_count: number;
+  ok_run_count: number;
+  failed_run_count: number;
+  delivery_enabled_run_count: number;
+  resend_run_count: number;
+  dry_run_provider_run_count: number;
+  reclaimed_count: number;
+  scanned_count: number;
+  sent_count: number;
+  skipped_count: number;
+  failed_count: number;
+  dry_run_count: number;
+  live_sent_count: number;
+  live_failed_count: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type BookingStateAuditRow = {
   id: number;
   booking_id: string;
@@ -259,7 +300,8 @@ export type BookingStateAuditRow = {
 export type AdminOperationalAction =
   | "assignment_recovery"
   | "manual_dispatch_offer"
-  | "replace_open_offer";
+  | "replace_open_offer"
+  | "notification_requeue";
 
 export type AdminOperationalOutcome = "success" | "idempotent" | "rejected" | "failed";
 
@@ -311,6 +353,8 @@ export type Database = {
       earning_lines: PublicTable<EarningLineRow>;
       payout_batches: PublicTable<PayoutBatchRow>;
       notification_outbox: PublicTable<NotificationOutboxRow>;
+      notification_worker_runs: PublicTable<NotificationWorkerRunRow>;
+      notification_metrics_hourly: PublicTable<NotificationMetricsHourlyRow>;
       booking_state_audit: PublicTable<BookingStateAuditRow>;
       admin_operational_audit: PublicTable<AdminOperationalAuditRow>;
     };

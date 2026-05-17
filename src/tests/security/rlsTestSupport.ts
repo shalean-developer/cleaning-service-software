@@ -290,6 +290,46 @@ export async function isBookingsRlsPhase4Applied(
 
 export { BOOKINGS_PHASE4_SKIP };
 
+const NOTIFICATION_OUTBOX_PHASE5F_SKIP =
+  "5F-a migration not applied (admin can still write notification_outbox). Apply supabase/migrations/20260518200000_rls_notification_outbox_admin_select_only.sql (e.g. supabase db reset).";
+
+/**
+ * Returns whether notification_outbox_admin was dropped (admin JWT cannot UPDATE outbox status).
+ */
+export async function isNotificationOutboxRlsPhase5fApplied(
+  serviceClient: SupabaseClient<Database>,
+  adminUserClient: SupabaseClient<Database>,
+  outboxId: string,
+): Promise<boolean> {
+  await serviceClient
+    .from("notification_outbox")
+    .update({ status: "failed" })
+    .eq("id", outboxId);
+
+  const { data: updated, error: updateError } = await adminUserClient
+    .from("notification_outbox")
+    .update({ status: "sent" })
+    .eq("id", outboxId)
+    .select("status");
+
+  const { data: row } = await serviceClient
+    .from("notification_outbox")
+    .select("status")
+    .eq("id", outboxId)
+    .single();
+
+  await serviceClient
+    .from("notification_outbox")
+    .update({ status: "failed" })
+    .eq("id", outboxId);
+
+  if (updateError) return true;
+  if ((updated ?? []).length === 0 && row?.status === "failed") return true;
+  return false;
+}
+
+export { NOTIFICATION_OUTBOX_PHASE5F_SKIP };
+
 export function createUserScopedClient(
   url: string,
   anonKey: string,
@@ -373,15 +413,46 @@ export async function ensurePhase2CustomerRow(
   return created.id;
 }
 
+const phase2SignedInClientsByEmail = new Map<string, SupabaseClient<Database>>();
+
+export function clearPhase2SignedInClients(): void {
+  phase2SignedInClientsByEmail.clear();
+}
+
+/** One signed-in client per email per process — avoids Supabase Auth rate limits in long RLS suites. */
+export async function getSignedInPhase2Client(
+  url: string,
+  anonKey: string,
+  email: string,
+): Promise<SupabaseClient<Database>> {
+  const cached = phase2SignedInClientsByEmail.get(email);
+  if (cached) return cached;
+
+  const client = createUserScopedClient(url, anonKey);
+  await signInAs(client, email);
+  phase2SignedInClientsByEmail.set(email, client);
+  return client;
+}
+
 export async function signInAs(
   client: SupabaseClient<Database>,
   email: string,
 ): Promise<void> {
-  const { error } = await client.auth.signInWithPassword({
-    email,
-    password: PHASE2_TEST_PASSWORD,
-  });
-  if (error) throw new Error(error.message);
+  const maxAttempts = 5;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const { error } = await client.auth.signInWithPassword({
+      email,
+      password: PHASE2_TEST_PASSWORD,
+    });
+    if (!error) return;
+
+    const isRateLimited = /rate limit/i.test(error.message);
+    if (!isRateLimited || attempt === maxAttempts) {
+      throw new Error(error.message);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+  }
 }
 
 export async function cleanupPhase2Run(

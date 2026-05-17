@@ -8,21 +8,40 @@ import type { Database, NotificationOutboxStatus } from "@/lib/database/types";
 import {
   buildDeliverableOutboxTemplateOrFilter,
   canRunNotificationDelivery,
+  DELIVERABLE_NOTIFICATION_SPECS,
   getNotificationDeliveryConfig,
   getProcessingStaleMinutes,
   isNotificationDeliveryEnabled,
 } from "./config";
+import {
+  computeQueuePressure,
+  computeWorker24hAnalytics,
+  NOTIFICATION_ANALYTICS_WINDOW_HOURS,
+} from "./notificationAnalyticsAggregates";
+import { computeTrends7dFromHourlyBuckets } from "./notificationTrends7d";
+import type { NotificationMetricsHourlyBucket } from "./notificationTrends7d";
 import { mapNotificationOutboxRowForAdmin } from "./mapNotificationOutboxRowForAdmin";
 import { findOldestActionablePendingAgeMs } from "./notificationAdminAggregates";
 import type {
+  AdminNotificationAnalytics,
   AdminNotificationDeliveryBannerModel,
   AdminNotificationHealthPageResult,
   NotificationDeliverableFilter,
+  NotificationDeliverableTemplateRow,
   NotificationHealthFilters,
   NotificationHealthSummary,
+  NotificationUnsupportedTemplateRow,
 } from "./notificationAdminTypes";
 import { ADMIN_NOTIFICATION_GLOBAL_LIST_LIMIT } from "./notificationAdminTypes";
 import { isDeliverableNotificationRow } from "./notificationOutboxDeliverability";
+import { computeWorkerRunHealth } from "./computeWorkerRunHealth";
+import { mapNotificationWorkerRunForAdmin } from "./mapNotificationWorkerRunForAdmin";
+import type {
+  AdminNotificationWorkerHealthModel,
+  AdminNotificationWorkerRunListItem,
+} from "./notificationWorkerRunTypes";
+import { RECENT_WORKER_RUNS_LIMIT } from "./notificationWorkerRunTypes";
+import { reportNotificationRetentionDryRun } from "./reportNotificationRetentionDryRun";
 
 const OUTBOX_SELECT =
   "id, channel, recipient, payload, status, attempts, next_retry_at, last_error, created_at, updated_at";
@@ -44,6 +63,8 @@ const DEFAULT_NEEDS_ATTENTION_STATUSES: NotificationOutboxStatus[] = [
 type CountQuery = {
   status?: NotificationOutboxStatus | NotificationOutboxStatus[];
   deliverable?: boolean;
+  template?: string;
+  channel?: string;
   actionablePending?: boolean;
   scheduledRetry?: boolean;
   staleProcessing?: boolean;
@@ -67,6 +88,14 @@ async function countOutboxRows(
     } else {
       builder = builder.eq("status", query.status);
     }
+  }
+
+  if (query.template) {
+    builder = builder.eq("payload->>template", query.template);
+  }
+
+  if (query.channel) {
+    builder = builder.eq("channel", query.channel);
   }
 
   if (query.deliverable === true) {
@@ -226,6 +255,230 @@ async function listFilteredNotificationRows(
   return rows.filter((r) => r.isDeliverable);
 }
 
+const WORKER_RUN_SELECT =
+  "id, started_at, completed_at, ok, delivery_enabled, email_provider, trigger_source, reclaimed, scanned, sent, skipped, failed, dry_run, error_count, created_at";
+
+/** Worker fields for 24h analytics — must not include `errors` JSONB (5H-a). */
+export const WORKER_RUN_ANALYTICS_SELECT =
+  "ok, delivery_enabled, email_provider, reclaimed, scanned, sent, skipped, failed, dry_run, completed_at";
+
+/** Hourly rollup fields for 7d trends — counters only (5H-b). */
+export const METRICS_HOURLY_TRENDS_SELECT =
+  "bucket_start, run_count, sent_count, failed_count, dry_run_count, live_sent_count, live_failed_count";
+
+async function loadWorkerRunsForAnalytics(
+  client: SupabaseClient<Database>,
+  now: Date,
+): Promise<WorkerRunAnalyticsRow[]> {
+  const sinceIso = new Date(
+    now.getTime() - NOTIFICATION_ANALYTICS_WINDOW_HOURS * 60 * 60_000,
+  ).toISOString();
+
+  const { data, error } = await client
+    .from("notification_worker_runs")
+    .select(WORKER_RUN_ANALYTICS_SELECT)
+    .gte("completed_at", sinceIso);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as WorkerRunAnalyticsRow[];
+}
+
+async function loadNotificationTrends7d(
+  client: SupabaseClient<Database>,
+  now: Date,
+): Promise<ReturnType<typeof computeTrends7dFromHourlyBuckets>> {
+  const sinceIso = new Date(now.getTime() - 14 * 24 * 60 * 60_000).toISOString();
+
+  const { data, error } = await client
+    .from("notification_metrics_hourly")
+    .select(METRICS_HOURLY_TRENDS_SELECT)
+    .gte("bucket_start", sinceIso)
+    .order("bucket_start", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return computeTrends7dFromHourlyBuckets((data ?? []) as NotificationMetricsHourlyBucket[], now);
+}
+
+type WorkerRunAnalyticsRow = {
+  ok: boolean;
+  delivery_enabled: boolean;
+  email_provider: string | null;
+  reclaimed: number;
+  scanned: number;
+  sent: number;
+  skipped: number;
+  failed: number;
+  dry_run: number;
+};
+
+async function loadDeliverableTemplateBreakdown(
+  client: SupabaseClient<Database>,
+  nowIso: string,
+  staleIso: string,
+): Promise<NotificationDeliverableTemplateRow[]> {
+  const statuses: NotificationOutboxStatus[] = ["sent", "failed", "pending", "processing"];
+
+  const rows = await Promise.all(
+    DELIVERABLE_NOTIFICATION_SPECS.map(async (spec) => {
+      const counts = await Promise.all(
+        statuses.map((status) =>
+          countOutboxRows(
+            client,
+            {
+              status,
+              template: spec.template,
+              channel: spec.channel,
+            },
+            nowIso,
+            staleIso,
+          ),
+        ),
+      );
+
+      return {
+        template: spec.template,
+        channel: spec.channel,
+        counts: {
+          sent: counts[0] ?? 0,
+          failed: counts[1] ?? 0,
+          pending: counts[2] ?? 0,
+          processing: counts[3] ?? 0,
+        },
+      };
+    }),
+  );
+
+  return rows;
+}
+
+async function loadUnsupportedTemplateBreakdown(
+  client: SupabaseClient<Database>,
+  nowIso: string,
+  staleIso: string,
+): Promise<NotificationUnsupportedTemplateRow[]> {
+  return Promise.all(
+    UNSUPPORTED_PENDING_TEMPLATES.map(async (template) => ({
+      template,
+      pending: await countOutboxRows(
+        client,
+        { status: "pending", template },
+        nowIso,
+        staleIso,
+      ),
+    })),
+  );
+}
+
+export async function loadNotificationAnalytics(
+  client: SupabaseClient<Database>,
+  summary: NotificationHealthSummary,
+  banner: AdminNotificationDeliveryBannerModel,
+  now: Date,
+): Promise<AdminNotificationAnalytics> {
+  const nowIso = now.toISOString();
+  const staleMinutes = getProcessingStaleMinutes();
+  const staleIso = new Date(now.getTime() - staleMinutes * 60_000).toISOString();
+
+  const [workerRuns, deliverableTemplates, unsupportedTemplates, trends7d] = await Promise.all([
+    loadWorkerRunsForAnalytics(client, now),
+    loadDeliverableTemplateBreakdown(client, nowIso, staleIso),
+    loadUnsupportedTemplateBreakdown(client, nowIso, staleIso),
+    loadNotificationTrends7d(client, now),
+  ]);
+
+  return {
+    worker24h: computeWorker24hAnalytics(workerRuns),
+    trends7d,
+    queuePressure: computeQueuePressure(summary),
+    deliverableTemplates,
+    unsupportedTemplates,
+    dryRunModeActive: banner.deliveryEnabled && banner.emailProvider === "dry_run",
+  };
+}
+
+export async function loadRecentNotificationWorkerRuns(
+  client: SupabaseClient<Database>,
+  now: Date = new Date(),
+  limit: number = RECENT_WORKER_RUNS_LIMIT,
+): Promise<AdminNotificationWorkerRunListItem[]> {
+  const { data, error } = await client
+    .from("notification_worker_runs")
+    .select(WORKER_RUN_SELECT)
+    .order("completed_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []).map((row) => mapNotificationWorkerRunForAdmin(row, now));
+}
+
+export async function loadLatestNotificationWorkerHealth(
+  client: SupabaseClient<Database>,
+  now: Date = new Date(),
+): Promise<AdminNotificationWorkerHealthModel> {
+  const { data, error } = await client
+    .from("notification_worker_runs")
+    .select(WORKER_RUN_SELECT)
+    .order("completed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    const health = computeWorkerRunHealth(null, now);
+    return {
+      hasRun: false,
+      completedAt: null,
+      ageMinutes: health.ageMinutes,
+      healthLevel: health.level,
+      healthMessage: health.message,
+      ok: null,
+      deliveryEnabled: null,
+      emailProvider: null,
+      triggerSource: null,
+      reclaimed: null,
+      scanned: null,
+      sent: null,
+      skipped: null,
+      failed: null,
+      dryRun: null,
+      errorCount: null,
+    };
+  }
+
+  const health = computeWorkerRunHealth(data.completed_at, now);
+
+  return {
+    hasRun: true,
+    completedAt: data.completed_at,
+    ageMinutes: health.ageMinutes,
+    healthLevel: health.level,
+    healthMessage: health.message,
+    ok: data.ok,
+    deliveryEnabled: data.delivery_enabled,
+    emailProvider: data.email_provider,
+    triggerSource: data.trigger_source,
+    reclaimed: data.reclaimed,
+    scanned: data.scanned,
+    sent: data.sent,
+    skipped: data.skipped,
+    failed: data.failed,
+    dryRun: data.dry_run,
+    errorCount: data.error_count,
+  };
+}
+
 function buildDeliveryBanner(): AdminNotificationDeliveryBannerModel {
   const config = getNotificationDeliveryConfig();
   const deliveryEnabled = isNotificationDeliveryEnabled();
@@ -308,10 +561,23 @@ export async function getAdminNotificationHealthPage(
 
   const now = new Date();
 
-  const [summary, oldestActionablePendingAgeMs, rows] = await Promise.all([
-    loadNotificationHealthSummary(client, now),
+  const banner = buildDeliveryBanner();
+  const summary = await loadNotificationHealthSummary(client, now);
+
+  const [
+    oldestActionablePendingAgeMs,
+    rows,
+    workerHealth,
+    recentWorkerRuns,
+    analytics,
+    retentionDryRun,
+  ] = await Promise.all([
     loadOldestActionablePendingAgeMs(client, now),
     listFilteredNotificationRows(client, filters),
+    loadLatestNotificationWorkerHealth(client, now),
+    loadRecentNotificationWorkerRuns(client, now),
+    loadNotificationAnalytics(client, summary, banner, now),
+    reportNotificationRetentionDryRun(client, now),
   ]);
 
   return {
@@ -321,7 +587,11 @@ export async function getAdminNotificationHealthPage(
       oldestActionablePendingAgeMs,
       rows,
       filters,
-      banner: buildDeliveryBanner(),
+      banner,
+      analytics,
+      workerHealth,
+      recentWorkerRuns,
+      retentionDryRun,
     },
   };
 }

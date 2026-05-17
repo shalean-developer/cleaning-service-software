@@ -20,6 +20,13 @@ export function AdminNotificationRequeueAction({ notification }: Props) {
     return null;
   }
 
+  const isDryRunRequeue =
+    notification.isDryRun && notification.status === "sent";
+  const buttonLabel = isDryRunRequeue ? "Requeue dry-run" : "Requeue";
+  const formTitle = isDryRunRequeue
+    ? "Requeue dry-run sent notification"
+    : "Requeue failed notification";
+
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setLoading(true);
@@ -74,19 +81,20 @@ export function AdminNotificationRequeueAction({ notification }: Props) {
           onClick={() => setOpen(true)}
           className="rounded border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-950 hover:bg-amber-100"
         >
-          Requeue
+          {buttonLabel}
         </button>
       ) : (
         <form
           onSubmit={submit}
           className="rounded-lg border border-amber-200 bg-amber-50/80 p-3"
         >
-          <p className="text-xs font-medium text-amber-950">
-            Requeue failed notification
-          </p>
+          <p className="text-xs font-medium text-amber-950">{formTitle}</p>
           <p className="mt-1 text-xs text-amber-900/80">
             Resets this row to pending for the worker on the next cron run. Does not
             send email immediately or bypass delivery dedupe.
+            {isDryRunRequeue
+              ? " Next delivery follows your environment (dry-run or Resend)."
+              : null}
           </p>
           <label className="mt-2 block text-xs font-medium text-amber-900">
             Reason (required)

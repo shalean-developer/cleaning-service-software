@@ -21,7 +21,7 @@ Related runbooks:
 | `/admin/bookings/[id]` | Operational status panel, audit timeline, payout actions (existing) |
 | `/admin/assignments` | Assignment queue with per-booking guidance |
 | `/admin/payouts` | Payout-ready aggregates (unchanged) |
-| `/admin/notifications` | Global notification outbox health (5D-2a) |
+| `/admin/notifications` | Global notification outbox health (5D-2a) + 24h analytics (5H-a) + 7d text trends (5H-b) + retention dry-run counts (5I-α) |
 
 ---
 
@@ -134,30 +134,49 @@ Booking detail includes a **Notifications** section (read-only):
 | Limit | Latest **25** rows, newest first |
 | Shows | Template, status, channel, attempts, last update, sanitized error / dry-run note, short offer id when present |
 | Hidden | Recipient **email addresses**, raw JSON payload, secrets |
-| Actions | **Requeue** (5E-1a) on **failed** deliverable rows only — required reason; resets row to `pending` for cron/worker |
+| Actions | **Requeue** on **failed** deliverable rows; **Requeue dry-run** on **dry-run `sent`** rows (`last_error` starts with `dry_run_sent`) — required reason; resets row to `pending` for cron/worker |
 
-**Requeue does not:** send email immediately, trigger cron from the UI, bypass worker delivery dedupe, resend live `sent` rows, or support bulk requeue. Dry-run `sent` requeue is deferred (5E-1b-β); force-resend is deferred (5E+).
+**Requeue does not:** send email immediately, trigger cron from the UI, bypass worker delivery dedupe, resend **live** `sent` rows, or support bulk requeue. After requeue, **cron must run**; delivery mode determines whether the next worker pass is dry-run or Resend. Force-resend is deferred (5E+).
 
 Use this section to confirm whether `payment_confirmed`, `payment_failed`, or `assignment_offer` rows reached `sent` vs `pending` / `failed`. Unsupported templates (e.g. `booking_draft_created`) may remain `pending` until a later worker stage.
 
 See [notification-outbox-worker.md](./notification-outbox-worker.md) for delivery flags and cron behavior.
 
-### Global notification health (5D-2a)
+### Global notification health (5D-2a + 5H-a + 5H-b)
 
 Route: **`/admin/notifications`** (admin nav → Notifications).
 
+Page order (top to bottom): delivery banner → **delivery analytics (24h + 7d trends)** → **template breakdown** → worker health → recent worker runs → point-in-time summary cards → filtered outbox table.
+
 | Topic | Behavior |
 |-------|----------|
-| Purpose | Platform-wide `notification_outbox` queue health |
-| Summary cards | Sent, actionable pending, scheduled retry, processing, failed, stale processing, **unsupported pending**, dry-run row count |
+| Purpose | Platform-wide `notification_outbox` queue health + rolling worker telemetry |
+| Delivery analytics (5H-a) | **24h worker metrics** from `notification_worker_runs` (`completed_at` in last 24 hours): run count, runs OK %, sent/failed/dry-run/scanned totals, avg sent per run |
+| Live success rate (5H-a) | **Resend only** — batches where `delivery_enabled` and `email_provider = resend`; **excludes** dry-run provider runs |
+| Dry-run share (5H-a) | **Separate** metric — dry-run count as % of (sent + failed + dry-run) in the window; shown beside live success rate, not mixed into it |
+| Dry-run mode badge (5H-a) | Shown when delivery is enabled and configured provider is `dry_run` (config signal, not a queue failure) |
+| Queue pressure (5H-a) | Derived score from deliverable **actionable pending + processing + failed**; label normal / elevated / critical; **unsupported pending excluded** from score |
+| Template breakdown (5H-a) | **Supported templates only** — `payment_confirmed`, `payment_failed` (email), `assignment_offer` (push channel); columns: sent, failed, pending, processing per template |
+| Unsupported pending (5H-a) | **Separate** subsection under template breakdown — `booking_draft_created`, `payment_pending`, `pending_assignment`, `cleaner_assigned` pending counts only; labeled enqueue-only, not delivery failures |
+| 7-day trends (5H-b) | **Text only** under the 24h strip — from `notification_metrics_hourly`: sent, failed rows, live success rate, dry-run deliveries, worker runs vs **prior 7 days**; shows `rollupAsOf` and partial-coverage note when buckets are missing |
+| Analytics sensitive data | **No** recipient emails, raw outbox `payload`, raw worker `errors` JSON, or provider response bodies in analytics or trend DTOs — counts, rates, template keys, and enums only |
+| Summary cards | Sent, actionable pending, scheduled retry, processing, failed, stale processing, **unsupported pending**, dry-run row count (current outbox state — below analytics) |
 | Oldest pending | Age of oldest deliverable pending row with retry due |
 | Default table | Needs attention — deliverable `pending` / `processing` / `failed`, newest first, cap **100** |
 | Unsupported policy | `booking_draft_created`, `payment_pending`, etc. stay `pending` — counted separately, **not failures** |
 | Filters | `status`, `template`, `deliverable` (`true` / `false` / `all`) via query params |
-| Hidden | Recipient emails, raw payload, API keys |
-| Actions | **Requeue** (5E-1b-α) on **failed** deliverable rows — same rules as booking detail; required reason; no bulk actions; do not trigger cron from UI |
+| Hidden (all sections) | Recipient emails, raw payload, API keys |
+| Actions | **Requeue** / **Requeue dry-run** (5E-1b-α / 5E-1b-β) — same eligibility as booking detail; required reason; no bulk actions; do not trigger cron from UI |
+| Worker health (5G-a) | **Last worker run** card — cron freshness (healthy ≤10m, warning ≤15m, critical >15m), last counters, delivery snapshot at run time; no raw errors or emails |
+| Recent worker runs (5G-b) | Read-only table (newest **15**) — time, OK/partial/failed badge, provider, trigger, delivery on/off, counters; empty state when no rows; **no** raw `errors`, emails, or “run now”; retention/pagination deferred |
+
+**How to read analytics vs summary cards:** 24h cards = **live** worker-run aggregates. 7d trends = **hourly rollup buckets** (worker throughput only). Summary cards = **queue snapshot now** (outbox). A healthy cron can show high 7d `sent` while actionable pending is still elevated if new rows enqueue faster than the worker drains them.
+
+**5H-b ops:** Schedule hourly rollup cron; run `npm run ops:backfill:notification-metrics` once after deploy. See [notification-outbox-worker.md](./notification-outbox-worker.md) § Hourly metrics rollup.
 
 **Troubleshooting failed rows:** Use the Note column (sanitized `last_error`). Common causes: no auth email on customer/cleaner profile, stale booking/offer state, provider send failure after retries, delivery disabled. Per-booking context: open the booking link → Notifications section. Do **not** `UPDATE` outbox status in SQL.
+
+See [notification-outbox-worker.md](./notification-outbox-worker.md) for worker flags, dry-run behavior, and how run counters feed analytics.
 
 ### Replace open offer (4C-a)
 
@@ -197,12 +216,20 @@ Each audit row shows:
 | Recover assignment after payment | [assignment-recovery.md](./assignment-recovery.md) |
 | Expire stale assignment offers + redispatch | [expire-assignment-offers-cron.md](./expire-assignment-offers-cron.md) |
 | Expire pending payments | [expire-pending-payments-cron.md](./expire-pending-payments-cron.md) |
+| Notification retention dry-run (counts only) | [notification-retention-cleanup-cron.md](./notification-retention-cleanup-cron.md) |
+
+### Notification retention dry-run (5I-α)
+
+On **`/admin/notifications`**, the **Retention dry-run** section shows how many rows would be eligible for future cleanup under the Stage 5I policy. **No data is deleted** from the admin UI or from the dry-run cron route (`deleted: 0`, `dryRun: true`).
+
+**Before destructive cleanup:** run the dry-run cron daily for **3–5 days**, record counts, and complete the soak sign-off in [notification-retention-cleanup-cron.md](./notification-retention-cleanup-cron.md). Destructive purge is deferred to Stage 5I-β+.
 
 ---
 
 ## Intentionally not actionable in admin UI yet
 
-- Notification retry / resend (global and booking views are read-only in 5D-2a)
+- Notification retention purge (dry-run counts only in 5I-α; no delete)
+- Notification retry / resend beyond governed requeue (5E)
 - Assignment queue inline replace/dispatch (use booking detail)
 - Cancel-only API (withdraw offer without immediate replacement)
 - Push notification to cleaner when offer withdrawn

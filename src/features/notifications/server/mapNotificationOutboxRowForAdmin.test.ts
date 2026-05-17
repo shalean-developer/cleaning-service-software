@@ -93,6 +93,19 @@ describe("mapNotificationOutboxRowForAdmin", () => {
     expect(mapped.requeueBlockReason).toBe("LIVE_ALREADY_SENT");
   });
 
+  it("sets canRequeue for dry-run sent deliverable when requeue actions enabled", () => {
+    const mapped = mapNotificationOutboxRowForAdmin(
+      baseRow({
+        status: "sent",
+        last_error:
+          "dry_run_sent;template=payment_confirmed;bookingId=booking-1;recipientType=customer",
+      }),
+      { requeueActionsEnabled: true },
+    );
+    expect(mapped.canRequeue).toBe(true);
+    expect(mapped.isDryRun).toBe(true);
+  });
+
   it("marks unsupported templates as not deliverable", () => {
     const mapped = mapNotificationOutboxRowForAdmin(
       baseRow({

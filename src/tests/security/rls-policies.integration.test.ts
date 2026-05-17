@@ -3,23 +3,26 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database/types";
 import {
   cleanupPhase2Run,
+  clearPhase2SignedInClients,
   createUserScopedClient,
   ensurePhase2CustomerRow,
+  getSignedInPhase2Client,
   phase2RunId,
   provisionPhase2AuthUser,
   isAssignmentOffersRlsPhase3cApplied,
   isBookingsRlsPhase4Applied,
   isEarningLinesRlsPhase3bApplied,
+  isNotificationOutboxRlsPhase5fApplied,
   isPaymentEventsRlsPhase4Applied,
   isPaymentsRlsPhase1Applied,
   ASSIGNMENT_OFFERS_PHASE3C_SKIP,
   BOOKINGS_PHASE4_SKIP,
   EARNING_LINES_PHASE3B_SKIP,
+  NOTIFICATION_OUTBOX_PHASE5F_SKIP,
   PAYMENT_EVENTS_PHASE4_SKIP,
   PAYMENTS_PHASE1_SKIP,
   resolveRlsIntegrationGate,
   runRlsPreflight,
-  signInAs,
 } from "./rlsTestSupport";
 
 const gate = resolveRlsIntegrationGate();
@@ -68,6 +71,10 @@ describe("RLS role security (Supabase integration)", () => {
   let earningLineDeleteProbeId = "";
   let earningLinesPhase3bApplied = false;
 
+  let notificationOutboxProbeId = "";
+  let notificationOutboxDeleteProbeId = "";
+  let notificationOutboxPhase5fApplied = false;
+
   function skipUnlessReady(ctx: TestContext): void {
     if (!ready) ctx.skip(skipReason || "RLS preflight did not complete.");
   }
@@ -95,6 +102,11 @@ describe("RLS role security (Supabase integration)", () => {
   function skipUnlessBookingsPhase4(ctx: TestContext): void {
     skipUnlessReady(ctx);
     if (!bookingsPhase4Applied) ctx.skip(BOOKINGS_PHASE4_SKIP);
+  }
+
+  function skipUnlessNotificationOutboxPhase5f(ctx: TestContext): void {
+    skipUnlessReady(ctx);
+    if (!notificationOutboxPhase5fApplied) ctx.skip(NOTIFICATION_OUTBOX_PHASE5F_SKIP);
   }
 
   beforeAll(async () => {
@@ -232,8 +244,11 @@ describe("RLS role security (Supabase integration)", () => {
     if (deleteProbeErr) throw new Error(deleteProbeErr.message);
     paymentDeleteProbeId = deleteProbePayment.id;
 
-    const adminProbeClient = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-    await signInAs(adminProbeClient, adminEmail);
+    const adminProbeClient = await getSignedInPhase2Client(
+      supabaseUrl,
+      supabaseAnonKey,
+      adminEmail,
+    );
     paymentsPhase1Applied = await isPaymentsRlsPhase1Applied(
       serviceClient,
       adminProbeClient,
@@ -392,18 +407,54 @@ describe("RLS role security (Supabase integration)", () => {
       bookingAId,
     );
 
+    const { data: outboxProbe, error: outboxProbeErr } = await serviceClient
+      .from("notification_outbox")
+      .insert({
+        channel: "email",
+        recipient: customerAId,
+        payload: { test_phase2_run_id: runId, template: "rls_probe" },
+        status: "failed",
+      })
+      .select("id")
+      .single();
+    if (outboxProbeErr) throw new Error(outboxProbeErr.message);
+    notificationOutboxProbeId = outboxProbe.id;
+
+    const { data: outboxDeleteProbe, error: outboxDeleteProbeErr } = await serviceClient
+      .from("notification_outbox")
+      .insert({
+        channel: "email",
+        recipient: customerAId,
+        payload: { test_phase2_run_id: runId, template: "rls_delete_probe" },
+        status: "pending",
+      })
+      .select("id")
+      .single();
+    if (outboxDeleteProbeErr) throw new Error(outboxDeleteProbeErr.message);
+    notificationOutboxDeleteProbeId = outboxDeleteProbe.id;
+
+    notificationOutboxPhase5fApplied = await isNotificationOutboxRlsPhase5fApplied(
+      serviceClient,
+      adminProbeClient,
+      notificationOutboxProbeId,
+    );
+
     ready = true;
   }, 30_000);
 
   afterAll(async () => {
     if (!ready || !serviceClient) return;
+    await serviceClient
+      .from("notification_outbox")
+      .delete()
+      .contains("payload", { test_phase2_run_id: runId });
     await cleanupPhase2Run(serviceClient, runId);
+    clearPhase2SignedInClients();
   });
 
   it("customer cannot read another customer booking", async (ctx) => {
     skipUnlessReady(ctx);
-    const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-    await signInAs(client, customerAEmail);
+    const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, customerAEmail);
 
     const { data, error } = await client.from("bookings").select("id").eq("id", bookingBId);
     expect(error).toBeNull();
@@ -412,8 +463,7 @@ describe("RLS role security (Supabase integration)", () => {
 
   it("cleaner cannot read unrelated booking", async (ctx) => {
     skipUnlessReady(ctx);
-    const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-    await signInAs(client, cleanerEmail);
+    const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, cleanerEmail);
 
     const { data, error } = await client.from("bookings").select("id").eq("id", bookingBId);
     expect(error).toBeNull();
@@ -422,8 +472,7 @@ describe("RLS role security (Supabase integration)", () => {
 
   it("cleaner can read offered booking", async (ctx) => {
     skipUnlessReady(ctx);
-    const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-    await signInAs(client, cleanerEmail);
+    const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, cleanerEmail);
 
     const { data, error } = await client.from("bookings").select("id").eq("id", bookingAId);
     expect(error).toBeNull();
@@ -432,8 +481,7 @@ describe("RLS role security (Supabase integration)", () => {
 
   it("customer cannot update bookings.status", async (ctx) => {
     skipUnlessReady(ctx);
-    const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-    await signInAs(client, customerAEmail);
+    const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, customerAEmail);
 
     const { error } = await client
       .from("bookings")
@@ -459,8 +507,7 @@ describe("RLS role security (Supabase integration)", () => {
 
   it("admin can access operational data", async (ctx) => {
     skipUnlessReady(ctx);
-    const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-    await signInAs(client, adminEmail);
+    const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
     const bookings = await client.from("bookings").select("id").eq("id", bookingAId);
     expect(bookings.error).toBeNull();
@@ -477,8 +524,7 @@ describe("RLS role security (Supabase integration)", () => {
   describe("assignment_offers RLS phase 3c (5B-3c-a)", () => {
     it("admin can SELECT assignment_offers", async (ctx) => {
       skipUnlessAssignmentOffersPhase3c(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const { data, error } = await client
         .from("assignment_offers")
@@ -490,8 +536,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot INSERT assignment_offers", async (ctx) => {
       skipUnlessAssignmentOffersPhase3c(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const { data, error } = await client.from("assignment_offers").insert({
         booking_id: bookingAId,
@@ -505,8 +550,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot UPDATE assignment_offers.status", async (ctx) => {
       skipUnlessAssignmentOffersPhase3c(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const before = await client
         .from("assignment_offers")
@@ -539,8 +583,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot DELETE assignment_offers", async (ctx) => {
       skipUnlessAssignmentOffersPhase3c(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const { data, error } = await client
         .from("assignment_offers")
@@ -565,8 +608,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("cleaner can SELECT own assignment_offers", async (ctx) => {
       skipUnlessAssignmentOffersPhase3c(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, cleanerEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, cleanerEmail);
 
       const { data, error } = await client
         .from("assignment_offers")
@@ -578,8 +620,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("cleaner cannot SELECT another cleaner assignment_offers", async (ctx) => {
       skipUnlessAssignmentOffersPhase3c(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, cleanerEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, cleanerEmail);
 
       const { data, error } = await client
         .from("assignment_offers")
@@ -591,8 +632,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("customer can SELECT offers on own booking", async (ctx) => {
       skipUnlessAssignmentOffersPhase3c(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, customerAEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, customerAEmail);
 
       const { data, error } = await client
         .from("assignment_offers")
@@ -604,8 +644,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("customer cannot SELECT offers on another customer booking", async (ctx) => {
       skipUnlessAssignmentOffersPhase3c(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, customerAEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, customerAEmail);
 
       const { data, error } = await client
         .from("assignment_offers")
@@ -618,8 +657,7 @@ describe("RLS role security (Supabase integration)", () => {
 
   it("cleaner can update offer response fields only", async (ctx) => {
     skipUnlessReady(ctx);
-    const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-    await signInAs(client, cleanerEmail);
+    const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, cleanerEmail);
 
     const declined = await client
       .from("assignment_offers")
@@ -641,8 +679,7 @@ describe("RLS role security (Supabase integration)", () => {
   describe("payments RLS phase 1 (5B-3a)", () => {
     it("admin can SELECT payments", async (ctx) => {
       skipUnlessPaymentsPhase1(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const { data, error } = await client
         .from("payments")
@@ -654,8 +691,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot INSERT payments", async (ctx) => {
       skipUnlessPaymentsPhase1(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const { data, error } = await client.from("payments").insert({
         booking_id: bookingAId,
@@ -670,8 +706,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot UPDATE payments.status", async (ctx) => {
       skipUnlessPaymentsPhase1(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const before = await client
         .from("payments")
@@ -704,8 +739,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot DELETE payments", async (ctx) => {
       skipUnlessPaymentsPhase1(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const { data, error } = await client
         .from("payments")
@@ -730,8 +764,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("customer can SELECT own payment", async (ctx) => {
       skipUnlessPaymentsPhase1(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, customerAEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, customerAEmail);
 
       const { data, error } = await client
         .from("payments")
@@ -743,8 +776,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("customer cannot SELECT another customer payment", async (ctx) => {
       skipUnlessPaymentsPhase1(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, customerAEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, customerAEmail);
 
       const { data, error } = await client
         .from("payments")
@@ -758,8 +790,7 @@ describe("RLS role security (Supabase integration)", () => {
   describe("earning_lines RLS phase 3b (5B-3b-a)", () => {
     it("admin can SELECT earning_lines", async (ctx) => {
       skipUnlessEarningLinesPhase3b(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const { data, error } = await client
         .from("earning_lines")
@@ -771,8 +802,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot INSERT earning_lines", async (ctx) => {
       skipUnlessEarningLinesPhase3b(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const { data, error } = await client.from("earning_lines").insert({
         cleaner_id: cleanerId,
@@ -793,8 +823,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot UPDATE payout_status", async (ctx) => {
       skipUnlessEarningLinesPhase3b(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const before = await client
         .from("earning_lines")
@@ -827,8 +856,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot DELETE earning_lines", async (ctx) => {
       skipUnlessEarningLinesPhase3b(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const { data, error } = await client
         .from("earning_lines")
@@ -853,8 +881,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("cleaner can SELECT own earning_lines", async (ctx) => {
       skipUnlessEarningLinesPhase3b(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, cleanerEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, cleanerEmail);
 
       const { data, error } = await client
         .from("earning_lines")
@@ -866,8 +893,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("cleaner cannot SELECT another cleaner earning_lines", async (ctx) => {
       skipUnlessEarningLinesPhase3b(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, cleanerEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, cleanerEmail);
 
       const { data, error } = await client
         .from("earning_lines")
@@ -879,8 +905,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("customer cannot SELECT earning_lines", async (ctx) => {
       skipUnlessEarningLinesPhase3b(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, customerAEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, customerAEmail);
 
       const { data, error } = await client
         .from("earning_lines")
@@ -894,8 +919,7 @@ describe("RLS role security (Supabase integration)", () => {
   describe("payment_events RLS phase 4a (5B-3)", () => {
     it("admin can SELECT payment_events", async (ctx) => {
       skipUnlessPaymentEventsPhase4(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const { data, error } = await client
         .from("payment_events")
@@ -907,8 +931,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot INSERT payment_events", async (ctx) => {
       skipUnlessPaymentEventsPhase4(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const { data, error } = await client
         .from("payment_events")
@@ -926,8 +949,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot UPDATE payment_events", async (ctx) => {
       skipUnlessPaymentEventsPhase4(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const before = await client
         .from("payment_events")
@@ -960,8 +982,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot DELETE payment_events", async (ctx) => {
       skipUnlessPaymentEventsPhase4(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const { data, error } = await client
         .from("payment_events")
@@ -986,8 +1007,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("customer can SELECT payment_events for own payment", async (ctx) => {
       skipUnlessPaymentEventsPhase4(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, customerAEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, customerAEmail);
 
       const { data, error } = await client
         .from("payment_events")
@@ -999,8 +1019,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("customer cannot SELECT payment_events for another customer payment", async (ctx) => {
       skipUnlessPaymentEventsPhase4(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, customerAEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, customerAEmail);
 
       const { data, error } = await client
         .from("payment_events")
@@ -1014,8 +1033,7 @@ describe("RLS role security (Supabase integration)", () => {
   describe("bookings RLS phase 4a (5B-3)", () => {
     it("admin can SELECT bookings", async (ctx) => {
       skipUnlessBookingsPhase4(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const { data, error } = await client
         .from("bookings")
@@ -1027,8 +1045,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot INSERT bookings", async (ctx) => {
       skipUnlessBookingsPhase4(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const { data, error } = await client.from("bookings").insert({
         customer_id: customerAId,
@@ -1044,8 +1061,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot UPDATE bookings.status", async (ctx) => {
       skipUnlessBookingsPhase4(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const before = await client
         .from("bookings")
@@ -1080,8 +1096,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot UPDATE bookings.price_cents", async (ctx) => {
       skipUnlessBookingsPhase4(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const before = await client
         .from("bookings")
@@ -1114,8 +1129,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot UPDATE bookings.metadata or cleaner_id", async (ctx) => {
       skipUnlessBookingsPhase4(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const meta = await client
         .from("bookings")
@@ -1142,8 +1156,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("admin cannot DELETE bookings", async (ctx) => {
       skipUnlessBookingsPhase4(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, adminEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
 
       const { data, error } = await client
         .from("bookings")
@@ -1168,8 +1181,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("customer can SELECT own booking", async (ctx) => {
       skipUnlessBookingsPhase4(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, customerAEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, customerAEmail);
 
       const { data, error } = await client
         .from("bookings")
@@ -1181,8 +1193,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("cleaner can SELECT offered booking", async (ctx) => {
       skipUnlessBookingsPhase4(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, cleanerEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, cleanerEmail);
 
       const { data, error } = await client
         .from("bookings")
@@ -1194,8 +1205,7 @@ describe("RLS role security (Supabase integration)", () => {
 
     it("customer can UPDATE own booking metadata but not status", async (ctx) => {
       skipUnlessBookingsPhase4(ctx);
-      const client = createUserScopedClient(supabaseUrl, supabaseAnonKey);
-      await signInAs(client, customerAEmail);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, customerAEmail);
 
       const meta = await client
         .from("bookings")
@@ -1209,6 +1219,146 @@ describe("RLS role security (Supabase integration)", () => {
         .eq("id", bookingAId);
       expect(status.error).not.toBeNull();
       expect(status.error?.message ?? "").toMatch(/BOOKING_STATUS_MUTATION_FORBIDDEN/i);
+    });
+  });
+
+  describe("notification_outbox RLS phase 5F-a", () => {
+    it("admin can SELECT notification_outbox", async (ctx) => {
+      skipUnlessNotificationOutboxPhase5f(ctx);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
+
+      const { data, error } = await client
+        .from("notification_outbox")
+        .select("id, status")
+        .eq("id", notificationOutboxProbeId);
+      expect(error).toBeNull();
+      expect(data).toHaveLength(1);
+    });
+
+    it("admin cannot INSERT notification_outbox", async (ctx) => {
+      skipUnlessNotificationOutboxPhase5f(ctx);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
+
+      const { data, error } = await client.from("notification_outbox").insert({
+        channel: "email",
+        recipient: customerAId,
+        payload: { template: "admin_insert_blocked", test_phase2_run_id: runId },
+        status: "pending",
+      });
+
+      expect(data).toBeNull();
+      expect(error).not.toBeNull();
+    });
+
+    it("admin cannot UPDATE notification_outbox.status", async (ctx) => {
+      skipUnlessNotificationOutboxPhase5f(ctx);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
+
+      const before = await client
+        .from("notification_outbox")
+        .select("status")
+        .eq("id", notificationOutboxProbeId)
+        .single();
+      expect(before.error).toBeNull();
+
+      const { data, error } = await client
+        .from("notification_outbox")
+        .update({ status: "sent" })
+        .eq("id", notificationOutboxProbeId)
+        .select("status");
+
+      const after = await client
+        .from("notification_outbox")
+        .select("status")
+        .eq("id", notificationOutboxProbeId)
+        .single();
+      expect(after.error).toBeNull();
+      expect(after.data?.status).toBe(before.data?.status);
+      expect(after.data?.status).not.toBe("sent");
+
+      if (error) {
+        expect(error.message ?? "").toMatch(/row-level security|permission denied|42501/i);
+      } else {
+        expect(data ?? []).toHaveLength(0);
+      }
+    });
+
+    it("admin cannot DELETE notification_outbox", async (ctx) => {
+      skipUnlessNotificationOutboxPhase5f(ctx);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, adminEmail);
+
+      const { data, error } = await client
+        .from("notification_outbox")
+        .delete()
+        .eq("id", notificationOutboxDeleteProbeId)
+        .select("id");
+
+      const stillThere = await serviceClient!
+        .from("notification_outbox")
+        .select("id")
+        .eq("id", notificationOutboxDeleteProbeId)
+        .single();
+      expect(stillThere.error).toBeNull();
+      expect(stillThere.data?.id).toBe(notificationOutboxDeleteProbeId);
+
+      if (error) {
+        expect(error.message ?? "").toMatch(/row-level security|permission denied|42501/i);
+      } else {
+        expect(data ?? []).toHaveLength(0);
+      }
+    });
+
+    it("customer cannot SELECT notification_outbox", async (ctx) => {
+      skipUnlessNotificationOutboxPhase5f(ctx);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, customerAEmail);
+
+      const { data, error } = await client
+        .from("notification_outbox")
+        .select("id")
+        .eq("id", notificationOutboxProbeId);
+      expect(error).toBeNull();
+      expect(data ?? []).toHaveLength(0);
+    });
+
+    it("cleaner cannot SELECT notification_outbox", async (ctx) => {
+      skipUnlessNotificationOutboxPhase5f(ctx);
+      const client = await getSignedInPhase2Client(supabaseUrl, supabaseAnonKey, cleanerEmail);
+
+      const { data, error } = await client
+        .from("notification_outbox")
+        .select("id")
+        .eq("id", notificationOutboxProbeId);
+      expect(error).toBeNull();
+      expect(data ?? []).toHaveLength(0);
+    });
+
+    it("service role can INSERT and UPDATE notification_outbox", async (ctx) => {
+      skipUnlessNotificationOutboxPhase5f(ctx);
+
+      const insertKey = `${runId}_sr_outbox`;
+      const { data: inserted, error: insertError } = await serviceClient!
+        .from("notification_outbox")
+        .insert({
+          channel: "email",
+          recipient: customerAId,
+          payload: { test_phase2_run_id: runId, template: "sr_probe", insertKey },
+          status: "pending",
+        })
+        .select("id")
+        .single();
+      expect(insertError).toBeNull();
+      expect(inserted?.id).toBeTruthy();
+
+      const { data: updated, error: updateError } = await serviceClient!
+        .from("notification_outbox")
+        .update({ status: "processing" })
+        .eq("id", inserted!.id)
+        .select("status");
+      expect(updateError).toBeNull();
+      expect(updated).toHaveLength(1);
+      expect(updated![0]?.status).toBe("processing");
+
+      await serviceClient!.from("notification_outbox").delete().eq("id", inserted!.id);
     });
   });
 

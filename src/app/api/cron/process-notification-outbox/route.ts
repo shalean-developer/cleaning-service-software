@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { processNotificationOutbox } from "@/features/notifications/server/processNotificationOutbox";
+import { recordNotificationWorkerRun } from "@/features/notifications/server/recordNotificationWorkerRun";
 import { verifyCronSecret } from "@/lib/cron/verifyCronSecret";
 import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
 
@@ -30,8 +31,27 @@ async function handleProcess(request: Request) {
     );
   }
 
+  const startedAt = new Date();
+
   try {
     const result = await processNotificationOutbox(client);
+
+    try {
+      await recordNotificationWorkerRun(client, {
+        startedAt,
+        ok: true,
+        request,
+        result,
+      });
+    } catch (persistError) {
+      console.warn(
+        JSON.stringify({
+          event: "notification_worker_run_persist_unexpected",
+          at: new Date().toISOString(),
+          message: persistError instanceof Error ? persistError.message : "persist failed",
+        }),
+      );
+    }
 
     return NextResponse.json({
       ok: true,
@@ -47,6 +67,23 @@ async function handleProcess(request: Request) {
       dryRunPreviews: result.dryRunPreviews,
     });
   } catch (e) {
+    try {
+      await recordNotificationWorkerRun(client, {
+        startedAt,
+        ok: false,
+        request,
+        error: e,
+      });
+    } catch (persistError) {
+      console.warn(
+        JSON.stringify({
+          event: "notification_worker_run_persist_unexpected",
+          at: new Date().toISOString(),
+          message: persistError instanceof Error ? persistError.message : "persist failed",
+        }),
+      );
+    }
+
     const message = e instanceof Error ? e.message : "Notification outbox processing failed.";
     return NextResponse.json(
       { ok: false, error: "INTERNAL_ERROR", message },

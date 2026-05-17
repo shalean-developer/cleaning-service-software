@@ -63,6 +63,31 @@ describe("AdminBookingNotificationsSection", () => {
     expect(html).not.toContain("Resend");
   });
 
+  it('shows "Requeue dry-run" for eligible dry-run sent rows', () => {
+    const html = renderToStaticMarkup(
+      <AdminBookingNotificationsSection
+        notifications={[
+          {
+            ...sampleRow,
+            status: "sent",
+            canRequeue: true,
+            isDryRun: true,
+            lastError:
+              "dry_run_sent;template=payment_confirmed;bookingId=booking-1;recipientType=customer",
+            statusNote: "Dry run · payment_confirmed",
+            dryRun: {
+              template: "payment_confirmed",
+              bookingId: "booking-1",
+              offerId: null,
+              recipientType: "customer",
+            },
+          },
+        ]}
+      />,
+    );
+    expect(html).toContain("Requeue dry-run");
+  });
+
   it("shows short offer id when present", () => {
     const html = renderToStaticMarkup(
       <AdminBookingNotificationsSection

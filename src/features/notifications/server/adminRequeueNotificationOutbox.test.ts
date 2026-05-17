@@ -159,21 +159,89 @@ describe("adminRequeueNotificationOutbox", () => {
     }
   });
 
-  it.each(["pending", "processing", "sent"] as const)(
-    "rejects %s status",
-    async (status) => {
-      const client = makeClient(baseRow({ status }));
-      createServiceRoleClientMock.mockReturnValue(client);
+  it.each(["pending", "processing"] as const)("rejects %s status", async (status) => {
+    const client = makeClient(baseRow({ status }));
+    createServiceRoleClientMock.mockReturnValue(client);
 
-      const { adminRequeueNotificationOutbox } = await import("./adminRequeueNotificationOutbox");
-      const result = await adminRequeueNotificationOutbox(adminUser, "outbox-1", {
-        reason: "Should not apply",
-      });
+    const { adminRequeueNotificationOutbox } = await import("./adminRequeueNotificationOutbox");
+    const result = await adminRequeueNotificationOutbox(adminUser, "outbox-1", {
+      reason: "Should not apply",
+    });
 
-      expect(result.ok).toBe(false);
-      if (!result.ok) expect(result.outcome).toBe("not_eligible");
-    },
-  );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.outcome).toBe("not_eligible");
+  });
+
+  it("rejects live sent status", async () => {
+    const client = makeClient(baseRow({ status: "sent", last_error: null }));
+    createServiceRoleClientMock.mockReturnValue(client);
+
+    const { adminRequeueNotificationOutbox } = await import("./adminRequeueNotificationOutbox");
+    const result = await adminRequeueNotificationOutbox(adminUser, "outbox-1", {
+      reason: "Should not apply",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.outcome).toBe("not_eligible");
+      expect(result.message).toContain("Live sent");
+    }
+  });
+
+  const dryRunSentError =
+    "dry_run_sent;template=payment_confirmed;bookingId=booking-1;recipientType=customer";
+
+  it.each([
+    ["payment_confirmed", { template: "payment_confirmed", bookingId: "booking-1" }, "email"],
+    ["payment_failed", { template: "payment_failed", bookingId: "booking-1" }, "email"],
+    [
+      "assignment_offer",
+      { template: "assignment_offer", bookingId: "booking-1", offerId: "offer-1" },
+      "push",
+    ],
+  ])("requeues dry-run sent %s", async (template, payload, channel) => {
+    const client = makeClient(
+      baseRow({
+        status: "sent",
+        channel,
+        payload,
+        last_error: `dry_run_sent;template=${template};bookingId=booking-1;recipientType=customer`,
+      }),
+    );
+    createServiceRoleClientMock.mockReturnValue(client);
+
+    const { adminRequeueNotificationOutbox } = await import("./adminRequeueNotificationOutbox");
+    const result = await adminRequeueNotificationOutbox(adminUser, "outbox-1", {
+      reason: "Retry dry-run test",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.template).toBe(template);
+    expect(auditMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ resultCode: "REQUEUED", dryRunRequeue: true }),
+    );
+    expect(client.updateChain.eq).toHaveBeenCalledWith("status", "sent");
+  });
+
+  it("rejects unsupported dry-run sent template", async () => {
+    const client = makeClient(
+      baseRow({
+        status: "sent",
+        payload: { template: "payment_pending", bookingId: "booking-1" },
+        last_error: "dry_run_sent;template=payment_pending;bookingId=booking-1",
+      }),
+    );
+    createServiceRoleClientMock.mockReturnValue(client);
+
+    const { adminRequeueNotificationOutbox } = await import("./adminRequeueNotificationOutbox");
+    const result = await adminRequeueNotificationOutbox(adminUser, "outbox-1", {
+      reason: "Should not apply",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("UNSUPPORTED_TEMPLATE");
+  });
 
   it("returns not_found for missing row", async () => {
     const client = makeClient(null);

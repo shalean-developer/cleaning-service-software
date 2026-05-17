@@ -28,6 +28,7 @@ describe("sanitizeAdminOperationalMetadata", () => {
       oldStatus: "failed",
       newStatus: "pending",
       deliveryDedupeWouldBlock: true,
+      dryRunRequeue: true,
       payload: "secret blob",
     });
     expect(result).toEqual({
@@ -36,6 +37,7 @@ describe("sanitizeAdminOperationalMetadata", () => {
       oldStatus: "failed",
       newStatus: "pending",
       deliveryDedupeWouldBlock: true,
+      dryRunRequeue: true,
     });
     expect(result).not.toHaveProperty("payload");
   });

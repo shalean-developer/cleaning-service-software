@@ -35,7 +35,25 @@ export function AdminNotificationDeliveryBanner({ banner }: Props) {
         </li>
       </ul>
       {banner.appBaseUrlWarning ? (
-        <p className="mt-2 text-xs font-medium text-amber-900">{banner.appBaseUrlWarning}</p>
+        <div
+          className="mt-3 flex gap-2.5 rounded-lg border border-amber-400 bg-amber-100 px-3 py-2.5 text-amber-950"
+          role="status"
+        >
+          <span
+            className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-amber-600 bg-amber-200 text-[11px] font-bold leading-none"
+            aria-hidden
+          >
+            !
+          </span>
+          <div className="min-w-0 space-y-0.5">
+            <p className="text-sm font-semibold leading-snug">
+              APP_BASE_URL resolves to localhost.
+            </p>
+            <p className="text-xs leading-relaxed text-amber-900/90">
+              Notification links may be incorrect outside local development.
+            </p>
+          </div>
+        </div>
       ) : null}
       <p className="mt-3 text-xs text-zinc-600">
         This page is read-only. Use the notification cron and{" "}

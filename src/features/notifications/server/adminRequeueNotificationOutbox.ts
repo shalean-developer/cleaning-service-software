@@ -28,6 +28,7 @@ function logAdminNotificationRequeueMissingBooking(payload: {
 import { computeDeliveryDedupeWouldBlock } from "./computeDeliveryDedupeWouldBlock";
 import {
   isDeliverableNotificationRow,
+  isDryRunLastError,
   readNotificationPayloadString,
 } from "./notificationOutboxDeliverability";
 
@@ -177,13 +178,12 @@ export async function adminRequeueNotificationOutbox(
     };
   }
 
-  if (row.status !== "failed") {
-    const resultCode =
-      row.status === "sent"
-        ? "INVALID_STATUS"
-        : row.status === "processing"
-          ? "INVALID_STATUS"
-          : "INVALID_STATUS";
+  const isDryRunSentRequeue =
+    row.status === "sent" && isDryRunLastError(row.last_error);
+  const isFailedRequeue = row.status === "failed";
+
+  if (!isFailedRequeue && !isDryRunSentRequeue) {
+    const resultCode = "INVALID_STATUS";
 
     await auditAdminNotificationRequeue(client, {
       ...auditBase,
@@ -191,11 +191,16 @@ export async function adminRequeueNotificationOutbox(
       resultCode,
     });
 
+    const message =
+      row.status === "sent"
+        ? "Live sent notifications cannot be requeued. Only dry-run sent rows are eligible."
+        : `Only failed or dry-run sent notifications can be requeued (current status: ${row.status}).`;
+
     return {
       ok: false,
       outcome: "not_eligible",
       code: resultCode,
-      message: `Only failed notifications can be requeued (current status: ${row.status}).`,
+      message,
       httpStatus: 409,
     };
   }
@@ -225,6 +230,8 @@ export async function adminRequeueNotificationOutbox(
 
   const nowIso = new Date().toISOString();
 
+  const expectedStatus = isDryRunSentRequeue ? "sent" : "failed";
+
   const { data: updated, error: updateError } = await client
     .from("notification_outbox")
     .update({
@@ -235,7 +242,7 @@ export async function adminRequeueNotificationOutbox(
       updated_at: nowIso,
     })
     .eq("id", row.id)
-    .eq("status", "failed")
+    .eq("status", expectedStatus)
     .select("id, status")
     .maybeSingle();
 
@@ -279,7 +286,12 @@ export async function adminRequeueNotificationOutbox(
     resultCode: "REQUEUED",
     newStatus: "pending",
     deliveryDedupeWouldBlock,
+    dryRunRequeue: isDryRunSentRequeue,
   });
+
+  const dryRunSuffix = isDryRunSentRequeue
+    ? " Next processing follows delivery mode (dry-run or Resend)."
+    : "";
 
   return {
     ok: true,
@@ -290,7 +302,7 @@ export async function adminRequeueNotificationOutbox(
     status: "pending",
     deliveryDedupeWouldBlock,
     message: deliveryDedupeWouldBlock
-      ? "Notification requeued. Worker may skip send if delivery dedupe applies — wait for cron."
-      : "Notification requeued to pending. Worker will process on the next cron run.",
+      ? `Notification requeued. Worker may skip send if delivery dedupe applies — wait for cron.${dryRunSuffix}`
+      : `Notification requeued to pending. Worker will process on the next cron run.${dryRunSuffix}`,
   };
 }

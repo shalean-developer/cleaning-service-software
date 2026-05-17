@@ -8,6 +8,8 @@ const ALLOWED_CRON_POST_ROUTES = new Set([
   "expire-pending-payments/route.ts",
   "recover-assignment-after-payment/route.ts",
   "process-notification-outbox/route.ts",
+  "rollup-notification-metrics/route.ts",
+  "cleanup-notification-retention/route.ts",
 ]);
 
 describe("cron mutation API routes", () => {

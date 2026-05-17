@@ -60,7 +60,7 @@ describe("AdminNotificationOutboxTable", () => {
     expect(html).not.toContain("Resend");
   });
 
-  it("does not show Requeue for sent rows even with showRequeueActions", () => {
+  it("does not show Requeue for live sent rows even with showRequeueActions", () => {
     const html = renderToStaticMarkup(
       <AdminNotificationOutboxTable
         notifications={[
@@ -75,6 +75,61 @@ describe("AdminNotificationOutboxTable", () => {
       />,
     );
     expect(html).not.toContain("Requeue");
+  });
+
+  it("renders dry-run badge and muted row styling", () => {
+    const html = renderToStaticMarkup(
+      <AdminNotificationOutboxTable
+        notifications={[
+          {
+            ...sampleRow,
+            status: "sent",
+            isDryRun: true,
+            lastError:
+              "dry_run_sent;template=payment_confirmed;bookingId=booking-abcdef12;recipientType=customer",
+            statusNote: "Dry run · payment_confirmed",
+            dryRun: {
+              template: "payment_confirmed",
+              bookingId: "booking-abcdef12",
+              offerId: null,
+              recipientType: "customer",
+            },
+          },
+        ]}
+        showBookingLink
+      />,
+    );
+    expect(html).toContain("Dry run");
+    expect(html).not.toContain("(dry run)");
+    expect(html).toContain("bg-zinc-50/90");
+  });
+
+  it('shows "Requeue dry-run" for eligible dry-run sent rows', () => {
+    const html = renderToStaticMarkup(
+      <AdminNotificationOutboxTable
+        notifications={[
+          {
+            ...sampleRow,
+            status: "sent",
+            canRequeue: true,
+            isDryRun: true,
+            lastError:
+              "dry_run_sent;template=payment_confirmed;bookingId=booking-abcdef12;recipientType=customer",
+            statusNote: "Dry run · payment_confirmed",
+            dryRun: {
+              template: "payment_confirmed",
+              bookingId: "booking-abcdef12",
+              offerId: null,
+              recipientType: "customer",
+            },
+          },
+        ]}
+        showBookingLink
+        showRequeueActions
+      />,
+    );
+    expect(html).toContain("Requeue dry-run");
+    expect(html).not.toContain("Requeue dry-run dry-run");
   });
 
   it("renders empty state", () => {

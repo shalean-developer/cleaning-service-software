@@ -1,6 +1,7 @@
 import type { Json, NotificationOutboxStatus } from "@/lib/database/types";
 import {
   isDeliverableNotificationRow,
+  isDryRunLastError,
   readNotificationPayloadString,
 } from "./notificationOutboxDeliverability";
 
@@ -8,6 +9,7 @@ type RequeueEligibilityRowInput = {
   status: NotificationOutboxStatus;
   channel: string;
   payload: Json;
+  last_error: string | null;
 };
 
 export type NotificationRequeueBlockReason =
@@ -32,16 +34,20 @@ export function computeNotificationRequeueEligibility(
     return { canRequeue: false, requeueBlockReason: "REQUEUE_ACTIONS_DISABLED" };
   }
 
-  if (row.status === "sent") {
-    return { canRequeue: false, requeueBlockReason: "LIVE_ALREADY_SENT" };
-  }
   if (row.status === "processing") {
     return { canRequeue: false, requeueBlockReason: "PROCESSING" };
   }
   if (row.status === "pending") {
     return { canRequeue: false, requeueBlockReason: "PENDING" };
   }
-  if (row.status !== "failed") {
+
+  const isDryRunSent = row.status === "sent" && isDryRunLastError(row.last_error);
+  const isFailed = row.status === "failed";
+
+  if (!isFailed && !isDryRunSent) {
+    if (row.status === "sent") {
+      return { canRequeue: false, requeueBlockReason: "LIVE_ALREADY_SENT" };
+    }
     return { canRequeue: false, requeueBlockReason: "NOT_FAILED" };
   }
 

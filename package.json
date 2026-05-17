@@ -17,6 +17,7 @@
     "e2e:inspect:earnings": "node scripts/e2e/inspect-earnings.mjs",
     "e2e:repair:assignments": "node scripts/e2e/repair-orphaned-assignments.mjs",
     "ops:recover:assignments": "node scripts/recover-assignment-after-payment.mjs",
+    "ops:backfill:notification-metrics": "node scripts/ops/backfill-notification-metrics-hourly.mjs",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",

@@ -36,6 +36,7 @@ const ALLOWED_METADATA_KEYS = new Set([
   "oldStatus",
   "newStatus",
   "deliveryDedupeWouldBlock",
+  "dryRunRequeue",
 ]);
 
 /**

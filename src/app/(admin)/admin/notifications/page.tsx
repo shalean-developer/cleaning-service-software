@@ -7,10 +7,15 @@ import {
   parseNotificationHealthFilters,
 } from "@/features/notifications/server/notificationAdminReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { AdminNotificationAnalyticsPanel } from "@/components/dashboard/AdminNotificationAnalyticsPanel";
 import { AdminNotificationDeliveryBanner } from "@/components/dashboard/AdminNotificationDeliveryBanner";
+import { AdminNotificationTemplateBreakdownTable } from "@/components/dashboard/AdminNotificationTemplateBreakdownTable";
+import { AdminNotificationWorkerHealthCard } from "@/components/dashboard/AdminNotificationWorkerHealthCard";
+import { AdminNotificationRecentWorkerRunsTable } from "@/components/dashboard/AdminNotificationRecentWorkerRunsTable";
 import { AdminNotificationHealthCards } from "@/components/dashboard/AdminNotificationHealthCards";
 import { AdminNotificationFilters } from "@/components/dashboard/AdminNotificationFilters";
 import { AdminNotificationOutboxTable } from "@/components/dashboard/AdminNotificationOutboxTable";
+import { AdminNotificationRetentionDryRunPanel } from "@/components/dashboard/AdminNotificationRetentionDryRunPanel";
 import { ADMIN_NOTIFICATION_GLOBAL_LIST_LIMIT } from "@/features/notifications/server/notificationAdminTypes";
 
 export const metadata: Metadata = {
@@ -47,6 +52,11 @@ export default async function AdminNotificationsPage({ searchParams }: PageProps
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
       <AdminNotificationDeliveryBanner banner={page.banner} />
+      <AdminNotificationAnalyticsPanel analytics={page.analytics} />
+      <AdminNotificationTemplateBreakdownTable analytics={page.analytics} />
+      <AdminNotificationWorkerHealthCard workerHealth={page.workerHealth} />
+      <AdminNotificationRecentWorkerRunsTable runs={page.recentWorkerRuns} />
+      <AdminNotificationRetentionDryRunPanel retention={page.retentionDryRun} />
 
       <section className="mt-6">
         <AdminNotificationHealthCards
