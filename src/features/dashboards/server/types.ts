@@ -1,8 +1,16 @@
 import type { AssignmentOfferStatus, PaymentStatus } from "@/lib/database/types";
 import type { PaymentFailureReason } from "@/features/bookings/server/paymentFailureDisplay";
 import type { BookingStatus } from "@/features/bookings/server/types";
+import type { AssignmentVisibilityKey } from "@/features/assignments/server/resolveAssignmentVisibility";
+import type {
+  AdminAuditEntry,
+  AdminOperationalStatus,
+  AdminOperationsSummary,
+} from "./adminOperationalHelpers";
 import type { LifecycleEvent } from "./lifecycleTimeline";
 import type { BookingDisplayFields } from "./parseBookingDisplay";
+
+export type { AdminAuditEntry, AdminOperationalStatus, AdminOperationsSummary };
 
 export type PaymentSummary = {
   id: string;
@@ -96,9 +104,19 @@ export type AdminBookingListItem = {
   cleanerLabel: string | null;
   serviceLabel: string;
   scheduleLabel: string;
+  scheduledStart?: string;
   priceLabel: string;
   assignmentAttention: string | null;
+  assignmentVisibilityKey?: AssignmentVisibilityKey;
+  dispatchNotStarted?: boolean;
+  recoveryEligible?: boolean;
   updatedAt: string;
+};
+
+export type AdminBookingsListResult = {
+  bookings: AdminBookingListItem[];
+  total: number;
+  limit: number;
 };
 
 export type AdminEarningSummary = {
@@ -136,10 +154,11 @@ export type AdminBookingDetail = AdminBookingListItem & {
   payments: PaymentSummary[];
   offers: OfferSummary[];
   earnings: AdminEarningSummary[];
-  audits: { id: number; command: string | null; from: string | null; to: string | null; at: string }[];
+  audits: AdminAuditEntry[];
   operationalAudits: AdminOperationalAuditEntry[];
   paymentEvents: { id: string; eventType: string | null; at: string }[];
   display: BookingDisplayFields;
+  operational: AdminOperationalStatus;
 };
 
 export type AdminAssignmentQueueItem = {
@@ -151,5 +170,17 @@ export type AdminAssignmentQueueItem = {
   assignmentAttention: string;
   assignmentReason: string | null;
   openOffers: OfferSummary[];
+  queueReason: string;
+  opsSearching: boolean;
+  opsAdminRequired: boolean;
+  recoveryCronCanHandle: boolean;
+  manualInterventionNeeded: boolean;
+  runbookKey: import("./adminRunbooks").AdminRunbookKey | null;
   updatedAt: string;
+};
+
+export type AdminAssignmentQueueResult = {
+  items: AdminAssignmentQueueItem[];
+  total: number;
+  limit: number;
 };

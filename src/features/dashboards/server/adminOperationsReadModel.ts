@@ -2,6 +2,8 @@ import "server-only";
 
 import type { CurrentUser } from "@/lib/auth/types";
 import { isOfferOpenForOps } from "@/features/assignments/server/buildOfferExpiry";
+import { ASSIGNMENT_RECOVERY_GRACE_MINUTES } from "@/features/assignments/server/constants";
+import { readAssignmentMetadata } from "@/features/assignments/server/assignmentMetadata";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   AdminOperationalAuditRow,
@@ -14,16 +16,33 @@ import type { BookingStatus } from "@/features/bookings/server/types";
 import { resolvePaymentFailureReason } from "@/features/bookings/server/paymentFailureDisplay";
 import { buildLifecycleTimeline } from "./lifecycleTimeline";
 import {
+  ADMIN_ASSIGNMENT_QUEUE_LIMIT,
+  ADMIN_BOOKINGS_LIST_LIMIT,
+  buildAdminOperationalStatus,
+  buildAssignmentQueueOpsFields,
+  buildSearchText,
+  computeAdminOperationsSummary,
+  computeDispatchNotStarted,
+  computeRecoveryEligibility,
+  filterAdminBookings,
+  mapAuditRow,
+  resolveVisibilityForBooking,
+  type AdminBookingsQuery,
+} from "./adminOperationalHelpers";
+import {
+  enrichBookingDisplayWithAssignmentVisibility,
   formatScheduleRange,
   formatZar,
   parseBookingDisplay,
 } from "./parseBookingDisplay";
 import type {
   AdminAssignmentQueueItem,
+  AdminAssignmentQueueResult,
   AdminBookingDetail,
   AdminBookingListItem,
+  AdminBookingsListResult,
+  AdminOperationsSummary,
   OfferSummary,
-  PaymentSummary,
 } from "./types";
 
 async function resolveCustomerLabel(
@@ -98,10 +117,96 @@ async function mapOffers(
   return mapped;
 }
 
+type BookingListRow = {
+  id: string;
+  status: BookingStatus;
+  customer_id: string;
+  cleaner_id: string | null;
+  scheduled_start: string;
+  scheduled_end: string;
+  price_cents: number;
+  currency: string;
+  metadata: import("@/lib/database/types").Json;
+  updated_at: string;
+};
+
+async function buildAdminBookingListItem(
+  client: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+  row: BookingListRow,
+): Promise<
+  AdminBookingListItem & {
+    searchText: string;
+  }
+> {
+  const { data: payments } = await client.from("payments").select("*").eq("booking_id", row.id);
+  const paymentList = payments ?? [];
+  const payment = latestPayment(paymentList);
+
+  const { data: offers } = await client
+    .from("assignment_offers")
+    .select("status, expires_at")
+    .eq("booking_id", row.id);
+
+  const offerRows = offers ?? [];
+  const openOffers = offerRows.filter((o) => isOfferOpenForOps(o));
+  const dispatchNotStarted = computeDispatchNotStarted({
+    bookingStatus: row.status,
+    cleanerId: row.cleaner_id,
+    assignmentReason: readAssignmentMetadata(row.metadata)?.reason,
+    payments: paymentList,
+    offers: offerRows,
+  });
+
+  let display = parseBookingDisplay(row.metadata);
+  if (row.status === "pending_assignment" || row.status === "confirmed") {
+    display = enrichBookingDisplayWithAssignmentVisibility(display, {
+      bookingStatus: row.status,
+      metadata: row.metadata,
+      hasOpenOffer: openOffers.length > 0,
+      offerStatuses: offerRows.map((o) => o.status),
+      dispatchNotStarted,
+    });
+  }
+
+  const { eligibility } = computeRecoveryEligibility({
+    bookingStatus: row.status,
+    cleanerId: row.cleaner_id,
+    payments: paymentList,
+    offers: offerRows,
+    hasOpenOffer: openOffers.length > 0,
+  });
+
+  const paymentFailureReason = await loadPaymentFailureReason(client, row.id, row.status);
+  const customerLabel = await resolveCustomerLabel(client, row.customer_id);
+  const providerRefs = paymentList
+    .map((p) => p.provider_ref)
+    .filter((r): r is string => typeof r === "string");
+
+  return {
+    id: row.id,
+    status: row.status,
+    paymentStatus: payment?.status ?? null,
+    paymentFailureReason,
+    customerLabel,
+    cleanerLabel: await resolveCleanerLabel(client, row.cleaner_id),
+    serviceLabel: display.serviceLabel,
+    scheduleLabel: formatScheduleRange(row.scheduled_start, row.scheduled_end),
+    scheduledStart: row.scheduled_start,
+    priceLabel: formatZar(row.price_cents, row.currency),
+    assignmentAttention: display.assignmentVisibilityKey ?? display.assignmentAttention,
+    assignmentVisibilityKey: display.assignmentVisibilityKey,
+    dispatchNotStarted,
+    recoveryEligible: eligibility === "eligible",
+    updatedAt: row.updated_at,
+    searchText: buildSearchText([row.id, customerLabel, ...providerRefs]),
+  };
+}
+
 export async function listAdminBookings(
   user: CurrentUser,
+  query: AdminBookingsQuery = {},
 ): Promise<
-  | { ok: true; bookings: AdminBookingListItem[] }
+  | { ok: true } & AdminBookingsListResult
   | { ok: false; code: string; message: string; status: number }
 > {
   if (user.role !== "admin") {
@@ -119,38 +224,65 @@ export async function listAdminBookings(
       "id, status, customer_id, cleaner_id, scheduled_start, scheduled_end, price_cents, currency, metadata, updated_at",
     )
     .order("updated_at", { ascending: false })
-    .limit(200);
+    .limit(ADMIN_BOOKINGS_LIST_LIMIT);
 
   if (error) {
     return { ok: false, code: "PERSISTENCE_ERROR", message: error.message, status: 500 };
   }
 
-  const items: AdminBookingListItem[] = [];
+  const built: (AdminBookingListItem & { searchText: string })[] = [];
   for (const row of bookings ?? []) {
-    const { data: payments } = await client.from("payments").select("*").eq("booking_id", row.id);
-    const payment = latestPayment(payments ?? []);
-    const display = parseBookingDisplay(row.metadata);
-    const paymentFailureReason = await loadPaymentFailureReason(
-      client,
-      row.id,
-      row.status,
-    );
-    items.push({
-      id: row.id,
-      status: row.status,
-      paymentStatus: payment?.status ?? null,
-      paymentFailureReason,
-      customerLabel: await resolveCustomerLabel(client, row.customer_id),
-      cleanerLabel: await resolveCleanerLabel(client, row.cleaner_id),
-      serviceLabel: display.serviceLabel,
-      scheduleLabel: formatScheduleRange(row.scheduled_start, row.scheduled_end),
-      priceLabel: formatZar(row.price_cents, row.currency),
-      assignmentAttention: display.assignmentAttention,
-      updatedAt: row.updated_at,
-    });
+    built.push(await buildAdminBookingListItem(client, row as BookingListRow));
   }
 
-  return { ok: true, bookings: items };
+  const filtered = filterAdminBookings(built, query);
+
+  return {
+    ok: true,
+    bookings: filtered,
+    total: built.length,
+    limit: ADMIN_BOOKINGS_LIST_LIMIT,
+  };
+}
+
+export async function getAdminOperationsSummary(
+  user: CurrentUser,
+): Promise<
+  | { ok: true; summary: AdminOperationsSummary }
+  | { ok: false; code: string; message: string; status: number }
+> {
+  if (user.role !== "admin") {
+    return { ok: false, code: "FORBIDDEN", message: "Admins only.", status: 403 };
+  }
+
+  const bookingsResult = await listAdminBookings(user);
+  const queueResult = await listAdminAssignmentQueue(user);
+  if (!bookingsResult.ok) {
+    return {
+      ok: false,
+      code: bookingsResult.code,
+      message: bookingsResult.message,
+      status: bookingsResult.status,
+    };
+  }
+  if (!queueResult.ok) {
+    return {
+      ok: false,
+      code: queueResult.code,
+      message: queueResult.message,
+      status: queueResult.status,
+    };
+  }
+
+  return {
+    ok: true,
+    summary: computeAdminOperationsSummary({
+      bookings: bookingsResult.bookings,
+      assignmentQueueTotal: queueResult.total,
+      bookingsVisible: bookingsResult.bookings.length,
+      assignmentQueueVisible: queueResult.items.length,
+    }),
+  };
 }
 
 export async function getAdminBookingDetail(
@@ -216,8 +348,77 @@ export async function getAdminBookingDetail(
 
   const paymentList = payments ?? [];
   const payment = latestPayment(paymentList);
-  const display = parseBookingDisplay(row.metadata);
+  const offerRows = offers ?? [];
+  const openOfferRows = offerRows.filter((o) => isOfferOpenForOps(o));
+
+  const dispatchNotStarted = computeDispatchNotStarted({
+    bookingStatus: row.status,
+    cleanerId: row.cleaner_id,
+    assignmentReason: readAssignmentMetadata(row.metadata)?.reason,
+    payments: paymentList,
+    offers: offerRows,
+  });
+
+  let display = parseBookingDisplay(row.metadata);
+  if (row.status === "pending_assignment" || row.status === "confirmed") {
+    display = enrichBookingDisplayWithAssignmentVisibility(display, {
+      bookingStatus: row.status,
+      metadata: row.metadata,
+      hasOpenOffer: openOfferRows.length > 0,
+      offerStatuses: offerRows.map((o) => o.status),
+      dispatchNotStarted,
+    });
+  }
+
+  const visibility = resolveVisibilityForBooking({
+    bookingStatus: row.status,
+    metadata: row.metadata,
+    hasOpenOffer: openOfferRows.length > 0,
+    offerStatuses: offerRows.map((o) => o.status),
+    dispatchNotStarted,
+  });
+
+  const assignmentMeta = readAssignmentMetadata(row.metadata);
   const paymentFailureReason = resolvePaymentFailureReason(audits ?? []);
+  const mappedOffers = await mapOffers(client, offerRows);
+
+  const { eligibility, graceMinutesRemaining } = computeRecoveryEligibility({
+    bookingStatus: row.status,
+    cleanerId: row.cleaner_id,
+    payments: paymentList,
+    offers: offerRows,
+    hasOpenOffer: openOfferRows.length > 0,
+  });
+
+  const openOfferForReplace =
+    openOfferRows.length === 1
+      ? {
+          offerId: openOfferRows[0]!.id,
+          cleanerId: openOfferRows[0]!.cleaner_id,
+          cleanerName: await resolveCleanerLabel(client, openOfferRows[0]!.cleaner_id),
+        }
+      : null;
+
+  const operational = buildAdminOperationalStatus({
+    bookingStatus: row.status,
+    paymentStatus: payment?.status ?? null,
+    paymentFailed: row.status === "payment_failed",
+    paymentFailureReason,
+    visibilityKey: visibility.key,
+    assignmentReason: assignmentMeta?.reason ?? display.assignmentReason,
+    dispatchNotStarted,
+    opsSearching: visibility.opsSearching,
+    opsAdminRequired: visibility.opsAdminRequired,
+    openOfferCount: openOfferRows.length,
+    totalOfferCount: offerRows.length,
+    hasAssignedCleaner: Boolean(row.cleaner_id),
+    hasPaidPayment: paymentList.some((p) => p.status === "paid"),
+    openOfferForReplace,
+    offerStatuses: offerRows.map((o) => o.status),
+    lastOfferOutcome: visibility.lastOfferOutcome ?? assignmentMeta?.lastOfferOutcome ?? null,
+    recoveryEligibility: eligibility,
+    graceMinutesRemaining,
+  });
 
   const { data: earningRows } = await client
     .from("earning_lines")
@@ -239,6 +440,8 @@ export async function getAdminBookingDetail(
     }));
   }
 
+  const customerLabel = await resolveCustomerLabel(client, row.customer_id);
+
   return {
     ok: true,
     booking: {
@@ -248,14 +451,19 @@ export async function getAdminBookingDetail(
       paymentFailureReason,
       customerId: row.customer_id,
       cleanerId: row.cleaner_id,
-      customerLabel: await resolveCustomerLabel(client, row.customer_id),
+      customerLabel,
       cleanerLabel: await resolveCleanerLabel(client, row.cleaner_id),
       serviceLabel: display.serviceLabel,
       scheduleLabel: formatScheduleRange(row.scheduled_start, row.scheduled_end),
+      scheduledStart: row.scheduled_start,
       priceLabel: formatZar(row.price_cents, row.currency),
-      assignmentAttention: display.assignmentAttention,
+      assignmentAttention: display.assignmentVisibilityKey ?? display.assignmentAttention,
+      assignmentVisibilityKey: display.assignmentVisibilityKey,
+      dispatchNotStarted,
+      recoveryEligible: eligibility === "eligible",
       updatedAt: row.updated_at,
       display,
+      operational,
       timeline: buildLifecycleTimeline({
         bookingStatus: row.status,
         createdAt: row.created_at,
@@ -272,7 +480,7 @@ export async function getAdminBookingDetail(
         provider: p.provider,
         providerRef: p.provider_ref,
       })),
-      offers: await mapOffers(client, offers ?? []),
+      offers: mappedOffers,
       earnings: (earningRows ?? []).map((e) => ({
         id: e.id,
         cleanerId: e.cleaner_id,
@@ -280,13 +488,7 @@ export async function getAdminBookingDetail(
         grossAmountCents: e.gross_amount_cents,
         payoutStatus: e.payout_status,
       })),
-      audits: (audits ?? []).map((a) => ({
-        id: a.id,
-        command: a.command,
-        from: a.from_status,
-        to: a.to_status,
-        at: a.created_at,
-      })),
+      audits: (audits ?? []).map((a) => mapAuditRow(a)),
       operationalAudits: (operationalAuditRows ?? []).map((a: AdminOperationalAuditRow) =>
         mapAdminOperationalAuditRow(a, adminLabels.get(a.admin_profile_id) ?? null),
       ),
@@ -298,7 +500,7 @@ export async function getAdminBookingDetail(
 export async function listAdminAssignmentQueue(
   user: CurrentUser,
 ): Promise<
-  | { ok: true; items: AdminAssignmentQueueItem[] }
+  | { ok: true } & AdminAssignmentQueueResult
   | { ok: false; code: string; message: string; status: number }
 > {
   if (user.role !== "admin") {
@@ -313,11 +515,11 @@ export async function listAdminAssignmentQueue(
   const { data: bookings, error } = await client
     .from("bookings")
     .select(
-      "id, status, customer_id, scheduled_start, scheduled_end, metadata, updated_at",
+      "id, status, customer_id, cleaner_id, scheduled_start, scheduled_end, metadata, updated_at",
     )
     .in("status", ["pending_assignment", "confirmed"])
     .order("updated_at", { ascending: false })
-    .limit(100);
+    .limit(ADMIN_ASSIGNMENT_QUEUE_LIMIT);
 
   if (error) {
     return { ok: false, code: "PERSISTENCE_ERROR", message: error.message, status: 500 };
@@ -327,26 +529,65 @@ export async function listAdminAssignmentQueue(
 
   for (const row of bookings ?? []) {
     const display = parseBookingDisplay(row.metadata);
-    const needsAttention =
-      display.assignmentAttention === "attention_required" ||
-      row.status === "pending_assignment";
-
-    if (!needsAttention && row.status !== "pending_assignment") continue;
 
     const { data: offers } = await client
       .from("assignment_offers")
       .select("*")
       .eq("booking_id", row.id);
 
-    const openOffers = (offers ?? []).filter((o) => isOfferOpenForOps(o));
+    const { data: payments } = await client
+      .from("payments")
+      .select("id, status, updated_at, created_at")
+      .eq("booking_id", row.id);
+
+    const offerRows = offers ?? [];
+    const openOffers = offerRows.filter((o) => isOfferOpenForOps(o));
+
+    const dispatchNotStarted = computeDispatchNotStarted({
+      bookingStatus: row.status,
+      cleanerId: row.cleaner_id,
+      assignmentReason: display.assignmentReason,
+      payments: payments ?? [],
+      offers: offerRows,
+    });
+
+    const needsAttention =
+      display.assignmentAttention === "attention_required" ||
+      row.status === "pending_assignment" ||
+      dispatchNotStarted;
+
+    if (!needsAttention && row.status !== "pending_assignment") continue;
 
     if (
       display.assignmentAttention !== "attention_required" &&
+      !dispatchNotStarted &&
       openOffers.length === 0 &&
       row.status !== "pending_assignment"
     ) {
       continue;
     }
+
+    const visibility = resolveVisibilityForBooking({
+      bookingStatus: row.status,
+      metadata: row.metadata,
+      hasOpenOffer: openOffers.length > 0,
+      offerStatuses: offerRows.map((o) => o.status),
+      dispatchNotStarted,
+    });
+
+    const assignmentAttention =
+      visibility.key ??
+      (dispatchNotStarted ? "dispatch_not_started" : display.assignmentAttention ?? "pending_assignment");
+
+    const opsFields = buildAssignmentQueueOpsFields({
+      bookingStatus: row.status,
+      assignmentAttention,
+      assignmentReason: display.assignmentReason,
+      dispatchNotStarted,
+      visibilityKey: visibility.key,
+      opsSearching: visibility.opsSearching,
+      opsAdminRequired: visibility.opsAdminRequired,
+    });
 
     items.push({
       bookingId: row.id,
@@ -354,12 +595,18 @@ export async function listAdminAssignmentQueue(
       customerLabel: await resolveCustomerLabel(client, row.customer_id),
       serviceLabel: display.serviceLabel,
       scheduleLabel: formatScheduleRange(row.scheduled_start, row.scheduled_end),
-      assignmentAttention: display.assignmentAttention ?? "pending_assignment",
+      assignmentAttention,
       assignmentReason: display.assignmentReason,
       openOffers: await mapOffers(client, openOffers),
       updatedAt: row.updated_at,
+      ...opsFields,
     });
   }
 
-  return { ok: true, items };
+  return {
+    ok: true,
+    items,
+    total: items.length,
+    limit: ADMIN_ASSIGNMENT_QUEUE_LIMIT,
+  };
 }
