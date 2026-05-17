@@ -18,7 +18,7 @@ Related runbooks:
 |-------|---------|
 | `/admin` | Summary counts + preview of assignment attention + recent bookings |
 | `/admin/bookings` | All bookings with filters and search |
-| `/admin/bookings/[id]` | Operational status panel, audit timeline, payout actions (existing) |
+| `/admin/bookings/[id]` | **Operational status panel** (recovery, manual dispatch, replace — Stage 6D-1), audit timelines, payout actions |
 | `/admin/assignments` | Assignment queue with per-booking guidance |
 | `/admin/payouts` | Payout-ready aggregates (unchanged) |
 | `/admin/notifications` | Global notification outbox health (5D-2a) + 24h analytics (5H-a) + 7d text trends (5H-b) + retention dry-run counts (5I-α) |
@@ -29,7 +29,7 @@ Related runbooks:
 
 | Card | Meaning | Admin action |
 |------|---------|--------------|
-| **Assignment attention** | Bookings in the assignment queue (see below) | Monitor queue; use runbooks — no in-app dispatch yet |
+| **Assignment attention** | Bookings in the assignment queue (see below) | Monitor queue; use booking detail operational panel when eligible |
 | **Payment issues** | Bookings with `status = payment_failed` | Customer must retry payment; see [payment-failed-customer-retry.md](./payment-failed-customer-retry.md) |
 | **Recovery needed** | Paid bookings eligible for post-payment recovery (`dispatch_not_started` or recovery candidate) | Use **Recover assignment** on booking detail when eligible, or cron / ops script for batch — see [assignment-recovery.md](./assignment-recovery.md) |
 
@@ -49,8 +49,8 @@ List limits (loaded from DB, then filtered in app):
 | Paid — dispatch not started | Paid `confirmed`, no dispatch progress past grace | No | Review | **Yes** — primary fix |
 | Offer sent — awaiting acceptance | Open offer outstanding | Yes | Monitor | No |
 | Finding cleaner / decline redispatched | Auto dispatch or redispatch in progress | Often yes | Monitor | No |
-| Selected cleaner declined — admin action needed | Path `selected`, no auto redispatch | No | **Yes** (manual dispatch not in app) | No |
-| No cleaner accepted after dispatch attempts | Max attempts reached | No | **Yes** (manual dispatch not in app) | No |
+| Selected cleaner declined — admin action needed | Path `selected`, no auto redispatch | No | **Yes** — manual dispatch on booking detail when eligible | No |
+| No cleaner accepted after dispatch attempts | Max attempts reached | No | **Yes** — manual dispatch on booking detail when eligible | No |
 | Needs assignment | Generic `attention_required` | Varies | Review | Maybe |
 
 Queue rows include a **guidance** block: why the booking is listed, flags for searching / admin required / cron / manual intervention, and a runbook reference path.
@@ -78,6 +78,8 @@ Date range (`from`, `to`): filters on **scheduled** start date.
 ---
 
 ## Booking detail — operational status panel
+
+**Mounted on** `/admin/bookings/[bookingId]` as of **Stage 6D-1** (`AdminOperationalStatusPanel`). Uses `getAdminBookingDetail().operational` only — no new eligibility logic in the UI. Actions call existing admin APIs (`recover-assignment`, `dispatch-offer`, `replace-open-offer`); no new lifecycle mutations.
 
 - Payment and assignment state labels
 - Recovery eligibility (`eligible`, grace period, in progress, N/A)

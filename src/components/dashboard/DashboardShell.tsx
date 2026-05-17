@@ -27,7 +27,7 @@ export function DashboardShell({ title, subtitle, nav, children }: Props) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-100"
+                className="inline-flex min-h-10 items-center rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100"
               >
                 {item.label}
               </Link>

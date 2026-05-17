@@ -17,6 +17,27 @@ import type { BookingStatus } from "@/features/bookings/server/types";
 import { resolvePaymentFailureReason } from "@/features/bookings/server/paymentFailureDisplay";
 import { buildLifecycleTimeline } from "./lifecycleTimeline";
 import {
+  isServerSideAssignmentFilter,
+  resolveAdminAssignmentFilterSql,
+} from "./adminAssignmentFilterSql";
+import {
+  applyAdminBookingsSearchSql,
+  applyAdminBookingsSqlFilters,
+  hasHonestMatchTotal,
+  hasServerSideSearch,
+  hasServerSideSqlFilters,
+  needsInMemoryRefinement,
+  normalizeAdminBookingsQuery,
+  resolveAdminBookingsSearchSql,
+} from "./adminBookingsListQuery";
+import {
+  ADMIN_BOOKINGS_EXPORT_LIMIT,
+  buildBookingsExportFilename,
+  mapAdminBookingListItemToCsvRow,
+  renderAdminBookingsCsv,
+  resolveBookingsExportScope,
+} from "./adminBookingsExport";
+import {
   ADMIN_ASSIGNMENT_QUEUE_LIMIT,
   ADMIN_BOOKINGS_LIST_LIMIT,
   buildAdminOperationalStatus,
@@ -128,6 +149,7 @@ type BookingListRow = {
   price_cents: number;
   currency: string;
   metadata: import("@/lib/database/types").Json;
+  created_at: string;
   updated_at: string;
 };
 
@@ -193,7 +215,12 @@ async function buildAdminBookingListItem(
     serviceLabel: display.serviceLabel,
     scheduleLabel: formatScheduleRange(row.scheduled_start, row.scheduled_end),
     scheduledStart: row.scheduled_start,
+    scheduledEnd: row.scheduled_end,
+    createdAt: row.created_at,
+    suburb: display.suburb,
+    city: display.city,
     priceLabel: formatZar(row.price_cents, row.currency),
+    latestProviderRef: payment?.provider_ref ?? null,
     assignmentAttention: display.assignmentVisibilityKey ?? display.assignmentAttention,
     assignmentVisibilityKey: display.assignmentVisibilityKey,
     dispatchNotStarted,
@@ -219,16 +246,68 @@ export async function listAdminBookings(
     return { ok: false, code: "AUTH_NOT_CONFIGURED", message: "Supabase not configured.", status: 503 };
   }
 
-  const { data: bookings, error } = await client
-    .from("bookings")
-    .select(
-      "id, status, customer_id, cleaner_id, scheduled_start, scheduled_end, price_cents, currency, metadata, updated_at",
-    )
-    .order("updated_at", { ascending: false })
-    .limit(ADMIN_BOOKINGS_LIST_LIMIT);
+  const normalizedQuery = normalizeAdminBookingsQuery(query);
+  const applySql = hasServerSideSqlFilters(normalizedQuery);
+  const refineInMemory = needsInMemoryRefinement(normalizedQuery);
+  const honestMatchTotal = hasHonestMatchTotal(normalizedQuery);
+
+  let searchSql = {};
+  if (hasServerSideSearch(normalizedQuery)) {
+    try {
+      searchSql = await resolveAdminBookingsSearchSql(client, normalizedQuery);
+    } catch (searchError) {
+      const message = searchError instanceof Error ? searchError.message : "Search failed.";
+      return { ok: false, code: "PERSISTENCE_ERROR", message, status: 500 };
+    }
+  }
+
+  let assignmentFilterSql = {};
+  if (isServerSideAssignmentFilter(normalizedQuery.filter)) {
+    try {
+      assignmentFilterSql = await resolveAdminAssignmentFilterSql(client, normalizedQuery.filter);
+    } catch (assignmentFilterError) {
+      const message =
+        assignmentFilterError instanceof Error
+          ? assignmentFilterError.message
+          : "Assignment filter failed.";
+      return { ok: false, code: "PERSISTENCE_ERROR", message, status: 500 };
+    }
+  }
+
+  const bookingColumns =
+    "id, status, customer_id, cleaner_id, scheduled_start, scheduled_end, price_cents, currency, metadata, created_at, updated_at";
+
+  let listQuery = client.from("bookings").select(bookingColumns);
+  if (applySql) {
+    listQuery = applyAdminBookingsSqlFilters(listQuery, normalizedQuery, assignmentFilterSql);
+    listQuery = applyAdminBookingsSearchSql(listQuery, searchSql);
+  }
+  listQuery = listQuery.order("updated_at", { ascending: false }).limit(ADMIN_BOOKINGS_LIST_LIMIT);
+
+  const countPromise = honestMatchTotal
+    ? (() => {
+        let countQuery = client.from("bookings").select("*", { count: "exact", head: true });
+        countQuery = applyAdminBookingsSqlFilters(countQuery, normalizedQuery, assignmentFilterSql);
+        countQuery = applyAdminBookingsSearchSql(countQuery, searchSql);
+        return countQuery;
+      })()
+    : null;
+
+  const [{ data: bookings, error }, countResult] = await Promise.all([
+    listQuery,
+    countPromise ?? Promise.resolve({ count: null, error: null }),
+  ]);
 
   if (error) {
     return { ok: false, code: "PERSISTENCE_ERROR", message: error.message, status: 500 };
+  }
+  if (countResult.error) {
+    return {
+      ok: false,
+      code: "PERSISTENCE_ERROR",
+      message: countResult.error.message,
+      status: 500,
+    };
   }
 
   const built: (AdminBookingListItem & { searchText: string })[] = [];
@@ -236,13 +315,176 @@ export async function listAdminBookings(
     built.push(await buildAdminBookingListItem(client, row as BookingListRow));
   }
 
-  const filtered = filterAdminBookings(built, query);
+  const filtered = refineInMemory ? filterAdminBookings(built, normalizedQuery) : built;
+  const returnedCount = filtered.length;
+  const matchTotal = honestMatchTotal ? (countResult.count ?? 0) : null;
+  const capped =
+    matchTotal !== null
+      ? matchTotal > returnedCount
+      : returnedCount >= ADMIN_BOOKINGS_LIST_LIMIT;
 
   return {
     ok: true,
     bookings: filtered,
-    total: built.length,
+    matchTotal,
+    returnedCount,
     limit: ADMIN_BOOKINGS_LIST_LIMIT,
+    capped,
+    subsetFiltered: refineInMemory ? true : undefined,
+  };
+}
+
+export type AdminBookingsCsvExportResult =
+  | {
+      ok: true;
+      csv: string;
+      filename: string;
+      returnedCount: number;
+      matchTotal: number | null;
+      truncated: boolean;
+    }
+  | { ok: false; code: string; message: string; status: number };
+
+export function logAdminBookingsCsvExport(input: {
+  adminProfileId: string;
+  filter?: string;
+  q?: string;
+  from?: string;
+  to?: string;
+  returnedCount: number;
+  matchTotal: number | null;
+  truncated: boolean;
+}): void {
+  console.info(
+    JSON.stringify({
+      event: "admin_bookings_csv_export",
+      adminProfileId: input.adminProfileId,
+      filter: input.filter ?? null,
+      q: input.q ? `[len=${input.q.length}]` : null,
+      from: input.from ?? null,
+      to: input.to ?? null,
+      returnedCount: input.returnedCount,
+      matchTotal: input.matchTotal,
+      truncated: input.truncated,
+    }),
+  );
+}
+
+export async function exportAdminBookingsCsv(
+  user: CurrentUser,
+  query: AdminBookingsQuery = {},
+): Promise<AdminBookingsCsvExportResult> {
+  if (user.role !== "admin") {
+    return { ok: false, code: "FORBIDDEN", message: "Admins only.", status: 403 };
+  }
+
+  const client = await createSupabaseServerClient();
+  if (!client) {
+    return { ok: false, code: "AUTH_NOT_CONFIGURED", message: "Supabase not configured.", status: 503 };
+  }
+
+  const normalizedQuery = normalizeAdminBookingsQuery(query);
+  const applySql = hasServerSideSqlFilters(normalizedQuery);
+  const honestMatchTotal = hasHonestMatchTotal(normalizedQuery);
+
+  let searchSql = {};
+  if (hasServerSideSearch(normalizedQuery)) {
+    try {
+      searchSql = await resolveAdminBookingsSearchSql(client, normalizedQuery);
+    } catch (searchError) {
+      const message = searchError instanceof Error ? searchError.message : "Search failed.";
+      return { ok: false, code: "PERSISTENCE_ERROR", message, status: 500 };
+    }
+  }
+
+  let assignmentFilterSql = {};
+  if (isServerSideAssignmentFilter(normalizedQuery.filter)) {
+    try {
+      assignmentFilterSql = await resolveAdminAssignmentFilterSql(client, normalizedQuery.filter);
+    } catch (assignmentFilterError) {
+      const message =
+        assignmentFilterError instanceof Error
+          ? assignmentFilterError.message
+          : "Assignment filter failed.";
+      return { ok: false, code: "PERSISTENCE_ERROR", message, status: 500 };
+    }
+  }
+
+  const bookingColumns =
+    "id, status, customer_id, cleaner_id, scheduled_start, scheduled_end, price_cents, currency, metadata, created_at, updated_at";
+
+  let listQuery = client.from("bookings").select(bookingColumns);
+  if (applySql) {
+    listQuery = applyAdminBookingsSqlFilters(listQuery, normalizedQuery, assignmentFilterSql);
+    listQuery = applyAdminBookingsSearchSql(listQuery, searchSql);
+  }
+  listQuery = listQuery
+    .order("updated_at", { ascending: false })
+    .limit(ADMIN_BOOKINGS_EXPORT_LIMIT);
+
+  const countPromise = honestMatchTotal
+    ? (() => {
+        let countQuery = client.from("bookings").select("*", { count: "exact", head: true });
+        countQuery = applyAdminBookingsSqlFilters(countQuery, normalizedQuery, assignmentFilterSql);
+        countQuery = applyAdminBookingsSearchSql(countQuery, searchSql);
+        return countQuery;
+      })()
+    : null;
+
+  const [{ data: bookings, error }, countResult] = await Promise.all([
+    listQuery,
+    countPromise ?? Promise.resolve({ count: null, error: null }),
+  ]);
+
+  if (error) {
+    return { ok: false, code: "PERSISTENCE_ERROR", message: error.message, status: 500 };
+  }
+  if (countResult.error) {
+    return {
+      ok: false,
+      code: "PERSISTENCE_ERROR",
+      message: countResult.error.message,
+      status: 500,
+    };
+  }
+
+  const built: AdminBookingListItem[] = [];
+  for (const row of bookings ?? []) {
+    built.push(await buildAdminBookingListItem(client, row as BookingListRow));
+  }
+
+  const returnedCount = built.length;
+  const matchTotal = honestMatchTotal ? (countResult.count ?? 0) : null;
+  const truncated = matchTotal !== null ? matchTotal > returnedCount : returnedCount >= ADMIN_BOOKINGS_EXPORT_LIMIT;
+
+  const csvRows = built.map((item) => mapAdminBookingListItemToCsvRow(item));
+  const csv = renderAdminBookingsCsv(csvRows, {
+    truncated: truncated && matchTotal !== null,
+    returnedCount,
+    matchTotal,
+  });
+
+  const scope = resolveBookingsExportScope(normalizedQuery.filter);
+  const filename = buildBookingsExportFilename(scope);
+
+  logAdminBookingsCsvExport({
+    adminProfileId: user.profileId,
+    filter: normalizedQuery.filter,
+    q: normalizedQuery.search,
+    from: normalizedQuery.scheduledFrom,
+    to: normalizedQuery.scheduledTo,
+    returnedCount,
+    matchTotal,
+    truncated,
+  });
+
+  return {
+    ok: true,
+    csv,
+    filename,
+    returnedCount,
+    matchTotal,
+    truncated,
   };
 }
 

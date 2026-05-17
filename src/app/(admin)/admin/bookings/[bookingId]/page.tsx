@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getAdminBookingDetail } from "@/features/dashboards/server/adminOperationsReadModel";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { AdminOperationalStatusPanel } from "@/components/dashboard/AdminOperationalStatusPanel";
 import { AdminPayoutActions } from "@/components/dashboard/AdminPayoutActions";
 import { AdminOperationalTimeline } from "@/components/dashboard/AdminOperationalTimeline";
 import { AdminBookingNotificationsSection } from "@/components/dashboard/AdminBookingNotificationsSection";
@@ -54,20 +55,30 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
       <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
         <section className="flex flex-wrap gap-2">
           <StatusBadge label={labelForBookingStatus(b.status)} tone={toneForBookingStatus(b.status)} />
-          <StatusBadge
-            label={labelForPaymentStatus(b.paymentStatus)}
-            tone={toneForPaymentStatus(b.paymentStatus)}
-          />
+          {b.status !== "payment_failed" ? (
+            <StatusBadge
+              label={labelForPaymentStatus(b.paymentStatus)}
+              tone={toneForPaymentStatus(b.paymentStatus)}
+            />
+          ) : null}
           {b.status === "payment_failed" ? (
             <StatusBadge
               label={labelForAdminPaymentFailureAttention(b.paymentFailureReason)}
               tone="danger"
             />
           ) : null}
-          {b.assignmentAttention ? (
+          {b.assignmentVisibilityKey ?? b.assignmentAttention ? (
             <StatusBadge
-              label={labelForAssignmentAttention(b.assignmentAttention)}
-              tone="warning"
+              label={labelForAssignmentAttention(
+                b.assignmentVisibilityKey ?? b.assignmentAttention,
+              )}
+              tone={
+                b.assignmentVisibilityKey === "decline_redispatched" ||
+                b.assignmentVisibilityKey === "finding_cleaner" ||
+                b.assignmentVisibilityKey === "offer_sent"
+                  ? "info"
+                  : "warning"
+              }
             />
           ) : null}
         </section>
@@ -107,6 +118,8 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
 
         <AdminPayoutActions bookingId={b.id} status={b.status} />
       </section>
+
+      <AdminOperationalStatusPanel bookingId={b.id} operational={b.operational} />
 
       <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
         <h2 className="text-sm font-semibold text-zinc-900">Earnings</h2>

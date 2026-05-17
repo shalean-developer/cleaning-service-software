@@ -3,11 +3,13 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listCleanerJobs } from "@/features/dashboards/server/cleanerJobReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
 import {
-  labelForBookingStatus,
-  toneForBookingStatus,
+  labelForCleanerJobStatus,
+  toneForCleanerJobStatus,
 } from "@/features/bookings/server/statusLabels";
 
 export const metadata: Metadata = {
@@ -24,16 +26,17 @@ export default async function CleanerJobsPage() {
     <DashboardShell
       title="My jobs"
       subtitle="Assigned cleans you are scheduled to perform."
-      nav={[
-        { href: "/cleaner", label: "Home" },
-        { href: "/cleaner/offers", label: "Offers" },
-        { href: "/cleaner/jobs", label: "Jobs" },
-      ]}
+      nav={[...CLEANER_NAV_ITEMS]}
     >
-      {!result.ok || result.jobs.length === 0 ? (
+      {!result.ok ? (
+        <DashboardFetchError
+          title="Could not load jobs"
+          description={result.message}
+        />
+      ) : result.jobs.length === 0 ? (
         <EmptyState
-          title="No assigned jobs"
-          description="Accept an offer to see your schedule here."
+          title="No jobs yet"
+          description="Accepted jobs and active work will appear here."
           action={
             <Link
               href="/cleaner/offers"
@@ -52,8 +55,8 @@ export default async function CleanerJobsPage() {
                 className="block rounded-xl border border-zinc-200 bg-white p-4 hover:border-zinc-300"
               >
                 <StatusBadge
-                  label={labelForBookingStatus(j.status)}
-                  tone={toneForBookingStatus(j.status)}
+                  label={labelForCleanerJobStatus(j.status)}
+                  tone={toneForCleanerJobStatus(j.status)}
                 />
                 <p className="mt-2 font-medium text-zinc-900">{j.serviceLabel}</p>
                 <p className="text-sm text-zinc-600">{j.scheduleLabel}</p>

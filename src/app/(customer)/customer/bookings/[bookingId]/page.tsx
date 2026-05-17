@@ -53,10 +53,12 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
             label={labelForCustomerBookingStatus(b.status, b.paymentFailureReason)}
             tone={toneForBookingStatus(b.status)}
           />
-          <StatusBadge
-            label={labelForPaymentStatus(b.paymentStatus)}
-            tone={toneForPaymentStatus(b.paymentStatus)}
-          />
+          {b.status !== "payment_failed" ? (
+            <StatusBadge
+              label={labelForPaymentStatus(b.paymentStatus)}
+              tone={toneForPaymentStatus(b.paymentStatus)}
+            />
+          ) : null}
         </section>
 
         <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-2">

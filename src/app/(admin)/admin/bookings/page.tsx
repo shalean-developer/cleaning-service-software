@@ -6,6 +6,7 @@ import type { AdminBookingFilter } from "@/features/dashboards/server/adminOpera
 import { AdminBookingsFilters } from "@/components/dashboard/AdminBookingsFilters";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { labelForAdminPaymentFailureAttention } from "@/features/bookings/server/paymentFailureDisplay";
@@ -70,14 +71,19 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
           search={params.q}
           scheduledFrom={params.from}
           scheduledTo={params.to}
-          total={result.total}
-          visible={result.bookings.length}
+          matchTotal={result.matchTotal}
+          returnedCount={result.returnedCount}
           limit={result.limit}
+          capped={result.capped}
+          subsetFiltered={result.subsetFiltered}
         />
       ) : null}
 
       {!result.ok ? (
-        <p className="text-sm text-red-600">{result.message}</p>
+        <DashboardFetchError
+          title="Could not load bookings"
+          description={result.message}
+        />
       ) : result.bookings.length === 0 ? (
         <EmptyState
           title="No matching bookings"
@@ -85,6 +91,16 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
             filter || params.q
               ? "Try clearing filters or widening your search."
               : "Bookings will appear here as customers checkout."
+          }
+          action={
+            filter || params.q ? (
+              <Link
+                href="/admin/bookings"
+                className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
+              >
+                Clear filters
+              </Link>
+            ) : undefined
           }
         />
       ) : (
@@ -100,10 +116,12 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
                     label={labelForBookingStatus(b.status)}
                     tone={toneForBookingStatus(b.status)}
                   />
-                  <StatusBadge
-                    label={labelForPaymentStatus(b.paymentStatus)}
-                    tone={toneForPaymentStatus(b.paymentStatus)}
-                  />
+                  {b.status !== "payment_failed" ? (
+                    <StatusBadge
+                      label={labelForPaymentStatus(b.paymentStatus)}
+                      tone={toneForPaymentStatus(b.paymentStatus)}
+                    />
+                  ) : null}
                   {b.status === "payment_failed" ? (
                     <StatusBadge
                       label={labelForAdminPaymentFailureAttention(b.paymentFailureReason)}

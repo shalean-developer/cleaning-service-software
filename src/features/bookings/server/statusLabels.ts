@@ -42,6 +42,49 @@ export function toneForBookingStatus(status: BookingStatus): StatusBadgeTone {
   }
 }
 
+/** Display-only job status labels for cleaner job cards and detail (Stage 6F-1a). */
+export function labelForCleanerJobStatus(status: BookingStatus): string {
+  switch (status) {
+    case "assigned":
+      return "Scheduled";
+    case "pending_assignment":
+      return "Awaiting cleaner";
+    case "in_progress":
+      return "In progress";
+    case "completed":
+      return "Completed";
+    case "payout_ready":
+      return "Completed";
+    case "paid_out":
+      return "Paid";
+    case "pending_payment":
+      return "Awaiting payment";
+    case "payment_failed":
+      return "Payment issue";
+    default:
+      return labelForBookingStatus(status);
+  }
+}
+
+export function toneForCleanerJobStatus(status: BookingStatus): StatusBadgeTone {
+  switch (status) {
+    case "completed":
+    case "payout_ready":
+    case "paid_out":
+      return "success";
+    case "pending_assignment":
+    case "pending_payment":
+      return "warning";
+    case "payment_failed":
+      return "danger";
+    case "assigned":
+    case "in_progress":
+      return "info";
+    default:
+      return toneForBookingStatus(status);
+  }
+}
+
 export function labelForPaymentStatus(status: PaymentStatus | null): string {
   if (!status) return "No payment";
   const labels: Record<PaymentStatus, string> = {

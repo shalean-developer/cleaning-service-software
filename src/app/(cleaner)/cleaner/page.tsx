@@ -6,11 +6,13 @@ import {
   listCleanerOffersForDashboard,
 } from "@/features/dashboards/server/cleanerJobReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
 import {
-  labelForBookingStatus,
+  labelForCleanerJobStatus,
   labelForOfferStatus,
-  toneForBookingStatus,
+  toneForCleanerJobStatus,
   toneForOfferStatus,
 } from "@/features/bookings/server/statusLabels";
 
@@ -23,39 +25,56 @@ export default async function CleanerHomePage() {
   const offers = user ? await listCleanerOffersForDashboard(user) : null;
   const jobs = user ? await listCleanerJobs(user) : null;
 
-  const openOffers =
-    offers?.ok ? offers.offers.filter((o) => o.status === "offered" && !o.isExpired) : [];
-  const activeJobs = jobs?.ok ? jobs.jobs.filter((j) => j.status !== "completed") : [];
+  const offersOk = offers?.ok === true;
+  const jobsOk = jobs?.ok === true;
+  const openOffers = offersOk
+    ? offers.offers.filter((o) => o.status === "offered" && !o.isExpired)
+    : [];
+  const activeJobs = jobsOk
+    ? jobs.jobs.filter((j) => j.status !== "completed")
+    : [];
 
   return (
     <DashboardShell
       title="Cleaner dashboard"
       subtitle="Review offers and manage assigned jobs."
-      nav={[
-        { href: "/cleaner", label: "Home" },
-        { href: "/cleaner/offers", label: "Offers" },
-        { href: "/cleaner/jobs", label: "Jobs" },
-        { href: "/cleaner/earnings", label: "Earnings" },
-      ]}
+      nav={[...CLEANER_NAV_ITEMS]}
     >
       <section className="grid gap-6 sm:grid-cols-2">
         <section className="rounded-xl border border-zinc-200 bg-white p-5">
           <h2 className="text-sm font-semibold text-zinc-900">Open offers</h2>
-          <p className="mt-1 text-2xl font-semibold text-zinc-900">{openOffers.length}</p>
+          <p className="mt-1 text-2xl font-semibold text-zinc-900">
+            {offersOk ? openOffers.length : "—"}
+          </p>
+          {offers && !offers.ok ? (
+            <p className="mt-1 text-xs text-red-700">Could not load offers</p>
+          ) : null}
           <Link href="/cleaner/offers" className="mt-3 inline-block text-sm text-zinc-600 hover:text-zinc-900">
             View offers →
           </Link>
         </section>
         <section className="rounded-xl border border-zinc-200 bg-white p-5">
           <h2 className="text-sm font-semibold text-zinc-900">Active jobs</h2>
-          <p className="mt-1 text-2xl font-semibold text-zinc-900">{activeJobs.length}</p>
+          <p className="mt-1 text-2xl font-semibold text-zinc-900">
+            {jobsOk ? activeJobs.length : "—"}
+          </p>
+          {jobs && !jobs.ok ? (
+            <p className="mt-1 text-xs text-red-700">Could not load jobs</p>
+          ) : null}
           <Link href="/cleaner/jobs" className="mt-3 inline-block text-sm text-zinc-600 hover:text-zinc-900">
             View jobs →
           </Link>
         </section>
       </section>
 
-      {openOffers.length > 0 ? (
+      {offers && !offers.ok ? (
+        <section className="mt-8">
+          <DashboardFetchError
+            title="Could not load offers"
+            description={offers.message}
+          />
+        </section>
+      ) : openOffers.length > 0 ? (
         <section className="mt-8">
           <h2 className="text-sm font-semibold text-zinc-900">Needs response</h2>
           <ul className="mt-3 space-y-3">
@@ -78,7 +97,14 @@ export default async function CleanerHomePage() {
         </section>
       ) : null}
 
-      {activeJobs.length > 0 ? (
+      {jobs && !jobs.ok ? (
+        <section className="mt-8">
+          <DashboardFetchError
+            title="Could not load jobs"
+            description={jobs.message}
+          />
+        </section>
+      ) : activeJobs.length > 0 ? (
         <section className="mt-8">
           <h2 className="text-sm font-semibold text-zinc-900">Upcoming jobs</h2>
           <ul className="mt-3 space-y-3">
@@ -89,8 +115,8 @@ export default async function CleanerHomePage() {
                   className="block rounded-xl border border-zinc-200 bg-white p-4 hover:border-zinc-300"
                 >
                   <StatusBadge
-                    label={labelForBookingStatus(j.status)}
-                    tone={toneForBookingStatus(j.status)}
+                    label={labelForCleanerJobStatus(j.status)}
+                    tone={toneForCleanerJobStatus(j.status)}
                   />
                   <p className="mt-2 font-medium text-zinc-900">{j.serviceLabel}</p>
                   <p className="text-sm text-zinc-600">{j.scheduleLabel}</p>

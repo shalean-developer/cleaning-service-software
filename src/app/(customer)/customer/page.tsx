@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listCustomerBookings } from "@/features/dashboards/server/customerBookingReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
+import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { labelForCustomerBookingStatus } from "@/features/bookings/server/paymentFailureDisplay";
 import {
@@ -17,8 +19,8 @@ export const metadata: Metadata = {
 
 export default async function CustomerHomePage() {
   const user = await getCurrentUser();
-  const bookings = user ? await listCustomerBookings(user) : null;
-  const allBookings = bookings?.ok ? bookings.bookings : [];
+  const result = user ? await listCustomerBookings(user) : null;
+  const allBookings = result?.ok ? result.bookings : [];
   const recent = [...allBookings]
     .sort((a, b) => {
       if (a.isUpcoming !== b.isUpcoming) return a.isUpcoming ? -1 : 1;
@@ -44,9 +46,29 @@ export default async function CustomerHomePage() {
       </Link>
 
       <h2 className="text-sm font-semibold text-zinc-900">Recent bookings</h2>
-      {recent.length === 0 ? (
-        <p className="mt-2 text-sm text-zinc-600">No bookings yet. Start with a new clean.</p>
-      ) : (
+      {result && !result.ok ? (
+        <section className="mt-4">
+          <DashboardFetchError
+            title="Could not load your bookings"
+            description={result.message}
+          />
+        </section>
+      ) : result?.ok && recent.length === 0 ? (
+        <section className="mt-4">
+          <EmptyState
+            title="No bookings yet"
+            description="Your recent cleans will show here after you book."
+            action={
+              <Link
+                href="/customer/book"
+                className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+              >
+                Book a clean
+              </Link>
+            }
+          />
+        </section>
+      ) : result?.ok ? (
         <ul className="mt-4 space-y-3">
           {recent.map((b) => (
             <li key={b.id}>
@@ -72,7 +94,7 @@ export default async function CustomerHomePage() {
             </li>
           ))}
         </ul>
-      )}
+      ) : null}
     </DashboardShell>
   );
 }

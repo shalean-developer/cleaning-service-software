@@ -4,14 +4,15 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getCleanerJobDetail } from "@/features/dashboards/server/cleanerJobReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
 import { JobCompletionActions } from "@/components/dashboard/JobCompletionActions";
 import { LifecycleTimeline } from "@/components/dashboard/LifecycleTimeline";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
 import {
-  labelForBookingStatus,
+  labelForCleanerJobStatus,
   labelForPayoutStatus,
-  toneForBookingStatus,
+  toneForCleanerJobStatus,
   toneForPayoutStatus,
 } from "@/features/bookings/server/statusLabels";
 
@@ -36,11 +37,7 @@ export default async function CleanerJobDetailPage({ params }: PageProps) {
     <DashboardShell
       title="Job details"
       subtitle={job.serviceLabel}
-      nav={[
-        { href: "/cleaner", label: "Home" },
-        { href: "/cleaner/offers", label: "Offers" },
-        { href: "/cleaner/jobs", label: "Jobs" },
-      ]}
+      nav={[...CLEANER_NAV_ITEMS]}
     >
       <Link href="/cleaner/jobs" className="text-sm text-zinc-600 hover:text-zinc-900">
         ← Back to jobs
@@ -48,8 +45,8 @@ export default async function CleanerJobDetailPage({ params }: PageProps) {
 
       <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
         <StatusBadge
-          label={labelForBookingStatus(job.status)}
-          tone={toneForBookingStatus(job.status)}
+          label={labelForCleanerJobStatus(job.status)}
+          tone={toneForCleanerJobStatus(job.status)}
         />
 
         <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-2">

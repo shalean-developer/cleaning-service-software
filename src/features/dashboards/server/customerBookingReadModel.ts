@@ -275,6 +275,7 @@ export async function getCustomerBookingDetail(
         payments: paymentList,
         audits: audits ?? [],
         paymentFailureReason,
+        audience: "customer",
       }),
       payments: toPaymentSummaries(paymentList),
       cleanerPreferenceLabel: cleanerPreferenceLabel(display, row.status),

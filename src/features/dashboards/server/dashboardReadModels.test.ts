@@ -614,6 +614,8 @@ describe("dashboard read models", () => {
     const result = await getAdminBookingDetail(adminUser, "booking-1");
     expect(result.ok).toBe(true);
     if (result.ok) {
+      expect(result.booking.operational).toBeDefined();
+      expect(result.booking.operational.recoveryEligibility).toBeDefined();
       expect(result.booking.operationalAudits).toHaveLength(1);
       expect(result.booking.operationalAudits[0]?.action).toBe("assignment_recovery");
       expect(result.booking.operationalAudits[0]?.adminLabel).toBe("Ops Admin");

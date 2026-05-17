@@ -202,6 +202,7 @@ export async function getCleanerJobDetail(
         updatedAt: row.updated_at,
         payments: [],
         audits: audits ?? [],
+        audience: "cleaner",
       }),
       specialInstructions: display.specialInstructions,
       earnings: (earningRows ?? []).map((e) => ({

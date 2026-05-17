@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listCleanerEarnings } from "@/features/earnings/server/payoutReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
+import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
@@ -25,13 +27,14 @@ export default async function CleanerEarningsPage() {
     <DashboardShell
       title="Earnings"
       subtitle="Payout amounts from completed jobs."
-      nav={[
-        { href: "/cleaner", label: "Home" },
-        { href: "/cleaner/jobs", label: "Jobs" },
-        { href: "/cleaner/earnings", label: "Earnings" },
-      ]}
+      nav={[...CLEANER_NAV_ITEMS]}
     >
-      {!result.ok || result.earnings.length === 0 ? (
+      {!result.ok ? (
+        <DashboardFetchError
+          title="Could not load earnings"
+          description={result.message}
+        />
+      ) : result.earnings.length === 0 ? (
         <EmptyState
           title="No earnings yet"
           description="Complete assigned jobs to see earnings here."

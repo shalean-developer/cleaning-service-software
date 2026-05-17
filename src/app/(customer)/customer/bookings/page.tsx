@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listCustomerBookings } from "@/features/dashboards/server/customerBookingReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { labelForCustomerBookingStatus } from "@/features/bookings/server/paymentFailureDisplay";
@@ -33,7 +34,12 @@ export default async function CustomerBookingsPage() {
         { href: "/customer/book", label: "Book a clean" },
       ]}
     >
-      {!result.ok || result.bookings.length === 0 ? (
+      {!result.ok ? (
+        <DashboardFetchError
+          title="Could not load your bookings"
+          description={result.message}
+        />
+      ) : result.bookings.length === 0 ? (
         <EmptyState
           title="No bookings yet"
           description="When you complete checkout, your bookings will appear here."

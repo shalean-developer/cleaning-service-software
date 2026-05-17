@@ -106,18 +106,28 @@ export type AdminBookingListItem = {
   serviceLabel: string;
   scheduleLabel: string;
   scheduledStart?: string;
+  scheduledEnd?: string;
+  createdAt?: string;
+  suburb?: string | null;
+  city?: string | null;
   priceLabel: string;
   assignmentAttention: string | null;
   assignmentVisibilityKey?: AssignmentVisibilityKey;
   dispatchNotStarted?: boolean;
   recoveryEligible?: boolean;
+  latestProviderRef?: string | null;
   updatedAt: string;
 };
 
 export type AdminBookingsListResult = {
   bookings: AdminBookingListItem[];
-  total: number;
+  /** Exact DB count when only server-side filters apply (6C-1); null when unfiltered or subset-refined. */
+  matchTotal: number | null;
+  returnedCount: number;
   limit: number;
+  capped: boolean;
+  /** True when assignment presets or search still filter the loaded cap in memory. */
+  subsetFiltered?: boolean;
 };
 
 export type AdminEarningSummary = {

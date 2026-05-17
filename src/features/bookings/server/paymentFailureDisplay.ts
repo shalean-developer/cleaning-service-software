@@ -45,6 +45,9 @@ export function labelForCustomerBookingStatus(
     }
     return "Payment failed";
   }
+  if (status === "payout_ready" || status === "paid_out") {
+    return "Completed";
+  }
   return labelForBookingStatus(status);
 }
 
@@ -71,11 +74,37 @@ export function paymentIssuePanelCopy(
       body: "Your checkout link expired before payment was completed.",
     };
   }
+  if (paymentFailureReason === PAYSTACK_DECLINED_FAILURE_REASON) {
+    return {
+      title: "Payment not completed",
+      body: "Your bank or card provider declined this payment. You can try again from your booking when retry is available.",
+    };
+  }
   return {
     title: "Payment not completed",
     body: "We could not confirm payment for this booking.",
   };
 }
+
+/** Maps URL `reason` to a known failure reason; unknown values are ignored (never shown raw). */
+export function normalizePaymentFailureReasonParam(
+  reason: string | undefined | null,
+): PaymentFailureReason {
+  const trimmed = reason?.trim();
+  if (!trimmed) return null;
+  if (trimmed === CHECKOUT_EXPIRED_FAILURE_REASON) return CHECKOUT_EXPIRED_FAILURE_REASON;
+  if (trimmed === PAYSTACK_DECLINED_FAILURE_REASON) return PAYSTACK_DECLINED_FAILURE_REASON;
+  return null;
+}
+
+export const PAYMENT_FAILED_ASSIGNMENT_NOTE =
+  "No cleaner is assigned until payment succeeds." as const;
+
+export const PAYMENT_FAILED_RETRY_GUIDANCE =
+  "Open your booking to retry payment when the Retry payment button is shown." as const;
+
+export const PAYMENT_FAILED_SUPPORT_NOTE =
+  "If you are unsure whether you were charged, check My bookings or contact support with your booking reference." as const;
 
 /** Bookings the customer should treat as scheduled/upcoming work (paid path). */
 export function isUpcomingCustomerBooking(status: BookingStatus): boolean {

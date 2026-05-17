@@ -5,10 +5,13 @@ import {
   isUpcomingCustomerBooking,
   labelForAdminPaymentFailureAttention,
   labelForCustomerBookingStatus,
+  normalizePaymentFailureReasonParam,
+  PAYSTACK_DECLINED_FAILURE_REASON,
   paymentIssuePanelCopy,
   resolvePaymentFailureReason,
   showsPrePaymentAssignmentExpectation,
 } from "./paymentFailureDisplay";
+import { labelForBookingStatus } from "./statusLabels";
 
 describe("paymentFailureDisplay", () => {
   it("resolves checkout_expired from MARK_PAYMENT_FAILED audit metadata", () => {
@@ -25,6 +28,20 @@ describe("paymentFailureDisplay", () => {
   it("uses generic payment_failed label without failure_reason", () => {
     expect(labelForCustomerBookingStatus("payment_failed", null)).toBe("Payment failed");
     expect(paymentIssuePanelCopy(null).body).toContain("could not confirm payment");
+  });
+
+  it("uses paystack_declined copy in payment issue panel", () => {
+    expect(paymentIssuePanelCopy(PAYSTACK_DECLINED_FAILURE_REASON).body).toContain("declined");
+  });
+
+  it("normalizePaymentFailureReasonParam allows only known reasons", () => {
+    expect(normalizePaymentFailureReasonParam(CHECKOUT_EXPIRED_FAILURE_REASON)).toBe(
+      CHECKOUT_EXPIRED_FAILURE_REASON,
+    );
+    expect(normalizePaymentFailureReasonParam(PAYSTACK_DECLINED_FAILURE_REASON)).toBe(
+      PAYSTACK_DECLINED_FAILURE_REASON,
+    );
+    expect(normalizePaymentFailureReasonParam("processor_error")).toBeNull();
   });
 
   it("uses checkout expired copy when metadata has failure_reason", () => {
@@ -47,6 +64,12 @@ describe("paymentFailureDisplay", () => {
   it("hides pre-payment assignment expectation for payment_failed", () => {
     expect(showsPrePaymentAssignmentExpectation("payment_failed")).toBe(false);
     expect(showsPrePaymentAssignmentExpectation("pending_payment")).toBe(true);
+  });
+
+  it("shows Completed for customer payout terminal statuses", () => {
+    expect(labelForCustomerBookingStatus("payout_ready", null)).toBe("Completed");
+    expect(labelForCustomerBookingStatus("paid_out", null)).toBe("Completed");
+    expect(labelForBookingStatus("payout_ready")).toBe("Payout ready");
   });
 
   it("enables production retry UI when booking lock is required", () => {

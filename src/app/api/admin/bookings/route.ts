@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { isApiAuthFailure, requireApiUser } from "@/features/dashboards/server/apiAuth";
 import { listAdminBookings } from "@/features/dashboards/server/adminOperationsReadModel";
+import { parseAdminBookingsQueryParams } from "@/features/dashboards/server/parseAdminBookingsQueryParams";
 
-export async function GET() {
+export async function GET(request: Request) {
   const user = await requireApiUser(["admin"]);
   if (isApiAuthFailure(user)) {
     return NextResponse.json(
@@ -11,7 +12,8 @@ export async function GET() {
     );
   }
 
-  const result = await listAdminBookings(user);
+  const query = parseAdminBookingsQueryParams(new URL(request.url).searchParams);
+  const result = await listAdminBookings(user, query);
   if (!result.ok) {
     return NextResponse.json(
       { ok: false, error: result.code, message: result.message },
@@ -19,5 +21,13 @@ export async function GET() {
     );
   }
 
-  return NextResponse.json({ ok: true, bookings: result.bookings });
+  return NextResponse.json({
+    ok: true,
+    bookings: result.bookings,
+    matchTotal: result.matchTotal,
+    returnedCount: result.returnedCount,
+    limit: result.limit,
+    capped: result.capped,
+    subsetFiltered: result.subsetFiltered,
+  });
 }

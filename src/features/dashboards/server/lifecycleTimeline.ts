@@ -4,7 +4,15 @@ import {
   labelForCustomerBookingStatus,
   type PaymentFailureReason,
 } from "@/features/bookings/server/paymentFailureDisplay";
-import { labelForBookingStatus, labelForPaymentStatus } from "@/features/bookings/server/statusLabels";
+import { labelForBookingStatus } from "@/features/bookings/server/statusLabels";
+import {
+  auditEventDetail,
+  humanAuditCommandTitle,
+  humanAuditStatusTitle,
+  humanPaymentEventTitle,
+} from "./lifecycleTimelinePresentation";
+
+export type LifecycleAudience = "admin" | "customer" | "cleaner";
 
 export type LifecycleEvent = {
   id: string;
@@ -21,7 +29,9 @@ export function buildLifecycleTimeline(params: {
   payments: PaymentRow[];
   audits: BookingStateAuditRow[];
   paymentFailureReason?: PaymentFailureReason;
+  audience?: LifecycleAudience;
 }): LifecycleEvent[] {
+  const audience = params.audience ?? "admin";
   const events: LifecycleEvent[] = [
     {
       id: "created",
@@ -36,7 +46,7 @@ export function buildLifecycleTimeline(params: {
     events.push({
       id: `payment-${payment.id}`,
       at: payment.updated_at,
-      title: `Payment ${labelForPaymentStatus(payment.status).toLowerCase()}`,
+      title: humanPaymentEventTitle(payment.status, audience),
       detail: payment.provider_ref ? `Ref ${payment.provider_ref}` : null,
       kind: "payment",
     });
@@ -44,23 +54,38 @@ export function buildLifecycleTimeline(params: {
 
   for (const audit of params.audits) {
     if (!audit.to_status) continue;
+    const toStatus = audit.to_status as BookingStatus;
+    const commandTitle = humanAuditCommandTitle(
+      audit.command,
+      toStatus,
+      audience,
+      params.paymentFailureReason,
+    );
     const title =
-      audit.to_status === "payment_failed"
+      commandTitle ??
+      (audience === "admin" && toStatus === "payment_failed"
         ? labelForCustomerBookingStatus("payment_failed", params.paymentFailureReason)
-        : labelForBookingStatus(audit.to_status);
+        : humanAuditStatusTitle(toStatus, audience, params.paymentFailureReason));
     events.push({
       id: `audit-${audit.id}`,
       at: audit.created_at,
       title,
-      detail: audit.command ?? null,
+      detail: auditEventDetail(audit.command, audience),
       kind: "audit",
     });
   }
 
+  const currentLabel =
+    audience === "customer"
+      ? labelForCustomerBookingStatus(params.bookingStatus, params.paymentFailureReason)
+      : audience === "admin" && params.bookingStatus === "payment_failed"
+        ? labelForCustomerBookingStatus("payment_failed", params.paymentFailureReason)
+        : labelForBookingStatus(params.bookingStatus);
+
   events.push({
     id: "current",
     at: params.updatedAt,
-    title: `Current: ${labelForCustomerBookingStatus(params.bookingStatus, params.paymentFailureReason)}`,
+    title: `Current: ${currentLabel}`,
     detail: null,
     kind: "booking",
   });
