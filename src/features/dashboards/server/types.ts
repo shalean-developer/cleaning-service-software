@@ -109,6 +109,26 @@ export type AdminEarningSummary = {
   payoutStatus: import("@/lib/database/types").EarningPayoutStatus;
 };
 
+export type AdminOperationalAuditEntry = {
+  id: string;
+  at: string;
+  adminProfileId: string;
+  adminLabel: string | null;
+  action: string;
+  actionLabel: string;
+  outcome: string;
+  outcomeLabel: string;
+  reason: string | null;
+  resultCode: string | null;
+  cleanerId: string | null;
+  offerId: string | null;
+  cancelledOfferId: string | null;
+  bookingStatusBefore: string | null;
+  bookingStatusAfter: string | null;
+  idempotencyKey: string | null;
+  metadataSummary: string | null;
+};
+
 export type AdminBookingDetail = AdminBookingListItem & {
   customerId: string;
   cleanerId: string | null;
@@ -117,6 +137,7 @@ export type AdminBookingDetail = AdminBookingListItem & {
   offers: OfferSummary[];
   earnings: AdminEarningSummary[];
   audits: { id: number; command: string | null; from: string | null; to: string | null; at: string }[];
+  operationalAudits: AdminOperationalAuditEntry[];
   paymentEvents: { id: string; eventType: string | null; at: string }[];
   display: BookingDisplayFields;
 };

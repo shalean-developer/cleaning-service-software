@@ -256,6 +256,31 @@ export type BookingStateAuditRow = {
   metadata: Json;
 };
 
+export type AdminOperationalAction =
+  | "assignment_recovery"
+  | "manual_dispatch_offer"
+  | "replace_open_offer";
+
+export type AdminOperationalOutcome = "success" | "idempotent" | "rejected" | "failed";
+
+export type AdminOperationalAuditRow = {
+  id: string;
+  booking_id: string;
+  admin_profile_id: string;
+  action: AdminOperationalAction;
+  outcome: AdminOperationalOutcome;
+  reason: string | null;
+  result_code: string | null;
+  cleaner_id: string | null;
+  offer_id: string | null;
+  cancelled_offer_id: string | null;
+  idempotency_key: string | null;
+  booking_status_before: string | null;
+  booking_status_after: string | null;
+  metadata: Json;
+  created_at: string;
+};
+
 /** Supabase client expects Insert/Update/Relationships on each table definition. */
 export type PublicTable<Row> = {
   Row: Row;
@@ -287,6 +312,7 @@ export type Database = {
       payout_batches: PublicTable<PayoutBatchRow>;
       notification_outbox: PublicTable<NotificationOutboxRow>;
       booking_state_audit: PublicTable<BookingStateAuditRow>;
+      admin_operational_audit: PublicTable<AdminOperationalAuditRow>;
     };
     Views: Record<
       string,

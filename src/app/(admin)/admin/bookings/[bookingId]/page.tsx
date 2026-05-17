@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getAdminBookingDetail } from "@/features/dashboards/server/adminOperationsReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { AdminPayoutActions } from "@/components/dashboard/AdminPayoutActions";
+import { AdminOperationalTimeline } from "@/components/dashboard/AdminOperationalTimeline";
 import { LifecycleTimeline } from "@/components/dashboard/LifecycleTimeline";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
@@ -197,6 +198,15 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="mt-6 rounded-xl border border-amber-200 bg-white p-6">
+        <h2 className="text-sm font-semibold text-zinc-900">Admin operations</h2>
+        <p className="mt-1 text-xs text-zinc-500">
+          Internal admin actions (recovery, dispatch, replace). Admin-only — not shown to
+          customers.
+        </p>
+        <AdminOperationalTimeline audits={b.operationalAudits} />
       </section>
 
       <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">

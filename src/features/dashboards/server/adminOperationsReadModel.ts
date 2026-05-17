@@ -3,7 +3,13 @@ import "server-only";
 import type { CurrentUser } from "@/lib/auth/types";
 import { isOfferOpenForOps } from "@/features/assignments/server/buildOfferExpiry";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { AssignmentOfferRow, BookingStateAuditRow, PaymentRow } from "@/lib/database/types";
+import type {
+  AdminOperationalAuditRow,
+  AssignmentOfferRow,
+  BookingStateAuditRow,
+  PaymentRow,
+} from "@/lib/database/types";
+import { mapAdminOperationalAuditRow } from "@/features/admin/server/mapAdminOperationalAuditRow";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import { resolvePaymentFailureReason } from "@/features/bookings/server/paymentFailureDisplay";
 import { buildLifecycleTimeline } from "./lifecycleTimeline";
@@ -188,6 +194,26 @@ export async function getAdminBookingDetail(
     .eq("booking_id", row.id)
     .order("created_at", { ascending: true });
 
+  const { data: operationalAuditRows } = await client
+    .from("admin_operational_audit")
+    .select("*")
+    .eq("booking_id", row.id)
+    .order("created_at", { ascending: true });
+
+  const adminProfileIds = [
+    ...new Set((operationalAuditRows ?? []).map((a) => a.admin_profile_id)),
+  ];
+  const adminLabels = new Map<string, string>();
+  if (adminProfileIds.length > 0) {
+    const { data: adminProfiles } = await client
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", adminProfileIds);
+    for (const p of adminProfiles ?? []) {
+      adminLabels.set(p.id, p.full_name?.trim() || p.id.slice(0, 8));
+    }
+  }
+
   const paymentList = payments ?? [];
   const payment = latestPayment(paymentList);
   const display = parseBookingDisplay(row.metadata);
@@ -261,6 +287,9 @@ export async function getAdminBookingDetail(
         to: a.to_status,
         at: a.created_at,
       })),
+      operationalAudits: (operationalAuditRows ?? []).map((a: AdminOperationalAuditRow) =>
+        mapAdminOperationalAuditRow(a, adminLabels.get(a.admin_profile_id) ?? null),
+      ),
       paymentEvents,
     },
   };

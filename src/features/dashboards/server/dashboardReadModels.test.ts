@@ -526,6 +526,67 @@ describe("dashboard read models", () => {
     }
   });
 
+  it("admin booking detail loads operational audit rows", async () => {
+    createSupabaseServerClientMock.mockResolvedValue({
+      from: vi.fn((table: string) => {
+        if (table === "bookings") {
+          return chainable({
+            id: "booking-1",
+            status: "pending_assignment",
+            customer_id: "cust-1",
+            cleaner_id: null,
+            scheduled_start: "2026-05-20T08:00:00.000Z",
+            scheduled_end: "2026-05-20T10:00:00.000Z",
+            price_cents: 50000,
+            currency: "ZAR",
+            metadata: wizardBookingMetadata("deep-cleaning"),
+            created_at: "2026-05-16T09:00:00.000Z",
+            updated_at: "2026-05-16T10:00:00.000Z",
+          });
+        }
+        if (table === "payments") return chainable([]);
+        if (table === "assignment_offers") return chainable([]);
+        if (table === "booking_state_audit") return chainable([]);
+        if (table === "earning_lines") return chainable([]);
+        if (table === "admin_operational_audit") {
+          return chainable([
+            {
+              id: "op-audit-1",
+              booking_id: "booking-1",
+              admin_profile_id: "admin-profile-1",
+              action: "assignment_recovery",
+              outcome: "success",
+              reason: "Paid but stuck confirmed",
+              result_code: null,
+              cleaner_id: "cleaner-1",
+              offer_id: "offer-1",
+              cancelled_offer_id: null,
+              idempotency_key: "admin:recovery:booking-1",
+              booking_status_before: "confirmed",
+              booking_status_after: "pending_assignment",
+              metadata: { engine_outcome: "offered" },
+              created_at: "2026-05-16T11:00:00.000Z",
+            },
+          ]);
+        }
+        if (table === "profiles") {
+          return chainable([{ id: "admin-profile-1", full_name: "Ops Admin" }]);
+        }
+        if (table === "customers") return chainable({ company_name: "Acme Co" });
+        return chainable([]);
+      }),
+    });
+
+    const { getAdminBookingDetail } = await import("./adminOperationsReadModel");
+    const result = await getAdminBookingDetail(adminUser, "booking-1");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.booking.operationalAudits).toHaveLength(1);
+      expect(result.booking.operationalAudits[0]?.action).toBe("assignment_recovery");
+      expect(result.booking.operationalAudits[0]?.adminLabel).toBe("Ops Admin");
+    }
+  });
+
   it("admin queue does not treat past-expiry offered rows as open", async () => {
     createSupabaseServerClientMock.mockResolvedValue({
       from: vi.fn((table: string) => {
