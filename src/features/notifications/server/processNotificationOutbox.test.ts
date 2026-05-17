@@ -18,6 +18,7 @@ const reclaimMock = vi.fn(
 
 const loadPaymentFailedContextMock = vi.fn();
 const hasSentPaymentFailedMock = vi.fn();
+const hasSentPaymentConfirmedMock = vi.fn();
 const hasSentAssignmentOfferMock = vi.fn();
 
 vi.mock("./reclaimStaleProcessingNotifications", () => ({
@@ -40,6 +41,14 @@ vi.mock("./hasSentPaymentFailedForBooking", () => ({
     bookingId: string,
     excludeOutboxId?: string,
   ) => hasSentPaymentFailedMock(client, bookingId, excludeOutboxId),
+}));
+
+vi.mock("./hasSentPaymentConfirmedForBooking", () => ({
+  hasSentPaymentConfirmedForBooking: (
+    client: unknown,
+    bookingId: string,
+    excludeOutboxId?: string,
+  ) => hasSentPaymentConfirmedMock(client, bookingId, excludeOutboxId),
 }));
 
 vi.mock("./hasSentAssignmentOfferForOffer", () => ({
@@ -360,6 +369,7 @@ describe("processNotificationOutbox", () => {
       canRetry: false,
     });
     hasSentPaymentFailedMock.mockResolvedValue(false);
+    hasSentPaymentConfirmedMock.mockResolvedValue(false);
     hasSentAssignmentOfferMock.mockResolvedValue(false);
     process.env = { ...envBackup };
     process.env.ENABLE_NOTIFICATION_DELIVERY = "true";
@@ -742,6 +752,79 @@ describe("processNotificationOutbox", () => {
     expect(result.scanned).toBe(0);
     expect(emailSender).not.toHaveBeenCalled();
     expect(db.outbox[0]!.status).toBe("pending");
+  });
+
+  it("does not resend when payment_confirmed already sent for booking", async () => {
+    hasSentPaymentConfirmedMock.mockResolvedValue(true);
+    const db: MockDb = {
+      outbox: [
+        outboxRow({
+          id: "o-dup",
+          recipient: "cust-1",
+          payload: { template: "payment_confirmed", bookingId: "booking-1" },
+        }),
+      ],
+      bookings: {
+        "booking-1": { ...defaultFailedBooking, status: "confirmed" },
+      },
+      customers: { "cust-1": { id: "cust-1", profile_id: "profile-1" } },
+      cleaners: {},
+      assignment_offers: {},
+      profiles: { "profile-1": { full_name: "Alex" } },
+      authEmails: { "profile-1": "alex@example.com" },
+    };
+    const client = createMockClient(db);
+    const emailSender: EmailSender = vi.fn();
+
+    const result = await processNotificationOutbox(client, { emailSender });
+    expect(result.skipped).toBe(1);
+    expect(emailSender).not.toHaveBeenCalled();
+    expect(db.outbox[0]!.status).toBe("sent");
+    expect(hasSentPaymentConfirmedMock).toHaveBeenCalledWith(
+      client,
+      "booking-1",
+      "o-dup",
+    );
+  });
+
+  it("sends first payment_confirmed and skips duplicate in same batch", async () => {
+    hasSentPaymentConfirmedMock
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    const db: MockDb = {
+      outbox: [
+        outboxRow({
+          id: "o-first",
+          recipient: "cust-1",
+          payload: { template: "payment_confirmed", bookingId: "booking-1" },
+        }),
+        outboxRow({
+          id: "o-second",
+          recipient: "cust-1",
+          payload: { template: "payment_confirmed", bookingId: "booking-1" },
+        }),
+      ],
+      bookings: {
+        "booking-1": { ...defaultFailedBooking, status: "confirmed" },
+      },
+      customers: { "cust-1": { id: "cust-1", profile_id: "profile-1" } },
+      cleaners: {},
+      assignment_offers: {},
+      profiles: { "profile-1": { full_name: "Alex" } },
+      authEmails: { "profile-1": "alex@example.com" },
+    };
+    const client = createMockClient(db);
+    const emailSender: EmailSender = vi.fn(async () => ({
+      ok: true as const,
+      messageId: "msg-1",
+    }));
+
+    const result = await processNotificationOutbox(client, { emailSender });
+    expect(result.sent).toBe(1);
+    expect(result.skipped).toBe(1);
+    expect(emailSender).toHaveBeenCalledOnce();
+    expect(db.outbox[0]!.status).toBe("sent");
+    expect(db.outbox[1]!.status).toBe("sent");
   });
 
   it("marks sent on successful payment_confirmed delivery", async () => {

@@ -1,23 +1,32 @@
-import { E2E_EMAILS, E2E_LABELS, E2E_PASSWORD } from "./constants.mjs";
+import { E2E_LABELS, E2E_PASSWORD } from "./constants.mjs";
 
 /**
  * Find or create an auth user + profile for E2E smoke tests.
  * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {{ email: string, role: string, fullName: string, profileIdHint?: string }} params
  */
-export async function ensureE2eUser(client, { email, role, fullName }) {
-  let userId = null;
+export async function ensureE2eUser(client, { email, role, fullName, profileIdHint }) {
+  let userId = profileIdHint?.trim() || null;
 
-  let page = 1;
-  for (;;) {
-    const { data, error } = await client.auth.admin.listUsers({ page, perPage: 200 });
-    if (error) throw error;
-    const match = (data.users ?? []).find((u) => u.email === email);
-    if (match) {
-      userId = match.id;
-      break;
+  if (userId) {
+    const { data: existingById, error: getErr } = await client.auth.admin.getUserById(userId);
+    if (getErr) throw getErr;
+    if (!existingById.user) userId = null;
+  }
+
+  if (!userId) {
+    let page = 1;
+    for (;;) {
+      const { data, error } = await client.auth.admin.listUsers({ page, perPage: 200 });
+      if (error) throw error;
+      const match = (data.users ?? []).find((u) => u.email === email);
+      if (match) {
+        userId = match.id;
+        break;
+      }
+      if ((data.users ?? []).length < 200) break;
+      page += 1;
     }
-    if ((data.users ?? []).length < 200) break;
-    page += 1;
   }
 
   if (!userId) {
@@ -31,7 +40,9 @@ export async function ensureE2eUser(client, { email, role, fullName }) {
     userId = data.user?.id ?? null;
   } else {
     await client.auth.admin.updateUserById(userId, {
+      email,
       password: E2E_PASSWORD,
+      email_confirm: true,
       user_metadata: { role, full_name: fullName, e2e_seed: true },
     });
   }

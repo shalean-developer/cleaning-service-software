@@ -9,18 +9,41 @@ import { createClient } from "@supabase/supabase-js";
 import {
   E2E_AREA_SLUG,
   E2E_AVAILABILITY_DAYS,
-  E2E_EMAILS,
   E2E_LABELS,
   E2E_PASSWORD,
   E2E_PREFIX,
   E2E_SERVICES,
   E2E_SERVICE_SLUGS,
+  resolveE2eEmails,
 } from "./lib/constants.mjs";
 import { ensureE2eCleaner, ensureE2eCustomer, ensureE2eUser } from "./lib/auth.mjs";
 import { loadEnvFiles, requireServiceRoleClient, upsertEnvLocal } from "./lib/env.mjs";
 
 loadEnvFiles();
 const client = requireServiceRoleClient(createClient);
+const E2E_EMAILS = resolveE2eEmails();
+
+async function profileIdForCustomerId(customerId) {
+  if (!customerId) return undefined;
+  const { data, error } = await client
+    .from("customers")
+    .select("profile_id")
+    .eq("id", customerId)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.profile_id ?? undefined;
+}
+
+async function profileIdForCleanerId(cleanerId) {
+  if (!cleanerId) return undefined;
+  const { data, error } = await client
+    .from("cleaners")
+    .select("profile_id")
+    .eq("id", cleanerId)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.profile_id ?? undefined;
+}
 
 async function ensureServices() {
   const { data: existing, error } = await client.from("services").select("id, name, description");
@@ -98,6 +121,7 @@ async function main() {
     email: E2E_EMAILS.customer,
     role: "customer",
     fullName: E2E_LABELS.customerName,
+    profileIdHint: await profileIdForCustomerId(process.env.E2E_TEST_CUSTOMER_ID?.trim()),
   });
   const customer = await ensureE2eCustomer(client, customerProfileId);
   console.log(`✓ customer ${customer.id}`);
@@ -106,6 +130,7 @@ async function main() {
     email: E2E_EMAILS.cleaner,
     role: "cleaner",
     fullName: E2E_LABELS.cleanerName,
+    profileIdHint: await profileIdForCleanerId(process.env.E2E_TEST_CLEANER_ID?.trim()),
   });
   const cleaner = await ensureE2eCleaner(client, cleanerProfileId);
   await ensureCleanerEligibility(cleaner.id);
@@ -115,6 +140,7 @@ async function main() {
     email: E2E_EMAILS.admin,
     role: "admin",
     fullName: E2E_LABELS.adminName,
+    profileIdHint: process.env.E2E_TEST_ADMIN_PROFILE_ID?.trim(),
   });
   console.log(`✓ admin profile ${adminProfileId}`);
 

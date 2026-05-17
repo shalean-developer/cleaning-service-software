@@ -13,6 +13,7 @@ import {
   PAYMENT_FAILED_TEMPLATE,
 } from "./config";
 import { hasSentAssignmentOfferForOffer } from "./hasSentAssignmentOfferForOffer";
+import { hasSentPaymentConfirmedForBooking } from "./hasSentPaymentConfirmedForBooking";
 import { hasSentPaymentFailedForBooking } from "./hasSentPaymentFailedForBooking";
 import {
   isOfferPastExpiry,
@@ -183,6 +184,11 @@ async function processPaymentConfirmedRow(
   const bookingId = readBookingId(row.payload);
   if (!bookingId) {
     return { outcome: "failed", code: "INVALID_PAYLOAD", message: "Missing bookingId in payload." };
+  }
+
+  if (await hasSentPaymentConfirmedForBooking(client, bookingId, row.id)) {
+    await markOutboxSent(client, row.id, row.attempts, now.toISOString());
+    return { outcome: "skipped" };
   }
 
   const resolved = await resolveCustomerEmail(client, row.recipient);

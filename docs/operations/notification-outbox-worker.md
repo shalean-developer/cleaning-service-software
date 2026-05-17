@@ -62,6 +62,14 @@ Deploy **5C-2a** (assignment offer email handler) and **5C-2b** (template-scoped
 |----------|------------|
 | `payment_confirmed` | **Yes** (email) |
 | `payment_failed` | **Yes** (email, Stage 5C-1b-a) |
+
+### `payment_confirmed` delivery dedupe (5C hotfix)
+
+| Topic | Behavior |
+|-------|----------|
+| **Delivery dedupe** | If another `payment_confirmed` row for the same `bookingId` is already `sent`, the current row is marked `sent` without a second email (same pattern as `payment_failed`). |
+| **Enqueue** | Unchanged — command idempotency still controls how many rows are inserted. |
+| **Historical duplicates** | Extra pending/duplicate rows may be drained as `skipped` (no Resend call) when a prior send exists. |
 | `payment_pending` | No |
 | `pending_assignment` | No |
 | `cleaner_assigned` | No |

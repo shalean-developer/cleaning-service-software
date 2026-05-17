@@ -1,14 +1,30 @@
 /** Shared E2E smoke-test identifiers — never use for production data. */
 
+import { loadEnvFiles } from "./env.mjs";
+
+loadEnvFiles();
+
 export const E2E_PREFIX = "test_e2e_";
 
 export const E2E_PASSWORD = "TestE2e!2026Shalean";
 
-export const E2E_EMAILS = {
+const DEFAULT_E2E_EMAILS = {
   customer: `${E2E_PREFIX}customer@shalean.co.za`,
   cleaner: `${E2E_PREFIX}cleaner@shalean.co.za`,
   admin: `${E2E_PREFIX}admin@shalean.co.za`,
 };
+
+/** Read E2E inbox addresses from env (set in .env.local before `npm run e2e:seed`). */
+export function resolveE2eEmails() {
+  return {
+    customer:
+      process.env.E2E_TEST_CUSTOMER_EMAIL?.trim() || DEFAULT_E2E_EMAILS.customer,
+    cleaner: process.env.E2E_TEST_CLEANER_EMAIL?.trim() || DEFAULT_E2E_EMAILS.cleaner,
+    admin: process.env.E2E_TEST_ADMIN_EMAIL?.trim() || DEFAULT_E2E_EMAILS.admin,
+  };
+}
+
+export const E2E_EMAILS = resolveE2eEmails();
 
 export const E2E_LABELS = {
   customerCompany: `${E2E_PREFIX}customer`,
