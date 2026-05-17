@@ -73,6 +73,8 @@ function commandActorPolicy(
     case "ADMIN_OVERRIDE_STATUS":
       return adminOnly;
     case "RECORD_ASSIGNMENT_ATTENTION":
+    case "RECORD_ASSIGNMENT_OFFER_EXPIRED":
+    case "EXPIRE_ASSIGNMENT_OFFER":
       return systemish;
   }
 }
@@ -144,6 +146,8 @@ export function nextStatusForCommand(
     case "ADMIN_OVERRIDE_STATUS":
       return cmd.nextStatus;
     case "RECORD_ASSIGNMENT_ATTENTION":
+    case "RECORD_ASSIGNMENT_OFFER_EXPIRED":
+    case "EXPIRE_ASSIGNMENT_OFFER":
       return null;
     default: {
       const _exhaustive: never = cmd;
@@ -156,7 +160,12 @@ export function assertTransitionShape(
   cmd: BookingCommand,
   current: BookingStatus,
 ): BookingCommandFailure | null {
-  if (cmd.type === "ADMIN_OVERRIDE_STATUS" || cmd.type === "RECORD_ASSIGNMENT_ATTENTION") {
+  if (
+    cmd.type === "ADMIN_OVERRIDE_STATUS" ||
+    cmd.type === "RECORD_ASSIGNMENT_ATTENTION" ||
+    cmd.type === "RECORD_ASSIGNMENT_OFFER_EXPIRED" ||
+    cmd.type === "EXPIRE_ASSIGNMENT_OFFER"
+  ) {
     return null;
   }
 

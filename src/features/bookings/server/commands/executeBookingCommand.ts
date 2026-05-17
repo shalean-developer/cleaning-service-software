@@ -67,6 +67,14 @@ function isOfferExpired(offer: { expires_at: string | null }): boolean {
   return new Date(offer.expires_at).getTime() <= Date.now();
 }
 
+function isOfferPastExpiryAt(
+  offer: { expires_at: string | null },
+  expiredAtIso: string,
+): boolean {
+  if (!offer.expires_at) return false;
+  return new Date(offer.expires_at).getTime() <= new Date(expiredAtIso).getTime();
+}
+
 function isOpenOfferUniqueViolation(err: unknown): boolean {
   if (!(err instanceof Error)) return false;
   const msg = err.message.toLowerCase();
@@ -757,6 +765,87 @@ export async function executeBookingCommand(
         return ok(booking.id, booking.status, false);
       } catch {
         return fail("PERSISTENCE_ERROR", "Could not record assignment metadata.");
+      }
+    }
+
+    case "EXPIRE_ASSIGNMENT_OFFER": {
+      if (!cmd.idempotencyKey?.trim()) {
+        return fail(
+          "IDEMPOTENCY_REQUIRED",
+          "EXPIRE_ASSIGNMENT_OFFER requires idempotencyKey.",
+        );
+      }
+      const booking = await backend.getBooking(cmd.bookingId);
+      if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
+      if (
+        (await backend.findAuditsByBookingAndKey(cmd.bookingId, cmd.idempotencyKey)).length > 0
+      ) {
+        return ok(booking.id, booking.status, true);
+      }
+      const offer = await backend.getOffer(cmd.offerId);
+      if (!offer || offer.booking_id !== booking.id) {
+        return fail("OFFER_NOT_FOUND", "Offer not found for this booking.");
+      }
+      if (offer.cleaner_id !== cmd.cleanerId) {
+        return fail("INVALID_PAYLOAD", "Cleaner id does not match offer.");
+      }
+      if (offer.status === "expired") {
+        return ok(booking.id, booking.status, true);
+      }
+      if (offer.status !== "offered") {
+        return fail("OFFER_NOT_OPEN", "Offer is not open for expiry.");
+      }
+      if (!isOfferPastExpiryAt(offer, cmd.expiredAt)) {
+        return fail("OFFER_NOT_OPEN", "Offer has not reached expiry time.");
+      }
+      try {
+        const r = await backend.expireAssignmentOffer(cmd, booking.id, cmd.offerId);
+        return ok(booking.id, r.status, r.idempotent);
+      } catch {
+        return fail("PERSISTENCE_ERROR", "Could not expire assignment offer.");
+      }
+    }
+
+    case "RECORD_ASSIGNMENT_OFFER_EXPIRED": {
+      if (!cmd.idempotencyKey?.trim()) {
+        return fail(
+          "IDEMPOTENCY_REQUIRED",
+          "RECORD_ASSIGNMENT_OFFER_EXPIRED requires idempotencyKey.",
+        );
+      }
+      const booking = await backend.getBooking(cmd.bookingId);
+      if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
+      if (
+        (await backend.findAuditsByBookingAndKey(cmd.bookingId, cmd.idempotencyKey)).length > 0
+      ) {
+        return ok(booking.id, booking.status, true);
+      }
+      const offer = await backend.getOffer(cmd.offerId);
+      if (!offer || offer.booking_id !== booking.id) {
+        return fail("OFFER_NOT_FOUND", "Offer not found for this booking.");
+      }
+      if (offer.status !== "expired") {
+        return fail("OFFER_NOT_OPEN", "Offer must be expired before recording expiry audit.");
+      }
+      if (offer.cleaner_id !== cmd.cleanerId) {
+        return fail("INVALID_PAYLOAD", "Cleaner id does not match offer.");
+      }
+      try {
+        const auditCmd: BookingCommand = {
+          ...cmd,
+          metadata: {
+            offerId: cmd.offerId,
+            cleanerId: cmd.cleanerId,
+            expiredAt: cmd.expiredAt,
+            expirySource: "cron",
+            previousOfferStatus: "offered",
+            ...(cmd.metadata && typeof cmd.metadata === "object" ? cmd.metadata : {}),
+          },
+        };
+        await backend.appendAudit(auditCmd, booking.id, booking.status, booking.status);
+        return ok(booking.id, booking.status, false);
+      } catch {
+        return fail("PERSISTENCE_ERROR", "Could not record offer expiry audit.");
       }
     }
 

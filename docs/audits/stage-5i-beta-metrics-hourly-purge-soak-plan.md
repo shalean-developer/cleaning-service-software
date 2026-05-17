@@ -35,7 +35,17 @@ Complete once per environment (production required; staging optional but recomme
 | P6 | **No purge flags** | Production must **not** have future 5I-β flags enabled (`NOTIFICATION_RETENTION_CLEANUP_ENABLED`, `NOTIFICATION_RETENTION_METRICS_PURGE_ENABLED`, etc.) — they do not exist in 5I-α |
 | P7 | **Owner assigned** | Named production owner for daily runs and sign-off |
 
-**Record environment:** `Production` / `Staging` / URL: `___________________________`
+**Record environment:** `Production` — `https://cleaning-service-software.vercel.app`
+
+### Soak progress
+
+| Day | Status | Date (UTC) | Notes |
+|-----|--------|------------|-------|
+| **1** | **PASS** | 2026-05-17 | Manual POST; `dryRun: true`, `deleted: 0`; see [Day 1 record](#day-1-record-2026-05-17) |
+| 2 | Pending | | |
+| 3 | Pending | | |
+
+**Sign-off:** Not ready — need ≥2 more consecutive daily runs.
 
 ---
 
@@ -64,11 +74,67 @@ Run **once per calendar day** for **minimum 3 consecutive days** (5 recommended)
 
 | Day | Date (UTC) | Trigger | HTTP | `dryRun` | `deleted` | `metricsHourly` eligible | `oldestEligible.metricsHourly` | Live sent elig. | Dry-run sent elig. | Failed elig. | Unsup. pending elig. | WR elig (rollup) | WR prot (no rollup) | Pending deliv. (prot.) | Processing (prot.) | Admin panel match? | Notes |
 |-----|------------|---------|------|----------|-----------|--------------------------|--------------------------------|-----------------|--------------------|--------------|---------------------|------------------|----------------------|------------------------|-------------------|---------------------|-------|
-| 1 | | manual / pg_cron | | | | | | | | | | | | | | | |
+| 1 | 2026-05-17 | manual (PowerShell) | 200 | true | 0 | 0 | — (`null`) | 0 | 0 | 0 | 0 | 0 | 0 | 2 | 0 | — | **PASS** — `asOf` 20:18:03Z; failed within retention (prot.) = 6; no-go criteria clear |
 | 2 | | | | | | | | | | | | | | | | | |
 | 3 | | | | | | | | | | | | | | | | | |
 | 4 | | | | | | | | | | | | | | | | | |
 | 5 | | | | | | | | | | | | | | | | | |
+
+### Day 1 record (2026-05-17)
+
+**Result:** Successful dry-run — safe to count as **Day 1 of 3** toward soak sign-off.
+
+| Check | Result |
+|-------|--------|
+| Trigger | `POST https://cleaning-service-software.vercel.app/api/cron/cleanup-notification-retention` |
+| Auth | Bearer `CRON_SECRET` (production) |
+| HTTP | **200** |
+| `ok` | `true` |
+| `dryRun` | `true` |
+| `deleted` | `0` |
+| `asOf` | `2026-05-17T20:18:03.249Z` |
+| No-go criteria | **None triggered** |
+
+**Metrics-hourly (5I-β focus):**
+
+| Field | Value |
+|-------|-------|
+| `eligible.metricsHourly.olderThanPolicy` | `0` |
+| `oldestEligible.metricsHourly` | `null` |
+
+**Expected:** Eligible `0` — hourly rollup table younger than 13 months.
+
+**Outbox eligible (spike baseline):**
+
+| Field | Value |
+|-------|-------|
+| `eligible.outbox.liveSentOlderThanPolicy` | 0 |
+| `eligible.outbox.dryRunSentOlderThanPolicy` | 0 |
+| `eligible.outbox.failedOlderThanPolicy` | 0 |
+| `eligible.outbox.unsupportedPendingOlderThanPolicy` | 0 |
+
+**Worker runs:**
+
+| Field | Value |
+|-------|-------|
+| `eligible.workerRuns.olderThanPolicy` | 0 |
+| `eligible.workerRuns.eligibleWithRollupCoverage` | 0 |
+| `eligible.workerRuns.protectedMissingRollup` | 0 |
+
+**Protected outbox (queue sanity):**
+
+| Field | Value |
+|-------|-------|
+| `protected.outbox.pendingDeliverable` | 2 |
+| `protected.outbox.processing` | 0 |
+| `protected.outbox.failedWithinRetention` | 6 |
+| `protected.outbox.requeueShieldRecent` | 0 |
+
+**Policy (defaults confirmed):** live sent 90d · dry-run sent 60d · failed 365d · unsupported pending 180d · worker runs 90d · metrics **13mo** · requeue shield 30d.
+
+**Day 1 daily checklist:** D1–D7, D8–D10, D12–D14 complete via cron response. **D11** (admin panel parity) — record on next page load before Day 2.
+
+**Evidence:** Terminal / PowerShell `Invoke-RestMethod` output; optional Vercel log filter `notification_retention_dry_run` for same `asOf` window.
 
 ---
 

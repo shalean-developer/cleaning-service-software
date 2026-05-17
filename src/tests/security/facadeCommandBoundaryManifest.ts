@@ -28,7 +28,7 @@ export type FacadeBoundaryRule = {
   requiredPaymentProcessors?: PaymentProcessorSymbol[];
   /** Must match ALLOWED_SERVICE_ROLE_LIFECYCLE_IMPORTERS when true */
   allowedServiceRoleImport: boolean;
-  /** Tier D: direct assignment_offers update allowed (expireOffers.ts only) */
+  /** When true, facade may patch assignment_offers.status directly (none after 5K-2a). */
   allowedDirectWriteException: boolean;
 };
 
@@ -150,10 +150,10 @@ export const FACADE_BOUNDARY_RULES: FacadeBoundaryRule[] = [
   {
     facadeFile: "features/assignments/server/expireOffers.ts",
     exportSymbols: ["expireStaleAssignmentOffers"],
-    tier: "offer_expiry",
+    tier: "command_required",
     allowedOrchestratorSymbols: ["processBookingAfterOfferExpiry"],
     allowedServiceRoleImport: false,
-    allowedDirectWriteException: true,
+    allowedDirectWriteException: false,
   },
   {
     facadeFile: "features/assignments/server/runAssignmentRecovery.ts",

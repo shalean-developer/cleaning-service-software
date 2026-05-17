@@ -73,25 +73,6 @@ function createOffersClient(
           });
           return { data: rows.slice(0, n), error: null };
         }),
-        update: vi.fn((patch: Partial<AssignmentOfferRow>) => ({
-          eq: vi.fn((col: string, id: string) => ({
-            eq: vi.fn((_col2: string, status: string) => ({
-              select: vi.fn(async () => {
-                const offer = backend.offers.get(id);
-                if (!offer || offer.status !== status) {
-                  return { data: [], error: null };
-                }
-                const updated = {
-                  ...offer,
-                  ...patch,
-                  updated_at: patch.updated_at ?? offer.updated_at,
-                };
-                backend.offers.set(id, updated);
-                return { data: [{ id }], error: null };
-              }),
-            })),
-          })),
-        })),
       };
 
       return chain;
@@ -209,6 +190,12 @@ describe("expireStaleAssignmentOffers", () => {
     expect(first.expiredCount).toBe(1);
     expect(backend.offers.get(offerId)?.status).toBe("expired");
 
+    const expiryAudits = backend.audits.filter(
+      (a) => a.command === "EXPIRE_ASSIGNMENT_OFFER",
+    );
+    expect(expiryAudits).toHaveLength(1);
+    expect(expiryAudits[0]?.idempotency_key).toBe(`cron:expire-offer:${offerId}`);
+
     const booking = await backend.getBooking(bookingId);
     const meta = readAssignmentMetadata(booking?.metadata);
     expect(meta?.status).toBe("attention_required");
@@ -236,6 +223,9 @@ describe("expireStaleAssignmentOffers", () => {
     expect(first.expiredCount).toBe(1);
     expect(second.expiredCount).toBe(0);
     expect([...backend.offers.values()].filter((o) => o.status === "expired")).toHaveLength(1);
+    expect(
+      backend.audits.filter((a) => a.command === "EXPIRE_ASSIGNMENT_OFFER"),
+    ).toHaveLength(1);
   });
 
   it("auto-redispatches best_available without duplicating active offers", async () => {

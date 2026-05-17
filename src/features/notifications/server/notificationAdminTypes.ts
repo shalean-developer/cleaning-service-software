@@ -63,6 +63,10 @@ export type AdminNotificationDeliveryBannerModel = {
   deliveryEnabled: boolean;
   canRunDelivery: boolean;
   emailProvider: "dry_run" | "resend" | "disabled";
+  /** True when Resend mode has NOTIFICATION_FROM_EMAIL + RESEND_API_KEY. */
+  resendConfigured: boolean;
+  /** Shown when delivery is on but the active provider cannot send. */
+  readinessHint: string | null;
   appBaseUrl: string;
   appBaseUrlWarning: string | null;
   staleProcessingMinutes: number;

@@ -415,6 +415,8 @@ describe("loadNotificationAnalytics", () => {
         deliveryEnabled: true,
         canRunDelivery: true,
         emailProvider: "resend",
+        resendConfigured: true,
+        readinessHint: null,
         appBaseUrl: "https://app.example.com",
         appBaseUrlWarning: null,
         staleProcessingMinutes: 15,

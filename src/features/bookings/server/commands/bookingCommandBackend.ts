@@ -65,6 +65,12 @@ export interface BookingCommandBackend {
     paymentId: string,
   ): Promise<TransitionResult>;
 
+  expireAssignmentOffer(
+    cmd: BookingCommand & { type: "EXPIRE_ASSIGNMENT_OFFER" },
+    bookingId: string,
+    offerId: string,
+  ): Promise<TransitionResult>;
+
   adminOverrideStatus(
     cmd: BookingCommand & { type: "ADMIN_OVERRIDE_STATUS" },
     booking: BookingRow,

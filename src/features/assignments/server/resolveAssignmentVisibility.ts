@@ -11,6 +11,7 @@ export type AssignmentVisibilityKey =
   | "decline_redispatched"
   | "finding_cleaner"
   | "offer_sent"
+  | "selected_expired_admin"
   | "selected_declined_admin"
   | "max_attempts_admin"
   | "needs_assignment"
@@ -143,6 +144,23 @@ export function resolveAssignmentVisibility(input: {
       customerMessage: "We're reviewing cleaner availability for your booking.",
       showCustomerAssignmentWarning: true,
       lastOfferOutcome,
+      opsSearching: false,
+      opsAdminRequired: true,
+    };
+  }
+
+  if (
+    assignment?.status === "attention_required" &&
+    path === "selected" &&
+    (lastOfferOutcome === "expired" ||
+      (typeof reason === "string" && reason.toLowerCase().includes("expired")))
+  ) {
+    return {
+      key: "selected_expired_admin",
+      adminLabel: "Selected cleaner offer expired — admin action needed",
+      customerMessage: "We're reviewing cleaner availability for your booking.",
+      showCustomerAssignmentWarning: true,
+      lastOfferOutcome: "expired",
       opsSearching: false,
       opsAdminRequired: true,
     };

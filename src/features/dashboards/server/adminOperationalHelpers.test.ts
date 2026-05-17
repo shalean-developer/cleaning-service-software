@@ -66,6 +66,53 @@ describe("adminOperationalHelpers", () => {
     expect(row.actorType).toBe("service");
     expect(row.reason).toContain("Post-payment");
     expect(row.idempotencyKey).toBe("assignment:move:b1");
+    expect(row.displayTitle).toBeNull();
+  });
+
+  it("mapAuditRow adds friendly labels for EXPIRE_ASSIGNMENT_OFFER audit", () => {
+    const row = mapAuditRow({
+      id: 3,
+      booking_id: "b1",
+      from_status: "pending_assignment",
+      to_status: "pending_assignment",
+      command: "EXPIRE_ASSIGNMENT_OFFER",
+      actor_profile_id: null,
+      actor_type: "service",
+      reason: null,
+      idempotency_key: "cron:expire-offer:offer-2",
+      metadata: {
+        offerId: "offer-2",
+        cleanerId: "cleaner-1",
+        expirySource: "cron",
+      },
+      payload: {},
+      created_at: "2026-05-17T10:00:00.000Z",
+    });
+    expect(row.displayTitle).toBe("Cleaner offer expired");
+    expect(row.displayDescription).toContain("before the cleaner accepted");
+  });
+
+  it("mapAuditRow adds friendly labels for RECORD_ASSIGNMENT_OFFER_EXPIRED audit", () => {
+    const row = mapAuditRow({
+      id: 2,
+      booking_id: "b1",
+      from_status: "pending_assignment",
+      to_status: "pending_assignment",
+      command: "RECORD_ASSIGNMENT_OFFER_EXPIRED",
+      actor_profile_id: null,
+      actor_type: "service",
+      reason: null,
+      idempotency_key: "cron:expire-offer:offer-1",
+      metadata: {
+        offerId: "offer-1",
+        cleanerId: "cleaner-1",
+        expirySource: "cron",
+      },
+      payload: {},
+      created_at: "2026-05-17T10:00:00.000Z",
+    });
+    expect(row.displayTitle).toBe("Cleaner offer expired");
+    expect(row.displayDescription).toContain("before the cleaner accepted");
   });
 
   it("filters bookings by payment_failed and search text", () => {

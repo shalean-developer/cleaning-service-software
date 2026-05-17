@@ -213,6 +213,61 @@ export class SupabaseBookingCommandBackend implements BookingCommandBackend {
     return parseRpcTransitionResult(data);
   }
 
+  async expireAssignmentOffer(
+    cmd: BookingCommand & { type: "EXPIRE_ASSIGNMENT_OFFER" },
+    bookingId: string,
+    offerId: string,
+  ): Promise<TransitionResult> {
+    const booking = await this.getBooking(bookingId);
+    if (!booking) throw new Error("BOOKING_NOT_FOUND");
+
+    const offer = await this.getOffer(offerId);
+    if (!offer || offer.booking_id !== booking.id) {
+      throw new Error("OFFER_NOT_FOUND");
+    }
+    if (offer.status !== "offered") {
+      throw new Error("OFFER_NOT_OPEN");
+    }
+
+    const auditCmd: BookingCommand = {
+      ...cmd,
+      metadata: {
+        offerId,
+        cleanerId: cmd.cleanerId,
+        expiredAt: cmd.expiredAt,
+        expirySource: "cron",
+        previousOfferStatus: "offered",
+        ...(cmd.metadata && typeof cmd.metadata === "object" ? cmd.metadata : {}),
+      },
+    };
+
+    const { data: updated, error: updateError } = await this.client
+      .from("assignment_offers")
+      .update({ status: "expired", updated_at: cmd.expiredAt })
+      .eq("id", offerId)
+      .eq("status", "offered")
+      .select("id");
+
+    if (updateError) throw new Error(updateError.message);
+    if (!updated?.length) {
+      throw new Error("OFFER_NOT_OPEN");
+    }
+
+    try {
+      await this.appendAudit(auditCmd, booking.id, booking.status, booking.status);
+    } catch (err) {
+      const { error: rollbackError } = await this.client
+        .from("assignment_offers")
+        .update({ status: "offered", updated_at: offer.updated_at })
+        .eq("id", offerId)
+        .eq("status", "expired");
+      if (rollbackError) throw new Error(rollbackError.message);
+      throw err;
+    }
+
+    return { status: booking.status, idempotent: false };
+  }
+
   async adminOverrideStatus(
     cmd: BookingCommand & { type: "ADMIN_OVERRIDE_STATUS" },
     booking: BookingRow,

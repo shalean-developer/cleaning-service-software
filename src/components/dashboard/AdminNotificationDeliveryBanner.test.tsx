@@ -7,6 +7,8 @@ const baseBanner: AdminNotificationDeliveryBannerModel = {
   deliveryEnabled: true,
   canRunDelivery: true,
   emailProvider: "resend",
+  resendConfigured: true,
+  readinessHint: null,
   appBaseUrl: "https://app.example.com",
   appBaseUrlWarning: null,
   staleProcessingMinutes: 15,
@@ -36,5 +38,38 @@ describe("AdminNotificationDeliveryBanner", () => {
     const html = renderToStaticMarkup(<AdminNotificationDeliveryBanner banner={baseBanner} />);
     expect(html).not.toContain("APP_BASE_URL resolves to localhost.");
     expect(html).not.toContain("border-amber-400 bg-amber-100");
+  });
+
+  it("shows Resend-only readiness copy and defers Postmark/failover", () => {
+    const html = renderToStaticMarkup(
+      <AdminNotificationDeliveryBanner
+        banner={{
+          ...baseBanner,
+          canRunDelivery: false,
+          resendConfigured: false,
+          readinessHint:
+            "Set NOTIFICATION_FROM_EMAIL and RESEND_API_KEY. Postmark and failover are not enabled yet.",
+        }}
+      />,
+    );
+    expect(html).toContain("Resend only");
+    expect(html).toContain("not configured");
+    expect(html).toContain("Postmark and failover are not enabled yet");
+    expect(html).not.toContain("Postmark configured");
+  });
+
+  it("shows dry-run readiness hint without implying live providers", () => {
+    const html = renderToStaticMarkup(
+      <AdminNotificationDeliveryBanner
+        banner={{
+          ...baseBanner,
+          emailProvider: "dry_run",
+          readinessHint:
+            "Dry-run mode — no live email provider. Failover is not enabled yet.",
+        }}
+      />,
+    );
+    expect(html).toContain("Dry-run mode");
+    expect(html).toContain("Failover is not enabled yet");
   });
 });

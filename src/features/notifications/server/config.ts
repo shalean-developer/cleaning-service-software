@@ -104,11 +104,9 @@ export function isNotificationDeliveryEnabled(): boolean {
 export function getNotificationDeliveryConfig(): NotificationDeliveryConfig {
   const fromEmail = process.env.NOTIFICATION_FROM_EMAIL?.trim() || null;
   const resendKey = process.env.RESEND_API_KEY?.trim();
-  const postmarkToken = process.env.POSTMARK_SERVER_TOKEN?.trim();
   const emailProvider = resolveNotificationEmailProvider();
   const providerReady =
-    emailProvider === "dry_run" ||
-    Boolean(fromEmail && (resendKey || postmarkToken));
+    emailProvider === "dry_run" || Boolean(fromEmail && resendKey);
 
   return {
     enabled: isNotificationDeliveryEnabled(),

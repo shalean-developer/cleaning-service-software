@@ -21,9 +21,16 @@ export function AdminNotificationDeliveryBanner({ banner }: Props) {
           {!banner.deliveryEnabled ? " — cron worker will no-op." : null}
         </li>
         <li>
-          Provider: <strong>{banner.emailProvider}</strong>
-          {banner.deliveryEnabled && !banner.canRunDelivery
-            ? " — provider not ready (check Resend env)."
+          Email provider: <strong>{banner.emailProvider}</strong>
+          {banner.emailProvider === "resend" ? (
+            <span>
+              {" "}
+              (Resend only —{" "}
+              <strong>{banner.resendConfigured ? "configured" : "not configured"}</strong>)
+            </span>
+          ) : null}
+          {banner.deliveryEnabled && !banner.canRunDelivery && banner.emailProvider === "resend"
+            ? " — cannot send until Resend env is set."
             : null}
         </li>
         <li>
@@ -34,6 +41,9 @@ export function AdminNotificationDeliveryBanner({ banner }: Props) {
           (claim age).
         </li>
       </ul>
+      {banner.readinessHint ? (
+        <p className="mt-2 text-xs text-zinc-700">{banner.readinessHint}</p>
+      ) : null}
       {banner.appBaseUrlWarning ? (
         <div
           className="mt-3 flex gap-2.5 rounded-lg border border-amber-400 bg-amber-100 px-3 py-2.5 text-amber-950"

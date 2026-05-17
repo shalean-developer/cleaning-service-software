@@ -25,6 +25,28 @@ describe("resolveAssignmentVisibility", () => {
     expect(v.showCustomerAssignmentWarning).toBe(false);
   });
 
+  it("shows selected cleaner expired label for admin", () => {
+    const v = resolveAssignmentVisibility({
+      bookingStatus: "pending_assignment",
+      metadata: {
+        assignment: {
+          status: "attention_required",
+          path: "selected",
+          cleanerId: "cleaner-1",
+          offerId: "offer-1",
+          reason: "Assignment offer expired; selected cleaner requires admin redispatch.",
+          attemptedAt: "2026-05-17T10:00:00.000Z",
+          engineVersion: "2026-05-16-phase8",
+          lastOfferOutcome: "expired",
+        },
+      },
+      hasOpenOffer: false,
+      offerStatuses: ["expired"],
+    });
+    expect(v.key).toBe("selected_expired_admin");
+    expect(v.adminLabel).toContain("expired");
+  });
+
   it("shows selected cleaner declined label for admin", () => {
     const v = resolveAssignmentVisibility({
       bookingStatus: "pending_assignment",

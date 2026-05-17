@@ -27,15 +27,15 @@ describe("notification email provider", () => {
     vi.resetModules();
   });
 
-  it("dry_run does not call Resend", async () => {
+  it("dry_run provider does not call Resend", async () => {
     process.env.NOTIFICATION_EMAIL_PROVIDER = "dry_run";
     process.env.RESEND_API_KEY = "re_test";
 
-    const { sendEmailDryRun, resolveNotificationEmailSender } = await import("./sendEmail");
-    const sender = resolveNotificationEmailSender();
-    expect(sender).toBe(sendEmailDryRun);
+    const { resolveActiveNotificationEmailProvider, sendEmailDryRun } = await import("./sendEmail");
+    const provider = resolveActiveNotificationEmailProvider();
+    expect(provider.providerName).toBe("dry_run");
 
-    const result = await sender({
+    const result = await sendEmailDryRun({
       to: "customer@example.com",
       subject: "Test",
       html: "<p>Hi</p>",
@@ -45,6 +45,7 @@ describe("notification email provider", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.messageId).toMatch(/^dry_run_/);
+      expect(result.provider).toBe("dry_run");
     }
     expect(resendSendMock).not.toHaveBeenCalled();
   });
@@ -54,9 +55,10 @@ describe("notification email provider", () => {
     process.env.RESEND_API_KEY = "re_test";
     resendSendMock.mockResolvedValue({ data: { id: "msg-1" }, error: null });
 
-    const { resolveNotificationEmailSender } = await import("./sendEmail");
-    const sender = resolveNotificationEmailSender();
-    await sender({
+    const { resolveActiveNotificationEmailProvider, sendEmailViaResend } = await import("./sendEmail");
+    expect(resolveActiveNotificationEmailProvider().providerName).toBe("resend");
+
+    await sendEmailViaResend({
       to: "customer@example.com",
       subject: "Test",
       html: "<p>Hi</p>",
@@ -79,6 +81,24 @@ describe("notification email provider", () => {
     });
 
     expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.retryable).toBe(false);
+      expect(result.provider).toBe("resend");
+    }
+    expect(resendSendMock).not.toHaveBeenCalled();
+  });
+
+  it("factory preserves dry_run env selection", async () => {
+    process.env.NOTIFICATION_EMAIL_PROVIDER = "dry_run";
+    const { resolveNotificationEmailSender } = await import("./sendEmail");
+    const result = await resolveNotificationEmailSender()({
+      to: "a@example.com",
+      subject: "s",
+      html: "h",
+      text: "t",
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.provider).toBe("dry_run");
     expect(resendSendMock).not.toHaveBeenCalled();
   });
 });

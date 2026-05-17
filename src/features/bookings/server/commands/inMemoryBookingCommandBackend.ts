@@ -248,6 +248,50 @@ export class InMemoryBookingCommandBackend implements BookingCommandBackend {
     return { status: "payment_failed", idempotent: false };
   }
 
+  async expireAssignmentOffer(
+    cmd: BookingCommand & { type: "EXPIRE_ASSIGNMENT_OFFER" },
+    bookingId: string,
+    offerId: string,
+  ): Promise<TransitionResult> {
+    const booking = this.bookings.get(bookingId);
+    const offer = this.offers.get(offerId);
+    if (!booking || !offer || offer.booking_id !== booking.id) {
+      throw new Error("OFFER_NOT_FOUND");
+    }
+    if (offer.status !== "offered") {
+      throw new Error("OFFER_NOT_OPEN");
+    }
+
+    const prior = { ...offer };
+    const expired: AssignmentOfferRow = {
+      ...offer,
+      status: "expired",
+      updated_at: cmd.expiredAt,
+    };
+    await this.updateOffer(expired);
+
+    const auditCmd: BookingCommand = {
+      ...cmd,
+      metadata: {
+        offerId,
+        cleanerId: cmd.cleanerId,
+        expiredAt: cmd.expiredAt,
+        expirySource: "cron",
+        previousOfferStatus: "offered",
+        ...(cmd.metadata && typeof cmd.metadata === "object" ? cmd.metadata : {}),
+      },
+    };
+
+    try {
+      await this.appendAudit(auditCmd, booking.id, booking.status, booking.status);
+    } catch (err) {
+      await this.updateOffer(prior);
+      throw err;
+    }
+
+    return { status: booking.status, idempotent: false };
+  }
+
   async applyTransition(
     cmd: BookingCommand,
     bookingId: string,

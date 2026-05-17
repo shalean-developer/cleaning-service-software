@@ -3,9 +3,13 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database/types";
 import type { BookingCommandBackend } from "@/features/bookings/server/commands/bookingCommandBackend";
+import { executeBookingCommand } from "@/features/bookings/server/commands/executeBookingCommand";
 import { createBookingCommandBackend } from "@/features/bookings/server/commands/runBookingCommand";
+import { buildCronExpireOfferAuditIdempotencyKey } from "./recordAssignmentOfferExpiredAudit";
 import { EXPIRE_OFFERS_BATCH_SIZE } from "./constants";
 import { processBookingAfterOfferExpiry } from "./processBookingAfterOfferExpiry";
+
+const serviceActor = { actorType: "service" as const, profileId: null };
 
 export type ExpireOffersResult = {
   expiredCount: number;
@@ -15,9 +19,8 @@ export type ExpireOffersResult = {
 };
 
 /**
- * Marks stale `offered` rows as `expired` and flags bookings for admin redispatch.
- * Idempotent: already-expired rows are not selected; updates use status = offered guard.
- * Safe to call from cron or manual ops.
+ * Expires stale `offered` rows via `EXPIRE_ASSIGNMENT_OFFER` and runs booking follow-up.
+ * Read-only offer scan on the Supabase client; status writes go through the command backend.
  */
 export async function expireStaleAssignmentOffers(
   client: SupabaseClient<Database>,
@@ -42,16 +45,40 @@ export async function expireStaleAssignmentOffers(
   let expiredCount = 0;
 
   for (const offer of data ?? []) {
-    const { data: updated, error: updateError } = await client
-      .from("assignment_offers")
-      .update({ status: "expired", updated_at: nowIso })
-      .eq("id", offer.id)
-      .eq("status", "offered")
-      .select("id");
+    const cmdResult = await executeBookingCommand(backend, {
+      type: "EXPIRE_ASSIGNMENT_OFFER",
+      actor: serviceActor,
+      bookingId: offer.booking_id,
+      offerId: offer.id,
+      cleanerId: offer.cleaner_id,
+      expiredAt: nowIso,
+      idempotencyKey: buildCronExpireOfferAuditIdempotencyKey(offer.id),
+      metadata: {
+        offerId: offer.id,
+        cleanerId: offer.cleaner_id,
+        expiredAt: nowIso,
+        expirySource: "cron",
+        previousOfferStatus: "offered",
+        expiresAt: offer.expires_at,
+      },
+    });
 
-    if (updateError || !updated?.length) continue;
+    if (!cmdResult.ok) {
+      console.warn(
+        JSON.stringify({
+          event: "assignment_offer_expire_command_failed",
+          bookingId: offer.booking_id,
+          offerId: offer.id,
+          code: cmdResult.code,
+          message: cmdResult.message,
+        }),
+      );
+      continue;
+    }
 
-    expiredCount += 1;
+    if (!cmdResult.idempotent) {
+      expiredCount += 1;
+    }
     bookingIds.add(offer.booking_id);
   }
 

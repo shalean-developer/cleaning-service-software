@@ -30,6 +30,8 @@ export const BOOKING_COMMAND_TYPES = [
   "CANCEL_BOOKING",
   "ADMIN_OVERRIDE_STATUS",
   "RECORD_ASSIGNMENT_ATTENTION",
+  "RECORD_ASSIGNMENT_OFFER_EXPIRED",
+  "EXPIRE_ASSIGNMENT_OFFER",
 ] as const;
 
 export type BookingCommandType = (typeof BOOKING_COMMAND_TYPES)[number];
@@ -173,6 +175,24 @@ export type RecordAssignmentAttentionCommand = BaseCommand & {
   assignment: import("@/features/assignments/server/types").AssignmentMetadata;
 };
 
+/** System/service only — append-only audit when an assignment offer row is already expired. */
+export type RecordAssignmentOfferExpiredCommand = BaseCommand & {
+  type: "RECORD_ASSIGNMENT_OFFER_EXPIRED";
+  bookingId: BookingId;
+  offerId: string;
+  cleanerId: string;
+  expiredAt: string;
+};
+
+/** System/service only — guarded offer expiry (status + audit). Cron uses expirySource cron in metadata. */
+export type ExpireAssignmentOfferCommand = BaseCommand & {
+  type: "EXPIRE_ASSIGNMENT_OFFER";
+  bookingId: BookingId;
+  offerId: string;
+  cleanerId: string;
+  expiredAt: string;
+};
+
 export type BookingCommand =
   | CreateBookingDraftCommand
   | MarkPaymentPendingCommand
@@ -191,7 +211,9 @@ export type BookingCommand =
   | MarkBookingPaidOutCommand
   | CancelBookingCommand
   | AdminOverrideStatusCommand
-  | RecordAssignmentAttentionCommand;
+  | RecordAssignmentAttentionCommand
+  | RecordAssignmentOfferExpiredCommand
+  | ExpireAssignmentOfferCommand;
 
 export type BookingCommandErrorCode =
   | "FORBIDDEN"

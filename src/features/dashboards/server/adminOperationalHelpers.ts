@@ -77,6 +77,8 @@ export type AdminAuditEntry = {
   reason: string | null;
   idempotencyKey: string | null;
   metadataSummary: string | null;
+  displayTitle: string | null;
+  displayDescription: string | null;
 };
 
 export type RecoveryEligibility =
@@ -179,7 +181,24 @@ export function summarizeAuditMetadata(metadata: unknown): string | null {
   return parts.length > 0 ? parts.join("; ") : null;
 }
 
+export function describeBookingStateAuditDisplay(row: BookingStateAuditRow): {
+  displayTitle: string | null;
+  displayDescription: string | null;
+} {
+  if (
+    row.command === "RECORD_ASSIGNMENT_OFFER_EXPIRED" ||
+    row.command === "EXPIRE_ASSIGNMENT_OFFER"
+  ) {
+    return {
+      displayTitle: "Cleaner offer expired",
+      displayDescription: "An assignment offer expired before the cleaner accepted.",
+    };
+  }
+  return { displayTitle: null, displayDescription: null };
+}
+
 export function mapAuditRow(row: BookingStateAuditRow): AdminAuditEntry {
+  const display = describeBookingStateAuditDisplay(row);
   return {
     id: row.id,
     command: row.command,
@@ -190,6 +209,8 @@ export function mapAuditRow(row: BookingStateAuditRow): AdminAuditEntry {
     reason: row.reason?.trim() ? row.reason.trim() : null,
     idempotencyKey: row.idempotency_key ?? null,
     metadataSummary: summarizeAuditMetadata(row.metadata),
+    displayTitle: display.displayTitle,
+    displayDescription: display.displayDescription,
   };
 }
 

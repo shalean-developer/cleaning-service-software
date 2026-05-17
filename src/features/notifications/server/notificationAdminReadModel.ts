@@ -494,10 +494,24 @@ function buildDeliveryBanner(): AdminNotificationDeliveryBannerModel {
     appBaseUrlWarning = "APP_BASE_URL resolves to localhost — email links may be wrong in production.";
   }
 
+  const resendConfigured = Boolean(
+    process.env.RESEND_API_KEY?.trim() && config.fromEmail,
+  );
+
+  let readinessHint: string | null = null;
+  if (deliveryEnabled && emailProvider === "resend" && !canRun) {
+    readinessHint =
+      "Set NOTIFICATION_FROM_EMAIL and RESEND_API_KEY. Postmark and failover are not enabled yet.";
+  } else if (deliveryEnabled && emailProvider === "dry_run") {
+    readinessHint = "Dry-run mode — no live email provider. Failover is not enabled yet.";
+  }
+
   return {
     deliveryEnabled,
     canRunDelivery: canRun,
     emailProvider,
+    resendConfigured,
+    readinessHint,
     appBaseUrl: config.appBaseUrl,
     appBaseUrlWarning,
     staleProcessingMinutes: getProcessingStaleMinutes(),

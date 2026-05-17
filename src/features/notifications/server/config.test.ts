@@ -97,4 +97,14 @@ describe("notification delivery config", () => {
     delete process.env.RESEND_API_KEY;
     expect(canRunNotificationDelivery()).toBe(false);
   });
+
+  it("does not treat Postmark token alone as provider ready for resend mode", () => {
+    process.env.ENABLE_NOTIFICATION_DELIVERY = "true";
+    process.env.NOTIFICATION_EMAIL_PROVIDER = "resend";
+    process.env.NOTIFICATION_FROM_EMAIL = "bookings@example.com";
+    process.env.POSTMARK_SERVER_TOKEN = "pm_test";
+    delete process.env.RESEND_API_KEY;
+    expect(getNotificationDeliveryConfig().providerReady).toBe(false);
+    expect(canRunNotificationDelivery()).toBe(false);
+  });
 });

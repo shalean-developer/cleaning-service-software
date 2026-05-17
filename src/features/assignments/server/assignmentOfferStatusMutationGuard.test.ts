@@ -5,13 +5,11 @@ import {
 } from "@/tests/security/staticGuardSupport";
 
 /**
- * Command backends orchestrate offer status via updateOffer.
- * expireOffers.ts is the documented cron exception (offered → expired before command follow-up).
+ * Command backends orchestrate offer status via updateOffer / expireAssignmentOffer.
  */
 const ALLOWED_OFFER_STATUS_WRITE_SRC = new Set([
   "features/bookings/server/commands/inMemoryBookingCommandBackend.ts",
   "features/bookings/server/commands/supabaseBookingCommandBackend.ts",
-  "features/assignments/server/expireOffers.ts",
   "tests/security/rlsTestSupport.ts",
 ]);
 

@@ -187,11 +187,19 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
         {b.audits.length === 0 ? (
           <p className="mt-2 text-sm text-zinc-600">No audit rows.</p>
         ) : (
-          <ul className="mt-3 space-y-1 font-mono text-xs text-zinc-700">
+          <ul className="mt-3 space-y-2 text-xs text-zinc-700">
             {b.audits.map((a) => (
-              <li key={a.id}>
-                {a.command ?? "—"}: {a.from ?? "∅"} → {a.to ?? "∅"} @{" "}
-                {new Date(a.at).toLocaleString("en-ZA")}
+              <li key={a.id} className="rounded-lg border border-zinc-100 bg-zinc-50/80 px-3 py-2">
+                <p className="font-medium text-zinc-900">
+                  {a.displayTitle ?? a.command ?? "—"}
+                </p>
+                {a.displayDescription ? (
+                  <p className="mt-0.5 text-zinc-600">{a.displayDescription}</p>
+                ) : null}
+                <p className="mt-1 font-mono text-[11px] text-zinc-500">
+                  {a.command ?? "—"}: {a.from ?? "∅"} → {a.to ?? "∅"} @{" "}
+                  {new Date(a.at).toLocaleString("en-ZA")}
+                </p>
               </li>
             ))}
           </ul>

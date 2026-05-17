@@ -2,6 +2,8 @@
 
 Stale `assignment_offers` rows (`status = offered`, past `expires_at`) are expired by the app route `/api/cron/expire-assignment-offers`, which calls `expireStaleAssignmentOffers()`.
 
+**Command-owned expiry (Stage 5K-2a):** For each stale offer, the worker calls `EXPIRE_ASSIGNMENT_OFFER` (guarded `offered` → `expired` + `booking_state_audit`, idempotency `cron:expire-offer:{offerId}`). See [assignment-offer-expiry-audit.md](./assignment-offer-expiry-audit.md).
+
 **Scheduler:** Supabase Cron (`pg_cron` + `pg_net`), not Vercel Cron.
 
 **Fallback:** The same route remains available for manual or emergency triggers (curl, admin tooling).

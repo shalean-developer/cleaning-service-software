@@ -25,7 +25,9 @@ Audit: [stage-5c-notification-system-operational-messaging-audit.md](../audits/s
 
 **APP_BASE_URL (5C-2c):** Set to the deployed site origin in staging/production. The notification config resolves `APP_BASE_URL` → `NEXT_PUBLIC_APP_URL` → `https://${VERCEL_URL}`. On Vercel preview/production, **localhost origins are never used for email links** when a public origin is available. Local dev may use `http://localhost:3000`.
 
-Optional future: `POSTMARK_SERVER_TOKEN` (not wired in 5C-1a; Resend is the active provider).
+**Email provider port (Stage 5J-1a):** Active providers are **`dry_run`** and **`resend`** only, selected via `NOTIFICATION_EMAIL_PROVIDER` (same semantics as before). Sending goes through `NotificationEmailProviderPort` (`dryRunProvider`, `resendProvider`) and `resolveNotificationEmailSender()`. **No failover**, **no circuit breaker**, and **no Postmark send** in this slice.
+
+Postmark (`POSTMARK_SERVER_TOKEN`) is **deferred** to a later stage and does not affect `providerReady` or delivery.
 
 ## Flag behavior
 
