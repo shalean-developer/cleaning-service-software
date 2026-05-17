@@ -6,7 +6,9 @@ import { resolveActorScope } from "@/lib/auth/resolveActorScope";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { PaymentRow } from "@/lib/database/types";
+import { isOfferOpenForOps } from "@/features/assignments/server/buildOfferExpiry";
 import {
+  enrichBookingDisplayWithAssignmentVisibility,
   formatScheduleRange,
   formatZar,
   parseBookingDisplay,
@@ -82,8 +84,9 @@ function mapListItem(
   booking: BookingRowSlice,
   payment: PaymentRow | null,
   paymentFailureReason: string | null,
+  displayOverride?: ReturnType<typeof parseBookingDisplay>,
 ): CustomerBookingListItem {
-  const display = parseBookingDisplay(booking.metadata_raw);
+  const display = displayOverride ?? parseBookingDisplay(booking.metadata_raw);
   return {
     id: booking.id,
     status: booking.status,
@@ -147,6 +150,19 @@ export async function listCustomerBookings(
       row.id,
       row.status,
     );
+    let display = parseBookingDisplay(row.metadata);
+    if (row.status === "pending_assignment") {
+      const { data: offers } = await client
+        .from("assignment_offers")
+        .select("status, expires_at")
+        .eq("booking_id", row.id);
+      display = enrichBookingDisplayWithAssignmentVisibility(display, {
+        bookingStatus: row.status,
+        metadata: row.metadata,
+        hasOpenOffer: (offers ?? []).some((o) => isOfferOpenForOps(o)),
+        offerStatuses: (offers ?? []).map((o) => o.status),
+      });
+    }
     items.push(
       mapListItem(
         {
@@ -162,6 +178,7 @@ export async function listCustomerBookings(
         },
         latestPayment(payments ?? []),
         paymentFailureReason,
+        display,
       ),
     );
   }
@@ -212,10 +229,23 @@ export async function getCustomerBookingDetail(
     .eq("booking_id", row.id)
     .order("created_at", { ascending: true });
 
-  const display = parseBookingDisplay(row.metadata);
+  let display = parseBookingDisplay(row.metadata);
   const paymentList = payments ?? [];
 
   const paymentFailureReason = resolvePaymentFailureReason(audits ?? []);
+
+  if (row.status === "pending_assignment") {
+    const { data: offers } = await client
+      .from("assignment_offers")
+      .select("status, expires_at")
+      .eq("booking_id", row.id);
+    display = enrichBookingDisplayWithAssignmentVisibility(display, {
+      bookingStatus: row.status,
+      metadata: row.metadata,
+      hasOpenOffer: (offers ?? []).some((o) => isOfferOpenForOps(o)),
+      offerStatuses: (offers ?? []).map((o) => o.status),
+    });
+  }
 
   const base = mapListItem(
     {
@@ -231,6 +261,7 @@ export async function getCustomerBookingDetail(
     },
     latestPayment(paymentList),
     paymentFailureReason,
+    display,
   );
 
   return {

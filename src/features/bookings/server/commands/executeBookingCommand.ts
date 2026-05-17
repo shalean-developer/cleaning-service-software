@@ -15,6 +15,7 @@ import type {
   BookingCommandFailure,
   BookingCommandResult,
 } from "./types";
+import { enqueueNotificationWhenNotIdempotent } from "./shouldEnqueueNotificationForCommandResult";
 
 export type BookingCommandRunContext = {
   /**
@@ -64,6 +65,16 @@ function assertCustomerOwnsBooking(
 function isOfferExpired(offer: { expires_at: string | null }): boolean {
   if (!offer.expires_at) return false;
   return new Date(offer.expires_at).getTime() <= Date.now();
+}
+
+function isOpenOfferUniqueViolation(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const msg = err.message.toLowerCase();
+  return (
+    msg.includes("idx_assignment_offers_one_open_per_booking") ||
+    msg.includes("duplicate key") ||
+    msg.includes("23505")
+  );
 }
 
 async function expireOtherOpenOffers(
@@ -141,7 +152,7 @@ export async function executeBookingCommand(
           updated_at: ts,
         });
         await backend.appendAudit(cmd, bid, null, "draft");
-        await backend.enqueueNotification("email", cmd.customerId, {
+        await enqueueNotificationWhenNotIdempotent(backend, false, "email", cmd.customerId, {
           template: "booking_draft_created",
           bookingId: bid,
         });
@@ -157,9 +168,6 @@ export async function executeBookingCommand(
       const own = assertCustomerOwnsBooking(cmd, booking, ctx);
       if (own) return own;
 
-      const shape = assertTransitionShape(cmd, booking.status);
-      if (shape) return shape;
-
       const existingPayment = await backend.findPaymentByIdempotencyKey(
         cmd.paymentIdempotencyKey,
       );
@@ -174,6 +182,9 @@ export async function executeBookingCommand(
           return ok(booking.id, "pending_payment", true);
         }
       }
+
+      const shape = assertTransitionShape(cmd, booking.status);
+      if (shape) return shape;
 
       const paymentId = crypto.randomUUID();
       const paymentTs = new Date().toISOString();
@@ -198,10 +209,16 @@ export async function executeBookingCommand(
           booking.status,
           "pending_payment",
         );
-        await backend.enqueueNotification("email", booking.customer_id, {
-          template: "payment_pending",
-          bookingId: booking.id,
-        });
+        await enqueueNotificationWhenNotIdempotent(
+          backend,
+          r.idempotent,
+          "email",
+          booking.customer_id,
+          {
+            template: "payment_pending",
+            bookingId: booking.id,
+          },
+        );
         return ok(booking.id, r.status, r.idempotent);
       } catch {
         return fail("PERSISTENCE_ERROR", "Could not move booking to pending_payment.");
@@ -228,12 +245,16 @@ export async function executeBookingCommand(
 
       try {
         const r = await backend.finalizePaymentSuccess(cmd, booking.id, payment.id);
-        if (!r.idempotent) {
-          await backend.enqueueNotification("email", booking.customer_id, {
+        await enqueueNotificationWhenNotIdempotent(
+          backend,
+          r.idempotent,
+          "email",
+          booking.customer_id,
+          {
             template: "payment_confirmed",
             bookingId: booking.id,
-          });
-        }
+          },
+        );
         return ok(booking.id, r.status, r.idempotent);
       } catch {
         return fail("PERSISTENCE_ERROR", "Payment finalization failed.");
@@ -252,10 +273,16 @@ export async function executeBookingCommand(
 
       try {
         const r = await backend.recordPaymentFailure(cmd, booking.id, payment.id);
-        await backend.enqueueNotification("email", booking.customer_id, {
-          template: "payment_failed",
-          bookingId: booking.id,
-        });
+        await enqueueNotificationWhenNotIdempotent(
+          backend,
+          r.idempotent,
+          "email",
+          booking.customer_id,
+          {
+            template: "payment_failed",
+            bookingId: booking.id,
+          },
+        );
         return ok(booking.id, r.status, r.idempotent);
       } catch {
         return fail("PERSISTENCE_ERROR", "Recording payment failure failed.");
@@ -280,10 +307,16 @@ export async function executeBookingCommand(
           "confirmed",
           "pending_assignment",
         );
-        await backend.enqueueNotification("email", booking.customer_id, {
-          template: "pending_assignment",
-          bookingId: booking.id,
-        });
+        await enqueueNotificationWhenNotIdempotent(
+          backend,
+          r.idempotent,
+          "email",
+          booking.customer_id,
+          {
+            template: "pending_assignment",
+            bookingId: booking.id,
+          },
+        );
         return ok(booking.id, r.status, r.idempotent);
       } catch {
         return fail("PERSISTENCE_ERROR", "Move to pending_assignment failed.");
@@ -301,26 +334,42 @@ export async function executeBookingCommand(
           "Booking is already assigned to another cleaner.",
         );
       }
-      const existingOffers = await backend.listOffersForBooking(booking.id);
+
+      const nowIso = new Date().toISOString();
+      let existingOffers = await backend.listOffersForBooking(booking.id);
+
+      for (const existing of existingOffers) {
+        if (existing.status !== "offered" || !isOfferExpired(existing)) continue;
+        await backend.updateOffer({
+          ...existing,
+          status: "expired",
+          updated_at: nowIso,
+        });
+      }
+
+      existingOffers = await backend.listOffersForBooking(booking.id);
+
       for (const existing of existingOffers) {
         if (existing.cleaner_id !== cmd.cleanerId) continue;
         if (existing.status === "accepted") {
           return ok(booking.id, booking.status, true);
         }
         if (existing.status === "offered") {
-          if (isOfferExpired(existing)) {
-            const expired: AssignmentOfferRow = {
-              ...existing,
-              status: "expired",
-              updated_at: new Date().toISOString(),
-            };
-            await backend.updateOffer(expired);
-          } else {
-            return ok(booking.id, booking.status, true);
-          }
+          return ok(booking.id, booking.status, true);
         }
       }
-      const ts = new Date().toISOString();
+
+      const otherOpenOffer = existingOffers.find(
+        (o) => o.status === "offered" && o.cleaner_id !== cmd.cleanerId,
+      );
+      if (otherOpenOffer) {
+        return fail(
+          "OPEN_OFFER_EXISTS",
+          "Booking already has an open assignment offer to another cleaner.",
+        );
+      }
+
+      const ts = nowIso;
       const oid = crypto.randomUUID();
       try {
         await backend.insertOffer({
@@ -334,13 +383,19 @@ export async function executeBookingCommand(
           created_at: ts,
           updated_at: ts,
         });
-        await backend.enqueueNotification("push", cmd.cleanerId, {
+        await enqueueNotificationWhenNotIdempotent(backend, false, "push", cmd.cleanerId, {
           template: "assignment_offer",
           bookingId: booking.id,
           offerId: oid,
         });
         return ok(booking.id, booking.status, false);
-      } catch {
+      } catch (err) {
+        if (isOpenOfferUniqueViolation(err)) {
+          return fail(
+            "OPEN_OFFER_EXISTS",
+            "Booking already has an open assignment offer.",
+          );
+        }
         return fail("PERSISTENCE_ERROR", "Could not create assignment offer.");
       }
     }
@@ -379,6 +434,44 @@ export async function executeBookingCommand(
         return ok(booking.id, booking.status, false);
       } catch {
         return fail("PERSISTENCE_ERROR", "Could not decline assignment offer.");
+      }
+    }
+
+    case "CANCEL_OPEN_ASSIGNMENT_OFFER": {
+      const booking = await backend.getBooking(cmd.bookingId);
+      if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
+      if (cmd.actor.actorType !== "admin") {
+        return fail("FORBIDDEN", "Only admins may cancel open assignment offers.");
+      }
+      const shape = assertTransitionShape(cmd, booking.status);
+      if (shape) return shape;
+      const offer = await backend.getOffer(cmd.offerId);
+      if (!offer || offer.booking_id !== booking.id) {
+        return fail("OFFER_NOT_FOUND", "Offer not found for this booking.");
+      }
+      if (offer.status === "cancelled") {
+        try {
+          await backend.appendAudit(cmd, booking.id, booking.status, booking.status);
+        } catch {
+          return fail("PERSISTENCE_ERROR", "Could not record cancel audit.");
+        }
+        return ok(booking.id, booking.status, true);
+      }
+      if (offer.status !== "offered") {
+        return fail("OFFER_NOT_OPEN", "Offer is not in offered state.");
+      }
+      const now = new Date().toISOString();
+      try {
+        await backend.updateOffer({
+          ...offer,
+          status: "cancelled",
+          responded_at: now,
+          updated_at: now,
+        });
+        await backend.appendAudit(cmd, booking.id, booking.status, booking.status);
+        return ok(booking.id, booking.status, false);
+      } catch {
+        return fail("PERSISTENCE_ERROR", "Could not cancel assignment offer.");
       }
     }
 
@@ -434,10 +527,16 @@ export async function executeBookingCommand(
         offer.updated_at = offer.responded_at;
         await backend.updateOffer(offer);
         await expireOtherOpenOffers(backend, booking.id, offer.id);
-        await backend.enqueueNotification("email", booking.customer_id, {
-          template: "cleaner_assigned",
-          bookingId: booking.id,
-        });
+        await enqueueNotificationWhenNotIdempotent(
+          backend,
+          r.idempotent,
+          "email",
+          booking.customer_id,
+          {
+            template: "cleaner_assigned",
+            bookingId: booking.id,
+          },
+        );
         return ok(booking.id, r.status, r.idempotent);
       } catch {
         return fail("PERSISTENCE_ERROR", "Accept assignment failed.");

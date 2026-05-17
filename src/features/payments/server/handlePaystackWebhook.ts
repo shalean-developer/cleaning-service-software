@@ -1,8 +1,9 @@
 import "server-only";
 
 import { verifyPaystackWebhookSignature } from "./paystackClient";
-import { mapPaystackWebhookChargeSuccess } from "./mapPaystackCharge";
+import { mapPaystackWebhookChargeFailed, mapPaystackWebhookChargeSuccess } from "./mapPaystackCharge";
 import type { PaystackWebhookEvent } from "./paystackTypes";
+import { processPaystackChargeFailure } from "./processPaystackChargeFailure";
 import { processPaystackChargeSuccess } from "./upsertBookingFromPaystack";
 
 export type WebhookHandlerResult =
@@ -32,6 +33,44 @@ export async function handlePaystackWebhook(
       code: "INVALID_PAYLOAD",
       message: "Webhook body is not valid JSON.",
       status: 400,
+    };
+  }
+
+  if (event.event === "charge.failed") {
+    const failedCharge = mapPaystackWebhookChargeFailed(event);
+    if (!failedCharge) {
+      return {
+        ok: false,
+        code: "INVALID_PAYLOAD",
+        message: "charge.failed payload could not be mapped.",
+        status: 400,
+      };
+    }
+
+    const failureResult = await processPaystackChargeFailure(failedCharge);
+    if (!failureResult.ok) {
+      return {
+        ok: false,
+        code: failureResult.code,
+        message: failureResult.message,
+        status: failureResult.code === "PERSISTENCE_ERROR" ? 500 : 400,
+      };
+    }
+
+    if (!failureResult.handled) {
+      return {
+        ok: true,
+        handled: false,
+        reason: failureResult.reason,
+      };
+    }
+
+    return {
+      ok: true,
+      handled: true,
+      idempotent: failureResult.idempotent,
+      bookingId: failureResult.bookingId,
+      status: failureResult.status,
     };
   }
 

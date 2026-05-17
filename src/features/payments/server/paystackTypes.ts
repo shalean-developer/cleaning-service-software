@@ -49,3 +49,13 @@ export type PaystackChargeSuccess = {
   transactionId: number;
   metadata: Record<string, unknown>;
 };
+
+export type PaystackChargeFailure = {
+  reference: string;
+  amountCents: number;
+  providerEventId: string;
+  transactionId: number;
+  paystackStatus: string;
+  gatewayResponse?: string;
+  metadata: Record<string, unknown>;
+};

@@ -6,13 +6,17 @@ export const ASSIGNMENT_ENGINE_VERSION = "2026-05-16-phase8";
 export type AssignmentPath =
   | "selected"
   | "best_available"
-  | "fallback_best_available";
+  | "fallback_best_available"
+  | "admin_manual";
 
 export type AssignmentOutcomeStatus =
   | "offered"
   | "attention_required"
   | "already_assigned"
   | "skipped";
+
+/** Terminal offer event before the current assignment snapshot (3B-2b visibility). */
+export type LastOfferOutcome = "declined" | "expired" | "cancelled";
 
 export type AssignmentMetadata = {
   engineVersion: typeof ASSIGNMENT_ENGINE_VERSION;
@@ -22,6 +26,7 @@ export type AssignmentMetadata = {
   offerId: string | null;
   reason: string | null;
   attemptedAt: string;
+  lastOfferOutcome?: LastOfferOutcome | null;
 };
 
 export type AssignmentContext = {

@@ -14,6 +14,53 @@ const customerActor = (profileId: string) =>
 const cleanerActor = (profileId: string) =>
   ({ actorType: "cleaner" as const, profileId }) as const;
 
+async function seedPendingAssignmentBooking(
+  backend: InMemoryBookingCommandBackend,
+  custId: string,
+): Promise<string> {
+  const draft = await executeBookingCommand(
+    backend,
+    {
+      type: "CREATE_BOOKING_DRAFT",
+      actor: adminActor,
+      customerId: custId,
+      scheduledStart: new Date().toISOString(),
+      scheduledEnd: new Date(Date.now() + 3600_000).toISOString(),
+      priceCents: 8000,
+    },
+    {},
+  );
+  if (!draft.ok) throw new Error("draft");
+  const bookingId = draft.bookingId;
+  await executeBookingCommand(
+    backend,
+    {
+      type: "MARK_PAYMENT_PENDING",
+      actor: adminActor,
+      bookingId,
+      paymentIdempotencyKey: `pay-${custId}`,
+    },
+    {},
+  );
+  await executeBookingCommand(
+    backend,
+    {
+      type: "FINALIZE_PAYMENT_SUCCESS",
+      actor: systemActor,
+      bookingId,
+      paymentId: [...backend.payments.values()][0]!.id,
+      idempotencyKey: `finalize-${custId}`,
+    },
+    {},
+  );
+  await executeBookingCommand(
+    backend,
+    { type: "MOVE_TO_PENDING_ASSIGNMENT", actor: systemActor, bookingId },
+    {},
+  );
+  return bookingId;
+}
+
 describe("bookingCommandGuards", () => {
   it("blocks invalid transitions", () => {
     const cmd = {
@@ -66,6 +113,17 @@ describe("bookingCommandGuards", () => {
       actor: systemActor,
       bookingId: "b1",
       cleanerId: "c1",
+    };
+    expect(assertTransitionShape(cmd, "confirmed")?.code).toBe("INVALID_TRANSITION");
+    expect(assertTransitionShape(cmd, "pending_assignment")).toBeNull();
+  });
+
+  it("requires pending_assignment before CANCEL_OPEN_ASSIGNMENT_OFFER", () => {
+    const cmd = {
+      type: "CANCEL_OPEN_ASSIGNMENT_OFFER" as const,
+      actor: adminActor,
+      bookingId: "b1",
+      offerId: "o1",
     };
     expect(assertTransitionShape(cmd, "confirmed")?.code).toBe("INVALID_TRANSITION");
     expect(assertTransitionShape(cmd, "pending_assignment")).toBeNull();
@@ -312,6 +370,251 @@ describe("executeBookingCommand", () => {
     expect(acceptAgain.ok).toBe(true);
     if (!acceptAgain.ok) throw new Error("expected idempotent accept");
     expect(acceptAgain.idempotent).toBe(true);
+  });
+
+  it("blocks OFFER_TO_CLEANER when another cleaner already has an open offer", async () => {
+    const backend = new InMemoryBookingCommandBackend();
+    const bookingId = await seedPendingAssignmentBooking(backend, "cust-offer-race");
+    const cleanerA = "cleaner-a";
+    const cleanerB = "cleaner-b";
+
+    const first = await executeBookingCommand(
+      backend,
+      {
+        type: "OFFER_TO_CLEANER",
+        actor: systemActor,
+        bookingId,
+        cleanerId: cleanerA,
+        expiresAt: new Date(Date.now() + 48 * 3600_000).toISOString(),
+      },
+      {},
+    );
+    expect(first.ok).toBe(true);
+
+    const second = await executeBookingCommand(
+      backend,
+      {
+        type: "OFFER_TO_CLEANER",
+        actor: systemActor,
+        bookingId,
+        cleanerId: cleanerB,
+        expiresAt: new Date(Date.now() + 48 * 3600_000).toISOString(),
+      },
+      {},
+    );
+    expect(second.ok).toBe(false);
+    if (second.ok) throw new Error("expected failure");
+    expect(second.code).toBe("OPEN_OFFER_EXISTS");
+
+    const offered = [...backend.offers.values()].filter((o) => o.status === "offered");
+    expect(offered).toHaveLength(1);
+    expect(offered[0]?.cleaner_id).toBe(cleanerA);
+  });
+
+  it("CANCEL_OPEN_ASSIGNMENT_OFFER cancels open offer for admin without assigning", async () => {
+    const backend = new InMemoryBookingCommandBackend();
+    const bookingId = await seedPendingAssignmentBooking(backend, "cust-cancel-offer");
+    const cleanerA = "cleaner-a";
+
+    await executeBookingCommand(
+      backend,
+      {
+        type: "OFFER_TO_CLEANER",
+        actor: systemActor,
+        bookingId,
+        cleanerId: cleanerA,
+        expiresAt: new Date(Date.now() + 48 * 3600_000).toISOString(),
+      },
+      {},
+    );
+    const offerId = [...backend.offers.values()][0]!.id;
+
+    const forbidden = await executeBookingCommand(
+      backend,
+      {
+        type: "CANCEL_OPEN_ASSIGNMENT_OFFER",
+        actor: systemActor,
+        bookingId,
+        offerId,
+        reason: "system should not cancel",
+      },
+      {},
+    );
+    expect(forbidden.ok).toBe(false);
+    if (!forbidden.ok) expect(forbidden.code).toBe("FORBIDDEN");
+
+    const cancel = await executeBookingCommand(
+      backend,
+      {
+        type: "CANCEL_OPEN_ASSIGNMENT_OFFER",
+        actor: adminActor,
+        bookingId,
+        offerId,
+        reason: "Admin withdrew offer — no response",
+      },
+      {},
+    );
+    expect(cancel.ok).toBe(true);
+    if (!cancel.ok) throw new Error("cancel failed");
+    expect(cancel.idempotent).toBe(false);
+
+    const row = backend.offers.get(offerId)!;
+    expect(row.status).toBe("cancelled");
+    expect(row.responded_at).toBeTruthy();
+
+    const booking = await backend.getBooking(bookingId);
+    expect(booking?.status).toBe("pending_assignment");
+    expect(booking?.cleaner_id).toBeNull();
+
+    const cancelAgain = await executeBookingCommand(
+      backend,
+      {
+        type: "CANCEL_OPEN_ASSIGNMENT_OFFER",
+        actor: adminActor,
+        bookingId,
+        offerId,
+        reason: "Idempotent retry",
+      },
+      {},
+    );
+    expect(cancelAgain.ok).toBe(true);
+    if (!cancelAgain.ok) throw new Error("cancel again");
+    expect(cancelAgain.idempotent).toBe(true);
+  });
+
+  it("allows OFFER_TO_CLEANER after admin cancels prior open offer", async () => {
+    const backend = new InMemoryBookingCommandBackend();
+    const bookingId = await seedPendingAssignmentBooking(backend, "cust-cancel-then-offer");
+    const cleanerA = "cleaner-a";
+    const cleanerB = "cleaner-b";
+
+    await executeBookingCommand(
+      backend,
+      {
+        type: "OFFER_TO_CLEANER",
+        actor: systemActor,
+        bookingId,
+        cleanerId: cleanerA,
+      },
+      {},
+    );
+    const offerId = [...backend.offers.values()][0]!.id;
+    await executeBookingCommand(
+      backend,
+      {
+        type: "CANCEL_OPEN_ASSIGNMENT_OFFER",
+        actor: adminActor,
+        bookingId,
+        offerId,
+        reason: "Replacing with another cleaner",
+      },
+      {},
+    );
+
+    const second = await executeBookingCommand(
+      backend,
+      {
+        type: "OFFER_TO_CLEANER",
+        actor: systemActor,
+        bookingId,
+        cleanerId: cleanerB,
+      },
+      {},
+    );
+    expect(second.ok).toBe(true);
+    const offered = [...backend.offers.values()].filter((o) => o.status === "offered");
+    expect(offered).toHaveLength(1);
+    expect(offered[0]?.cleaner_id).toBe(cleanerB);
+  });
+
+  it("allows OFFER_TO_CLEANER after prior offer is declined", async () => {
+    const backend = new InMemoryBookingCommandBackend();
+    const bookingId = await seedPendingAssignmentBooking(backend, "cust-offer-redispatch");
+    const cleanerA = "cleaner-a";
+    const cleanerB = "cleaner-b";
+    const cleanerProfileA = "profile-a";
+
+    const first = await executeBookingCommand(
+      backend,
+      {
+        type: "OFFER_TO_CLEANER",
+        actor: systemActor,
+        bookingId,
+        cleanerId: cleanerA,
+      },
+      {},
+    );
+    expect(first.ok).toBe(true);
+    const offerId = [...backend.offers.values()][0]!.id;
+
+    const decline = await executeBookingCommand(
+      backend,
+      {
+        type: "DECLINE_CLEANER_ASSIGNMENT",
+        actor: cleanerActor(cleanerProfileA),
+        bookingId,
+        offerId,
+      },
+      { actingCleanerId: cleanerA },
+    );
+    expect(decline.ok).toBe(true);
+
+    const second = await executeBookingCommand(
+      backend,
+      {
+        type: "OFFER_TO_CLEANER",
+        actor: systemActor,
+        bookingId,
+        cleanerId: cleanerB,
+      },
+      {},
+    );
+    expect(second.ok).toBe(true);
+    if (!second.ok) throw new Error("expected second offer");
+
+    const offered = [...backend.offers.values()].filter((o) => o.status === "offered");
+    expect(offered).toHaveLength(1);
+    expect(offered[0]?.cleaner_id).toBe(cleanerB);
+
+    const historical = [...backend.offers.values()].filter((o) => o.status === "declined");
+    expect(historical).toHaveLength(1);
+  });
+
+  it("expires stale offered rows before offering to another cleaner", async () => {
+    const backend = new InMemoryBookingCommandBackend();
+    const bookingId = await seedPendingAssignmentBooking(backend, "cust-stale-offer");
+    const cleanerA = "cleaner-a";
+    const cleanerB = "cleaner-b";
+
+    await executeBookingCommand(
+      backend,
+      {
+        type: "OFFER_TO_CLEANER",
+        actor: systemActor,
+        bookingId,
+        cleanerId: cleanerA,
+        expiresAt: new Date(Date.now() - 60_000).toISOString(),
+      },
+      {},
+    );
+
+    const redispatch = await executeBookingCommand(
+      backend,
+      {
+        type: "OFFER_TO_CLEANER",
+        actor: systemActor,
+        bookingId,
+        cleanerId: cleanerB,
+        expiresAt: new Date(Date.now() + 48 * 3600_000).toISOString(),
+      },
+      {},
+    );
+    expect(redispatch.ok).toBe(true);
+
+    const rows = [...backend.offers.values()];
+    expect(rows.filter((o) => o.status === "offered")).toHaveLength(1);
+    expect(rows.find((o) => o.status === "offered")?.cleaner_id).toBe(cleanerB);
+    expect(rows.some((o) => o.cleaner_id === cleanerA && o.status === "expired")).toBe(true);
   });
 
   it("forbids direct status patches at the application layer", () => {

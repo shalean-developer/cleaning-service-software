@@ -1,6 +1,6 @@
 # Payment failed & checkout expired — customer and admin UX
 
-Stage **2B-2b+** surfaces abandoned checkout and payment failures in dashboards. Expiry cron behavior lives in `docs/operations/expire-pending-payments-cron.md`.
+Stage **2B-2b+** surfaces abandoned checkout and payment failures in dashboards. Expiry cron behavior lives in `docs/operations/expire-pending-payments-cron.md`. Paystack **`charge.failed`** webhooks (real-time declines) are documented in `docs/operations/paystack-failed-charge-webhook.md`.
 
 ## What customers see
 
@@ -8,6 +8,7 @@ Stage **2B-2b+** surfaces abandoned checkout and payment failures in dashboards.
 |----------------|-------|--------|
 | `payment_failed` (generic) | **Payment failed** | No assignment copy; not sorted as an upcoming job on home |
 | `payment_failed` + `failure_reason: checkout_expired` | **Checkout expired** | From `MARK_PAYMENT_FAILED` audit metadata (cron) |
+| `payment_failed` + `failure_reason: paystack_declined` | **Payment failed** | From Paystack `charge.failed` webhook (2B-3a) |
 
 **Booking list / home:** Failed bookings show the status badge above. Assignment-attention badges are hidden. A short line explains that no cleaner is assigned until payment succeeds.
 

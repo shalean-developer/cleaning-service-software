@@ -90,6 +90,18 @@ export class InMemoryBookingCommandBackend implements BookingCommandBackend {
   }
 
   async insertOffer(offer: AssignmentOfferRow): Promise<void> {
+    if (offer.status === "offered") {
+      for (const existing of this.offers.values()) {
+        if (
+          existing.booking_id === offer.booking_id &&
+          existing.status === "offered"
+        ) {
+          throw new Error(
+            'duplicate key value violates unique constraint "idx_assignment_offers_one_open_per_booking"',
+          );
+        }
+      }
+    }
     this.offers.set(offer.id, offer);
   }
 

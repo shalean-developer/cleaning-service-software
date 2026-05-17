@@ -104,6 +104,192 @@ export async function runRlsPreflight(
   }
 }
 
+const PAYMENTS_PHASE1_SKIP =
+  "5B-3a migration not applied (admin can still write payments). Apply supabase/migrations/20260518140000_rls_payments_admin_select_only.sql (e.g. supabase db reset).";
+
+/**
+ * Returns whether payments_admin_write was dropped (admin JWT cannot UPDATE payments).
+ */
+export async function isPaymentsRlsPhase1Applied(
+  serviceClient: SupabaseClient<Database>,
+  adminUserClient: SupabaseClient<Database>,
+  paymentId: string,
+): Promise<boolean> {
+  await serviceClient
+    .from("payments")
+    .update({ status: "initialized" })
+    .eq("id", paymentId);
+
+  const { data: updated, error: updateError } = await adminUserClient
+    .from("payments")
+    .update({ status: "paid" })
+    .eq("id", paymentId)
+    .select("status");
+
+  const { data: row } = await serviceClient
+    .from("payments")
+    .select("status")
+    .eq("id", paymentId)
+    .single();
+
+  await serviceClient
+    .from("payments")
+    .update({ status: "initialized" })
+    .eq("id", paymentId);
+
+  if (updateError) return true;
+  if ((updated ?? []).length === 0 && row?.status === "initialized") return true;
+  return false;
+}
+
+export { PAYMENTS_PHASE1_SKIP };
+
+const EARNING_LINES_PHASE3B_SKIP =
+  "5B-3b-a migration not applied (admin can still write earning_lines). Apply supabase/migrations/20260518150000_rls_earning_lines_admin_select_only.sql (e.g. supabase db reset).";
+
+/**
+ * Returns whether earning_lines_admin_write was dropped (admin JWT cannot UPDATE payout_status).
+ */
+export async function isEarningLinesRlsPhase3bApplied(
+  serviceClient: SupabaseClient<Database>,
+  adminUserClient: SupabaseClient<Database>,
+  earningLineId: string,
+): Promise<boolean> {
+  await serviceClient
+    .from("earning_lines")
+    .update({ payout_status: "pending" })
+    .eq("id", earningLineId);
+
+  const { data: updated, error: updateError } = await adminUserClient
+    .from("earning_lines")
+    .update({ payout_status: "paid" })
+    .eq("id", earningLineId)
+    .select("payout_status");
+
+  const { data: row } = await serviceClient
+    .from("earning_lines")
+    .select("payout_status")
+    .eq("id", earningLineId)
+    .single();
+
+  await serviceClient
+    .from("earning_lines")
+    .update({ payout_status: "pending" })
+    .eq("id", earningLineId);
+
+  if (updateError) return true;
+  if ((updated ?? []).length === 0 && row?.payout_status === "pending") return true;
+  return false;
+}
+
+export { EARNING_LINES_PHASE3B_SKIP };
+
+const ASSIGNMENT_OFFERS_PHASE3C_SKIP =
+  "5B-3c-a migration not applied (admin can still write assignment_offers). Apply supabase/migrations/20260518160000_rls_assignment_offers_admin_select_only.sql (e.g. supabase db reset).";
+
+/**
+ * Returns whether assignment_offers_admin_write was dropped (admin JWT cannot UPDATE offer status).
+ */
+export async function isAssignmentOffersRlsPhase3cApplied(
+  serviceClient: SupabaseClient<Database>,
+  adminUserClient: SupabaseClient<Database>,
+  offerId: string,
+): Promise<boolean> {
+  await serviceClient
+    .from("assignment_offers")
+    .update({ status: "offered" })
+    .eq("id", offerId);
+
+  const { data: updated, error: updateError } = await adminUserClient
+    .from("assignment_offers")
+    .update({ status: "accepted" })
+    .eq("id", offerId)
+    .select("status");
+
+  const { data: row } = await serviceClient
+    .from("assignment_offers")
+    .select("status")
+    .eq("id", offerId)
+    .single();
+
+  await serviceClient
+    .from("assignment_offers")
+    .update({ status: "offered" })
+    .eq("id", offerId);
+
+  if (updateError) return true;
+  if ((updated ?? []).length === 0 && row?.status === "offered") return true;
+  return false;
+}
+
+export { ASSIGNMENT_OFFERS_PHASE3C_SKIP };
+
+const PAYMENT_EVENTS_PHASE4_SKIP =
+  "5B-3 Phase 4a migration not applied (admin can still write payment_events). Apply supabase/migrations/20260518170000_rls_payment_events_bookings_admin_select_only.sql (e.g. supabase db reset).";
+
+/**
+ * Returns whether payment_events_admin_write was dropped (admin JWT cannot INSERT events).
+ */
+export async function isPaymentEventsRlsPhase4Applied(
+  _serviceClient: SupabaseClient<Database>,
+  adminUserClient: SupabaseClient<Database>,
+  paymentId: string,
+): Promise<boolean> {
+  const { data, error } = await adminUserClient
+    .from("payment_events")
+    .insert({
+      payment_id: paymentId,
+      provider_event_id: `rls_probe_${Date.now()}_admin_blocked`,
+      event_type: "rls_probe",
+      payload: {},
+    })
+    .select("id");
+
+  if (error) return true;
+  if ((data ?? []).length === 0) return true;
+  return false;
+}
+
+export { PAYMENT_EVENTS_PHASE4_SKIP };
+
+const BOOKINGS_PHASE4_SKIP =
+  "5B-3 Phase 4a migration not applied (admin can still write bookings). Apply supabase/migrations/20260518170000_rls_payment_events_bookings_admin_select_only.sql (e.g. supabase db reset).";
+
+/**
+ * Returns whether bookings_admin_write was dropped (admin JWT cannot UPDATE booking fields).
+ */
+export async function isBookingsRlsPhase4Applied(
+  serviceClient: SupabaseClient<Database>,
+  adminUserClient: SupabaseClient<Database>,
+  bookingId: string,
+): Promise<boolean> {
+  const { data: before } = await serviceClient
+    .from("bookings")
+    .select("price_cents")
+    .eq("id", bookingId)
+    .single();
+
+  const probePrice = (before?.price_cents ?? 0) + 1;
+
+  const { data: updated, error: updateError } = await adminUserClient
+    .from("bookings")
+    .update({ price_cents: probePrice })
+    .eq("id", bookingId)
+    .select("price_cents");
+
+  const { data: after } = await serviceClient
+    .from("bookings")
+    .select("price_cents")
+    .eq("id", bookingId)
+    .single();
+
+  if (updateError) return true;
+  if ((updated ?? []).length === 0 && after?.price_cents === before?.price_cents) return true;
+  return false;
+}
+
+export { BOOKINGS_PHASE4_SKIP };
+
 export function createUserScopedClient(
   url: string,
   anonKey: string,

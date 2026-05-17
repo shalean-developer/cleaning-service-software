@@ -12,6 +12,7 @@ import {
   isCleanerEligibleForAssignment,
   pickBestEligibleCleanerId,
 } from "./eligibilityForAssignment";
+import { isOfferOpenForOps } from "./buildOfferExpiry";
 import { listOffersForBooking } from "./offerRepository";
 import { recordAssignmentOutcome } from "./recordAssignmentOutcome";
 import type { AssignmentPath, RunAssignmentResult } from "./types";
@@ -137,7 +138,7 @@ export async function runAssignmentAfterPayment(
 
   const existingMeta = readAssignmentMetadata(booking.metadata);
   const offers = await listOffersForBooking(client, bookingId);
-  const openOffer = offers.find((o) => o.status === "offered");
+  const openOffer = offers.find((o) => isOfferOpenForOps(o));
   const acceptedOffer = offers.find((o) => o.status === "accepted");
 
   if (booking.status === "assigned" || acceptedOffer) {

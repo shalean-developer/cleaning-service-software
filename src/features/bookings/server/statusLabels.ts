@@ -123,8 +123,44 @@ export function toneForPayoutStatus(
 
 export function labelForAssignmentAttention(
   status: string | null | undefined,
+  reason?: string | null,
 ): string {
+  const opsLabel = labelForAssignmentVisibilityKey(status);
+  if (opsLabel) return opsLabel;
+
+  if (
+    status === "dispatch_not_started" ||
+    (status === "attention_required" &&
+      typeof reason === "string" &&
+      reason.includes("dispatch not started"))
+  ) {
+    return "Paid — dispatch not started";
+  }
   if (status === "attention_required") return "Needs assignment";
   if (status === "offered") return "Offer sent";
   return status ? String(status) : "—";
+}
+
+/** Admin badge label for {@link AssignmentVisibilityKey} from assignment visibility resolver. */
+export function labelForAssignmentVisibilityKey(
+  key: string | null | undefined,
+): string | null {
+  switch (key) {
+    case "dispatch_not_started":
+      return "Paid — dispatch not started";
+    case "decline_redispatched":
+      return "Cleaner declined — redispatched";
+    case "finding_cleaner":
+      return "Finding cleaner";
+    case "offer_sent":
+      return "Offer sent — awaiting acceptance";
+    case "selected_declined_admin":
+      return "Selected cleaner declined — admin action needed";
+    case "max_attempts_admin":
+      return "No cleaner accepted after dispatch attempts";
+    case "needs_assignment":
+      return "Needs assignment";
+    default:
+      return null;
+  }
 }

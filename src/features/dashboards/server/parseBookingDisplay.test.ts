@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SERVICE_SLUGS } from "@/features/pricing/server/types";
 import {
+  enrichBookingDisplayWithAssignmentVisibility,
   parseBookingDisplay,
   resolveServiceSlugFromMetadata,
   serviceLabelFromSlug,
@@ -83,5 +84,31 @@ describe("parseBookingDisplay", () => {
   it("labels top-level metadata.serviceSlug", () => {
     const display = parseBookingDisplay({ serviceSlug: "carpet-cleaning" });
     expect(display.serviceLabel).toBe("Carpet Cleaning");
+  });
+
+  it("enriches customer calm copy during decline redispatch", () => {
+    const metadata = {
+      assignment: {
+        status: "offered",
+        path: "best_available",
+        cleanerId: "c-2",
+        offerId: "o-2",
+        reason: null,
+        attemptedAt: "2026-05-17T10:00:00.000Z",
+        engineVersion: "2026-05-16-phase8",
+      },
+    };
+    const base = parseBookingDisplay(metadata);
+    const enriched = enrichBookingDisplayWithAssignmentVisibility(base, {
+      bookingStatus: "pending_assignment",
+      metadata,
+      hasOpenOffer: true,
+      offerStatuses: ["declined", "offered"],
+    });
+    expect(enriched.assignmentVisibilityKey).toBe("decline_redispatched");
+    expect(enriched.assignmentCustomerMessage).toBe(
+      "We're finding another available cleaner.",
+    );
+    expect(enriched.showCustomerAssignmentWarning).toBe(false);
   });
 });

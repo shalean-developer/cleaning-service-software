@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listAdminAssignmentQueue } from "@/features/dashboards/server/adminOperationsReadModel";
+import { AdminAssignmentQueueGuidance } from "@/components/dashboard/AdminAssignmentQueueGuidance";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -33,6 +34,16 @@ export default async function AdminAssignmentsPage() {
         { href: "/admin/assignments", label: "Assignments" },
       ]}
     >
+      {result.ok && result.total > 0 ? (
+        <p className="mb-4 text-sm text-zinc-600">
+          {result.items.length} of {result.total} in queue
+          {result.total >= result.limit
+            ? ` (scan limit ${result.limit} pending_assignment / confirmed bookings)`
+            : ""}
+          .
+        </p>
+      ) : null}
+
       {!result.ok || result.items.length === 0 ? (
         <EmptyState
           title="Queue is clear"
@@ -47,7 +58,10 @@ export default async function AdminAssignmentsPage() {
             >
               <section className="flex flex-wrap gap-2">
                 <StatusBadge
-                  label={labelForAssignmentAttention(item.assignmentAttention)}
+                  label={labelForAssignmentAttention(
+                    item.assignmentAttention,
+                    item.assignmentReason,
+                  )}
                   tone="warning"
                 />
                 <StatusBadge
@@ -63,6 +77,8 @@ export default async function AdminAssignmentsPage() {
                 <p className="mt-2 text-sm text-amber-800">{item.assignmentReason}</p>
               ) : null}
 
+              <AdminAssignmentQueueGuidance item={item} />
+
               {item.openOffers.length > 0 ? (
                 <section className="mt-4">
                   <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
@@ -76,6 +92,11 @@ export default async function AdminAssignmentsPage() {
                           tone={toneForOfferStatus(o.status)}
                         />
                         <span>{o.cleanerName ?? o.cleanerId.slice(0, 8)}</span>
+                        {o.expiresAt ? (
+                          <span className="text-zinc-500">
+                            expires {new Date(o.expiresAt).toLocaleString("en-ZA")}
+                          </span>
+                        ) : null}
                       </li>
                     ))}
                   </ul>

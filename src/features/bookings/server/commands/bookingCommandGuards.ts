@@ -57,6 +57,8 @@ function commandActorPolicy(
       return cleanerOrAdmin;
     case "DECLINE_CLEANER_ASSIGNMENT":
       return cleanerOrAdmin;
+    case "CANCEL_OPEN_ASSIGNMENT_OFFER":
+      return adminOnly;
     case "MARK_IN_PROGRESS":
     case "MARK_BOOKING_IN_PROGRESS":
       return cleanerAdminSystem;
@@ -122,6 +124,7 @@ export function nextStatusForCommand(
       return current === "confirmed" ? "pending_assignment" : null;
     case "OFFER_TO_CLEANER":
     case "DECLINE_CLEANER_ASSIGNMENT":
+    case "CANCEL_OPEN_ASSIGNMENT_OFFER":
       return null;
     case "ACCEPT_CLEANER_ASSIGNMENT":
       return current === "pending_assignment" ? "assigned" : null;
@@ -178,7 +181,8 @@ export function assertTransitionShape(
   const expected = nextStatusForCommand(cmd, current);
   if (
     cmd.type === "OFFER_TO_CLEANER" ||
-    cmd.type === "DECLINE_CLEANER_ASSIGNMENT"
+    cmd.type === "DECLINE_CLEANER_ASSIGNMENT" ||
+    cmd.type === "CANCEL_OPEN_ASSIGNMENT_OFFER"
   ) {
     if (current !== "pending_assignment") {
       return {

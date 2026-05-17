@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import {
+  getAdminOperationsSummary,
   listAdminAssignmentQueue,
   listAdminBookings,
 } from "@/features/dashboards/server/adminOperationsReadModel";
+import { ADMIN_HOME_PREVIEW_LIMIT } from "@/features/dashboards/server/adminOperationalHelpers";
+import { AdminOpsSummaryCards } from "@/components/dashboard/AdminOpsSummaryCards";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import {
@@ -21,9 +24,11 @@ export default async function AdminHomePage() {
   const user = await getCurrentUser();
   const bookings = user ? await listAdminBookings(user) : null;
   const queue = user ? await listAdminAssignmentQueue(user) : null;
+  const opsSummary = user ? await getAdminOperationsSummary(user) : null;
 
   const recent = bookings?.ok ? bookings.bookings.slice(0, 5) : [];
-  const attention = queue?.ok ? queue.items.slice(0, 5) : [];
+  const attention = queue?.ok ? queue.items.slice(0, ADMIN_HOME_PREVIEW_LIMIT) : [];
+  const attentionTotal = queue?.ok ? queue.total : 0;
 
   return (
     <DashboardShell
@@ -36,15 +41,21 @@ export default async function AdminHomePage() {
         { href: "/admin/payouts", label: "Payouts" },
       ]}
     >
-      <section className="mb-8 rounded-xl border border-amber-200 bg-amber-50 p-5">
-        <h2 className="text-sm font-semibold text-amber-900">Assignment attention</h2>
-        <p className="mt-1 text-2xl font-semibold text-amber-950">{attention.length} shown</p>
-        <Link
-          href="/admin/assignments"
-          className="mt-3 inline-block text-sm font-medium text-amber-900 hover:underline"
-        >
-          Open assignment queue →
-        </Link>
+      {opsSummary?.ok ? <AdminOpsSummaryCards summary={opsSummary.summary} /> : null}
+
+      <section className="mb-6 text-sm text-zinc-600">
+        {attentionTotal > 0 ? (
+          <p>
+            Assignment queue: showing {attention.length} of {attentionTotal} booking
+            {attentionTotal === 1 ? "" : "s"}
+            {attentionTotal > ADMIN_HOME_PREVIEW_LIMIT
+              ? ` (preview limit ${ADMIN_HOME_PREVIEW_LIMIT} on home)`
+              : ""}
+            .
+          </p>
+        ) : (
+          <p>Assignment queue is clear.</p>
+        )}
       </section>
 
       {attention.length > 0 ? (
@@ -58,7 +69,10 @@ export default async function AdminHomePage() {
                   className="block rounded-xl border border-zinc-200 bg-white p-4 hover:border-zinc-300"
                 >
                   <StatusBadge
-                    label={labelForAssignmentAttention(item.assignmentAttention)}
+                    label={labelForAssignmentAttention(
+                      item.assignmentAttention,
+                      item.assignmentReason,
+                    )}
                     tone="warning"
                   />
                   <p className="mt-2 font-medium text-zinc-900">{item.serviceLabel}</p>

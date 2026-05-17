@@ -1,5 +1,9 @@
 import { SERVICE_CATALOG, isServiceSlug } from "@/features/pricing/server/catalog";
 import { readAssignmentMetadata } from "@/features/assignments/server/assignmentMetadata";
+import {
+  resolveAssignmentVisibility,
+  type AssignmentVisibilityKey,
+} from "@/features/assignments/server/resolveAssignmentVisibility";
 import type { Json } from "@/lib/database/types";
 
 export type BookingDisplayFields = {
@@ -14,6 +18,9 @@ export type BookingDisplayFields = {
   specialInstructions: string | null;
   assignmentAttention: string | null;
   assignmentReason: string | null;
+  assignmentVisibilityKey: AssignmentVisibilityKey;
+  assignmentCustomerMessage: string | null;
+  showCustomerAssignmentWarning: boolean;
 };
 
 function asRecord(metadata: Json | null | undefined): Record<string, unknown> {
@@ -114,6 +121,37 @@ export function parseBookingDisplay(metadata: Json | null | undefined): BookingD
       typeof record.specialInstructions === "string" ? record.specialInstructions : null,
     assignmentAttention: assignment?.status ?? null,
     assignmentReason: assignment?.reason ?? null,
+    assignmentVisibilityKey: null,
+    assignmentCustomerMessage: null,
+    showCustomerAssignmentWarning: false,
+  };
+}
+
+export function enrichBookingDisplayWithAssignmentVisibility(
+  display: BookingDisplayFields,
+  input: {
+    bookingStatus: import("@/features/bookings/server/types").BookingStatus;
+    metadata: Json | null | undefined;
+    hasOpenOffer: boolean;
+    offerStatuses: readonly import("@/lib/database/types").AssignmentOfferStatus[];
+    dispatchNotStarted?: boolean;
+  },
+): BookingDisplayFields {
+  const visibility = resolveAssignmentVisibility({
+    bookingStatus: input.bookingStatus,
+    metadata: input.metadata,
+    hasOpenOffer: input.hasOpenOffer,
+    offerStatuses: input.offerStatuses,
+    dispatchNotStarted: input.dispatchNotStarted,
+  });
+
+  return {
+    ...display,
+    assignmentVisibilityKey: visibility.key,
+    assignmentCustomerMessage: visibility.customerMessage,
+    showCustomerAssignmentWarning: visibility.showCustomerAssignmentWarning,
+    assignmentAttention: readAssignmentMetadata(input.metadata)?.status ?? display.assignmentAttention,
+    assignmentReason: readAssignmentMetadata(input.metadata)?.reason ?? display.assignmentReason,
   };
 }
 

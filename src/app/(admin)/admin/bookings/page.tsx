@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listAdminBookings } from "@/features/dashboards/server/adminOperationsReadModel";
+import type { AdminBookingFilter } from "@/features/dashboards/server/adminOperationalHelpers";
+import { AdminBookingsFilters } from "@/components/dashboard/AdminBookingsFilters";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -18,11 +20,42 @@ export const metadata: Metadata = {
   title: "Bookings | Admin",
 };
 
-export default async function AdminBookingsPage() {
+const VALID_FILTERS = new Set<AdminBookingFilter>([
+  "payment_failed",
+  "pending_assignment",
+  "assignment_attention",
+  "dispatch_not_started",
+  "selected_declined",
+  "max_attempts",
+  "recovery_needed",
+]);
+
+type PageProps = {
+  searchParams: Promise<{
+    filter?: string;
+    q?: string;
+    from?: string;
+    to?: string;
+  }>;
+};
+
+export default async function AdminBookingsPage({ searchParams }: PageProps) {
   const user = await getCurrentUser();
   if (!user) return null;
 
-  const result = await listAdminBookings(user);
+  const params = await searchParams;
+  const filterParam = params.filter;
+  const filter =
+    filterParam && VALID_FILTERS.has(filterParam as AdminBookingFilter)
+      ? (filterParam as AdminBookingFilter)
+      : undefined;
+
+  const result = await listAdminBookings(user, {
+    filter,
+    search: params.q,
+    scheduledFrom: params.from,
+    scheduledTo: params.to,
+  });
 
   return (
     <DashboardShell
@@ -34,8 +67,29 @@ export default async function AdminBookingsPage() {
         { href: "/admin/assignments", label: "Assignments" },
       ]}
     >
-      {!result.ok || result.bookings.length === 0 ? (
-        <EmptyState title="No bookings" description="Bookings will appear here as customers checkout." />
+      {result.ok ? (
+        <AdminBookingsFilters
+          filter={filter}
+          search={params.q}
+          scheduledFrom={params.from}
+          scheduledTo={params.to}
+          total={result.total}
+          visible={result.bookings.length}
+          limit={result.limit}
+        />
+      ) : null}
+
+      {!result.ok ? (
+        <p className="text-sm text-red-600">{result.message}</p>
+      ) : result.bookings.length === 0 ? (
+        <EmptyState
+          title="No matching bookings"
+          description={
+            filter || params.q
+              ? "Try clearing filters or widening your search."
+              : "Bookings will appear here as customers checkout."
+          }
+        />
       ) : (
         <ul className="space-y-3">
           {result.bookings.map((b) => (
@@ -59,10 +113,18 @@ export default async function AdminBookingsPage() {
                       tone="danger"
                     />
                   ) : null}
-                  {b.assignmentAttention === "attention_required" ? (
+                  {b.assignmentVisibilityKey ?? b.assignmentAttention ? (
                     <StatusBadge
-                      label={labelForAssignmentAttention("attention_required")}
-                      tone="warning"
+                      label={labelForAssignmentAttention(
+                        b.assignmentVisibilityKey ?? b.assignmentAttention,
+                      )}
+                      tone={
+                        b.assignmentVisibilityKey === "decline_redispatched" ||
+                        b.assignmentVisibilityKey === "finding_cleaner" ||
+                        b.assignmentVisibilityKey === "offer_sent"
+                          ? "info"
+                          : "warning"
+                      }
                     />
                   ) : null}
                 </section>
@@ -74,6 +136,7 @@ export default async function AdminBookingsPage() {
                 <p className="text-sm text-zinc-500">
                   {b.scheduleLabel} · {b.priceLabel}
                 </p>
+                <p className="mt-1 font-mono text-xs text-zinc-400">{b.id}</p>
               </Link>
             </li>
           ))}

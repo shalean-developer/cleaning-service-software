@@ -65,14 +65,18 @@ export default async function CustomerBookingsPage() {
                       tone={toneForPaymentStatus(b.paymentStatus)}
                     />
                   ) : null}
-                  {b.display.assignmentAttention === "attention_required" &&
+                  {b.display.showCustomerAssignmentWarning &&
                   b.status !== "payment_failed" ? (
-                    <StatusBadge label={labelForAssignmentAttention("attention_required")} tone="warning" />
+                    <StatusBadge label={labelForAssignmentAttention("needs_assignment")} tone="warning" />
                   ) : null}
                 </section>
                 <p className="mt-2 font-medium text-zinc-900">{b.display.serviceLabel}</p>
                 <p className="text-sm text-zinc-600">{b.scheduleLabel}</p>
                 <p className="mt-1 text-sm text-zinc-500">{b.display.locationSummary}</p>
+                {b.display.assignmentCustomerMessage &&
+                b.status !== "payment_failed" ? (
+                  <p className="mt-2 text-sm text-sky-800">{b.display.assignmentCustomerMessage}</p>
+                ) : null}
                 {b.assignedCleanerLabel ? (
                   <p className="mt-2 text-sm text-emerald-700">{b.assignedCleanerLabel}</p>
                 ) : b.status === "payment_failed" ? (

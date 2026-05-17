@@ -5,7 +5,7 @@ import { getOfferById } from "@/features/assignments/server/offerRepository";
 import { declineCleanerOffer } from "@/features/assignments/server/respondToOffer";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resolveActorScope } from "@/lib/auth/resolveActorScope";
-import { recordAssignmentOutcome } from "@/features/assignments/server/recordAssignmentOutcome";
+import { handleOfferDeclinedFollowUp } from "@/features/assignments/server/handleOfferDeclinedFollowUp";
 
 type RouteContext = { params: Promise<{ offerId: string }> };
 
@@ -63,13 +63,7 @@ export async function POST(_request: Request, context: RouteContext) {
   }
 
   if (!result.idempotent) {
-    await recordAssignmentOutcome(backend, offer.booking_id, {
-      status: "attention_required",
-      path: null,
-      cleanerId: offer.cleaner_id,
-      offerId: offer.id,
-      reason: "Cleaner declined offer; booking needs redispatch.",
-    });
+    await handleOfferDeclinedFollowUp(client, backend, offer);
   }
 
   return NextResponse.json({

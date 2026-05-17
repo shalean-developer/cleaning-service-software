@@ -20,6 +20,7 @@ export const BOOKING_COMMAND_TYPES = [
   "OFFER_TO_CLEANER",
   "ACCEPT_CLEANER_ASSIGNMENT",
   "DECLINE_CLEANER_ASSIGNMENT",
+  "CANCEL_OPEN_ASSIGNMENT_OFFER",
   "MARK_IN_PROGRESS",
   "MARK_COMPLETED",
   "MARK_BOOKING_IN_PROGRESS",
@@ -111,6 +112,13 @@ export type DeclineCleanerAssignmentCommand = BaseCommand & {
   offerId: string;
 };
 
+/** Admin-only — withdraw an open assignment offer without booking status change. */
+export type CancelOpenAssignmentOfferCommand = BaseCommand & {
+  type: "CANCEL_OPEN_ASSIGNMENT_OFFER";
+  bookingId: BookingId;
+  offerId: string;
+};
+
 export type MarkInProgressCommand = BaseCommand & {
   type: "MARK_IN_PROGRESS";
   bookingId: BookingId;
@@ -174,6 +182,7 @@ export type BookingCommand =
   | OfferToCleanerCommand
   | AcceptCleanerAssignmentCommand
   | DeclineCleanerAssignmentCommand
+  | CancelOpenAssignmentOfferCommand
   | MarkInProgressCommand
   | MarkCompletedCommand
   | MarkBookingInProgressCommand
@@ -194,6 +203,7 @@ export type BookingCommandErrorCode =
   | "OFFER_NOT_FOUND"
   | "OFFER_NOT_OPEN"
   | "ASSIGNMENT_CONFLICT"
+  | "OPEN_OFFER_EXISTS"
   | "TERMINAL_STATE"
   | "PERSISTENCE_ERROR"
   | "CONCURRENCY_CONFLICT"

@@ -6,6 +6,9 @@ import { labelForBookingStatus } from "./statusLabels";
 /** Known `metadata.failure_reason` from `MARK_PAYMENT_FAILED` (cron / future webhooks). */
 export const CHECKOUT_EXPIRED_FAILURE_REASON = "checkout_expired";
 
+/** Paystack `charge.failed` webhook (`MARK_PAYMENT_FAILED` from processPaystackChargeFailure). */
+export const PAYSTACK_DECLINED_FAILURE_REASON = "paystack_declined";
+
 export type PaymentFailureReason = string | null;
 
 function readFailureReasonFromMetadata(metadata: unknown): string | null {

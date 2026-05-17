@@ -1,4 +1,9 @@
 -- Manual RLS verification (run after applying 20260516160000_rls_role_security.sql).
+-- After 5B-3a also run: supabase/tests/payments_rls_phase1_checks.sql
+-- After 5B-3b-a also run: supabase/tests/earning_lines_rls_phase3b_checks.sql
+-- After 5B-3c-a also run: supabase/tests/assignment_offers_rls_phase3c_checks.sql
+-- After 5B-3 Phase 4a also run: supabase/tests/payment_events_rls_phase4_checks.sql
+-- After 5B-3 Phase 4a also run: supabase/tests/bookings_rls_phase4_checks.sql
 -- Example: psql "$DATABASE_URL" -f supabase/tests/rls_role_security_checks.sql
 
 \set ON_ERROR_STOP on

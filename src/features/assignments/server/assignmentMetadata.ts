@@ -16,6 +16,12 @@ export function readAssignmentMetadata(
   if (typeof a.attemptedAt !== "string" || typeof a.status !== "string") {
     return null;
   }
+  const lastRaw = a.lastOfferOutcome;
+  const lastOfferOutcome =
+    lastRaw === "declined" || lastRaw === "expired" || lastRaw === "cancelled"
+      ? lastRaw
+      : null;
+
   return {
     engineVersion: (a.engineVersion as AssignmentMetadata["engineVersion"]) ?? "2026-05-16-phase8",
     status: a.status as AssignmentMetadata["status"],
@@ -24,6 +30,7 @@ export function readAssignmentMetadata(
     offerId: typeof a.offerId === "string" ? a.offerId : null,
     reason: typeof a.reason === "string" ? a.reason : null,
     attemptedAt: a.attemptedAt,
+    lastOfferOutcome,
   };
 }
 
