@@ -11,7 +11,7 @@ type RequeueEligibilityRowInput = {
 };
 
 export type NotificationRequeueBlockReason =
-  | "NOT_BOOKING_DETAIL_CONTEXT"
+  | "REQUEUE_ACTIONS_DISABLED"
   | "NOT_FAILED"
   | "UNSUPPORTED_TEMPLATE"
   | "LIVE_ALREADY_SENT"
@@ -20,16 +20,16 @@ export type NotificationRequeueBlockReason =
   | "MISSING_BOOKING_ID";
 
 export type MapNotificationOutboxForAdminOptions = {
-  /** When true, compute canRequeue for booking detail UI (5E-1a). */
-  bookingDetailContext?: boolean;
+  /** When true, compute canRequeue for admin surfaces that expose requeue (5E-1a booking detail, 5E-1b-α global). */
+  requeueActionsEnabled?: boolean;
 };
 
 export function computeNotificationRequeueEligibility(
   row: RequeueEligibilityRowInput,
   options?: MapNotificationOutboxForAdminOptions,
 ): { canRequeue: boolean; requeueBlockReason?: NotificationRequeueBlockReason } {
-  if (!options?.bookingDetailContext) {
-    return { canRequeue: false, requeueBlockReason: "NOT_BOOKING_DETAIL_CONTEXT" };
+  if (!options?.requeueActionsEnabled) {
+    return { canRequeue: false, requeueBlockReason: "REQUEUE_ACTIONS_DISABLED" };
   }
 
   if (row.status === "sent") {

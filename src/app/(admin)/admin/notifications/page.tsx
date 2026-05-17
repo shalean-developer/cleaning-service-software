@@ -43,7 +43,7 @@ export default async function AdminNotificationsPage({ searchParams }: PageProps
   return (
     <DashboardShell
       title="Notification delivery"
-      subtitle="Read-only outbox health across all bookings."
+      subtitle="Queue health across all bookings. Requeue eligible failed rows — does not send email immediately."
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
       <AdminNotificationDeliveryBanner banner={page.banner} />
@@ -67,6 +67,7 @@ export default async function AdminNotificationsPage({ searchParams }: PageProps
         <AdminNotificationOutboxTable
           notifications={page.rows}
           showBookingLink
+          showRequeueActions
           emptyMessage="No rows match the current filters."
         />
         <p className="mt-3 text-xs text-zinc-500">

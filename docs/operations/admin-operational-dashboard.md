@@ -136,7 +136,7 @@ Booking detail includes a **Notifications** section (read-only):
 | Hidden | Recipient **email addresses**, raw JSON payload, secrets |
 | Actions | **Requeue** (5E-1a) on **failed** deliverable rows only — required reason; resets row to `pending` for cron/worker |
 
-**Requeue does not:** send email immediately, trigger cron from the UI, bypass worker delivery dedupe, or resend live `sent` rows. Resend and force-resend are deferred (5E-1b+).
+**Requeue does not:** send email immediately, trigger cron from the UI, bypass worker delivery dedupe, resend live `sent` rows, or support bulk requeue. Dry-run `sent` requeue is deferred (5E-1b-β); force-resend is deferred (5E+).
 
 Use this section to confirm whether `payment_confirmed`, `payment_failed`, or `assignment_offer` rows reached `sent` vs `pending` / `failed`. Unsupported templates (e.g. `booking_draft_created`) may remain `pending` until a later worker stage.
 
@@ -155,7 +155,7 @@ Route: **`/admin/notifications`** (admin nav → Notifications).
 | Unsupported policy | `booking_draft_created`, `payment_pending`, etc. stay `pending` — counted separately, **not failures** |
 | Filters | `status`, `template`, `deliverable` (`true` / `false` / `all`) via query params |
 | Hidden | Recipient emails, raw payload, API keys |
-| Actions | **None** — read-only; requeue is booking-detail only (5E-1a); do not trigger cron from UI |
+| Actions | **Requeue** (5E-1b-α) on **failed** deliverable rows — same rules as booking detail; required reason; no bulk actions; do not trigger cron from UI |
 
 **Troubleshooting failed rows:** Use the Note column (sanitized `last_error`). Common causes: no auth email on customer/cleaner profile, stale booking/offer state, provider send failure after retries, delivery disabled. Per-booking context: open the booking link → Notifications section. Do **not** `UPDATE` outbox status in SQL.
 

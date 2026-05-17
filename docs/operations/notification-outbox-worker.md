@@ -269,18 +269,18 @@ Do **not** mark rows `sent` in SQL without a provider send — that would block 
 
 Do **not** mark rows `sent` or `failed` manually in SQL from the dashboard.
 
-### Admin requeue (Stage 5E-1a)
+### Admin requeue (Stage 5E-1a / 5E-1b-α)
 
 | Topic | Behavior |
 |-------|----------|
-| **Where** | Admin booking detail → **Notifications** → **Requeue** on eligible rows only |
+| **Where** | Admin booking detail → **Notifications**, and global **`/admin/notifications`** → **Requeue** on eligible rows only |
 | **Eligible** | `status = failed` and deliverable template (`payment_confirmed`, `payment_failed`, `assignment_offer`) |
 | **What it does** | Service-role in-place update: `pending`, `attempts = 0`, `next_retry_at = now()`, `last_error = admin_requeued` |
-| **What it does not do** | Send email in the request; trigger cron; bypass worker delivery dedupe; resend live `sent` rows |
+| **What it does not do** | Send email in the request; trigger cron; bypass worker delivery dedupe; resend live `sent` rows; bulk requeue |
 | **Reason** | Required, 8–500 characters; stored in `admin_operational_audit`, not on outbox |
 | **After requeue** | Cron/worker picks up the row on the next run — **delivery dedupe still applies** (may mark `sent` without a second email) |
-| **Global `/admin/notifications`** | Read-only — no requeue button (deferred to 5E-1b) |
-| **Resend / force resend** | **Deferred** — not in 5E-1a |
+| **Dry-run `sent` requeue** | **Deferred** to 5E-1b-β |
+| **Resend / force resend** | **Deferred** — not in 5E-1a / 5E-1b-α |
 
 API: `POST /api/admin/notifications/:outboxId/requeue` with `{ "reason": "…" }`. Writes via `adminRequeueNotificationOutbox` only (not browser JWT `UPDATE`).
 

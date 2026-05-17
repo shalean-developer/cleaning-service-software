@@ -115,6 +115,8 @@ describe("getAdminNotificationHealthPage", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.page.rows.some((r) => r.status === "failed")).toBe(true);
+      const failed = result.page.rows.find((r) => r.id === "fail-1");
+      expect(failed?.canRequeue).toBe(true);
       const json = JSON.stringify(result.page.rows);
       expect(json).not.toContain("@");
       expect(json).not.toContain("payload");

@@ -76,18 +76,18 @@ describe("mapNotificationOutboxRowForAdmin", () => {
     expect(mapped.canRequeue).toBe(false);
   });
 
-  it("sets canRequeue for failed deliverable in booking detail context", () => {
+  it("sets canRequeue for failed deliverable when requeue actions enabled", () => {
     const mapped = mapNotificationOutboxRowForAdmin(
       baseRow({ status: "failed" }),
-      { bookingDetailContext: true },
+      { requeueActionsEnabled: true },
     );
     expect(mapped.canRequeue).toBe(true);
   });
 
-  it("does not set canRequeue for live sent in booking detail", () => {
+  it("does not set canRequeue for live sent when requeue actions enabled", () => {
     const mapped = mapNotificationOutboxRowForAdmin(
       baseRow({ status: "sent" }),
-      { bookingDetailContext: true },
+      { requeueActionsEnabled: true },
     );
     expect(mapped.canRequeue).toBe(false);
     expect(mapped.requeueBlockReason).toBe("LIVE_ALREADY_SENT");

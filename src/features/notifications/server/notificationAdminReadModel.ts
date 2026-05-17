@@ -211,7 +211,9 @@ async function listFilteredNotificationRows(
     throw new Error(error.message);
   }
 
-  let rows = (data ?? []).map((row) => mapNotificationOutboxRowForAdmin(row));
+  let rows = (data ?? []).map((row) =>
+    mapNotificationOutboxRowForAdmin(row, { requeueActionsEnabled: true }),
+  );
 
   if (filters.deliverable === "all") {
     return rows;

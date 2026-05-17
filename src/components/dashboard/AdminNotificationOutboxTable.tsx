@@ -7,7 +7,7 @@ type Props = {
   notifications: AdminNotificationOutboxEntry[];
   emptyMessage?: string;
   showBookingLink?: boolean;
-  /** Booking detail only — show requeue for eligible failed rows (5E-1a). */
+  /** Show requeue for eligible failed rows (booking detail + global /admin/notifications). */
   showRequeueActions?: boolean;
 };
 

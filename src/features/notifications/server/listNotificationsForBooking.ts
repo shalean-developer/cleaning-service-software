@@ -29,6 +29,6 @@ export async function listNotificationsForBooking(
   }
 
   return (data ?? []).map((row) =>
-    mapNotificationOutboxRowForAdmin(row, { bookingDetailContext: true }),
+    mapNotificationOutboxRowForAdmin(row, { requeueActionsEnabled: true }),
   );
 }
