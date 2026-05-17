@@ -573,6 +573,39 @@ describe("dashboard read models", () => {
           return chainable([{ id: "admin-profile-1", full_name: "Ops Admin" }]);
         }
         if (table === "customers") return chainable({ company_name: "Acme Co" });
+        if (table === "notification_outbox") {
+          return chainable([
+            {
+              id: "notif-1",
+              channel: "email",
+              recipient: "cust-1",
+              payload: { template: "payment_confirmed", bookingId: "booking-1" },
+              status: "sent",
+              attempts: 1,
+              next_retry_at: null,
+              last_error: null,
+              created_at: "2026-05-16T12:00:00.000Z",
+              updated_at: "2026-05-16T12:01:00.000Z",
+            },
+            {
+              id: "notif-2",
+              channel: "push",
+              recipient: "cleaner-1",
+              payload: {
+                template: "assignment_offer",
+                bookingId: "booking-1",
+                offerId: "offer-1",
+                internal: "hidden",
+              },
+              status: "pending",
+              attempts: 0,
+              next_retry_at: null,
+              last_error: "dry_run_sent;template=assignment_offer;bookingId=booking-1;recipientType=cleaner",
+              created_at: "2026-05-16T13:00:00.000Z",
+              updated_at: "2026-05-16T13:00:00.000Z",
+            },
+          ]);
+        }
         return chainable([]);
       }),
     });
@@ -584,6 +617,70 @@ describe("dashboard read models", () => {
       expect(result.booking.operationalAudits).toHaveLength(1);
       expect(result.booking.operationalAudits[0]?.action).toBe("assignment_recovery");
       expect(result.booking.operationalAudits[0]?.adminLabel).toBe("Ops Admin");
+      expect(result.booking.notifications).toHaveLength(2);
+      expect(result.booking.notifications[0]?.template).toBe("payment_confirmed");
+      const serialized = JSON.stringify(result.booking.notifications);
+      expect(serialized).not.toContain("hidden");
+      expect(serialized).not.toContain("@");
+      expect(result.booking.notifications[0]).not.toHaveProperty("payload");
+    }
+  });
+
+  it("admin booking detail caps notification history at 25", async () => {
+    const manyRows = Array.from({ length: 30 }, (_, i) => ({
+      id: `notif-${i}`,
+      channel: "email",
+      recipient: "cust-1",
+      payload: { template: "payment_pending", bookingId: "booking-1" },
+      status: "pending",
+      attempts: 0,
+      next_retry_at: null,
+      last_error: null,
+      created_at: new Date(Date.UTC(2026, 4, 17, 10, i)).toISOString(),
+      updated_at: new Date(Date.UTC(2026, 4, 17, 10, i)).toISOString(),
+    }));
+
+    let limitApplied: number | undefined;
+    createSupabaseServerClientMock.mockResolvedValue({
+      from: vi.fn((table: string) => {
+        if (table === "bookings") {
+          return chainable({
+            id: "booking-1",
+            status: "pending_assignment",
+            customer_id: "cust-1",
+            cleaner_id: null,
+            scheduled_start: "2026-05-20T08:00:00.000Z",
+            scheduled_end: "2026-05-20T10:00:00.000Z",
+            price_cents: 50000,
+            currency: "ZAR",
+            metadata: wizardBookingMetadata("deep-cleaning"),
+            created_at: "2026-05-16T09:00:00.000Z",
+            updated_at: "2026-05-16T10:00:00.000Z",
+          });
+        }
+        if (table === "notification_outbox") {
+          const builder = chainable(manyRows);
+          builder.limit = vi.fn((n: number) => {
+            limitApplied = n;
+            return builder;
+          }) as typeof builder.limit;
+          return builder;
+        }
+        if (table === "payments") return chainable([]);
+        if (table === "assignment_offers") return chainable([]);
+        if (table === "booking_state_audit") return chainable([]);
+        if (table === "earning_lines") return chainable([]);
+        if (table === "admin_operational_audit") return chainable([]);
+        if (table === "customers") return chainable({ company_name: "Acme Co" });
+        return chainable([]);
+      }),
+    });
+
+    const { getAdminBookingDetail } = await import("./adminOperationsReadModel");
+    const result = await getAdminBookingDetail(adminUser, "booking-1");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(limitApplied).toBe(25);
     }
   });
 

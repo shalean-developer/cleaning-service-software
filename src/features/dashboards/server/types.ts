@@ -1,6 +1,7 @@
 import type { AssignmentOfferStatus, PaymentStatus } from "@/lib/database/types";
 import type { PaymentFailureReason } from "@/features/bookings/server/paymentFailureDisplay";
 import type { BookingStatus } from "@/features/bookings/server/types";
+import type { NotificationOutboxStatus } from "@/lib/database/types";
 import type { AssignmentVisibilityKey } from "@/features/assignments/server/resolveAssignmentVisibility";
 import type {
   AdminAuditEntry,
@@ -127,6 +128,34 @@ export type AdminEarningSummary = {
   payoutStatus: import("@/lib/database/types").EarningPayoutStatus;
 };
 
+export type AdminNotificationOutboxEntry = {
+  id: string;
+  template: string;
+  status: NotificationOutboxStatus;
+  channel: string;
+  recipientType: "customer" | "cleaner" | "unknown";
+  bookingId: string | null;
+  offerId: string | null;
+  attemptCount: number;
+  nextRetryAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  lastError: string | null;
+  /** Display note: sanitized error or dry-run summary. */
+  statusNote: string | null;
+  isDryRun: boolean;
+  dryRun: {
+    template: string | null;
+    bookingId: string | null;
+    offerId: string | null;
+    recipientType: string | null;
+  } | null;
+  isDeliverable: boolean;
+  /** Booking detail only — failed deliverable rows eligible for admin requeue (5E-1a). */
+  canRequeue: boolean;
+  requeueBlockReason?: string;
+};
+
 export type AdminOperationalAuditEntry = {
   id: string;
   at: string;
@@ -159,6 +188,7 @@ export type AdminBookingDetail = AdminBookingListItem & {
   paymentEvents: { id: string; eventType: string | null; at: string }[];
   display: BookingDisplayFields;
   operational: AdminOperationalStatus;
+  notifications: AdminNotificationOutboxEntry[];
 };
 
 export type AdminAssignmentQueueItem = {

@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listAdminBookings } from "@/features/dashboards/server/adminOperationsReadModel";
 import type { AdminBookingFilter } from "@/features/dashboards/server/adminOperationalHelpers";
 import { AdminBookingsFilters } from "@/components/dashboard/AdminBookingsFilters";
+import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -61,11 +62,7 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
     <DashboardShell
       title="All bookings"
       subtitle="Lifecycle, payment, and assignment state across customers."
-      nav={[
-        { href: "/admin", label: "Home" },
-        { href: "/admin/bookings", label: "Bookings" },
-        { href: "/admin/assignments", label: "Assignments" },
-      ]}
+      nav={[...ADMIN_DASHBOARD_NAV]}
     >
       {result.ok ? (
         <AdminBookingsFilters

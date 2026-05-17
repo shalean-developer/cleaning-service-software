@@ -8,6 +8,7 @@ import {
 } from "@/features/dashboards/server/adminOperationsReadModel";
 import { ADMIN_HOME_PREVIEW_LIMIT } from "@/features/dashboards/server/adminOperationalHelpers";
 import { AdminOpsSummaryCards } from "@/components/dashboard/AdminOpsSummaryCards";
+import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import {
@@ -34,12 +35,7 @@ export default async function AdminHomePage() {
     <DashboardShell
       title="Operations"
       subtitle="Bookings, payments, and assignment oversight."
-      nav={[
-        { href: "/admin", label: "Home" },
-        { href: "/admin/bookings", label: "Bookings" },
-        { href: "/admin/assignments", label: "Assignments" },
-        { href: "/admin/payouts", label: "Payouts" },
-      ]}
+      nav={[...ADMIN_DASHBOARD_NAV]}
     >
       {opsSummary?.ok ? <AdminOpsSummaryCards summary={opsSummary.summary} /> : null}
 

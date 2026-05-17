@@ -4,6 +4,7 @@ export const ADMIN_OPERATIONAL_ACTIONS = [
   "assignment_recovery",
   "manual_dispatch_offer",
   "replace_open_offer",
+  "notification_requeue",
 ] as const;
 
 export type AdminOperationalAction = (typeof ADMIN_OPERATIONAL_ACTIONS)[number];

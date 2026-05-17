@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listAdminAssignmentQueue } from "@/features/dashboards/server/adminOperationsReadModel";
 import { AdminAssignmentQueueGuidance } from "@/components/dashboard/AdminAssignmentQueueGuidance";
+import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -28,11 +29,7 @@ export default async function AdminAssignmentsPage() {
     <DashboardShell
       title="Assignment queue"
       subtitle="Bookings needing dispatch attention or with open offers."
-      nav={[
-        { href: "/admin", label: "Home" },
-        { href: "/admin/bookings", label: "Bookings" },
-        { href: "/admin/assignments", label: "Assignments" },
-      ]}
+      nav={[...ADMIN_DASHBOARD_NAV]}
     >
       {result.ok && result.total > 0 ? (
         <p className="mb-4 text-sm text-zinc-600">

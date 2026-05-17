@@ -20,6 +20,25 @@ describe("sanitizeAdminOperationalMetadata", () => {
       eligible: true,
     });
   });
+
+  it("keeps notification requeue metadata keys", () => {
+    const result = sanitizeAdminOperationalMetadata({
+      outboxId: "outbox-1",
+      template: "payment_failed",
+      oldStatus: "failed",
+      newStatus: "pending",
+      deliveryDedupeWouldBlock: true,
+      payload: "secret blob",
+    });
+    expect(result).toEqual({
+      outboxId: "outbox-1",
+      template: "payment_failed",
+      oldStatus: "failed",
+      newStatus: "pending",
+      deliveryDedupeWouldBlock: true,
+    });
+    expect(result).not.toHaveProperty("payload");
+  });
 });
 
 describe("recordAdminOperationalAudit", () => {

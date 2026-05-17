@@ -256,16 +256,48 @@ Cron response includes `reclaimed` (count reset on that run).
 
 Do **not** mark rows `sent` in SQL without a provider send — that would block legitimate delivery.
 
+## Admin observability (Stage 5D-1 / 5D-2a)
+
+| Surface | Detail |
+|---------|--------|
+| Booking detail | **Notifications** section — per-booking history (limit 25) |
+| Global health | **`/admin/notifications`** — summary counts + filtered queue table (limit 100) |
+| Access | Read-only; admin JWT `SELECT` on `notification_outbox` |
+| Hidden | Recipient emails, raw payload, secrets |
+| Unsupported pending | Enqueued templates not yet delivered by worker — **separate count**, not a failure |
+| Cron from UI | **Not supported** — use scheduled cron or manual curl with `CRON_SECRET` |
+
+Do **not** mark rows `sent` or `failed` manually in SQL from the dashboard.
+
+### Admin requeue (Stage 5E-1a)
+
+| Topic | Behavior |
+|-------|----------|
+| **Where** | Admin booking detail → **Notifications** → **Requeue** on eligible rows only |
+| **Eligible** | `status = failed` and deliverable template (`payment_confirmed`, `payment_failed`, `assignment_offer`) |
+| **What it does** | Service-role in-place update: `pending`, `attempts = 0`, `next_retry_at = now()`, `last_error = admin_requeued` |
+| **What it does not do** | Send email in the request; trigger cron; bypass worker delivery dedupe; resend live `sent` rows |
+| **Reason** | Required, 8–500 characters; stored in `admin_operational_audit`, not on outbox |
+| **After requeue** | Cron/worker picks up the row on the next run — **delivery dedupe still applies** (may mark `sent` without a second email) |
+| **Global `/admin/notifications`** | Read-only — no requeue button (deferred to 5E-1b) |
+| **Resend / force resend** | **Deferred** — not in 5E-1a |
+
+API: `POST /api/admin/notifications/:outboxId/requeue` with `{ "reason": "…" }`. Writes via `adminRequeueNotificationOutbox` only (not browser JWT `UPDATE`).
+
 ## Code locations
 
 | Piece | Path |
 |-------|------|
 | Worker | `src/features/notifications/server/processNotificationOutbox.ts` |
+| Admin mapper | `src/features/notifications/server/mapNotificationOutboxRowForAdmin.ts` |
+| Global health read model | `src/features/notifications/server/notificationAdminReadModel.ts` |
+| Booking history query | `src/features/notifications/server/listNotificationsForBooking.ts` |
 | Cron route | `src/app/api/cron/process-notification-outbox/route.ts` |
 | Templates | `paymentConfirmed.ts`, `paymentFailed.ts`, `assignmentOffer.ts` |
 | Failure context | `loadPaymentFailedNotificationContext.ts` |
 | Offer context | `loadAssignmentOfferNotificationContext.ts` |
 | Dedupe helpers | `hasSentPaymentFailedForBooking.ts`, `hasSentAssignmentOfferForOffer.ts` |
+| Admin requeue (5E-1a) | `adminRequeueNotificationOutbox.ts`, `POST …/api/admin/notifications/[outboxId]/requeue` |
 | Recipient resolvers | `resolveCustomerEmail.ts`, `resolveCleanerEmail.ts` |
 
 ## Staging rollout checklist (`payment_failed`)

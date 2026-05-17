@@ -12,6 +12,7 @@ import type {
   PaymentRow,
 } from "@/lib/database/types";
 import { mapAdminOperationalAuditRow } from "@/features/admin/server/mapAdminOperationalAuditRow";
+import { listNotificationsForBooking } from "@/features/notifications/server/listNotificationsForBooking";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import { resolvePaymentFailureReason } from "@/features/bookings/server/paymentFailureDisplay";
 import { buildLifecycleTimeline } from "./lifecycleTimeline";
@@ -442,6 +443,8 @@ export async function getAdminBookingDetail(
 
   const customerLabel = await resolveCustomerLabel(client, row.customer_id);
 
+  const notifications = await listNotificationsForBooking(client, row.id);
+
   return {
     ok: true,
     booking: {
@@ -493,6 +496,7 @@ export async function getAdminBookingDetail(
         mapAdminOperationalAuditRow(a, adminLabels.get(a.admin_profile_id) ?? null),
       ),
       paymentEvents,
+      notifications,
     },
   };
 }

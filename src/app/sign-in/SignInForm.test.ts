@@ -14,14 +14,29 @@ describe("Sign-in page signup link gating", () => {
   });
 });
 
-describe("SignInForm post-sign-in profile lookup", () => {
-  it("scopes profile role lookup to the session user via loadProfileRoleForUser", () => {
+describe("SignInForm server action", () => {
+  it("submits via signInAction instead of client-side Supabase auth", () => {
     const source = readFileSync(
       resolve(process.cwd(), "src/app/sign-in/SignInForm.tsx"),
       "utf8",
     );
+    expect(source).toContain("signInAction");
+    expect(source).toContain('action={formAction}');
+    expect(source).not.toContain("signInWithPassword");
+    expect(source).not.toContain("createSupabaseBrowserClient");
+  });
+});
+
+describe("signInAction", () => {
+  it("uses server client and profile lookup before redirect", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "src/lib/auth/signInAction.ts"),
+      "utf8",
+    );
+    expect(source).toContain('"use server"');
+    expect(source).toContain("createSupabaseServerClient");
+    expect(source).toContain("signInWithPassword");
     expect(source).toContain("loadProfileRoleForUser");
-    expect(source).toContain("auth.getUser()");
-    expect(source).not.toMatch(/\.from\("profiles"\)/);
+    expect(source).toContain("redirect(resolvePostSignInPath");
   });
 });

@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isStaleRefreshTokenError } from "./sessionErrors";
 import type { CurrentUser } from "./types";
 
 /**
@@ -20,6 +21,10 @@ export async function getCurrentUserWithClient(
   supabase: SupabaseClient<Database>,
 ): Promise<CurrentUser | null> {
   const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError && isStaleRefreshTokenError(userError)) {
+    await supabase.auth.signOut();
+    return null;
+  }
   if (userError || !userData.user) return null;
 
   const { data: profile, error: profileError } = await supabase

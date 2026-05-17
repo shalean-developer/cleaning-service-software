@@ -3,9 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getAdminBookingDetail } from "@/features/dashboards/server/adminOperationsReadModel";
+import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { AdminPayoutActions } from "@/components/dashboard/AdminPayoutActions";
 import { AdminOperationalTimeline } from "@/components/dashboard/AdminOperationalTimeline";
+import { AdminBookingNotificationsSection } from "@/components/dashboard/AdminBookingNotificationsSection";
 import { LifecycleTimeline } from "@/components/dashboard/LifecycleTimeline";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
@@ -43,11 +45,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
     <DashboardShell
       title="Booking operations"
       subtitle={b.serviceLabel}
-      nav={[
-        { href: "/admin", label: "Home" },
-        { href: "/admin/bookings", label: "Bookings" },
-        { href: "/admin/assignments", label: "Assignments" },
-      ]}
+      nav={[...ADMIN_DASHBOARD_NAV]}
     >
       <Link href="/admin/bookings" className="text-sm text-zinc-600 hover:text-zinc-900">
         ← Back to bookings
@@ -207,6 +205,15 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           customers.
         </p>
         <AdminOperationalTimeline audits={b.operationalAudits} />
+      </section>
+
+      <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
+        <h2 className="text-sm font-semibold text-zinc-900">Notifications</h2>
+        <p className="mt-1 text-xs text-zinc-500">
+          Outbox delivery history for this booking (read-only). Recipient email addresses are
+          not shown. Retry and resend are not available yet.
+        </p>
+        <AdminBookingNotificationsSection notifications={b.notifications} />
       </section>
 
       <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">

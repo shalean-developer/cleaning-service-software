@@ -9,6 +9,7 @@ const ALLOWED_ADMIN_POST_ROUTES = new Set([
   "bookings/[bookingId]/recover-assignment/route.ts",
   "bookings/[bookingId]/dispatch-offer/route.ts",
   "bookings/[bookingId]/replace-open-offer/route.ts",
+  "notifications/[outboxId]/requeue/route.ts",
 ]);
 
 function collectRouteFiles(dir: string, prefix = ""): string[] {

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { SIGN_UP_PATH } from "@/lib/auth/customerSignup";
 import { isCustomerSignupEnabled } from "@/lib/auth/customerSignupFlag";
+import { resolvePostSignInPath } from "@/lib/auth/redirects";
 import { SignInForm } from "./SignInForm";
 
 export const metadata: Metadata = {
@@ -10,7 +12,17 @@ export const metadata: Metadata = {
   description: "Sign in to your Cleaning Services account",
 };
 
-export default function SignInPage() {
+type PageProps = {
+  searchParams: Promise<{ redirectedFrom?: string }>;
+};
+
+export default async function SignInPage({ searchParams }: PageProps) {
+  const { redirectedFrom } = await searchParams;
+  const user = await getCurrentUser();
+  if (user) {
+    redirect(resolvePostSignInPath(user.role, redirectedFrom));
+  }
+
   const signupEnabled = isCustomerSignupEnabled();
 
   return (
@@ -25,9 +37,7 @@ export default function SignInPage() {
           .
         </p>
       </section>
-      <Suspense fallback={<p className="text-sm text-zinc-600">Loading…</p>}>
-        <SignInForm />
-      </Suspense>
+      <SignInForm redirectedFrom={redirectedFrom ?? null} />
       {signupEnabled ? (
         <p className="text-center text-sm text-zinc-600">
           Don&apos;t have an account?{" "}

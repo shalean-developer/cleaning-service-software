@@ -21,6 +21,7 @@ Related runbooks:
 | `/admin/bookings/[id]` | Operational status panel, audit timeline, payout actions (existing) |
 | `/admin/assignments` | Assignment queue with per-booking guidance |
 | `/admin/payouts` | Payout-ready aggregates (unchanged) |
+| `/admin/notifications` | Global notification outbox health (5D-2a) |
 
 ---
 
@@ -119,9 +120,44 @@ Booking detail has two audit sections:
 | Section | Source | Audience |
 |---------|--------|----------|
 | **State audit** | `booking_state_audit` | Lifecycle commands (customer/cleaner may read their booking’s rows) |
-| **Admin operations** | `admin_operational_audit` | Recovery, dispatch, replace attempts — **admin only** |
+| **Admin operations** | `admin_operational_audit` | Recovery, dispatch, replace, notification requeue — **admin only** |
 
 Records success, idempotent, rejected, and failed outcomes with the admin’s reason. See [admin-operational-audit.md](./admin-operational-audit.md). No backfill for pre-deploy console-only logs.
+
+### Notification history (5D-1)
+
+Booking detail includes a **Notifications** section (read-only):
+
+| Topic | Behavior |
+|-------|----------|
+| Source | `notification_outbox` rows where `payload.bookingId` matches the booking |
+| Limit | Latest **25** rows, newest first |
+| Shows | Template, status, channel, attempts, last update, sanitized error / dry-run note, short offer id when present |
+| Hidden | Recipient **email addresses**, raw JSON payload, secrets |
+| Actions | **Requeue** (5E-1a) on **failed** deliverable rows only — required reason; resets row to `pending` for cron/worker |
+
+**Requeue does not:** send email immediately, trigger cron from the UI, bypass worker delivery dedupe, or resend live `sent` rows. Resend and force-resend are deferred (5E-1b+).
+
+Use this section to confirm whether `payment_confirmed`, `payment_failed`, or `assignment_offer` rows reached `sent` vs `pending` / `failed`. Unsupported templates (e.g. `booking_draft_created`) may remain `pending` until a later worker stage.
+
+See [notification-outbox-worker.md](./notification-outbox-worker.md) for delivery flags and cron behavior.
+
+### Global notification health (5D-2a)
+
+Route: **`/admin/notifications`** (admin nav → Notifications).
+
+| Topic | Behavior |
+|-------|----------|
+| Purpose | Platform-wide `notification_outbox` queue health |
+| Summary cards | Sent, actionable pending, scheduled retry, processing, failed, stale processing, **unsupported pending**, dry-run row count |
+| Oldest pending | Age of oldest deliverable pending row with retry due |
+| Default table | Needs attention — deliverable `pending` / `processing` / `failed`, newest first, cap **100** |
+| Unsupported policy | `booking_draft_created`, `payment_pending`, etc. stay `pending` — counted separately, **not failures** |
+| Filters | `status`, `template`, `deliverable` (`true` / `false` / `all`) via query params |
+| Hidden | Recipient emails, raw payload, API keys |
+| Actions | **None** — read-only; requeue is booking-detail only (5E-1a); do not trigger cron from UI |
+
+**Troubleshooting failed rows:** Use the Note column (sanitized `last_error`). Common causes: no auth email on customer/cleaner profile, stale booking/offer state, provider send failure after retries, delivery disabled. Per-booking context: open the booking link → Notifications section. Do **not** `UPDATE` outbox status in SQL.
 
 ### Replace open offer (4C-a)
 
@@ -166,6 +202,7 @@ Each audit row shows:
 
 ## Intentionally not actionable in admin UI yet
 
+- Notification retry / resend (global and booking views are read-only in 5D-2a)
 - Assignment queue inline replace/dispatch (use booking detail)
 - Cancel-only API (withdraw offer without immediate replacement)
 - Push notification to cleaner when offer withdrawn

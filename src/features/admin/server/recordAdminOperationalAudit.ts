@@ -31,6 +31,11 @@ const ALLOWED_METADATA_KEYS = new Set([
   "eligible",
   "cancelled_cleaner_id",
   "target_cleaner_id",
+  "outboxId",
+  "template",
+  "oldStatus",
+  "newStatus",
+  "deliveryDedupeWouldBlock",
 ]);
 
 /**

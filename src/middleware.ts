@@ -6,23 +6,34 @@ import {
   homePathForRole,
   requiredRoleForDashboardPath,
 } from "@/lib/auth/redirects";
+import { isStaleRefreshTokenError } from "@/lib/auth/sessionErrors";
 import { getSupabasePublicEnv } from "@/lib/supabase/publicEnv";
+
+/** Copies Set-Cookie headers from the session response onto a redirect. */
+function redirectWithSessionCookies(
+  url: URL,
+  sessionResponse: NextResponse,
+): NextResponse {
+  const redirectResponse = NextResponse.redirect(url);
+  for (const cookie of sessionResponse.cookies.getAll()) {
+    redirectResponse.cookies.set(cookie);
+  }
+  return redirectResponse;
+}
 
 export async function middleware(request: NextRequest) {
   const env = getSupabasePublicEnv();
   const pathname = request.nextUrl.pathname;
 
   if (!env) {
-    const signInUrl = new URL(
-      buildSignInRedirectPath(pathname),
-      request.url,
-    );
+    const signInUrl = new URL(buildSignInRedirectPath(pathname), request.url);
     return NextResponse.redirect(signInUrl);
   }
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", pathname);
-  const response = NextResponse.next({
+
+  let sessionResponse = NextResponse.next({
     request: { headers: requestHeaders },
   });
 
@@ -32,8 +43,14 @@ export async function middleware(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
+        for (const { name, value } of cookiesToSet) {
+          request.cookies.set(name, value);
+        }
+        sessionResponse = NextResponse.next({
+          request: { headers: requestHeaders },
+        });
         for (const { name, value, options } of cookiesToSet) {
-          response.cookies.set(name, value, options);
+          sessionResponse.cookies.set(name, value, options);
         }
       },
     },
@@ -41,14 +58,18 @@ export async function middleware(request: NextRequest) {
 
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
 
+  if (authError && isStaleRefreshTokenError(authError)) {
+    await supabase.auth.signOut();
+    const signInUrl = new URL(buildSignInRedirectPath(pathname), request.url);
+    return redirectWithSessionCookies(signInUrl, sessionResponse);
+  }
+
   if (!user) {
-    const signInUrl = new URL(
-      buildSignInRedirectPath(pathname),
-      request.url,
-    );
-    return NextResponse.redirect(signInUrl);
+    const signInUrl = new URL(buildSignInRedirectPath(pathname), request.url);
+    return redirectWithSessionCookies(signInUrl, sessionResponse);
   }
 
   const { data: profile } = await supabase
@@ -58,21 +79,17 @@ export async function middleware(request: NextRequest) {
     .maybeSingle();
 
   if (!profile?.role) {
-    const signInUrl = new URL(
-      buildSignInRedirectPath(pathname),
-      request.url,
-    );
-    return NextResponse.redirect(signInUrl);
+    const signInUrl = new URL(buildSignInRedirectPath(pathname), request.url);
+    return redirectWithSessionCookies(signInUrl, sessionResponse);
   }
 
   const requiredRole = requiredRoleForDashboardPath(pathname);
   if (requiredRole && profile.role !== requiredRole) {
-    return NextResponse.redirect(
-      new URL(homePathForRole(profile.role), request.url),
-    );
+    const roleHomeUrl = new URL(homePathForRole(profile.role), request.url);
+    return redirectWithSessionCookies(roleHomeUrl, sessionResponse);
   }
 
-  return response;
+  return sessionResponse;
 }
 
 export const config = {
