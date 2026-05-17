@@ -42,12 +42,14 @@ See **[notification-outbox-worker.md](./notification-outbox-worker.md)** for env
 | Cron `/api/cron/process-notification-outbox` | **Implemented** |
 | `payment_confirmed` email via Resend | **Implemented** (flag-gated) |
 | `payment_failed` email via Resend | **Implemented** (flag-gated, 5C-1b-a) |
+| `assignment_offer` email via Resend | **Implemented** (flag-gated, 5C-2a) |
 | Other templates | **Not delivered** — remain `pending` |
 
 ## What is not implemented (later stages)
 
-- assignment, admin emails
-- Push (FCM/APNs) — `assignment_offer` stays pending
+- Customer assignment emails (`pending_assignment`, `cleaner_assigned`)
+- Real push (FCM/APNs) — `assignment_offer` rows use `channel: push` as an email placeholder until push ships
+- Admin alert emails
 - Outbox dedupe unique index (deferred)
 - RLS tightening on `notification_outbox` (admin `FOR ALL` remains — see [stage-5c audit](../audits/stage-5c-notification-system-operational-messaging-audit.md))
 

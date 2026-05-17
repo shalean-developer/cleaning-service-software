@@ -2,6 +2,25 @@ import "server-only";
 
 export const PAYMENT_CONFIRMED_TEMPLATE = "payment_confirmed" as const;
 export const PAYMENT_FAILED_TEMPLATE = "payment_failed" as const;
+export const ASSIGNMENT_OFFER_TEMPLATE = "assignment_offer" as const;
+
+/** Templates the worker may poll and deliver (template + channel must match enqueue). */
+export const DELIVERABLE_NOTIFICATION_SPECS = [
+  { template: PAYMENT_CONFIRMED_TEMPLATE, channel: "email" as const },
+  { template: PAYMENT_FAILED_TEMPLATE, channel: "email" as const },
+  { template: ASSIGNMENT_OFFER_TEMPLATE, channel: "push" as const },
+] as const;
+
+/**
+ * PostgREST `.or()` filter: supported template/channel pairs only.
+ * Used when polling `notification_outbox` so unsupported pending rows do not block the queue.
+ */
+export function buildDeliverableOutboxTemplateOrFilter(): string {
+  return [
+    `and(channel.eq.email,payload->>template.in.(${PAYMENT_CONFIRMED_TEMPLATE},${PAYMENT_FAILED_TEMPLATE}))`,
+    `and(channel.eq.push,payload->>template.eq.${ASSIGNMENT_OFFER_TEMPLATE})`,
+  ].join(",");
+}
 
 export const NOTIFICATION_OUTBOX_BATCH_SIZE = 25;
 export const NOTIFICATION_MAX_ATTEMPTS = 5;

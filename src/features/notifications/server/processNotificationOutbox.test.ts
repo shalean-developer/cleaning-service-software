@@ -5,7 +5,11 @@ import {
   CHECKOUT_EXPIRED_FAILURE_REASON,
   PAYSTACK_DECLINED_FAILURE_REASON,
 } from "@/features/bookings/server/paymentFailureDisplay";
-import { processNotificationOutbox } from "./processNotificationOutbox";
+import { buildDeliverableOutboxTemplateOrFilter } from "./config";
+import {
+  isDeliverableOutboxRow,
+  processNotificationOutbox,
+} from "./processNotificationOutbox";
 import type { EmailSender } from "./sendEmail";
 
 const reclaimMock = vi.fn(
@@ -14,6 +18,7 @@ const reclaimMock = vi.fn(
 
 const loadPaymentFailedContextMock = vi.fn();
 const hasSentPaymentFailedMock = vi.fn();
+const hasSentAssignmentOfferMock = vi.fn();
 
 vi.mock("./reclaimStaleProcessingNotifications", () => ({
   reclaimStaleProcessingNotifications: (
@@ -37,6 +42,14 @@ vi.mock("./hasSentPaymentFailedForBooking", () => ({
   ) => hasSentPaymentFailedMock(client, bookingId, excludeOutboxId),
 }));
 
+vi.mock("./hasSentAssignmentOfferForOffer", () => ({
+  hasSentAssignmentOfferForOffer: (
+    client: unknown,
+    offerId: string,
+    excludeOutboxId?: string,
+  ) => hasSentAssignmentOfferMock(client, offerId, excludeOutboxId),
+}));
+
 function outboxRow(
   overrides: Partial<NotificationOutboxRow> & Pick<NotificationOutboxRow, "id" | "recipient">,
 ): NotificationOutboxRow {
@@ -54,39 +67,100 @@ function outboxRow(
   };
 }
 
+type MockBooking = {
+  id: string;
+  status: string;
+  scheduled_start: string;
+  scheduled_end: string;
+  price_cents: number;
+  currency: string;
+  metadata: object;
+  cleaner_id: string | null;
+};
+
+type MockOffer = {
+  id: string;
+  booking_id: string;
+  cleaner_id: string;
+  status: string;
+  expires_at: string | null;
+  offered_at: string;
+  responded_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type MockDb = {
   outbox: NotificationOutboxRow[];
-  bookings: Record<
-    string,
-    {
-      id: string;
-      status: string;
-      scheduled_start: string;
-      scheduled_end: string;
-      price_cents: number;
-      metadata: object;
-    }
-  >;
+  bookings: Record<string, MockBooking>;
   customers: Record<string, { id: string; profile_id: string }>;
+  cleaners: Record<string, { id: string; profile_id: string }>;
+  assignment_offers: Record<string, MockOffer>;
   profiles: Record<string, { full_name: string | null }>;
   authEmails: Record<string, string | undefined>;
+  /** ISO timestamp used when simulating deliverable poll (defaults to current time). */
+  pollNowIso?: string;
 };
+
+function selectDeliverablePendingRows(
+  outbox: NotificationOutboxRow[],
+  nowIso: string,
+  batchSize: number,
+): NotificationOutboxRow[] {
+  const isRetryDue = (row: NotificationOutboxRow) =>
+    row.next_retry_at == null || row.next_retry_at <= nowIso;
+
+  return outbox
+    .filter((row) => row.status === "pending" && isRetryDue(row) && isDeliverableOutboxRow(row))
+    .sort((a, b) => a.created_at.localeCompare(b.created_at))
+    .slice(0, batchSize);
+}
 
 function createMockClient(db: MockDb): SupabaseClient<Database> {
   const client = {
     from: (table: string) => {
       if (table === "notification_outbox") {
+        const sentRows = (channel?: string) =>
+          db.outbox.filter(
+            (r) => r.status === "sent" && (channel == null || r.channel === channel),
+          );
+
         return {
           select: () => ({
-            eq: () => ({
-              eq: () => ({
+            eq: (col: string, val: string) => {
+              if (col === "status" && val === "sent") {
+                const chain = {
+                  eq: (col2: string, val2: string) => ({
+                    then: (resolve: (v: { data: typeof db.outbox; error: null }) => void) =>
+                      Promise.resolve(
+                        resolve({
+                          data: col2 === "channel" ? sentRows(val2) : sentRows(),
+                          error: null,
+                        }),
+                      ),
+                  }),
+                  then: (resolve: (v: { data: typeof db.outbox; error: null }) => void) =>
+                    Promise.resolve(resolve({ data: sentRows(), error: null })),
+                };
+                return chain;
+              }
+              return {
                 or: () => ({
-                  order: () => ({
-                    limit: async () => ({ data: [...db.outbox], error: null }),
+                  or: () => ({
+                    order: () => ({
+                      limit: async (batchSize: number) => ({
+                        data: selectDeliverablePendingRows(
+                          db.outbox,
+                          db.pollNowIso ?? new Date().toISOString(),
+                          batchSize,
+                        ),
+                        error: null,
+                      }),
+                    }),
                   }),
                 }),
-              }),
-            }),
+              };
+            },
           }),
           update: (patch: Partial<NotificationOutboxRow>) => {
             const applyToRow = (predicate: (row: NotificationOutboxRow) => boolean) => {
@@ -143,13 +217,37 @@ function createMockClient(db: MockDb): SupabaseClient<Database> {
           }),
         };
       }
+      if (table === "assignment_offers") {
+        return {
+          select: () => ({
+            eq: (_col: string, offerId: string) => ({
+              maybeSingle: async () => {
+                const offer = db.assignment_offers[offerId];
+                return { data: offer ?? null, error: null };
+              },
+            }),
+          }),
+        };
+      }
       if (table === "customers") {
         return {
           select: () => ({
-            eq: () => ({
+            eq: (_col: string, customerId: string) => ({
               maybeSingle: async () => {
-                const customer = db.customers["cust-1"];
+                const customer = db.customers[customerId];
                 return { data: customer ?? null, error: null };
+              },
+            }),
+          }),
+        };
+      }
+      if (table === "cleaners") {
+        return {
+          select: () => ({
+            eq: (_col: string, cleanerId: string) => ({
+              maybeSingle: async () => {
+                const cleaner = db.cleaners[cleanerId];
+                return { data: cleaner ?? null, error: null };
               },
             }),
           }),
@@ -158,10 +256,10 @@ function createMockClient(db: MockDb): SupabaseClient<Database> {
       if (table === "profiles") {
         return {
           select: () => ({
-            eq: () => ({
+            eq: (_col: string, profileId: string) => ({
               maybeSingle: async () => {
-                const profile = db.profiles["profile-1"];
-                return { data: profile ?? { full_name: "Alex" }, error: null };
+                const profile = db.profiles[profileId];
+                return { data: profile ?? { full_name: null }, error: null };
               },
             }),
           }),
@@ -182,14 +280,74 @@ function createMockClient(db: MockDb): SupabaseClient<Database> {
   return client as unknown as SupabaseClient<Database>;
 }
 
-const defaultFailedBooking = {
+const defaultFailedBooking: MockBooking = {
   id: "booking-1",
   status: "payment_failed",
   scheduled_start: "2026-06-01T08:00:00.000Z",
   scheduled_end: "2026-06-01T10:00:00.000Z",
   price_cents: 53_000,
+  currency: "ZAR",
   metadata: {},
+  cleaner_id: null,
 };
+
+const defaultOfferBooking: MockBooking = {
+  id: "booking-offer-1",
+  status: "pending_assignment",
+  scheduled_start: "2026-06-01T08:00:00.000Z",
+  scheduled_end: "2026-06-01T10:00:00.000Z",
+  price_cents: 53_000,
+  currency: "ZAR",
+  metadata: {
+    suburb: "Sea Point",
+    city: "Cape Town",
+    quote: {
+      input: { serviceSlug: "regular-cleaning", teamSize: 1 },
+      cleanerEarningsPreview: { perCleanerAmountCents: 45_000 },
+    },
+  },
+  cleaner_id: null,
+};
+
+function offerOutboxRow(
+  overrides: Partial<NotificationOutboxRow> & Pick<NotificationOutboxRow, "id" | "recipient">,
+): NotificationOutboxRow {
+  return outboxRow({
+    channel: "push",
+    payload: {
+      template: "assignment_offer",
+      bookingId: "booking-offer-1",
+      offerId: "offer-1",
+    },
+    ...overrides,
+  });
+}
+
+function defaultOpenOffer(overrides: Partial<MockOffer> = {}): MockOffer {
+  return {
+    id: "offer-1",
+    booking_id: "booking-offer-1",
+    cleaner_id: "cleaner-1",
+    status: "offered",
+    expires_at: "2099-06-03T10:00:00.000Z",
+    offered_at: "2026-06-01T10:00:00.000Z",
+    responded_at: null,
+    created_at: "2026-06-01T10:00:00.000Z",
+    updated_at: "2026-06-01T10:00:00.000Z",
+    ...overrides,
+  };
+}
+
+describe("buildDeliverableOutboxTemplateOrFilter", () => {
+  it("includes email payment templates and push assignment_offer", () => {
+    const filter = buildDeliverableOutboxTemplateOrFilter();
+    expect(filter).toContain("channel.eq.email");
+    expect(filter).toContain("payment_confirmed");
+    expect(filter).toContain("payment_failed");
+    expect(filter).toContain("channel.eq.push");
+    expect(filter).toContain("assignment_offer");
+  });
+});
 
 describe("processNotificationOutbox", () => {
   const envBackup = { ...process.env };
@@ -202,6 +360,7 @@ describe("processNotificationOutbox", () => {
       canRetry: false,
     });
     hasSentPaymentFailedMock.mockResolvedValue(false);
+    hasSentAssignmentOfferMock.mockResolvedValue(false);
     process.env = { ...envBackup };
     process.env.ENABLE_NOTIFICATION_DELIVERY = "true";
     process.env.NOTIFICATION_FROM_EMAIL = "bookings@example.com";
@@ -219,6 +378,8 @@ describe("processNotificationOutbox", () => {
       outbox: [],
       bookings: {},
       customers: {},
+      cleaners: {},
+      assignment_offers: {},
       profiles: {},
       authEmails: {},
     };
@@ -234,6 +395,8 @@ describe("processNotificationOutbox", () => {
       outbox: [outboxRow({ id: "o1", recipient: "cust-1" })],
       bookings: {},
       customers: {},
+      cleaners: {},
+      assignment_offers: {},
       profiles: {},
       authEmails: {},
     };
@@ -244,18 +407,332 @@ describe("processNotificationOutbox", () => {
     expect(db.outbox[0]!.status).toBe("pending");
   });
 
-  it("skips assignment_offer push rows", async () => {
+  it("delivers assignment_offer push rows as email when offer is open", async () => {
+    const db: MockDb = {
+      outbox: [offerOutboxRow({ id: "o-offer", recipient: "cleaner-1" })],
+      bookings: { "booking-offer-1": defaultOfferBooking },
+      assignment_offers: { "offer-1": defaultOpenOffer() },
+      cleaners: { "cleaner-1": { id: "cleaner-1", profile_id: "profile-c1" } },
+      customers: {},
+      profiles: { "profile-c1": { full_name: "Jordan" } },
+      authEmails: { "profile-c1": "jordan@example.com" },
+    };
+    const client = createMockClient(db);
+    const emailSender: EmailSender = vi.fn(async () => ({
+      ok: true as const,
+      messageId: "msg-offer",
+    }));
+
+    const result = await processNotificationOutbox(client, { emailSender });
+    expect(result.sent).toBe(1);
+    expect(emailSender).toHaveBeenCalledOnce();
+    const call = vi.mocked(emailSender).mock.calls[0]![0];
+    expect(call.subject).toBe("New Shalean cleaning job offer");
+    expect(call.text).toContain("/cleaner/offers");
+    expect(call.text).not.toContain("/accept");
+    expect(db.outbox[0]!.status).toBe("sent");
+  });
+
+  it("skips cancelled assignment_offer without sending", async () => {
+    const db: MockDb = {
+      outbox: [offerOutboxRow({ id: "o-offer", recipient: "cleaner-1" })],
+      bookings: { "booking-offer-1": defaultOfferBooking },
+      assignment_offers: { "offer-1": defaultOpenOffer({ status: "cancelled" }) },
+      cleaners: { "cleaner-1": { id: "cleaner-1", profile_id: "profile-c1" } },
+      customers: {},
+      profiles: {},
+      authEmails: {},
+    };
+    const client = createMockClient(db);
+    const emailSender: EmailSender = vi.fn();
+
+    const result = await processNotificationOutbox(client, { emailSender });
+    expect(result.skipped).toBe(1);
+    expect(emailSender).not.toHaveBeenCalled();
+    expect(db.outbox[0]!.status).toBe("sent");
+  });
+
+  it("skips expired assignment_offer without sending", async () => {
+    const db: MockDb = {
+      outbox: [offerOutboxRow({ id: "o-offer", recipient: "cleaner-1" })],
+      bookings: { "booking-offer-1": defaultOfferBooking },
+      assignment_offers: {
+        "offer-1": defaultOpenOffer({ expires_at: "2020-01-01T00:00:00.000Z" }),
+      },
+      cleaners: { "cleaner-1": { id: "cleaner-1", profile_id: "profile-c1" } },
+      customers: {},
+      profiles: {},
+      authEmails: {},
+    };
+    const client = createMockClient(db);
+    const emailSender: EmailSender = vi.fn();
+
+    const result = await processNotificationOutbox(client, { emailSender });
+    expect(result.skipped).toBe(1);
+    expect(emailSender).not.toHaveBeenCalled();
+    expect(db.outbox[0]!.status).toBe("sent");
+  });
+
+  it("skips assignment_offer when booking is no longer pending_assignment", async () => {
+    const db: MockDb = {
+      outbox: [offerOutboxRow({ id: "o-offer", recipient: "cleaner-1" })],
+      bookings: {
+        "booking-offer-1": { ...defaultOfferBooking, status: "assigned", cleaner_id: "cleaner-1" },
+      },
+      assignment_offers: { "offer-1": defaultOpenOffer() },
+      cleaners: { "cleaner-1": { id: "cleaner-1", profile_id: "profile-c1" } },
+      customers: {},
+      profiles: {},
+      authEmails: {},
+    };
+    const client = createMockClient(db);
+    const emailSender: EmailSender = vi.fn();
+
+    const result = await processNotificationOutbox(client, { emailSender });
+    expect(result.skipped).toBe(1);
+    expect(emailSender).not.toHaveBeenCalled();
+    expect(db.outbox[0]!.status).toBe("sent");
+  });
+
+  it("does not resend when assignment_offer already sent for offerId", async () => {
+    hasSentAssignmentOfferMock.mockResolvedValue(true);
+    const db: MockDb = {
+      outbox: [offerOutboxRow({ id: "o-dup", recipient: "cleaner-1" })],
+      bookings: { "booking-offer-1": defaultOfferBooking },
+      assignment_offers: { "offer-1": defaultOpenOffer() },
+      cleaners: { "cleaner-1": { id: "cleaner-1", profile_id: "profile-c1" } },
+      customers: {},
+      profiles: { "profile-c1": { full_name: "Jordan" } },
+      authEmails: { "profile-c1": "jordan@example.com" },
+    };
+    const client = createMockClient(db);
+    const emailSender: EmailSender = vi.fn();
+
+    const result = await processNotificationOutbox(client, { emailSender });
+    expect(result.skipped).toBe(1);
+    expect(emailSender).not.toHaveBeenCalled();
+    expect(db.outbox[0]!.status).toBe("sent");
+  });
+
+  it("marks failed when cleaner has no email", async () => {
+    const db: MockDb = {
+      outbox: [offerOutboxRow({ id: "o-offer", recipient: "cleaner-1" })],
+      bookings: { "booking-offer-1": defaultOfferBooking },
+      assignment_offers: { "offer-1": defaultOpenOffer() },
+      cleaners: { "cleaner-1": { id: "cleaner-1", profile_id: "profile-c1" } },
+      customers: {},
+      profiles: { "profile-c1": { full_name: null } },
+      authEmails: { "profile-c1": undefined },
+    };
+    const client = createMockClient(db);
+    const emailSender: EmailSender = vi.fn();
+
+    const result = await processNotificationOutbox(client, { emailSender });
+    expect(result.failed).toBe(1);
+    expect(emailSender).not.toHaveBeenCalled();
+    expect(db.outbox[0]!.status).toBe("failed");
+    expect(db.outbox[0]!.last_error).toContain("email");
+  });
+
+  it("delivers assignment_offer when many unsupported pending rows are older", async () => {
+    const oldTs = "2020-01-01T00:00:00.000Z";
+    const offerTs = "2026-05-17T12:00:00.000Z";
+    const unsupportedRows = Array.from({ length: 200 }, (_, i) =>
+      outboxRow({
+        id: `o-draft-${i}`,
+        recipient: "cust-1",
+        created_at: oldTs,
+        updated_at: oldTs,
+        payload: { template: "booking_draft_created", bookingId: "booking-1" },
+      }),
+    );
+    const db: MockDb = {
+      outbox: [
+        ...unsupportedRows,
+        offerOutboxRow({
+          id: "o-offer-reachable",
+          recipient: "cleaner-1",
+          created_at: offerTs,
+          updated_at: offerTs,
+        }),
+      ],
+      bookings: { "booking-offer-1": defaultOfferBooking },
+      assignment_offers: { "offer-1": defaultOpenOffer() },
+      cleaners: { "cleaner-1": { id: "cleaner-1", profile_id: "profile-c1" } },
+      customers: {},
+      profiles: { "profile-c1": { full_name: "Jordan" } },
+      authEmails: { "profile-c1": "jordan@example.com" },
+    };
+    const client = createMockClient(db);
+    const emailSender: EmailSender = vi.fn(async () => ({
+      ok: true as const,
+      messageId: "msg-offer",
+    }));
+
+    const result = await processNotificationOutbox(client, { emailSender });
+    expect(result.sent).toBe(1);
+    expect(result.scanned).toBe(1);
+    expect(emailSender).toHaveBeenCalledOnce();
+    expect(db.outbox.find((r) => r.id === "o-offer-reachable")!.status).toBe("sent");
+    for (const row of unsupportedRows) {
+      expect(row.status).toBe("pending");
+    }
+  });
+
+  it("still selects payment_confirmed and payment_failed behind unsupported rows", async () => {
+    const oldTs = "2020-01-01T00:00:00.000Z";
+    const recentTs = "2026-05-17T12:00:00.000Z";
     const db: MockDb = {
       outbox: [
         outboxRow({
-          id: "o-offer",
-          recipient: "cleaner-1",
-          channel: "push",
-          payload: { template: "assignment_offer", bookingId: "booking-1" },
+          id: "o-draft",
+          recipient: "cust-1",
+          created_at: oldTs,
+          updated_at: oldTs,
+          payload: { template: "booking_draft_created", bookingId: "booking-1" },
+        }),
+        outboxRow({
+          id: "o-confirmed",
+          recipient: "cust-1",
+          created_at: recentTs,
+          updated_at: recentTs,
+          payload: { template: "payment_confirmed", bookingId: "booking-1" },
+        }),
+        outboxRow({
+          id: "o-failed",
+          recipient: "cust-1",
+          created_at: recentTs,
+          updated_at: recentTs,
+          payload: { template: "payment_failed", bookingId: "booking-2" },
+        }),
+      ],
+      bookings: {
+        "booking-1": { ...defaultFailedBooking, status: "confirmed" },
+        "booking-2": defaultFailedBooking,
+      },
+      customers: { "cust-1": { id: "cust-1", profile_id: "profile-1" } },
+      cleaners: {},
+      assignment_offers: {},
+      profiles: { "profile-1": { full_name: "Alex" } },
+      authEmails: { "profile-1": "alex@example.com" },
+    };
+    const client = createMockClient(db);
+    const emailSender: EmailSender = vi.fn(async () => ({
+      ok: true as const,
+      messageId: "msg",
+    }));
+
+    const result = await processNotificationOutbox(client, { emailSender, batchSize: 10 });
+    expect(result.scanned).toBe(2);
+    expect(result.sent).toBe(2);
+    expect(db.outbox.find((r) => r.id === "o-draft")!.status).toBe("pending");
+  });
+
+  it("leaves unsupported email templates pending", async () => {
+    const db: MockDb = {
+      outbox: [
+        outboxRow({
+          id: "o-pending-pay",
+          recipient: "cust-1",
+          payload: { template: "payment_pending", bookingId: "booking-1" },
+        }),
+        outboxRow({
+          id: "o-cleaner-assigned",
+          recipient: "cust-1",
+          payload: { template: "cleaner_assigned", bookingId: "booking-1" },
         }),
       ],
       bookings: {},
       customers: {},
+      cleaners: {},
+      assignment_offers: {},
+      profiles: {},
+      authEmails: {},
+    };
+    const client = createMockClient(db);
+    const result = await processNotificationOutbox(client);
+    expect(result.scanned).toBe(0);
+    expect(db.outbox.every((r) => r.status === "pending")).toBe(true);
+  });
+
+  it("skips pending rows with future next_retry_at", async () => {
+    const db: MockDb = {
+      pollNowIso: "2026-05-17T10:00:00.000Z",
+      outbox: [
+        outboxRow({
+          id: "o-retry-later",
+          recipient: "cust-1",
+          next_retry_at: "2026-05-17T11:00:00.000Z",
+        }),
+      ],
+      bookings: {
+        "booking-1": { ...defaultFailedBooking, status: "confirmed" },
+      },
+      customers: { "cust-1": { id: "cust-1", profile_id: "profile-1" } },
+      cleaners: {},
+      assignment_offers: {},
+      profiles: { "profile-1": { full_name: "Alex" } },
+      authEmails: { "profile-1": "alex@example.com" },
+    };
+    const client = createMockClient(db);
+    const emailSender: EmailSender = vi.fn();
+    const result = await processNotificationOutbox(client, {
+      emailSender,
+      now: new Date("2026-05-17T10:00:00.000Z"),
+    });
+    expect(result.scanned).toBe(0);
+    expect(emailSender).not.toHaveBeenCalled();
+    expect(db.outbox[0]!.status).toBe("pending");
+  });
+
+  it("respects batch size limit on deliverable poll", async () => {
+    const ts = "2026-05-17T10:00:00.000Z";
+    const db: MockDb = {
+      outbox: Array.from({ length: 5 }, (_, i) =>
+        outboxRow({
+          id: `o-${i}`,
+          recipient: "cust-1",
+          created_at: ts,
+          updated_at: ts,
+          payload: { template: "payment_confirmed", bookingId: "booking-1" },
+        }),
+      ),
+      bookings: {
+        "booking-1": { ...defaultFailedBooking, status: "confirmed" },
+      },
+      customers: { "cust-1": { id: "cust-1", profile_id: "profile-1" } },
+      cleaners: {},
+      assignment_offers: {},
+      profiles: { "profile-1": { full_name: "Alex" } },
+      authEmails: { "profile-1": "alex@example.com" },
+    };
+    const client = createMockClient(db);
+    const emailSender: EmailSender = vi.fn(async () => ({
+      ok: true as const,
+      messageId: "msg",
+    }));
+
+    const result = await processNotificationOutbox(client, { emailSender, batchSize: 2 });
+    expect(result.scanned).toBe(2);
+    expect(result.sent).toBe(2);
+    expect(db.outbox.filter((r) => r.status === "sent")).toHaveLength(2);
+    expect(db.outbox.filter((r) => r.status === "pending")).toHaveLength(3);
+  });
+
+  it("leaves unrelated push templates pending", async () => {
+    const db: MockDb = {
+      outbox: [
+        outboxRow({
+          id: "o-other-push",
+          recipient: "cleaner-1",
+          channel: "push",
+          payload: { template: "future_push_alert", bookingId: "booking-1" },
+        }),
+      ],
+      bookings: {},
+      customers: {},
+      cleaners: {},
+      assignment_offers: {},
       profiles: {},
       authEmails: {},
     };
@@ -274,6 +751,8 @@ describe("processNotificationOutbox", () => {
         "booking-1": { ...defaultFailedBooking, status: "confirmed" },
       },
       customers: { "cust-1": { id: "cust-1", profile_id: "profile-1" } },
+      cleaners: {},
+      assignment_offers: {},
       profiles: { "profile-1": { full_name: "Alex" } },
       authEmails: { "profile-1": "alex@example.com" },
     };
@@ -304,6 +783,8 @@ describe("processNotificationOutbox", () => {
       ],
       bookings: { "booking-1": defaultFailedBooking },
       customers: { "cust-1": { id: "cust-1", profile_id: "profile-1" } },
+      cleaners: {},
+      assignment_offers: {},
       profiles: { "profile-1": { full_name: "Sam" } },
       authEmails: { "profile-1": "sam@example.com" },
     };
@@ -337,6 +818,8 @@ describe("processNotificationOutbox", () => {
       ],
       bookings: { "booking-1": defaultFailedBooking },
       customers: { "cust-1": { id: "cust-1", profile_id: "profile-1" } },
+      cleaners: {},
+      assignment_offers: {},
       profiles: { "profile-1": { full_name: null } },
       authEmails: { "profile-1": "alex@example.com" },
     };
@@ -366,6 +849,8 @@ describe("processNotificationOutbox", () => {
         "booking-1": { ...defaultFailedBooking, status: "confirmed" },
       },
       customers: { "cust-1": { id: "cust-1", profile_id: "profile-1" } },
+      cleaners: {},
+      assignment_offers: {},
       profiles: { "profile-1": { full_name: "Alex" } },
       authEmails: { "profile-1": "alex@example.com" },
     };
@@ -391,6 +876,8 @@ describe("processNotificationOutbox", () => {
       ],
       bookings: { "booking-1": defaultFailedBooking },
       customers: { "cust-1": { id: "cust-1", profile_id: "profile-1" } },
+      cleaners: {},
+      assignment_offers: {},
       profiles: { "profile-1": { full_name: "Alex" } },
       authEmails: { "profile-1": "alex@example.com" },
     };
@@ -410,6 +897,8 @@ describe("processNotificationOutbox", () => {
         "booking-1": { ...defaultFailedBooking, status: "confirmed" },
       },
       customers: { "cust-1": { id: "cust-1", profile_id: "profile-1" } },
+      cleaners: {},
+      assignment_offers: {},
       profiles: { "profile-1": { full_name: null } },
       authEmails: { "profile-1": undefined },
     };
@@ -430,6 +919,8 @@ describe("processNotificationOutbox", () => {
         "booking-1": { ...defaultFailedBooking, status: "confirmed" },
       },
       customers: { "cust-1": { id: "cust-1", profile_id: "profile-1" } },
+      cleaners: {},
+      assignment_offers: {},
       profiles: { "profile-1": { full_name: "Alex" } },
       authEmails: { "profile-1": "alex@example.com" },
     };
@@ -458,6 +949,8 @@ describe("processNotificationOutbox", () => {
         "booking-1": { ...defaultFailedBooking, status: "confirmed" },
       },
       customers: { "cust-1": { id: "cust-1", profile_id: "profile-1" } },
+      cleaners: {},
+      assignment_offers: {},
       profiles: { "profile-1": { full_name: "Alex" } },
       authEmails: { "profile-1": "alex@example.com" },
     };

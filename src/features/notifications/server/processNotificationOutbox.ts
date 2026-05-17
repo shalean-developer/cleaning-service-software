@@ -2,17 +2,26 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  ASSIGNMENT_OFFER_TEMPLATE,
   canRunNotificationDelivery,
   getNotificationDeliveryConfig,
   NOTIFICATION_MAX_ATTEMPTS,
   NOTIFICATION_OUTBOX_BATCH_SIZE,
   NOTIFICATION_RETRY_BASE_MINUTES,
+  buildDeliverableOutboxTemplateOrFilter,
   PAYMENT_CONFIRMED_TEMPLATE,
   PAYMENT_FAILED_TEMPLATE,
 } from "./config";
+import { hasSentAssignmentOfferForOffer } from "./hasSentAssignmentOfferForOffer";
 import { hasSentPaymentFailedForBooking } from "./hasSentPaymentFailedForBooking";
+import {
+  isOfferPastExpiry,
+  loadAssignmentOfferNotificationContext,
+} from "./loadAssignmentOfferNotificationContext";
 import { loadPaymentFailedNotificationContext } from "./loadPaymentFailedNotificationContext";
+import { resolveCleanerEmail } from "./resolveCleanerEmail";
 import { resolveCustomerEmail } from "./resolveCustomerEmail";
+import { buildAssignmentOfferEmail } from "./templates/assignmentOffer";
 import { buildPaymentConfirmedEmail } from "./templates/paymentConfirmed";
 import { buildPaymentFailedEmail } from "./templates/paymentFailed";
 import type { EmailSender, SendEmailResult } from "./sendEmail";
@@ -54,10 +63,27 @@ function readBookingId(payload: Json): string | null {
   return typeof bookingId === "string" && bookingId.trim() ? bookingId.trim() : null;
 }
 
-function isDeliverableEmailRow(row: NotificationOutboxRow): boolean {
-  if (row.channel !== "email") return false;
+function readOfferId(payload: Json): string | null {
+  if (payload == null || typeof payload !== "object" || Array.isArray(payload)) {
+    return null;
+  }
+  const offerId = (payload as Record<string, unknown>).offerId;
+  return typeof offerId === "string" && offerId.trim() ? offerId.trim() : null;
+}
+
+/** Defense-in-depth gate aligned with {@link buildDeliverableOutboxTemplateOrFilter}. */
+export function isDeliverableOutboxRow(row: NotificationOutboxRow): boolean {
   const template = readTemplate(row.payload);
-  return template === PAYMENT_CONFIRMED_TEMPLATE || template === PAYMENT_FAILED_TEMPLATE;
+  if (template === PAYMENT_CONFIRMED_TEMPLATE || template === PAYMENT_FAILED_TEMPLATE) {
+    return row.channel === "email";
+  }
+  if (template === ASSIGNMENT_OFFER_TEMPLATE) {
+    return (
+      row.channel === "push" &&
+      Boolean(readOfferId(row.payload) && readBookingId(row.payload))
+    );
+  }
+  return false;
 }
 
 function computeNextRetryAt(attempts: number, now: Date): string {
@@ -205,6 +231,114 @@ async function processPaymentConfirmedRow(
   return { outcome: "sent" };
 }
 
+async function processAssignmentOfferRow(
+  client: SupabaseClient<Database>,
+  row: NotificationOutboxRow,
+  emailSender: EmailSender,
+  now: Date,
+): Promise<RowProcessResult> {
+  const bookingId = readBookingId(row.payload);
+  const offerId = readOfferId(row.payload);
+  if (!bookingId || !offerId) {
+    return { outcome: "failed", code: "INVALID_PAYLOAD", message: "Missing bookingId or offerId." };
+  }
+
+  if (await hasSentAssignmentOfferForOffer(client, offerId, row.id)) {
+    await markOutboxSent(client, row.id, row.attempts, now.toISOString());
+    return { outcome: "skipped" };
+  }
+
+  const loaded = await loadAssignmentOfferNotificationContext(client, offerId, bookingId);
+  if (!loaded.ok) {
+    return {
+      outcome: "failed",
+      code: loaded.code,
+      message:
+        loaded.code === "BOOKING_NOT_FOUND" ? "Booking not found." : "Offer not found.",
+    };
+  }
+
+  const { offer, serviceLabel, scheduleLabel, locationLabel, earningsLabel, expiresAtLabel } =
+    loaded.context;
+
+  if (offer.cleaner_id !== row.recipient) {
+    return {
+      outcome: "failed",
+      code: "RECIPIENT_MISMATCH",
+      message: "Offer recipient does not match outbox recipient.",
+    };
+  }
+
+  if (offer.status !== "offered") {
+    await markOutboxSent(client, row.id, row.attempts, now.toISOString());
+    return { outcome: "skipped" };
+  }
+
+  if (isOfferPastExpiry(offer.expires_at, now)) {
+    await markOutboxSent(client, row.id, row.attempts, now.toISOString());
+    return { outcome: "skipped" };
+  }
+
+  const { data: booking, error: bookingError } = await client
+    .from("bookings")
+    .select("id, status, cleaner_id")
+    .eq("id", bookingId)
+    .maybeSingle();
+
+  if (bookingError || !booking) {
+    return { outcome: "failed", code: "BOOKING_NOT_FOUND", message: "Booking not found." };
+  }
+
+  if (booking.status !== "pending_assignment") {
+    await markOutboxSent(client, row.id, row.attempts, now.toISOString());
+    return { outcome: "skipped" };
+  }
+
+  if (booking.cleaner_id != null) {
+    await markOutboxSent(client, row.id, row.attempts, now.toISOString());
+    return { outcome: "skipped" };
+  }
+
+  const resolved = await resolveCleanerEmail(client, row.recipient);
+  if (!resolved.ok) {
+    return {
+      outcome: "failed",
+      code: resolved.code,
+      message:
+        resolved.code === "NO_EMAIL"
+          ? "Cleaner has no email address."
+          : "Cleaner not found for recipient.",
+    };
+  }
+
+  const config = getNotificationDeliveryConfig();
+  const content = buildAssignmentOfferEmail({
+    cleanerDisplayName: resolved.recipient.displayName,
+    serviceLabel,
+    scheduleLabel,
+    locationLabel,
+    earningsLabel,
+    expiresAtLabel,
+    offersPageUrl: `${config.appBaseUrl}/cleaner/offers`,
+    supportEmail: config.supportEmail,
+  });
+
+  const sendResult: SendEmailResult = await emailSender({
+    to: resolved.recipient.email,
+    subject: content.subject,
+    html: content.html,
+    text: content.text,
+  });
+
+  if (!sendResult.ok) {
+    await markOutboxFailure(client, row, sendResult.error, sendResult.retryable, now);
+    return { outcome: "failed", code: "SEND_FAILED", message: sendResult.error };
+  }
+
+  await markOutboxSent(client, row.id, row.attempts, now.toISOString());
+  return { outcome: "sent" };
+}
+
 async function processPaymentFailedRow(
   client: SupabaseClient<Database>,
   row: NotificationOutboxRow,
@@ -288,7 +422,7 @@ async function processOneRow(
   emailSender: EmailSender,
   now: Date,
 ): Promise<"sent" | "skipped" | "failed"> {
-  if (!isDeliverableEmailRow(row)) {
+  if (!isDeliverableOutboxRow(row)) {
     return "skipped";
   }
 
@@ -302,18 +436,29 @@ async function processOneRow(
 
   try {
     const result =
-      template === PAYMENT_FAILED_TEMPLATE
-        ? await processPaymentFailedRow(client, row, emailSender, now)
-        : template === PAYMENT_CONFIRMED_TEMPLATE
-          ? await processPaymentConfirmedRow(client, row, emailSender, now)
-          : { outcome: "skipped" as const };
+      template === ASSIGNMENT_OFFER_TEMPLATE
+        ? await processAssignmentOfferRow(client, row, emailSender, now)
+        : template === PAYMENT_FAILED_TEMPLATE
+          ? await processPaymentFailedRow(client, row, emailSender, now)
+          : template === PAYMENT_CONFIRMED_TEMPLATE
+            ? await processPaymentConfirmedRow(client, row, emailSender, now)
+            : { outcome: "skipped" as const };
 
     if (result.outcome === "sent") return "sent";
     if (result.outcome === "skipped") return "skipped";
 
-    if (result.code === "NO_EMAIL" || result.code === "CUSTOMER_NOT_FOUND") {
+    if (
+      result.code === "NO_EMAIL" ||
+      result.code === "CUSTOMER_NOT_FOUND" ||
+      result.code === "CLEANER_NOT_FOUND"
+    ) {
       await markOutboxFailure(client, row, result.message, false, now);
-    } else if (result.code === "INVALID_PAYLOAD" || result.code === "BOOKING_NOT_FOUND") {
+    } else if (
+      result.code === "INVALID_PAYLOAD" ||
+      result.code === "BOOKING_NOT_FOUND" ||
+      result.code === "OFFER_NOT_FOUND" ||
+      result.code === "RECIPIENT_MISMATCH"
+    ) {
       await markOutboxFailure(client, row, result.message, false, now);
     }
     return "failed";
@@ -325,7 +470,8 @@ async function processOneRow(
 }
 
 /**
- * Processes pending payment_confirmed and payment_failed email rows.
+ * Processes pending payment_confirmed, payment_failed, and assignment_offer rows.
+ * assignment_offer uses channel push as an email placeholder until real push ships.
  * Other templates stay pending.
  */
 export async function processNotificationOutbox(
@@ -367,16 +513,16 @@ export async function processNotificationOutbox(
     .from("notification_outbox")
     .select("*")
     .eq("status", "pending")
-    .eq("channel", "email")
     .or(`next_retry_at.is.null,next_retry_at.lte.${nowIso}`)
+    .or(buildDeliverableOutboxTemplateOrFilter())
     .order("created_at", { ascending: true })
-    .limit(batchSize * 4);
+    .limit(batchSize);
 
   if (error) {
     throw new Error(error.message);
   }
 
-  const candidates = (rows ?? []).filter(isDeliverableEmailRow).slice(0, batchSize);
+  const candidates = (rows ?? []).filter(isDeliverableOutboxRow);
 
   let sent = 0;
   let skipped = 0;
