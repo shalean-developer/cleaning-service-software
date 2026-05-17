@@ -36,12 +36,15 @@ async function handleProcess(request: Request) {
     return NextResponse.json({
       ok: true,
       deliveryEnabled: result.deliveryEnabled,
+      emailProvider: result.emailProvider,
       reclaimed: result.reclaimed,
       scanned: result.scanned,
       sent: result.sent,
       skipped: result.skipped,
+      dryRun: result.dryRun,
       failed: result.failed,
       errors: result.errors,
+      dryRunPreviews: result.dryRunPreviews,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Notification outbox processing failed.";

@@ -15,9 +15,15 @@ Audit: [stage-5c-notification-system-operational-messaging-audit.md](../audits/s
 | `RESEND_API_KEY` | Yes (with Resend) | — | Resend API key |
 | `NOTIFICATION_FROM_EMAIL` | Yes | — | Verified sender, e.g. `bookings@yourdomain.com` |
 | `NOTIFICATION_SUPPORT_EMAIL` | No | — | Shown in email footer |
-| `APP_BASE_URL` or `NEXT_PUBLIC_APP_URL` | No | `http://localhost:3000` | Booking detail links |
+| `NOTIFICATION_EMAIL_PROVIDER` | No | `dry_run` when Resend missing; `resend` on Vercel production when configured | `dry_run` (no Resend) or `resend` (live sends) |
+| `NOTIFICATION_DRY_RUN_MARK_SENT` | No | `true` | When `false` with `dry_run`, rows stay `pending` and `last_error` stores preview metadata |
+| `APP_BASE_URL` | **Yes on Vercel** | — | Canonical hosted origin for email links (e.g. `https://cleaning-service-software.vercel.app`) |
+| `NEXT_PUBLIC_APP_URL` | Fallback | — | Used when `APP_BASE_URL` is unset |
+| `VERCEL_URL` | Auto on Vercel | — | Used when deployed and explicit URLs are missing or localhost |
 | `CRON_SECRET` | Yes (cron route) | — | Same as other cron routes |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | — | Worker reads outbox, bookings, auth |
+
+**APP_BASE_URL (5C-2c):** Set to the deployed site origin in staging/production. The notification config resolves `APP_BASE_URL` → `NEXT_PUBLIC_APP_URL` → `https://${VERCEL_URL}`. On Vercel preview/production, **localhost origins are never used for email links** when a public origin is available. Local dev may use `http://localhost:3000`.
 
 Optional future: `POSTMARK_SERVER_TOKEN` (not wired in 5C-1a; Resend is the active provider).
 
@@ -26,8 +32,9 @@ Optional future: `POSTMARK_SERVER_TOKEN` (not wired in 5C-1a; Resend is the acti
 | State | Worker behavior |
 |-------|-----------------|
 | `ENABLE_NOTIFICATION_DELIVERY` not `true` | **No-op** — returns `deliveryEnabled: false`, does not query or mutate outbox |
-| Flag on, missing `RESEND_API_KEY` or `NOTIFICATION_FROM_EMAIL` | **No-op** — same as disabled |
-| Flag on, provider configured | Processes up to **25** deliverable rows per run (`payment_confirmed`, `payment_failed`, `assignment_offer`) |
+| Flag on, `NOTIFICATION_EMAIL_PROVIDER=resend`, missing `RESEND_API_KEY` or `NOTIFICATION_FROM_EMAIL` | **No-op** — same as disabled |
+| Flag on, `dry_run` provider (default when Resend missing, or explicit) | Processes rows without calling Resend |
+| Flag on, `resend` provider and Resend configured | Live sends via Resend |
 
 Rows are **never** marked `sent` when delivery is disabled.
 
@@ -95,7 +102,8 @@ Deploy **5C-2a** (assignment offer email handler) and **5C-2b** (template-scoped
 | **Channel note** | Enqueued as `channel: push` from `OFFER_TO_CLEANER`; worker delivers as **email** in this slice (push placeholder). |
 | **Recipient** | `cleaners.id` → `profile_id` → auth email |
 | **Hydration** | Service label, schedule, suburb/city area (no street line), estimated earnings when preview exists, offer expiry |
-| **Primary link** | `{APP_BASE_URL}/cleaner/offers` — accept/decline only in authenticated dashboard |
+| **Area copy (5C-2c)** | Suburb + city only (never `address.line1` or full address). Generic or missing values (e.g. `Street`, `Street, Street`, empty) → **“Area available in dashboard”** |
+| **Primary link** | `{APP_BASE_URL}/cleaner/offers` — accept/decline only in authenticated dashboard; must be the hosted origin, not localhost |
 | **Stale-row guard** | Skip send (mark `sent`) if offer not `offered`, past `expires_at`, booking not `pending_assignment`, or `cleaner_id` already set |
 | **Delivery dedupe** | One email per `offerId` — skip if another `assignment_offer` row for same `offerId` is already `sent` |
 | **Enqueue** | Unchanged — one row per new offer from `OFFER_TO_CLEANER` |
@@ -103,6 +111,35 @@ Deploy **5C-2a** (assignment offer email handler) and **5C-2b** (template-scoped
 **Safe detail policy:** No customer name/phone/email, payment details, admin dispatch metadata, or direct accept/decline API links in email body.
 
 **Known limitations:** No email when offer cancelled/replaced before worker runs (row drained as skip); no “offer withdrawn” email; no real push; no per-offer deep link.
+
+## Dry-run testing (Stage 5C test mode)
+
+Use **`NOTIFICATION_EMAIL_PROVIDER=dry_run`** to exercise the worker without consuming Resend quota.
+
+| Setting | Behavior |
+|---------|----------|
+| `NOTIFICATION_EMAIL_PROVIDER=dry_run` | Never calls Resend; builds templates and resolves recipients as normal |
+| `NOTIFICATION_DRY_RUN_MARK_SENT=true` (default) | Marks rows `sent`; sets `last_error` to safe `dry_run_sent;template=…;bookingId=…;recipientType=…` metadata |
+| `NOTIFICATION_DRY_RUN_MARK_SENT=false` | Leaves rows `pending` with preview metadata in `last_error` (re-runnable) |
+
+**Provider defaults:**
+
+- Resend **not** configured → `dry_run`
+- Vercel **production** with Resend configured and provider unset → `resend`
+- Otherwise (local, preview, staging) with Resend configured and provider unset → `dry_run`
+
+**Production:** set `NOTIFICATION_EMAIL_PROVIDER=resend` explicitly.
+
+**Staging/local example:**
+
+```bash
+ENABLE_NOTIFICATION_DELIVERY=true
+NOTIFICATION_EMAIL_PROVIDER=dry_run
+APP_BASE_URL=https://cleaning-service-software.vercel.app
+# RESEND_API_KEY not required for dry_run
+```
+
+Cron response includes `emailProvider`, `dryRun`, and `dryRunPreviews` (template, `bookingId`, `offerId`, `recipientType` only — **no email addresses**).
 
 ## Cron route
 
@@ -119,12 +156,23 @@ Response (no email addresses):
 {
   "ok": true,
   "deliveryEnabled": true,
+  "emailProvider": "dry_run",
   "reclaimed": 0,
   "scanned": 3,
   "sent": 2,
   "skipped": 0,
+  "dryRun": 0,
   "failed": 1,
-  "errors": [{ "outboxId": "…", "code": "PROCESS_FAILED", "message": "…" }]
+  "errors": [{ "outboxId": "…", "code": "PROCESS_FAILED", "message": "…" }],
+  "dryRunPreviews": [
+    {
+      "outboxId": "…",
+      "template": "payment_confirmed",
+      "bookingId": "…",
+      "offerId": null,
+      "recipientType": "customer"
+    }
+  ]
 }
 ```
 

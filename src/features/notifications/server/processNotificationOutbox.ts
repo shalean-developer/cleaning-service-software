@@ -5,6 +5,7 @@ import {
   ASSIGNMENT_OFFER_TEMPLATE,
   canRunNotificationDelivery,
   getNotificationDeliveryConfig,
+  isNotificationDryRunProvider,
   NOTIFICATION_MAX_ATTEMPTS,
   NOTIFICATION_OUTBOX_BATCH_SIZE,
   NOTIFICATION_RETRY_BASE_MINUTES,
@@ -25,10 +26,16 @@ import { resolveCustomerEmail } from "./resolveCustomerEmail";
 import { buildAssignmentOfferEmail } from "./templates/assignmentOffer";
 import { buildPaymentConfirmedEmail } from "./templates/paymentConfirmed";
 import { buildPaymentFailedEmail } from "./templates/paymentFailed";
+import {
+  buildDryRunDeliveryPreview,
+  markOutboxSentAfterDelivery,
+  type DryRunDeliveryPreview,
+} from "./dryRunDelivery";
 import type { EmailSender, SendEmailResult } from "./sendEmail";
 import { reclaimStaleProcessingNotifications } from "./reclaimStaleProcessingNotifications";
-import { sendEmailViaResend } from "./sendEmail";
+import { resolveNotificationEmailSender } from "./sendEmail";
 import type { Database, Json, NotificationOutboxRow } from "@/lib/database/types";
+import type { NotificationEmailProvider } from "./config";
 
 export type ProcessNotificationOutboxError = {
   outboxId: string;
@@ -39,13 +46,18 @@ export type ProcessNotificationOutboxError = {
 export type ProcessNotificationOutboxResult = {
   ok: true;
   deliveryEnabled: boolean;
+  emailProvider: NotificationEmailProvider | null;
   /** Rows moved processing → pending because claim exceeded stale threshold. */
   reclaimed: number;
   scanned: number;
   sent: number;
   skipped: number;
+  /** Dry-run preview only (row left pending when NOTIFICATION_DRY_RUN_MARK_SENT=false). */
+  dryRun: number;
   failed: number;
   errors: ProcessNotificationOutboxError[];
+  /** Safe previews — no email addresses. */
+  dryRunPreviews: DryRunDeliveryPreview[];
 };
 
 function readTemplate(payload: Json): string | null {
@@ -171,8 +183,8 @@ async function releaseOutboxClaim(
 }
 
 type RowProcessResult =
-  | { outcome: "sent" }
-  | { outcome: "skipped" }
+  | { outcome: "sent"; dryRunPreview?: DryRunDeliveryPreview }
+  | { outcome: "skipped"; dryRunPreview?: DryRunDeliveryPreview }
   | { outcome: "failed"; code: string; message: string; retryable?: boolean };
 
 async function processPaymentConfirmedRow(
@@ -233,8 +245,12 @@ async function processPaymentConfirmedRow(
     return { outcome: "failed", code: "SEND_FAILED", message: sendResult.error };
   }
 
-  await markOutboxSent(client, row.id, row.attempts, now.toISOString());
-  return { outcome: "sent" };
+  const deliveryOutcome = await markOutboxSentAfterDelivery(client, row, now);
+  const preview = isNotificationDryRunProvider() ? buildDryRunDeliveryPreview(row) : undefined;
+  if (deliveryOutcome === "dry_run_preview") {
+    return { outcome: "skipped", dryRunPreview: preview };
+  }
+  return { outcome: "sent", dryRunPreview: preview };
 }
 
 async function processAssignmentOfferRow(
@@ -341,8 +357,12 @@ async function processAssignmentOfferRow(
     return { outcome: "failed", code: "SEND_FAILED", message: sendResult.error };
   }
 
-  await markOutboxSent(client, row.id, row.attempts, now.toISOString());
-  return { outcome: "sent" };
+  const deliveryOutcome = await markOutboxSentAfterDelivery(client, row, now);
+  const preview = isNotificationDryRunProvider() ? buildDryRunDeliveryPreview(row) : undefined;
+  if (deliveryOutcome === "dry_run_preview") {
+    return { outcome: "skipped", dryRunPreview: preview };
+  }
+  return { outcome: "sent", dryRunPreview: preview };
 }
 
 async function processPaymentFailedRow(
@@ -418,24 +438,30 @@ async function processPaymentFailedRow(
     return { outcome: "failed", code: "SEND_FAILED", message: sendResult.error };
   }
 
-  await markOutboxSent(client, row.id, row.attempts, now.toISOString());
-  return { outcome: "sent" };
+  const deliveryOutcome = await markOutboxSentAfterDelivery(client, row, now);
+  const preview = isNotificationDryRunProvider() ? buildDryRunDeliveryPreview(row) : undefined;
+  if (deliveryOutcome === "dry_run_preview") {
+    return { outcome: "skipped", dryRunPreview: preview };
+  }
+  return { outcome: "sent", dryRunPreview: preview };
 }
+
+type RowOutcome = "sent" | "skipped" | "failed" | "dry_run";
 
 async function processOneRow(
   client: SupabaseClient<Database>,
   row: NotificationOutboxRow,
   emailSender: EmailSender,
   now: Date,
-): Promise<"sent" | "skipped" | "failed"> {
+): Promise<{ outcome: RowOutcome; dryRunPreview?: DryRunDeliveryPreview }> {
   if (!isDeliverableOutboxRow(row)) {
-    return "skipped";
+    return { outcome: "skipped" };
   }
 
   const nowIso = now.toISOString();
   const claimed = await claimOutboxRow(client, row.id, nowIso);
   if (!claimed) {
-    return "skipped";
+    return { outcome: "skipped" };
   }
 
   const template = readTemplate(row.payload);
@@ -450,8 +476,15 @@ async function processOneRow(
             ? await processPaymentConfirmedRow(client, row, emailSender, now)
             : { outcome: "skipped" as const };
 
-    if (result.outcome === "sent") return "sent";
-    if (result.outcome === "skipped") return "skipped";
+    if (result.outcome === "sent") {
+      return { outcome: "sent", dryRunPreview: result.dryRunPreview };
+    }
+    if (result.outcome === "skipped") {
+      if (result.dryRunPreview) {
+        return { outcome: "dry_run", dryRunPreview: result.dryRunPreview };
+      }
+      return { outcome: "skipped" };
+    }
 
     if (
       result.code === "NO_EMAIL" ||
@@ -467,11 +500,11 @@ async function processOneRow(
     ) {
       await markOutboxFailure(client, row, result.message, false, now);
     }
-    return "failed";
+    return { outcome: "failed" };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Notification processing failed.";
     await markOutboxFailure(client, row, message, true, now);
-    return "failed";
+    return { outcome: "failed" };
   }
 }
 
@@ -497,22 +530,27 @@ export async function processNotificationOutbox(
     staleMinutes: options.staleMinutes,
   });
 
+  const deliveryConfig = getNotificationDeliveryConfig();
+
   const empty = (deliveryEnabled: boolean): ProcessNotificationOutboxResult => ({
     ok: true,
     deliveryEnabled,
+    emailProvider: deliveryEnabled ? deliveryConfig.emailProvider : null,
     reclaimed,
     scanned: 0,
     sent: 0,
     skipped: 0,
+    dryRun: 0,
     failed: 0,
     errors: [],
+    dryRunPreviews: [],
   });
 
   if (!canRunNotificationDelivery()) {
     return empty(false);
   }
   const batchSize = options.batchSize ?? NOTIFICATION_OUTBOX_BATCH_SIZE;
-  const emailSender = options.emailSender ?? sendEmailViaResend;
+  const emailSender = options.emailSender ?? resolveNotificationEmailSender();
   const nowIso = now.toISOString();
 
   const { data: rows, error } = await client
@@ -532,16 +570,25 @@ export async function processNotificationOutbox(
 
   let sent = 0;
   let skipped = 0;
+  let dryRun = 0;
   let failed = 0;
   const errors: ProcessNotificationOutboxError[] = [];
+  const dryRunPreviews: DryRunDeliveryPreview[] = [];
 
   for (const row of candidates) {
     try {
-      const outcome = await processOneRow(client, row, emailSender, now);
-      if (outcome === "sent") sent += 1;
-      else if (outcome === "skipped") skipped += 1;
-      else failed += 1;
-      if (outcome === "failed") {
+      const { outcome, dryRunPreview } = await processOneRow(client, row, emailSender, now);
+      if (outcome === "sent") {
+        sent += 1;
+        if (dryRunPreview) dryRunPreviews.push(dryRunPreview);
+      } else if (outcome === "dry_run") {
+        dryRun += 1;
+        skipped += 1;
+        if (dryRunPreview) dryRunPreviews.push(dryRunPreview);
+      } else if (outcome === "skipped") {
+        skipped += 1;
+      } else {
+        failed += 1;
         errors.push({
           outboxId: row.id,
           code: "PROCESS_FAILED",
@@ -567,11 +614,14 @@ export async function processNotificationOutbox(
   return {
     ok: true,
     deliveryEnabled: true,
+    emailProvider: deliveryConfig.emailProvider,
     reclaimed,
     scanned: candidates.length,
     sent,
     skipped,
+    dryRun,
     failed,
     errors,
+    dryRunPreviews,
   };
 }

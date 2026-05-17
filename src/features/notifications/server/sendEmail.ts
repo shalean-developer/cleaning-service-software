@@ -1,7 +1,7 @@
 import "server-only";
 
 import { Resend } from "resend";
-import { getNotificationDeliveryConfig } from "./config";
+import { getNotificationDeliveryConfig, resolveNotificationEmailProvider } from "./config";
 
 export type SendEmailParams = {
   to: string;
@@ -15,6 +15,20 @@ export type SendEmailResult =
   | { ok: false; error: string; retryable: boolean };
 
 export type EmailSender = (params: SendEmailParams) => Promise<SendEmailResult>;
+
+/**
+ * Dry-run transport: never calls Resend; safe for staging and unit tests.
+ */
+export async function sendEmailDryRun(_params: SendEmailParams): Promise<SendEmailResult> {
+  return { ok: true, messageId: `dry_run_${Date.now()}` };
+}
+
+export function resolveNotificationEmailSender(): EmailSender {
+  if (resolveNotificationEmailProvider() === "dry_run") {
+    return sendEmailDryRun;
+  }
+  return sendEmailViaResend;
+}
 
 function classifySendError(message: string): boolean {
   const lower = message.toLowerCase();

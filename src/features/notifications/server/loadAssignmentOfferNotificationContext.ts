@@ -22,10 +22,65 @@ export type AssignmentOfferNotificationContext = {
   expiresAtLabel: string | null;
 };
 
-/** Suburb/city only — no street line in offer emails. */
+export const OFFER_EMAIL_AREA_FALLBACK = "Area available in dashboard" as const;
+
+const GENERIC_OFFER_LOCATION_VALUES = new Set([
+  "street",
+  "test",
+  "testing",
+  "tbd",
+  "n/a",
+  "na",
+  "unknown",
+  "placeholder",
+  "sample",
+  "address",
+  "line1",
+  "line 1",
+]);
+
+function normalizeOfferLocationPart(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+/** True when a suburb/city value is empty or unsuitable for cleaner offer email copy. */
+export function isGenericOfferLocationPart(value: string | null | undefined): boolean {
+  if (!value?.trim()) return true;
+  const normalized = normalizeOfferLocationPart(value);
+  if (GENERIC_OFFER_LOCATION_VALUES.has(normalized)) return true;
+  if (/^street\s*\d*$/i.test(normalized)) return true;
+  return false;
+}
+
+/** Suburb/city only — no street line; safe fallback for missing or test placeholders. */
 export function formatOfferLocationForEmail(display: BookingDisplayFields): string {
-  const parts = [display.suburb, display.city].filter(Boolean);
-  return parts.length > 0 ? parts.join(", ") : "—";
+  const addressLine = display.addressLine?.trim() || null;
+  const suburbRaw = display.suburb?.trim() || null;
+  const cityRaw = display.city?.trim() || null;
+
+  const suburb =
+    suburbRaw &&
+    !isGenericOfferLocationPart(suburbRaw) &&
+    suburbRaw !== addressLine
+      ? suburbRaw
+      : null;
+  const city =
+    cityRaw && !isGenericOfferLocationPart(cityRaw) && cityRaw !== addressLine ? cityRaw : null;
+
+  const parts: string[] = [];
+  if (suburb) parts.push(suburb);
+  if (city && city !== suburb) parts.push(city);
+
+  if (parts.length === 0) {
+    return OFFER_EMAIL_AREA_FALLBACK;
+  }
+
+  const label = parts.join(", ");
+  if (/^street,\s*street$/i.test(label)) {
+    return OFFER_EMAIL_AREA_FALLBACK;
+  }
+
+  return label;
 }
 
 export function formatOfferExpiryLabel(expiresAt: string | null): string | null {

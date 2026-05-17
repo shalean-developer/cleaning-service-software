@@ -19,12 +19,23 @@ describe("GET /api/cron/process-notification-outbox", () => {
     processMock.mockResolvedValue({
       ok: true,
       deliveryEnabled: true,
+      emailProvider: "dry_run",
       reclaimed: 0,
       scanned: 2,
       sent: 1,
       skipped: 0,
+      dryRun: 0,
       failed: 1,
       errors: [{ outboxId: "o1", code: "PROCESS_FAILED", message: "Row processing failed." }],
+      dryRunPreviews: [
+        {
+          outboxId: "o1",
+          template: "payment_confirmed",
+          bookingId: "booking-1",
+          offerId: null,
+          recipientType: "customer",
+        },
+      ],
     });
   });
 
@@ -53,6 +64,9 @@ describe("GET /api/cron/process-notification-outbox", () => {
     expect(body.ok).toBe(true);
     expect(body.sent).toBe(1);
     expect(body.scanned).toBe(2);
+    expect(body.emailProvider).toBe("dry_run");
+    expect(body.dryRunPreviews).toHaveLength(1);
+    expect(JSON.stringify(body)).not.toMatch(/@/);
     expect(body).not.toHaveProperty("email");
     expect(processMock).toHaveBeenCalledOnce();
   });

@@ -43,4 +43,22 @@ describe("assignmentOffer email template", () => {
     expect(content.text).not.toContain("R 0");
     expect(content.text).not.toContain("Estimated earnings:");
   });
+
+  it("does not include street address in area line", () => {
+    const content = buildAssignmentOfferEmail({
+      cleanerDisplayName: "Jordan",
+      serviceLabel: "Standard cleaning",
+      scheduleLabel: "Mon 1 Jun, 10:00 – 12:00",
+      locationLabel: "Area available in dashboard",
+      earningsLabel: null,
+      expiresAtLabel: null,
+      offersPageUrl: "https://cleaning-service-software.vercel.app/cleaner/offers",
+      supportEmail: null,
+    });
+
+    expect(content.text).toContain("Area: Area available in dashboard");
+    expect(content.text).not.toMatch(/Secret Street|line1|street address/i);
+    expect(content.html).toContain("https://cleaning-service-software.vercel.app/cleaner/offers");
+    expect(content.html).not.toContain("localhost");
+  });
 });

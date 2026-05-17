@@ -3,7 +3,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database/types";
 import {
   formatOfferLocationForEmail,
+  isGenericOfferLocationPart,
   loadAssignmentOfferNotificationContext,
+  OFFER_EMAIL_AREA_FALLBACK,
   resolveOfferEarningsLabelForEmail,
 } from "./loadAssignmentOfferNotificationContext";
 
@@ -27,6 +29,53 @@ describe("loadAssignmentOfferNotificationContext", () => {
     });
     expect(label).toBe("Sea Point, Cape Town");
     expect(label).not.toContain("Secret Street");
+  });
+
+  it("uses safe fallback for generic Street, Street test placeholders", () => {
+    const label = formatOfferLocationForEmail({
+      serviceSlug: "standard-cleaning",
+      serviceLabel: "Standard cleaning",
+      suburb: "Street",
+      city: "Street",
+      addressLine: "12 Secret Street",
+      locationSummary: "12 Secret Street, Street, Street",
+      cleanerPreferenceMode: null,
+      preferredCleanerId: null,
+      specialInstructions: null,
+      assignmentAttention: null,
+      assignmentReason: null,
+      assignmentVisibilityKey: null,
+      assignmentCustomerMessage: null,
+      showCustomerAssignmentWarning: false,
+    });
+    expect(label).toBe(OFFER_EMAIL_AREA_FALLBACK);
+    expect(label).not.toContain("Street, Street");
+  });
+
+  it("uses safe fallback when suburb and city are missing", () => {
+    const label = formatOfferLocationForEmail({
+      serviceSlug: null,
+      serviceLabel: "Cleaning service",
+      suburb: null,
+      city: null,
+      addressLine: "12 Secret Street",
+      locationSummary: "12 Secret Street",
+      cleanerPreferenceMode: null,
+      preferredCleanerId: null,
+      specialInstructions: null,
+      assignmentAttention: null,
+      assignmentReason: null,
+      assignmentVisibilityKey: null,
+      assignmentCustomerMessage: null,
+      showCustomerAssignmentWarning: false,
+    });
+    expect(label).toBe(OFFER_EMAIL_AREA_FALLBACK);
+    expect(label).not.toContain("Secret Street");
+  });
+
+  it("flags generic location placeholders", () => {
+    expect(isGenericOfferLocationPart("Street")).toBe(true);
+    expect(isGenericOfferLocationPart("Sea Point")).toBe(false);
   });
 
   it("loads offer context with earnings from quote preview", async () => {

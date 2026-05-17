@@ -193,6 +193,10 @@ function createMockClient(db: MockDb): SupabaseClient<Database> {
                           const row = applyToRow((r) => r.id === val && r.status === val2);
                           return { data: row ? [{ id: row.id }] : [], error: null };
                         },
+                        then: (resolve: (v: { error: null }) => void) => {
+                          applyToRow((r) => r.id === val && r.status === val2);
+                          return Promise.resolve(resolve({ error: null }));
+                        },
                       };
                     }
                     return {
@@ -1047,5 +1051,99 @@ describe("processNotificationOutbox", () => {
     expect(result.scanned).toBe(2);
     expect(result.sent).toBe(1);
     expect(result.failed).toBe(1);
+  });
+
+  it("dry_run processes payment_confirmed, payment_failed, and assignment_offer", async () => {
+    process.env.NOTIFICATION_EMAIL_PROVIDER = "dry_run";
+    delete process.env.RESEND_API_KEY;
+
+    const db: MockDb = {
+      outbox: [
+        outboxRow({ id: "o-pc", recipient: "cust-1" }),
+        outboxRow({
+          id: "o-pf",
+          recipient: "cust-1",
+          payload: { template: "payment_failed", bookingId: "booking-1" },
+        }),
+        offerOutboxRow({ id: "o-offer", recipient: "cleaner-1" }),
+      ],
+      bookings: {
+        "booking-1": { ...defaultFailedBooking, status: "payment_failed" },
+        "booking-offer-1": defaultOfferBooking,
+      },
+      customers: { "cust-1": { id: "cust-1", profile_id: "profile-1" } },
+      cleaners: { "cleaner-1": { id: "cleaner-1", profile_id: "profile-c1" } },
+      assignment_offers: { "offer-1": defaultOpenOffer() },
+      profiles: {
+        "profile-1": { full_name: "Alex" },
+        "profile-c1": { full_name: "Jordan" },
+      },
+      authEmails: {
+        "profile-1": "alex@example.com",
+        "profile-c1": "jordan@example.com",
+      },
+    };
+    const client = createMockClient(db);
+    const result = await processNotificationOutbox(client);
+
+    expect(result.emailProvider).toBe("dry_run");
+    expect(result.sent).toBe(3);
+    expect(result.dryRunPreviews).toHaveLength(3);
+    expect(result.dryRunPreviews.map((p) => p.template).sort()).toEqual([
+      "assignment_offer",
+      "payment_confirmed",
+      "payment_failed",
+    ]);
+    expect(JSON.stringify(result.dryRunPreviews)).not.toContain("@");
+  });
+
+  it("dry_run assignment_offer links use APP_BASE_URL", async () => {
+    process.env.NOTIFICATION_EMAIL_PROVIDER = "dry_run";
+    process.env.APP_BASE_URL = "https://cleaning-service-software.vercel.app";
+
+    const db: MockDb = {
+      outbox: [offerOutboxRow({ id: "o-offer", recipient: "cleaner-1" })],
+      bookings: { "booking-offer-1": defaultOfferBooking },
+      assignment_offers: { "offer-1": defaultOpenOffer() },
+      cleaners: { "cleaner-1": { id: "cleaner-1", profile_id: "profile-c1" } },
+      customers: {},
+      profiles: { "profile-c1": { full_name: "Jordan" } },
+      authEmails: { "profile-c1": "jordan@example.com" },
+    };
+    const client = createMockClient(db);
+    const emailSender: EmailSender = vi.fn(async (params) => {
+      expect(params.text).toContain(
+        "https://cleaning-service-software.vercel.app/cleaner/offers",
+      );
+      expect(params.text).not.toContain("localhost");
+      return { ok: true as const, messageId: "dry_run_test" };
+    });
+
+    await processNotificationOutbox(client, { emailSender });
+  });
+
+  it("dry_run preview-only leaves row pending when NOTIFICATION_DRY_RUN_MARK_SENT=false", async () => {
+    process.env.NOTIFICATION_EMAIL_PROVIDER = "dry_run";
+    process.env.NOTIFICATION_DRY_RUN_MARK_SENT = "false";
+
+    const db: MockDb = {
+      outbox: [outboxRow({ id: "o-pc", recipient: "cust-1" })],
+      bookings: {
+        "booking-1": { ...defaultFailedBooking, status: "confirmed" },
+      },
+      customers: { "cust-1": { id: "cust-1", profile_id: "profile-1" } },
+      cleaners: {},
+      assignment_offers: {},
+      profiles: { "profile-1": { full_name: "Alex" } },
+      authEmails: { "profile-1": "alex@example.com" },
+    };
+    const client = createMockClient(db);
+    const result = await processNotificationOutbox(client);
+
+    expect(result.dryRun).toBe(1);
+    expect(result.sent).toBe(0);
+    expect(db.outbox[0]!.status).toBe("pending");
+    expect(db.outbox[0]!.last_error).toContain("dry_run_sent");
+    expect(db.outbox[0]!.last_error).not.toContain("@");
   });
 });

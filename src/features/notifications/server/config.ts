@@ -1,5 +1,9 @@
 import "server-only";
 
+import { isDeployedRuntime, resolveNotificationAppBaseUrl } from "@/lib/app/appBaseUrl";
+
+export type NotificationEmailProvider = "dry_run" | "resend";
+
 export const PAYMENT_CONFIRMED_TEMPLATE = "payment_confirmed" as const;
 export const PAYMENT_FAILED_TEMPLATE = "payment_failed" as const;
 export const ASSIGNMENT_OFFER_TEMPLATE = "assignment_offer" as const;
@@ -40,11 +44,52 @@ export function getProcessingStaleMinutes(): number {
 
 export type NotificationDeliveryConfig = {
   enabled: boolean;
+  emailProvider: NotificationEmailProvider;
   providerReady: boolean;
   fromEmail: string | null;
   supportEmail: string | null;
   appBaseUrl: string;
 };
+
+function isResendConfigured(): boolean {
+  return Boolean(
+    process.env.RESEND_API_KEY?.trim() && process.env.NOTIFICATION_FROM_EMAIL?.trim(),
+  );
+}
+
+/**
+ * Resolves email transport for the notification worker.
+ * Defaults to dry_run when Resend is not configured; production defaults to resend when configured.
+ */
+export function resolveNotificationEmailProvider(): NotificationEmailProvider {
+  const explicit = process.env.NOTIFICATION_EMAIL_PROVIDER?.trim().toLowerCase();
+  if (explicit === "dry_run" || explicit === "resend") {
+    return explicit;
+  }
+
+  if (!isResendConfigured()) {
+    return "dry_run";
+  }
+
+  if (isDeployedRuntime() && process.env.VERCEL_ENV === "production") {
+    return "resend";
+  }
+
+  return "dry_run";
+}
+
+export function isNotificationDryRunProvider(): boolean {
+  return resolveNotificationEmailProvider() === "dry_run";
+}
+
+/** When false, dry_run logs preview on the row and leaves it pending (last_error metadata). */
+export function shouldMarkDryRunSent(): boolean {
+  const raw = process.env.NOTIFICATION_DRY_RUN_MARK_SENT?.trim().toLowerCase();
+  if (raw === "false" || raw === "0" || raw === "no") {
+    return false;
+  }
+  return true;
+}
 
 function parseBooleanEnv(value: string | undefined): boolean {
   if (!value) return false;
@@ -60,24 +105,25 @@ export function getNotificationDeliveryConfig(): NotificationDeliveryConfig {
   const fromEmail = process.env.NOTIFICATION_FROM_EMAIL?.trim() || null;
   const resendKey = process.env.RESEND_API_KEY?.trim();
   const postmarkToken = process.env.POSTMARK_SERVER_TOKEN?.trim();
-  const providerReady = Boolean(fromEmail && (resendKey || postmarkToken));
-
-  const appBaseUrl =
-    process.env.APP_BASE_URL?.trim() ||
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    "http://localhost:3000";
+  const emailProvider = resolveNotificationEmailProvider();
+  const providerReady =
+    emailProvider === "dry_run" ||
+    Boolean(fromEmail && (resendKey || postmarkToken));
 
   return {
     enabled: isNotificationDeliveryEnabled(),
+    emailProvider,
     providerReady,
     fromEmail,
     supportEmail: process.env.NOTIFICATION_SUPPORT_EMAIL?.trim() || null,
-    appBaseUrl: appBaseUrl.replace(/\/$/, ""),
+    appBaseUrl: resolveNotificationAppBaseUrl(),
   };
 }
 
-/** Delivery may run only when flag is on and provider env is complete. */
+/** Delivery may run only when flag is on and the selected provider is ready. */
 export function canRunNotificationDelivery(): boolean {
   const config = getNotificationDeliveryConfig();
-  return config.enabled && config.providerReady;
+  if (!config.enabled) return false;
+  if (config.emailProvider === "dry_run") return true;
+  return config.providerReady;
 }
