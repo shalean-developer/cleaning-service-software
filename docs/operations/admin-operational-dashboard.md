@@ -16,7 +16,7 @@ Related runbooks:
 
 | Route | Purpose |
 |-------|---------|
-| `/admin` | Summary counts + preview of assignment attention + recent bookings |
+| `/admin` | Operational queue strip (exact counts) + assignment preview + recent bookings |
 | `/admin/bookings` | All bookings with filters and search |
 | `/admin/bookings/[id]` | **Operational status panel** (recovery, manual dispatch, replace — Stage 6D-1), audit timelines, payout actions |
 | `/admin/assignments` | Assignment queue with per-booking guidance |
@@ -25,20 +25,28 @@ Related runbooks:
 
 ---
 
-## Summary counts (home)
+## Operational Queue Summary Strip (Stage 7A-1)
 
-| Card | Meaning | Admin action |
-|------|---------|--------------|
-| **Assignment attention** | Bookings in the assignment queue (see below) | Monitor queue; use booking detail operational panel when eligible |
-| **Payment issues** | Bookings with `status = payment_failed` | Customer must retry payment; see [payment-failed-customer-retry.md](./payment-failed-customer-retry.md) |
-| **Recovery needed** | Paid bookings eligible for post-payment recovery (`dispatch_not_started` or recovery candidate) | Use **Recover assignment** on booking detail when eligible, or cron / ops script for batch — see [assignment-recovery.md](./assignment-recovery.md) |
+The **Operational Queue Summary Strip** (`AdminOperationalQueueStrip`) is a read-only horizontal strip on **home**, **bookings**, and **assignments**. Each chip shows an **exact** booking count across **all** bookings (SQL `count(*)`, same semantics as `/admin/bookings?filter=…` `matchTotal`) and deep-links to `/admin/bookings?filter={filter}` for that queue.
 
-Home shows up to **5** preview cards for assignment attention; the card total is the **full queue count**.
+| Chip | `filter` param | Meaning | Admin action |
+|------|----------------|---------|--------------|
+| **Needs assignment** | `pending_assignment` | `status = pending_assignment` | Review filtered list; dispatch from booking detail when eligible |
+| **Dispatch not started** | `dispatch_not_started` | Paid, dispatch not started (6C visibility) | Monitor; recovery on booking detail or cron — see [assignment-recovery.md](./assignment-recovery.md) |
+| **Recovery needed** | `recovery_needed` | Recovery eligible or dispatch not started | **Recover assignment** on booking detail when eligible |
+| **Payment attention** | `payment_failed` | `status = payment_failed` | Customer must retry — see [payment-failed-customer-retry.md](./payment-failed-customer-retry.md) |
+| **Assignment attention** | `assignment_attention` | Composed 6C attention preset (needs assignment, declined, max attempts, etc.) | Open filtered bookings; triage work queue at `/admin/assignments` |
 
-List limits (loaded from DB, then filtered in app):
+**Deep links:** Every chip navigates to `/admin/bookings?filter=…` (for example `/admin/bookings?filter=payment_failed`). There is no separate count API — counts are computed server-side on each page load.
 
-- Bookings list: **200** newest by `updated_at`
-- Assignment queue scan: **100** `pending_assignment` / `confirmed` bookings
+**Counts vs work queue:** The **Assignment attention** chip count uses `filter=assignment_attention` across **all** bookings (global exact count). **`/admin/assignments`** remains the detailed assignment work queue (scan of up to **100** `pending_assignment` / `confirmed` rows, in-app heuristics for day-to-day triage) and **may not match** the Assignment attention chip total exactly.
+
+Home still shows up to **5** preview rows under “Needs attention” from the assignments work queue (not the chip total).
+
+**List limits elsewhere (unchanged):**
+
+- Bookings list (no filter): **200** newest by `updated_at`
+- Assignment work queue scan: **100** `pending_assignment` / `confirmed` bookings
 
 ---
 

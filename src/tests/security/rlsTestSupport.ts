@@ -339,6 +339,17 @@ export function createUserScopedClient(
   });
 }
 
+async function ensurePhase2AuthPassword(
+  serviceClient: SupabaseClient<Database>,
+  userId: string,
+): Promise<void> {
+  const { error } = await serviceClient.auth.admin.updateUserById(userId, {
+    password: PHASE2_TEST_PASSWORD,
+    email_confirm: true,
+  });
+  if (error) throw new Error(postgrestErrorText(error));
+}
+
 export async function provisionPhase2AuthUser(
   serviceClient: SupabaseClient<Database>,
   slug: string,
@@ -350,6 +361,7 @@ export async function provisionPhase2AuthUser(
   if (existing.error) throw new Error(existing.error.message);
   const found = (existing.data.users ?? []).find((u) => u.email === email);
   if (found) {
+    await ensurePhase2AuthPassword(serviceClient, found.id);
     await serviceClient.from("profiles").upsert(
       { id: found.id, role, full_name: `Phase 2 ${slug}` },
       { onConflict: "id" },
@@ -372,6 +384,7 @@ export async function provisionPhase2AuthUser(
   }
 
   const profileId = created.data.user.id;
+  await ensurePhase2AuthPassword(serviceClient, profileId);
   await serviceClient.from("profiles").upsert(
     { id: profileId, role, full_name: `Phase 2 ${slug}` },
     { onConflict: "id" },
@@ -488,10 +501,11 @@ export async function cleanupPhase2Run(
 
   const { data: cleaners } = await serviceClient
     .from("cleaners")
-    .select("id, profile_id")
+    .select("id, profile_id, phone")
     .like("phone", `${PHASE2_TEST_PREFIX}%`);
 
   for (const cleaner of cleaners ?? []) {
+    if (!cleaner.phone?.includes(marker)) continue;
     await serviceClient.from("cleaners").delete().eq("id", cleaner.id);
     await serviceClient.from("profiles").delete().eq("id", cleaner.profile_id);
     await serviceClient.auth.admin.deleteUser(cleaner.profile_id);

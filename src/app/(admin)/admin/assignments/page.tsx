@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listAdminAssignmentQueue } from "@/features/dashboards/server/adminOperationsReadModel";
+import { getAdminOperationalQueueCounts } from "@/features/dashboards/server/adminOperationalQueueCounts";
+import { AdminOperationalQueueStrip } from "@/components/dashboard/AdminOperationalQueueStrip";
 import { AdminAssignmentQueueGuidance } from "@/components/dashboard/AdminAssignmentQueueGuidance";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -23,7 +25,10 @@ export default async function AdminAssignmentsPage() {
   const user = await getCurrentUser();
   if (!user) return null;
 
-  const result = await listAdminAssignmentQueue(user);
+  const [result, queueCounts] = await Promise.all([
+    listAdminAssignmentQueue(user),
+    getAdminOperationalQueueCounts(user),
+  ]);
 
   return (
     <DashboardShell
@@ -31,6 +36,8 @@ export default async function AdminAssignmentsPage() {
       subtitle="Bookings needing dispatch attention or with open offers."
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
+      {queueCounts.ok ? <AdminOperationalQueueStrip queues={queueCounts.queues} /> : null}
+
       {result.ok && result.total > 0 ? (
         <p className="mb-4 text-sm text-zinc-600">
           {result.items.length} of {result.total} in queue

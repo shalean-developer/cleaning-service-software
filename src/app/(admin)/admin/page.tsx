@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
-import {
-  getAdminOperationsSummary,
-  listAdminAssignmentQueue,
-  listAdminBookings,
-} from "@/features/dashboards/server/adminOperationsReadModel";
+import { listAdminAssignmentQueue, listAdminBookings } from "@/features/dashboards/server/adminOperationsReadModel";
+import { getAdminOperationalQueueCounts } from "@/features/dashboards/server/adminOperationalQueueCounts";
 import { ADMIN_HOME_PREVIEW_LIMIT } from "@/features/dashboards/server/adminOperationalHelpers";
-import { AdminOpsSummaryCards } from "@/components/dashboard/AdminOpsSummaryCards";
+import { AdminOperationalQueueStrip } from "@/components/dashboard/AdminOperationalQueueStrip";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -25,7 +22,7 @@ export default async function AdminHomePage() {
   const user = await getCurrentUser();
   const bookings = user ? await listAdminBookings(user) : null;
   const queue = user ? await listAdminAssignmentQueue(user) : null;
-  const opsSummary = user ? await getAdminOperationsSummary(user) : null;
+  const queueCounts = user ? await getAdminOperationalQueueCounts(user) : null;
 
   const recent = bookings?.ok ? bookings.bookings.slice(0, 5) : [];
   const attention = queue?.ok ? queue.items.slice(0, ADMIN_HOME_PREVIEW_LIMIT) : [];
@@ -37,7 +34,7 @@ export default async function AdminHomePage() {
       subtitle="Bookings, payments, and assignment oversight."
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
-      {opsSummary?.ok ? <AdminOpsSummaryCards summary={opsSummary.summary} /> : null}
+      {queueCounts?.ok ? <AdminOperationalQueueStrip queues={queueCounts.queues} /> : null}
 
       <section className="mb-6 text-sm text-zinc-600">
         {attentionTotal > 0 ? (

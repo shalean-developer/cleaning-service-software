@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listAdminBookings } from "@/features/dashboards/server/adminOperationsReadModel";
+import { getAdminOperationalQueueCounts } from "@/features/dashboards/server/adminOperationalQueueCounts";
+import { AdminOperationalQueueStrip } from "@/components/dashboard/AdminOperationalQueueStrip";
 import type { AdminBookingFilter } from "@/features/dashboards/server/adminOperationalHelpers";
 import { AdminBookingsFilters } from "@/components/dashboard/AdminBookingsFilters";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
@@ -52,12 +54,15 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
       ? (filterParam as AdminBookingFilter)
       : undefined;
 
-  const result = await listAdminBookings(user, {
-    filter,
-    search: params.q,
-    scheduledFrom: params.from,
-    scheduledTo: params.to,
-  });
+  const [result, queueCounts] = await Promise.all([
+    listAdminBookings(user, {
+      filter,
+      search: params.q,
+      scheduledFrom: params.from,
+      scheduledTo: params.to,
+    }),
+    getAdminOperationalQueueCounts(user),
+  ]);
 
   return (
     <DashboardShell
@@ -65,6 +70,10 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
       subtitle="Lifecycle, payment, and assignment state across customers."
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
+      {queueCounts.ok ? (
+        <AdminOperationalQueueStrip queues={queueCounts.queues} activeFilter={filter} />
+      ) : null}
+
       {result.ok ? (
         <AdminBookingsFilters
           filter={filter}

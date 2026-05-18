@@ -73,7 +73,7 @@ describe("paymentFailed email template", () => {
       bookingDetailUrl: `https://app.example.com/customer/bookings/${bookingId}`,
       supportEmail: "help@shalean.co.za",
     });
-    expect(content.text).toContain("could not confirm payment");
+    expect(content.text).toContain("declined this payment");
     expect(content.text).toContain("start a new booking");
     expect(content.text).not.toContain("retry payment on the same booking");
     expect(content.text).toContain(shortBookingReference(bookingId));
