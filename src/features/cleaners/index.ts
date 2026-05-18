@@ -19,5 +19,14 @@ export {
   type CleanerLifecycleSnapshot,
   type CleanerOperationalState,
 } from "./server/lifecycle/operationalState";
+export {
+  archiveCleaner,
+  cancelCleanerOpenOffers,
+  deactivateCleaner,
+  reactivateCleaner,
+  suspendCleaner,
+  unsuspendCleaner,
+  type CleanerLifecycleCommandResult,
+} from "./server/lifecycle";
 export { pickBestAvailable } from "./server/eligibility/rank";
 export { normalizeAreaSlug } from "./server/eligibility/normalize";
