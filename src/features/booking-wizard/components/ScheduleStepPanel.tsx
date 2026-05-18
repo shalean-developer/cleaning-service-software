@@ -295,13 +295,10 @@ export function ScheduleStepPanel({
 
   return (
     <div className="w-full min-w-0">
-      <WizardStepHeading
-        title="Schedule your clean"
-        subtitle="Choose the date and start time that works best for you."
-      />
+      <WizardStepHeading title="Schedule" />
 
-      <p className="mt-3 text-xs leading-relaxed text-zinc-400">
-        Times shown in South Africa time.
+      <p className="mt-2 text-xs leading-relaxed text-zinc-500">
+        Times in South Africa (SAST).
       </p>
 
       <section className="mt-6 min-w-0" aria-labelledby="schedule-date-heading">
@@ -309,7 +306,7 @@ export function ScheduleStepPanel({
           id="schedule-date-heading"
           className="text-sm font-medium text-zinc-800"
         >
-          Which day would you like us to come?
+          Date
         </h3>
 
         <div className="mt-3 min-w-0" role="group" aria-label="Available dates">
@@ -366,7 +363,7 @@ export function ScheduleStepPanel({
           id="schedule-time-heading"
           className="text-sm font-medium text-zinc-800"
         >
-          What time would you like us to arrive?
+          Arrival time
         </h3>
 
         <div

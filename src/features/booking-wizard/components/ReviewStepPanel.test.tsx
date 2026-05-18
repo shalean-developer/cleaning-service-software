@@ -24,6 +24,8 @@ describe("ReviewStepPanel", () => {
         addressLine1="12 Main Rd"
         suburb="Sea Point"
         city="Cape Town"
+        contactPhone=""
+        profilePhone={null}
         bedrooms={2}
         bathrooms={1}
         extraRooms={2}
@@ -42,11 +44,15 @@ describe("ReviewStepPanel", () => {
       />,
     );
 
-    expect(html).toContain("Review your booking");
+    expect(html).toContain("Review");
+    expect(html).not.toContain("Review your booking");
+    expect(html).toContain("Schedule");
+    expect(html).toContain("Date &amp; time");
     expect(html).toContain("Home &amp; plan");
     expect(html).toContain("Price breakdown");
     expect(html).toContain("Recurring");
     expect(html).toContain("every week");
+    expect(html).not.toMatch(/Home &amp; plan[\s\S]*Frequency/);
     expect(html).toContain("Laundry");
     expect(html).toContain("Extra rooms");
     expect(html).toContain("2 extra rooms");
@@ -75,6 +81,8 @@ describe("ReviewStepPanel", () => {
         addressLine1="12 Main Rd"
         suburb="Sea Point"
         city="Cape Town"
+        contactPhone=""
+        profilePhone={null}
         bedrooms={2}
         bathrooms={1}
         extraRooms={0}
@@ -95,7 +103,7 @@ describe("ReviewStepPanel", () => {
     expect(html).toContain("Cleaning supplies");
     expect(html).toContain("Shalean-provided");
     expect(html).toContain("Cleaning equipment");
-    expect(html).toContain("Shalean cleaning supplies");
+    expect(html).not.toContain("Shalean cleaning supplies");
   });
 
   it("shows team support request and surcharge line for 2-cleaner request", () => {
@@ -138,7 +146,7 @@ describe("ReviewStepPanel", () => {
 
     expect(html).toContain("Team support");
     expect(html).toContain("Request 2 cleaners");
-    expect(html).toContain("confirm team availability after payment");
+    expect(html).not.toContain("confirm team availability after payment");
     expect(html).toContain("2-cleaner request surcharge");
   });
 });

@@ -35,12 +35,12 @@ describe("CheckoutStepPanel", () => {
       />,
     );
 
-    expect(html).toContain("Secure checkout");
+    expect(html).toContain("Checkout");
     expect(html).toContain("Secured by Paystack");
     expect(html).toContain("What happens after you pay");
     expect(html).toContain("Secure payment");
-    expect(html).toContain("Cleaner assignment");
-    expect(html).toContain("Email updates");
+    expect(html).toContain("After payment");
+    expect(html).toContain("assign an eligible cleaner");
     expect(html).toContain("Recurring clean");
     expect(html).toContain("Today");
     expect(html).toContain("payment secures this booking only");

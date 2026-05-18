@@ -14,13 +14,14 @@ describe("ScheduleStepPanel", () => {
       />,
     );
 
-    expect(html).toContain("Schedule your clean");
-    expect(html).toContain(
+    expect(html).toContain("Schedule");
+    expect(html).not.toContain("Schedule your clean");
+    expect(html).not.toContain(
       "Choose the date and start time that works best for you.",
     );
-    expect(html).toContain("Times shown in South Africa time.");
-    expect(html).toContain("Which day would you like us to come?");
-    expect(html).toContain("What time would you like us to arrive?");
+    expect(html).toContain("Times in South Africa (SAST).");
+    expect(html).toContain("Date");
+    expect(html).toContain("Arrival time");
     expect(html).not.toMatch(/>\s*Today\s*</i);
     expect(html).not.toMatch(/>\s*Tomorrow\s*</i);
     expect(html).toContain("max-md:w-[4.25rem]");

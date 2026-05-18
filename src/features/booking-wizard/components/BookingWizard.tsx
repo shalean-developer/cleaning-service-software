@@ -274,7 +274,12 @@ export function BookingWizard({
 
   const isServiceStep = state.step === "service";
   const usesMobileStickyFooter =
-    state.step === "details" || state.step === "review" || state.step === "checkout";
+    state.step === "datetime" ||
+    state.step === "location" ||
+    state.step === "details" ||
+    state.step === "cleaner" ||
+    state.step === "review" ||
+    state.step === "checkout";
   const showWizardFrequency = ["details", "cleaner", "review", "checkout"].includes(
     state.step,
   );
@@ -378,10 +383,7 @@ export function BookingWizard({
         {state.step === "location" ? (
           <>
             {wizardContextStrip}
-            <WizardStepHeading
-              title="Location"
-              subtitle="Where should we come to clean?"
-            />
+            <WizardStepHeading title="Location" />
             <Field label="Street address" error={stepErrors.addressLine1}>
               <input
                 className={inputClass}
@@ -431,14 +433,7 @@ export function BookingWizard({
         {state.step === "details" ? (
           <>
             {wizardContextStrip}
-            <WizardStepHeading
-              title="Details & add-ons"
-              subtitle={
-                state.serviceSlug === "office-cleaning"
-                  ? "Workspace size, frequency, and optional add-ons."
-                  : "Home size, frequency, and optional add-ons."
-              }
-            />
+            <WizardStepHeading title="Your home" />
             {state.serviceSlug !== "office-cleaning" ? (
               <>
               <div className="mb-4 grid grid-cols-2 gap-3 md:gap-4 [&>label]:mb-0">
@@ -568,7 +563,7 @@ export function BookingWizard({
               <>
                 {wizardContextStrip}
                 <WizardStepHeading title="Review" />
-                <p className="text-sm text-zinc-600">Calculating price?</p>
+                <p className="text-sm text-zinc-600">Calculating price…</p>
               </>
             ) : state.quote ? (
               <>

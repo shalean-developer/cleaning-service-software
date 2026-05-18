@@ -17,12 +17,9 @@ import {
   formatBedroomBathroomSummary,
   formatExtraRoomsSummary,
   formatSuburbLocation,
-  getCleaningIntensityExplanation,
   getCleaningIntensityLabel,
-  getEquipmentSupplyExplanation,
   getEquipmentSupplyCustomerLabel,
   getTeamSupportCustomerLabel,
-  getTeamSupportExplanation,
 } from "../reviewDisplay";
 import { LockIcon } from "./wizardIcons";
 import { WizardStepHeading } from "./WizardStepHeading";
@@ -81,19 +78,11 @@ function buildMiniSummaryDetail(
 const REASSURANCE_ITEMS = [
   {
     title: "Secure payment",
-    body: "Paystack processes your card on an encrypted checkout page.",
+    body: "Paystack encrypts your card on a secure page. When payment succeeds, your booking is confirmed.",
   },
   {
-    title: "Booking confirmation",
-    body: "When payment succeeds, your booking is recorded and no longer pending in the browser.",
-  },
-  {
-    title: "Cleaner assignment",
-    body: "We match an eligible cleaner to your schedule and preferences after payment.",
-  },
-  {
-    title: "Email updates",
-    body: "We email you at the address below with confirmation and next steps.",
+    title: "After payment",
+    body: "We assign an eligible cleaner to your schedule and email you confirmation and next steps.",
   },
 ] as const;
 
@@ -125,14 +114,6 @@ export function CheckoutStepPanel({
     cleaningIntensity,
     propertySizeSqm,
   );
-  const intensityExplanation =
-    serviceSlug === "regular-cleaning"
-      ? getCleaningIntensityExplanation(cleaningIntensity)
-      : null;
-  const equipmentSupplyExplanation =
-    serviceSlug === "regular-cleaning"
-      ? getEquipmentSupplyExplanation(equipmentSupply)
-      : null;
   const equipmentSupplyLabel =
     serviceSlug === "regular-cleaning" && equipmentSupply === "shalean"
       ? getEquipmentSupplyCustomerLabel(equipmentSupply)
@@ -141,19 +122,12 @@ export function CheckoutStepPanel({
     serviceSlug === "regular-cleaning"
       ? getTeamSupportCustomerLabel(requestedTeamSize)
       : null;
-  const teamSupportExplanation =
-    serviceSlug === "regular-cleaning"
-      ? getTeamSupportExplanation(requestedTeamSize)
-      : null;
   const recurringPaymentNote = getRecurringPaymentExplanation(frequency);
   const recurringScheduleNote = getRecurringScheduleExplanation(frequency);
 
   return (
     <div>
-      <WizardStepHeading
-        title="Secure checkout"
-        subtitle="Final step — pay once to confirm your booking."
-      />
+      <WizardStepHeading title="Checkout" />
 
       <div className="mb-4 flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/80 px-3 py-2.5 text-sm text-emerald-900">
         <LockIcon className="h-5 w-5 shrink-0 text-emerald-700" />
@@ -174,22 +148,13 @@ export function CheckoutStepPanel({
           <p className="mt-2 text-sm font-medium text-zinc-900">{scheduleLabel}</p>
         ) : null}
         {homeDetail ? <p className="mt-1 text-sm text-zinc-600">{homeDetail}</p> : null}
-        {intensityExplanation ? (
-          <p className="mt-2 text-xs leading-relaxed text-zinc-500">{intensityExplanation}</p>
-        ) : null}
         {equipmentSupplyLabel ? (
-          <p className="mt-2 text-sm text-zinc-600">
-            Cleaning supplies: {equipmentSupplyLabel}
+          <p className="mt-1 text-sm text-zinc-600">
+            Supplies: {equipmentSupplyLabel}
           </p>
         ) : null}
-        {equipmentSupplyExplanation ? (
-          <p className="mt-2 text-xs leading-relaxed text-zinc-500">{equipmentSupplyExplanation}</p>
-        ) : null}
         {teamSupportLabel ? (
-          <p className="mt-2 text-sm text-zinc-600">Team support: {teamSupportLabel}</p>
-        ) : null}
-        {teamSupportExplanation ? (
-          <p className="mt-2 text-xs leading-relaxed text-zinc-500">{teamSupportExplanation}</p>
+          <p className="mt-1 text-sm text-zinc-600">Team: {teamSupportLabel}</p>
         ) : null}
         {locationLabel !== "\u2014" ? (
           <p className="mt-1 break-words text-sm text-zinc-600">{locationLabel}</p>
@@ -251,15 +216,10 @@ export function CheckoutStepPanel({
         </ul>
       </section>
 
-      <p className="mb-2 text-sm leading-relaxed text-zinc-600">
-        Tap <span className="font-medium text-zinc-900">Pay with Paystack</span> below
-        to open secure payment. Your booking stays{" "}
-        <span className="font-medium text-zinc-800">pending payment</span> until
-        Paystack confirms success.
-      </p>
-
-      <p className="text-sm text-zinc-600">
-        Paying as <span className="font-medium text-zinc-900">{customerEmail}</span>
+      <p className="text-sm leading-relaxed text-zinc-600">
+        <span className="font-medium text-zinc-900">Pay with Paystack</span> below opens
+        secure payment. Paying as{" "}
+        <span className="font-medium text-zinc-900">{customerEmail}</span>.
       </p>
     </div>
   );
