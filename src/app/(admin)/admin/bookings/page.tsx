@@ -3,7 +3,12 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listAdminBookings } from "@/features/dashboards/server/adminOperationsReadModel";
 import { getAdminOperationalQueueCounts } from "@/features/dashboards/server/adminOperationalQueueCounts";
+import { AdminOperationalQueueContextCard } from "@/components/dashboard/AdminOperationalQueueContextCard";
 import { AdminOperationalQueueStrip } from "@/components/dashboard/AdminOperationalQueueStrip";
+import {
+  buildAdminOperationalQueueContextCard,
+  isAdminOperationalQueueFilter,
+} from "@/features/dashboards/adminOperationalQueues";
 import type { AdminBookingFilter } from "@/features/dashboards/server/adminOperationalHelpers";
 import { AdminBookingsFilters } from "@/components/dashboard/AdminBookingsFilters";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
@@ -64,6 +69,11 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
     getAdminOperationalQueueCounts(user),
   ]);
 
+  const queueContextCard =
+    queueCounts.ok && filter && isAdminOperationalQueueFilter(filter)
+      ? buildAdminOperationalQueueContextCard(filter, queueCounts.queues)
+      : null;
+
   return (
     <DashboardShell
       title="All bookings"
@@ -73,6 +83,8 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
       {queueCounts.ok ? (
         <AdminOperationalQueueStrip queues={queueCounts.queues} activeFilter={filter} />
       ) : null}
+
+      {queueContextCard ? <AdminOperationalQueueContextCard card={queueContextCard} /> : null}
 
       {result.ok ? (
         <AdminBookingsFilters

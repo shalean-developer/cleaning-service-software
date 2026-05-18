@@ -262,6 +262,53 @@ export type NotificationWorkerRunRow = {
   created_at: string;
 };
 
+export type AssignmentMetricsHourlyRow = {
+  bucket_start: string;
+  offers_created_count: number;
+  offers_accepted_count: number;
+  offers_declined_count: number;
+  offers_expired_count: number;
+  offers_cancelled_count: number;
+  bookings_assigned_count: number;
+  redispatch_booking_count: number;
+  max_attempts_booking_count: number;
+  admin_intervention_count: number;
+  offers_created_selected_count: number;
+  offers_created_best_available_count: number;
+  offers_created_admin_manual_count: number;
+  offers_created_unknown_count: number;
+  offers_accepted_selected_count: number;
+  offers_accepted_best_available_count: number;
+  offers_accepted_admin_manual_count: number;
+  offers_accepted_unknown_count: number;
+  time_to_assigned_bucket_0_15m_count: number;
+  time_to_assigned_bucket_15_60m_count: number;
+  time_to_assigned_bucket_1_4h_count: number;
+  time_to_assigned_bucket_4_12h_count: number;
+  time_to_assigned_bucket_12_24h_count: number;
+  time_to_assigned_bucket_24_48h_count: number;
+  time_to_assigned_bucket_48h_plus_count: number;
+  time_to_assigned_sample_count: number;
+  cleaner_response_bucket_0_15m_count: number;
+  cleaner_response_bucket_15_60m_count: number;
+  cleaner_response_bucket_1_4h_count: number;
+  cleaner_response_bucket_4_12h_count: number;
+  cleaner_response_bucket_12_24h_count: number;
+  cleaner_response_bucket_24_48h_count: number;
+  cleaner_response_bucket_48h_plus_count: number;
+  cleaner_response_sample_count: number;
+  time_to_first_offer_bucket_0_15m_count: number;
+  time_to_first_offer_bucket_15_60m_count: number;
+  time_to_first_offer_bucket_1_4h_count: number;
+  time_to_first_offer_bucket_4_12h_count: number;
+  time_to_first_offer_bucket_12_24h_count: number;
+  time_to_first_offer_bucket_24_48h_count: number;
+  time_to_first_offer_bucket_48h_plus_count: number;
+  time_to_first_offer_sample_count: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type NotificationMetricsHourlyRow = {
   bucket_start: string;
   run_count: number;
@@ -355,6 +402,7 @@ export type Database = {
       notification_outbox: PublicTable<NotificationOutboxRow>;
       notification_worker_runs: PublicTable<NotificationWorkerRunRow>;
       notification_metrics_hourly: PublicTable<NotificationMetricsHourlyRow>;
+      assignment_metrics_hourly: PublicTable<AssignmentMetricsHourlyRow>;
       booking_state_audit: PublicTable<BookingStateAuditRow>;
       admin_operational_audit: PublicTable<AdminOperationalAuditRow>;
     };

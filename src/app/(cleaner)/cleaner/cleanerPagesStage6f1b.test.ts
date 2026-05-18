@@ -31,13 +31,19 @@ describe("cleaner pages Stage 6F-1b empty/error wiring", () => {
     expect(source).not.toContain('title="No assigned jobs"');
   });
 
-  it("home page distinguishes fetch errors from empty previews", () => {
+  it("home page distinguishes fetch errors from empty previews without duplicate summary hints", () => {
     const source = readPage("src/app/(cleaner)/cleaner/page.tsx");
 
     expect(source).toContain("DashboardFetchError");
     expect(source).toContain("offers && !offers.ok");
     expect(source).toContain("jobs && !jobs.ok");
-    expect(source).toContain("Could not load offers");
-    expect(source).toContain("Could not load jobs");
+    expect(source).toContain('title="Could not load offers"');
+    expect(source).toContain('title="Could not load jobs"');
+    expect(source).toContain('offersOk ? openOffers.length : "—"');
+    expect(source).toContain('jobsOk ? activeJobs.length : "—"');
+    expect(source).not.toContain('text-xs text-red-700">Could not load offers');
+    expect(source).not.toContain('text-xs text-red-700">Could not load jobs');
+    expect(source).toContain("openOffers.slice(0, 3)");
+    expect(source).toContain("activeJobs.slice(0, 3)");
   });
 });

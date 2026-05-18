@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listAdminAssignmentQueue } from "@/features/dashboards/server/adminOperationsReadModel";
 import { getAdminOperationalQueueCounts } from "@/features/dashboards/server/adminOperationalQueueCounts";
+import { AdminAssignmentQueueStripFootnote } from "@/components/dashboard/AdminAssignmentQueueStripFootnote";
 import { AdminOperationalQueueStrip } from "@/components/dashboard/AdminOperationalQueueStrip";
 import { AdminAssignmentQueueGuidance } from "@/components/dashboard/AdminAssignmentQueueGuidance";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
@@ -37,6 +38,8 @@ export default async function AdminAssignmentsPage() {
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
       {queueCounts.ok ? <AdminOperationalQueueStrip queues={queueCounts.queues} /> : null}
+
+      {queueCounts.ok ? <AdminAssignmentQueueStripFootnote /> : null}
 
       {result.ok && result.total > 0 ? (
         <p className="mb-4 text-sm text-zinc-600">

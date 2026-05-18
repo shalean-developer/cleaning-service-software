@@ -16,11 +16,12 @@ Related runbooks:
 
 | Route | Purpose |
 |-------|---------|
-| `/admin` | Operational queue strip (exact counts) + assignment preview + recent bookings |
-| `/admin/bookings` | All bookings with filters and search |
+| `/admin` | Operational queue strip + **queue guide cards** (7A-2a) + assignment preview + recent bookings |
+| `/admin/bookings` | Queue strip + active-filter context card (7A-2b) + filters and search |
 | `/admin/bookings/[id]` | **Operational status panel** (recovery, manual dispatch, replace — Stage 6D-1), audit timelines, payout actions |
-| `/admin/assignments` | Assignment queue with per-booking guidance |
+| `/admin/assignments` | Queue strip + work-queue footnote (7A-2c) + assignment triage list |
 | `/admin/payouts` | Payout-ready aggregates (unchanged) |
+| `/admin/analytics/assignments` | Assignment funnel analytics — 24h live + 7d rollup trends + path breakdown + latency (7B-1a / 7B-1b-min / 7B-1c-min / 7B-1c-b-min) |
 | `/admin/notifications` | Global notification outbox health (5D-2a) + 24h analytics (5H-a) + 7d text trends (5H-b) + retention dry-run counts (5I-α) |
 
 ---
@@ -47,6 +48,83 @@ Home still shows up to **5** preview rows under “Needs attention” from the a
 
 - Bookings list (no filter): **200** newest by `updated_at`
 - Assignment work queue scan: **100** `pending_assignment` / `confirmed` bookings
+
+---
+
+## Operational Queue Explainability Cards (Stage 7A-2a — shipped)
+
+On **`/admin` home only**, below the summary strip, a **Queue guide** grid shows five read-only explainability cards (`AdminOperationalQueueExplainCard`). Each card uses the **same exact count** already fetched by `getAdminOperationalQueueCounts` — no extra queries or APIs.
+
+| Topic | Behavior |
+|-------|----------|
+| Purpose | Explain what each queue means, why bookings appear, severity, and recommended next step |
+| Mutations | **None** — links only (`View all` / `View list` → `/admin/bookings?filter=…`); actions stay on booking detail |
+| Zero count | Card still shown; copy includes “No current bookings in this queue.” |
+| Runbooks | `AdminRunbookRef` paths (repository docs) per queue |
+| Config | Static copy in `ADMIN_OPERATIONAL_QUEUES` (`explainability` fields) |
+
+**Bookings context card (7A-2b — shipped):** On `/admin/bookings`, when `?filter=` matches one of the five operational queues, a single compact **context card** appears below the strip and above filters. Same static copy as the home guide (summary, severity, recommended action, runbook) — not the full five-card grid. Uses existing `getAdminOperationalQueueCounts` data (no extra query). Non-operational filters (`selected_declined`, `max_attempts`, etc.) show **no** context card.
+
+**Assignments footnote (7A-2c — shipped):** Below the strip on `/admin/assignments`, a read-only callout explains that strip counts are **exact across all bookings**, while this page is the **detailed work queue** (scan of up to 100 `pending_assignment` / `confirmed` rows) — totals may differ from the **Assignment attention** chip.
+
+**Stage 7A-2 explainability — complete:** home guide cards (7A-2a), bookings context card (7A-2b), assignments footnote (7A-2c).
+
+---
+
+## Assignment funnel analytics (Stage 7B-1a / 7B-1b-min / 7B-1c-min / 7B-1c-b — shipped)
+
+Route: **`/admin/analytics/assignments`** (admin nav → Assignment analytics).
+
+| Topic | Behavior |
+|-------|----------|
+| Purpose | Read-only funnel metrics — offer volumes, accept/decline/expire rates, assignments completed, redispatch and max-attempt counts |
+| 24h live | Aggregated from `assignment_offers` + sparse `booking_state_audit` / `admin_operational_audit` counts (rolling window) |
+| 7d trends | Summed from `assignment_metrics_hourly` buckets — run `/api/cron/rollup-assignment-metrics` hourly (or backfill) |
+| PII | **None** — integer counters only in rollups; no customer/cleaner names or IDs in UI |
+| Mutations | **None** — separate from Stage 7A operational queue strip |
+| Cron | `GET/POST /api/cron/rollup-assignment-metrics` — `CRON_SECRET` required; env `ASSIGNMENT_METRICS_ROLLUP_ENABLED` (default on) |
+
+### Path breakdown (7B-1b-min)
+
+| Path family | Meaning |
+|-------------|---------|
+| `selected` | Customer chose a named cleaner (`metadata.assignment.path = selected`) |
+| `best_available` | Auto-dispatch best eligible (`best_available` or `fallback_best_available`) |
+| `admin_manual` | Admin manual dispatch / replace offer |
+| `unknown` | Path could not be resolved from metadata or lock fallback |
+
+- Rollup columns: `offers_created_*` and `offers_accepted_*` per path on `assignment_metrics_hourly`.
+- Migration: `supabase/migrations/20260521103000_assignment_metrics_hourly_path_split.sql`.
+- **Caveat:** Path is derived from **current** `bookings.metadata.assignment.path` at rollup/read time (snapshot bias on multi-offer bookings). Per-offer `assignment_path` column deferred to **7B-4**.
+- Accept rate by path: shown only when terminal volume in path ≥ 10 (24h live); 7d uses created volume ≥ 10.
+
+### Assignment latency (7B-1c-min)
+
+| Metric | Definition | Sample gate |
+|--------|------------|-------------|
+| Median time to first offer | `min(offered_at)` − first `MOVE_TO_PENDING_ASSIGNMENT` audit | n ≥ 10 bookings whose first offer falls in the 24h window |
+| Median cleaner response | `responded_at − offered_at` for **accepted** and **declined** only | n ≥ 10 terminal responses in window; excludes expired, open, cancelled |
+| Median time to assigned | `ACCEPT_CLEANER_ASSIGNMENT` audit − first `MOVE_TO_PENDING_ASSIGNMENT` audit | n ≥ 10 assignments completed in window |
+
+- **Statistic:** median (p50), not mean — robust against 48h expiry tails and admin delays.
+- **Insufficient data:** when n &lt; 10, cards show “Insufficient data” with sample count.
+- **Sources:** `assignment_offers.offered_at` / `responded_at` and `booking_state_audit.created_at` only (no `updated_at` for response time in this slice).
+- **PII:** DTO exposes `medianMinutes`, `sampleSize`, and `status` only — no booking/cleaner/customer IDs or raw timestamps in the admin payload.
+### Assignment latency 7d rollup (7B-1c-b)
+
+| Topic | Behavior |
+|-------|----------|
+| Metrics | **7d approximate medians** (global): time to first offer, cleaner response, time to assigned |
+| Storage | 24 integer histogram columns on `assignment_metrics_hourly` — 8 per metric (7 buckets + sample count); no raw samples |
+| Migrations | `20260522120000_assignment_metrics_hourly_time_to_assigned_histogram.sql`, `20260522130000_assignment_metrics_hourly_latency_histograms.sql` |
+| Buckets (minutes) | `0–15`, `15–60`, `1–4h`, `4–12h`, `12–24h`, `24–48h`, `48h+` (shared across metrics) |
+| Median | **Approximate** — merged 168 hourly buckets, bucket-midpoint p50 at read time; UI prefixes `~` |
+| 24h live | Exact median cards unchanged (7B-1c-min) |
+| Backfill | After migrations, run rollup backfill for **168h** so all three 7d cards have data |
+| Sample gate | n ≥ 10 per metric across 7d or “Insufficient data” |
+| **Deferred** | Path-split latency (7B-1d), p90, charts, cleaner-level analytics |
+
+**Deferred:** decline/expire/cancel by path, charts, cleaner-level analytics, home teaser, `assignment_offers.assignment_path` snapshot (7B-4).
 
 ---
 
