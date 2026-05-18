@@ -3,6 +3,222 @@ import { calculateQuote } from "./calculateQuote";
 import { FIXED_CLEANER_PAYOUT_CENTS, MAX_PERCENT_PAYOUT_CENTS } from "./catalog";
 
 describe("calculateQuote", () => {
+  it("quotes regular cleaning with extra rooms line item", () => {
+    const result = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      extraRooms: 2,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.breakdown.totalCents).toBe(67_000);
+    const extraRoomsItem = result.breakdown.lineItems.find((i) => i.code === "extra_rooms");
+    expect(extraRoomsItem).toMatchObject({
+      label: "Extra rooms",
+      quantity: 2,
+      unitAmountCents: 7_000,
+      amountCents: 14_000,
+    });
+  });
+
+  it("rejects extra rooms above max for regular cleaning", () => {
+    const result = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      extraRooms: 7,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe("INVALID_EXTRA_ROOMS");
+  });
+
+  it("rejects extra rooms for non-regular services", () => {
+    const result = calculateQuote({
+      serviceSlug: "deep-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      extraRooms: 1,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe("INVALID_EXTRA_ROOMS");
+  });
+
+  it("applies detailed cleaning intensity surcharge before frequency discount", () => {
+    const standard = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 2,
+    });
+    const detailed = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 2,
+      cleaningIntensity: "detailed",
+    });
+
+    expect(standard.ok).toBe(true);
+    expect(detailed.ok).toBe(true);
+    if (!standard.ok || !detailed.ok) return;
+
+    expect(detailed.breakdown.totalCents).toBe(67_850);
+    const intensityItem = detailed.breakdown.lineItems.find(
+      (i) => i.code === "cleaning_intensity",
+    );
+    expect(intensityItem?.amountCents).toBe(8_850);
+    expect(standard.breakdown.totalCents).toBe(59_000);
+  });
+
+  it("applies heavy cleaning intensity surcharge", () => {
+    const result = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      cleaningIntensity: "heavy",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.breakdown.totalCents).toBe(68_900);
+    expect(
+      result.breakdown.lineItems.some((i) => i.code === "cleaning_intensity"),
+    ).toBe(true);
+  });
+
+  it("rejects non-standard intensity for non-regular services", () => {
+    const result = calculateQuote({
+      serviceSlug: "deep-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      cleaningIntensity: "heavy",
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe("INVALID_CLEANING_INTENSITY");
+  });
+
+  it("adds cleaning equipment line item when Shalean supplies equipment", () => {
+    const customer = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      equipmentSupply: "customer",
+    });
+    const shalean = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      equipmentSupply: "shalean",
+    });
+
+    expect(customer.ok).toBe(true);
+    expect(shalean.ok).toBe(true);
+    if (!customer.ok || !shalean.ok) return;
+
+    expect(customer.breakdown.totalCents).toBe(53_000);
+    expect(shalean.breakdown.totalCents).toBe(63_000);
+    expect(
+      shalean.breakdown.lineItems.find((i) => i.code === "cleaning_equipment"),
+    ).toMatchObject({
+      label: "Cleaning equipment",
+      amountCents: 10_000,
+    });
+    expect(
+      customer.breakdown.lineItems.some((i) => i.code === "cleaning_equipment"),
+    ).toBe(false);
+  });
+
+  it("rejects shalean equipment supply for non-regular services", () => {
+    const result = calculateQuote({
+      serviceSlug: "deep-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      equipmentSupply: "shalean",
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe("INVALID_EQUIPMENT_SUPPLY");
+  });
+
+  it("raises regular cleaner earnings preview when equipment fee increases total", () => {
+    const customer = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      equipmentSupply: "customer",
+    });
+    const shalean = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      equipmentSupply: "shalean",
+    });
+
+    expect(customer.ok).toBe(true);
+    expect(shalean.ok).toBe(true);
+    if (!customer.ok || !shalean.ok) return;
+
+    expect(shalean.breakdown.cleanerEarnings.perCleanerAmountCents).toBeGreaterThanOrEqual(
+      customer.breakdown.cleanerEarnings.perCleanerAmountCents,
+    );
+  });
+
+  it("raises regular cleaner earnings preview when intensity increases total", () => {
+    const standard = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 2,
+    });
+    const heavy = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 2,
+      cleaningIntensity: "heavy",
+    });
+
+    expect(standard.ok).toBe(true);
+    expect(heavy.ok).toBe(true);
+    if (!standard.ok || !heavy.ok) return;
+
+    expect(heavy.breakdown.cleanerEarnings.perCleanerAmountCents).toBeGreaterThanOrEqual(
+      standard.breakdown.cleanerEarnings.perCleanerAmountCents,
+    );
+  });
+
+  it("raises regular cleaner earnings preview when extra rooms increase total", () => {
+    const withoutExtra = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+    });
+    const withExtra = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      extraRooms: 2,
+    });
+
+    expect(withoutExtra.ok).toBe(true);
+    expect(withExtra.ok).toBe(true);
+    if (!withoutExtra.ok || !withExtra.ok) return;
+
+    expect(withExtra.breakdown.totalCents).toBeGreaterThan(
+      withoutExtra.breakdown.totalCents,
+    );
+    expect(withExtra.breakdown.cleanerEarnings.perCleanerAmountCents).toBeGreaterThanOrEqual(
+      withoutExtra.breakdown.cleanerEarnings.perCleanerAmountCents,
+    );
+  });
+
   it("quotes regular cleaning total for 2 bed / 2 bath", () => {
     const result = calculateQuote({
       serviceSlug: "regular-cleaning",
@@ -134,6 +350,49 @@ describe("calculateQuote", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.code).toBe("UNSAFE_CLEANER_EARNINGS");
+  });
+
+  it("adds team support request surcharge for requestedTeamSize 2 without changing earnings teamSize", () => {
+    const base = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      requestedTeamSize: 1,
+    });
+    const withTeam = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      requestedTeamSize: 2,
+    });
+
+    expect(base.ok).toBe(true);
+    expect(withTeam.ok).toBe(true);
+    if (!base.ok || !withTeam.ok) return;
+
+    expect(withTeam.breakdown.totalCents - base.breakdown.totalCents).toBe(20_000);
+    const surcharge = withTeam.breakdown.lineItems.find(
+      (i) => i.code === "team_support_request",
+    );
+    expect(surcharge).toMatchObject({
+      label: "2-cleaner request surcharge",
+      amountCents: 20_000,
+    });
+    expect(withTeam.breakdown.cleanerEarnings.teamSize).toBe(1);
+    expect(base.breakdown.cleanerEarnings.teamSize).toBe(1);
+  });
+
+  it("forces requestedTeamSize to 1 for non-regular services", () => {
+    const result = calculateQuote({
+      serviceSlug: "deep-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      requestedTeamSize: 2,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe("INVALID_REQUESTED_TEAM_SIZE");
   });
 
   it("enforces regular cleaner earnings min and max for known tenure", () => {

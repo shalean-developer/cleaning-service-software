@@ -1,6 +1,9 @@
 export type {
   AssignmentOfferRow,
   AssignmentOfferStatus,
+  BookingCleanerRow,
+  BookingCleanerRole,
+  BookingCleanerStatus,
   BookingRow,
   BookingStateAuditRow,
   CleanerRow,
@@ -20,6 +23,8 @@ export type {
 
 export {
   ASSIGNMENT_OFFER_STATUSES,
+  BOOKING_CLEANER_ROLES,
+  BOOKING_CLEANER_STATUSES,
   NOTIFICATION_OUTBOX_STATUSES,
   PAYMENT_STATUSES,
   USER_ROLES,

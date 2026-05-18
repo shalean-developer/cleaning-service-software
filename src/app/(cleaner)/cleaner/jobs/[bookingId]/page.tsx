@@ -10,6 +10,9 @@ import { CleanerJobDetailsCard } from "@/components/dashboard/cleaner/CleanerJob
 import { CleanerJobStatusHero } from "@/components/dashboard/cleaner/CleanerJobStatusHero";
 import { CleanerJobWhatHappensNext } from "@/components/dashboard/cleaner/CleanerJobWhatHappensNext";
 import { CleanerLifecycleTimeline } from "@/components/dashboard/cleaner/CleanerLifecycleTimeline";
+import { CleanerTeamJobSection } from "@/components/dashboard/cleaner/CleanerTeamJobSection";
+import { CleanerSupportJobNotice } from "@/components/dashboard/cleaner/CleanerSupportJobNotice";
+import { SupportParticipationActions } from "@/components/dashboard/cleaner/SupportParticipationActions";
 import { CLEANER_DETAIL_CARD_CLASS } from "@/features/dashboards/cleanerJobDetailDisplay";
 
 type PageProps = { params: Promise<{ bookingId: string }> };
@@ -28,7 +31,9 @@ export default async function CleanerJobDetailPage({ params }: PageProps) {
   if (!result.ok) notFound();
 
   const job = result.job;
-  const showActions = job.status === "assigned" || job.status === "in_progress";
+  const showActions =
+    job.team.canStartJob &&
+    (job.status === "assigned" || job.status === "in_progress");
 
   return (
     <DashboardShell
@@ -57,13 +62,31 @@ export default async function CleanerJobDetailPage({ params }: PageProps) {
           }
         />
 
+        {job.team.isTeamJob ? <CleanerTeamJobSection team={job.team} /> : null}
+
         <CleanerJobWhatHappensNext status={job.status} />
+
+        {job.team.viewerRole === "support" ? (
+          <>
+            <CleanerSupportJobNotice message="The lead cleaner starts and completes this job. Confirm below when you have helped on site — this records your support participation only and does not complete the booking." />
+            <SupportParticipationActions
+              bookingId={job.bookingId}
+              canMarkParticipation={job.team.supportParticipation.canMarkParticipation}
+              hasMarkedParticipation={job.team.supportParticipation.hasMarkedParticipation}
+            />
+          </>
+        ) : null}
 
         <CleanerJobDetailsCard
           locationSummary={job.locationSummary}
+          homeSizeSummary={job.homeSizeSummary}
+          cleaningIntensityLabel={job.cleaningIntensityLabel}
+          equipmentSupplyOperationalLabel={job.equipmentSupplyOperationalLabel}
+          teamSupportCleanerNote={job.teamSupportCleanerNote}
           specialInstructions={job.specialInstructions}
           earningsLabel={job.earningsLabel}
           earnings={job.earnings}
+          showPayEstimateNote={job.team.viewerRole !== "support"}
         />
 
         <section className={`${CLEANER_DETAIL_CARD_CLASS} p-4 sm:p-5`}>

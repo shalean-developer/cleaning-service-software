@@ -15,11 +15,7 @@ import {
   isRecoverableFinalizeCommandFailure,
   tryRecoverAlreadyFinalizedPayment,
 } from "./paymentFinalizeRecovery";
-import { runAssignmentAfterPayment } from "@/features/assignments/server/runAssignmentAfterPayment";
-import {
-  assignmentResultNeedsDispatchAttention,
-  handlePostPaymentAssignmentFailure,
-} from "@/features/assignments/server/postPaymentAssignmentObservability";
+import { runPostPaymentAssignmentDispatch } from "./postPaymentAssignmentDispatch";
 
 export type FinalizePaidBookingInput = {
   bookingId: string;
@@ -152,45 +148,17 @@ export async function finalizePaidBookingWithDeps(
   }
 
   const bookingAfterFinalize = await backend.getBooking(input.bookingId);
-  const customerId = bookingAfterFinalize?.customer_id ?? null;
-
-  try {
-    const assignmentResult = await runAssignmentAfterPayment(
-      client,
-      backend,
-      input.bookingId,
-    );
-    const bookingAfterAssignment = await backend.getBooking(input.bookingId);
-    const bookingStatusAfter = bookingAfterAssignment?.status ?? "unknown";
-
-    if (assignmentResultNeedsDispatchAttention(assignmentResult, bookingStatusAfter)) {
-      await handlePostPaymentAssignmentFailure(backend, {
+  if (bookingAfterFinalize) {
+    try {
+      await runPostPaymentAssignmentDispatch(client, backend, bookingAfterFinalize, {
         bookingId: input.bookingId,
         paymentId: payment.id,
-        customerId,
-        paystackReference: input.charge.reference,
-        paystackTransactionId: input.charge.transactionId,
-        assignmentCode: assignmentResult.ok ? "STILL_CONFIRMED" : assignmentResult.code,
-        assignmentMessage: assignmentResult.ok
-          ? `Assignment finished but booking remained confirmed (outcome=${assignmentResult.outcome}).`
-          : assignmentResult.message,
-        bookingStatusAfter,
-        thrown: false,
+        customerId: bookingAfterFinalize.customer_id,
+        charge: input.charge,
       });
+    } catch {
+      // Observability recorded inside runPostPaymentAssignmentDispatch; payment stays finalized.
     }
-  } catch (error) {
-    const bookingAfterError = await backend.getBooking(input.bookingId);
-    await handlePostPaymentAssignmentFailure(backend, {
-      bookingId: input.bookingId,
-      paymentId: payment.id,
-      customerId,
-      paystackReference: input.charge.reference,
-      paystackTransactionId: input.charge.transactionId,
-      assignmentCode: "ASSIGNMENT_EXCEPTION",
-      assignmentMessage: error instanceof Error ? error.message : String(error),
-      bookingStatusAfter: bookingAfterError?.status ?? "unknown",
-      thrown: true,
-    });
   }
 
   return { ...commandResult, paymentEvent };

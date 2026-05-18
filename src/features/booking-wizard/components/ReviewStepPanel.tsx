@@ -3,6 +3,8 @@
 import type { ReactNode } from "react";
 import type {
   AddonSlug,
+  CleaningIntensity,
+  EquipmentSupply,
   PricingBreakdown,
   PricingFrequency,
   ServiceSlug,
@@ -14,11 +16,20 @@ import {
 } from "../recurringDisplay";
 import {
   formatBedroomBathroomSummary,
+  formatExtraRoomsSummary,
   formatCleanerPreference,
   formatSelectedAddons,
   formatSuburbLocation,
+  getCleaningIntensityExplanation,
+  getCleaningIntensityLabel,
+  getEquipmentSupplyCustomerLabel,
+  getEquipmentSupplyExplanation,
   getFrequencyLabel,
+  getTeamSupportCustomerLabel,
+  getTeamSupportExplanation,
 } from "../reviewDisplay";
+import { resolveWizardContactPhone } from "../contactPhone";
+import { formatZaMobileForDisplay } from "@/lib/validation/zaPhone";
 import type { CleanerPreferenceMode, WizardStep } from "../types";
 import { WizardStepHeading } from "./WizardStepHeading";
 
@@ -74,8 +85,14 @@ type Props = {
   addressLine1: string;
   suburb: string;
   city: string;
+  contactPhone: string;
+  profilePhone: string | null;
   bedrooms: number;
   bathrooms: number;
+  extraRooms: number;
+  cleaningIntensity: CleaningIntensity;
+  equipmentSupply: EquipmentSupply;
+  requestedTeamSize: 1 | 2;
   propertySizeSqm: number | null;
   frequency: PricingFrequency;
   addons: AddonSlug[];
@@ -96,8 +113,14 @@ export function ReviewStepPanel({
   addressLine1,
   suburb,
   city,
+  contactPhone,
+  profilePhone,
   bedrooms,
   bathrooms,
+  extraRooms,
+  cleaningIntensity,
+  equipmentSupply,
+  requestedTeamSize,
   propertySizeSqm,
   frequency,
   addons,
@@ -118,6 +141,34 @@ export function ReviewStepPanel({
   const streetAddress = addressLine1.trim() || "\u2014";
   const scheduleLabel = formatDateLabel(date, time) || "\u2014";
   const locationLabel = formatSuburbLocation(suburb, city);
+  const contactPhoneLabel =
+    formatZaMobileForDisplay(resolveWizardContactPhone(contactPhone, profilePhone)) ??
+    "\u2014";
+  const extraRoomsLabel = formatExtraRoomsSummary(extraRooms);
+  const intensityLabel =
+    serviceSlug === "regular-cleaning"
+      ? getCleaningIntensityLabel(cleaningIntensity)
+      : null;
+  const intensityExplanation =
+    serviceSlug === "regular-cleaning"
+      ? getCleaningIntensityExplanation(cleaningIntensity)
+      : null;
+  const equipmentSupplyLabel =
+    serviceSlug === "regular-cleaning"
+      ? getEquipmentSupplyCustomerLabel(equipmentSupply)
+      : null;
+  const equipmentSupplyExplanation =
+    serviceSlug === "regular-cleaning"
+      ? getEquipmentSupplyExplanation(equipmentSupply)
+      : null;
+  const teamSupportLabel =
+    serviceSlug === "regular-cleaning"
+      ? getTeamSupportCustomerLabel(requestedTeamSize)
+      : null;
+  const teamSupportExplanation =
+    serviceSlug === "regular-cleaning"
+      ? getTeamSupportExplanation(requestedTeamSize)
+      : null;
   const recurringScheduleNote = getRecurringScheduleExplanation(frequency);
   const hasAddons = addons.length > 0;
 
@@ -163,7 +214,28 @@ export function ReviewStepPanel({
               value={bathroomsLabel}
             />
           ) : null}
+          {extraRoomsLabel ? (
+            <SummaryRow label="Extra rooms" value={extraRoomsLabel} />
+          ) : null}
+          {intensityLabel ? (
+            <SummaryRow label="Cleaning intensity" value={intensityLabel} />
+          ) : null}
+          {equipmentSupplyLabel ? (
+            <SummaryRow label="Cleaning supplies" value={equipmentSupplyLabel} />
+          ) : null}
+          {teamSupportLabel ? (
+            <SummaryRow label="Team support" value={teamSupportLabel} />
+          ) : null}
         </dl>
+        {intensityExplanation ? (
+          <p className="mt-3 text-xs leading-relaxed text-zinc-600">{intensityExplanation}</p>
+        ) : null}
+        {equipmentSupplyExplanation ? (
+          <p className="mt-3 text-xs leading-relaxed text-zinc-600">{equipmentSupplyExplanation}</p>
+        ) : null}
+        {teamSupportExplanation ? (
+          <p className="mt-3 text-xs leading-relaxed text-zinc-600">{teamSupportExplanation}</p>
+        ) : null}
 
         <div className="mt-4 rounded-xl border border-zinc-200/90 bg-zinc-50/90 p-3">
           <div className="flex items-start justify-between gap-3">
@@ -206,6 +278,7 @@ export function ReviewStepPanel({
         <dl className="space-y-2.5 text-sm">
           <SummaryRow label="Suburb" value={locationLabel} />
           <SummaryRow label="Street" value={streetAddress} />
+          <SummaryRow label="Mobile" value={contactPhoneLabel} />
         </dl>
       </SectionCard>
 
@@ -232,7 +305,9 @@ export function ReviewStepPanel({
               className={`flex justify-between gap-3 py-1 ${
                 item.code === "frequency_discount"
                   ? "text-emerald-700"
-                  : "text-zinc-700"
+                  :                 item.code === "cleaning_intensity" || item.code === "team_support_request"
+                    ? "text-zinc-800"
+                    : "text-zinc-700"
               }`}
             >
               <span>{item.label}</span>

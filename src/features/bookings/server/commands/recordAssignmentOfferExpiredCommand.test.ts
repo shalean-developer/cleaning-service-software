@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { InMemoryBookingCommandBackend } from "./inMemoryBookingCommandBackend";
+import { testAssignmentOfferRow } from "./testAssignmentOfferRow";
 import { executeBookingCommand } from "./executeBookingCommand";
 import { buildCronExpireOfferAuditIdempotencyKey } from "@/features/assignments/server/recordAssignmentOfferExpiredAudit";
 
@@ -20,6 +21,7 @@ describe("RECORD_ASSIGNMENT_OFFER_EXPIRED", () => {
       status: "pending_assignment",
       scheduled_start: ts,
       scheduled_end: ts,
+      assignment_dispatch_at: null,
       price_cents: 1000,
       currency: "ZAR",
       series_id: null,
@@ -28,7 +30,7 @@ describe("RECORD_ASSIGNMENT_OFFER_EXPIRED", () => {
       updated_at: ts,
     });
 
-    await backend.insertOffer({
+    await backend.insertOffer(testAssignmentOfferRow({
       id: offerId,
       booking_id: bookingId,
       cleaner_id: "cleaner-1",
@@ -38,7 +40,7 @@ describe("RECORD_ASSIGNMENT_OFFER_EXPIRED", () => {
       expires_at: ts,
       created_at: ts,
       updated_at: ts,
-    });
+    }));
 
     const beforeNotifications = backend.notifications.length;
 
@@ -90,6 +92,7 @@ describe("RECORD_ASSIGNMENT_OFFER_EXPIRED", () => {
       status: "pending_assignment",
       scheduled_start: ts,
       scheduled_end: ts,
+      assignment_dispatch_at: null,
       price_cents: 1000,
       currency: "ZAR",
       series_id: null,
@@ -98,7 +101,7 @@ describe("RECORD_ASSIGNMENT_OFFER_EXPIRED", () => {
       updated_at: ts,
     });
 
-    await backend.insertOffer({
+    await backend.insertOffer(testAssignmentOfferRow({
       id: offerId,
       booking_id: bookingId,
       cleaner_id: "cleaner-1",
@@ -108,7 +111,7 @@ describe("RECORD_ASSIGNMENT_OFFER_EXPIRED", () => {
       expires_at: ts,
       created_at: ts,
       updated_at: ts,
-    });
+    }));
 
     const cmd = {
       type: "RECORD_ASSIGNMENT_OFFER_EXPIRED" as const,
@@ -146,6 +149,7 @@ describe("RECORD_ASSIGNMENT_OFFER_EXPIRED", () => {
       status: "pending_assignment",
       scheduled_start: ts,
       scheduled_end: ts,
+      assignment_dispatch_at: null,
       price_cents: 1000,
       currency: "ZAR",
       series_id: null,
@@ -154,7 +158,7 @@ describe("RECORD_ASSIGNMENT_OFFER_EXPIRED", () => {
       updated_at: ts,
     });
 
-    await backend.insertOffer({
+    await backend.insertOffer(testAssignmentOfferRow({
       id: offerId,
       booking_id: bookingId,
       cleaner_id: "cleaner-1",
@@ -164,7 +168,7 @@ describe("RECORD_ASSIGNMENT_OFFER_EXPIRED", () => {
       expires_at: ts,
       created_at: ts,
       updated_at: ts,
-    });
+    }));
 
     const result = await executeBookingCommand(backend, {
       type: "RECORD_ASSIGNMENT_OFFER_EXPIRED",

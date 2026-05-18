@@ -1,9 +1,19 @@
 import {
   ADDON_CATALOG,
+  CLEANING_EQUIPMENT_FEE_CENTS,
+  CLEANING_INTENSITY_MULTIPLIERS,
   FREQUENCY_MULTIPLIERS,
   SERVICE_CATALOG,
+  TEAM_SUPPORT_REQUEST_SURCHARGE_CENTS,
 } from "./catalog";
-import type { AddonSlug, PricingFrequency, PricingInput, PricingLineItem } from "./types";
+import { requestedTeamSizeForPricingInput } from "./resolveRequestedTeamSize";
+import type {
+  AddonSlug,
+  CleaningIntensity,
+  PricingFrequency,
+  PricingInput,
+  PricingLineItem,
+} from "./types";
 
 function residentialExtras(
   bedrooms: number,
@@ -77,6 +87,17 @@ export function buildServiceLineItems(input: PricingInput): PricingLineItem[] {
         amountCents: bathroomCents,
       });
     }
+
+    const extraRooms = input.extraRooms ?? 0;
+    if (extraRooms > 0 && rule.extraRoomCents != null) {
+      items.push({
+        code: "extra_rooms",
+        label: "Extra rooms",
+        quantity: extraRooms,
+        unitAmountCents: rule.extraRoomCents,
+        amountCents: extraRooms * rule.extraRoomCents,
+      });
+    }
   }
 
   if (
@@ -113,6 +134,57 @@ export function buildAddonLineItems(addons: AddonSlug[] | undefined): PricingLin
       amountCents: addon.amountCents,
     };
   });
+}
+
+const INTENSITY_LINE_LABELS: Record<Exclude<CleaningIntensity, "standard">, string> = {
+  detailed: "Detailed cleaning intensity (+15%)",
+  heavy: "Heavy cleaning intensity (+30%)",
+};
+
+export function buildTeamSupportRequestLineItem(input: PricingInput): PricingLineItem | null {
+  if (input.serviceSlug !== "regular-cleaning") return null;
+  if (requestedTeamSizeForPricingInput(input) !== 2) return null;
+
+  return {
+    code: "team_support_request",
+    label: "2-cleaner request surcharge",
+    quantity: 1,
+    unitAmountCents: TEAM_SUPPORT_REQUEST_SURCHARGE_CENTS,
+    amountCents: TEAM_SUPPORT_REQUEST_SURCHARGE_CENTS,
+  };
+}
+
+export function buildEquipmentLineItem(input: PricingInput): PricingLineItem | null {
+  if (input.serviceSlug !== "regular-cleaning") return null;
+  if ((input.equipmentSupply ?? "customer") !== "shalean") return null;
+
+  return {
+    code: "cleaning_equipment",
+    label: "Cleaning equipment",
+    quantity: 1,
+    unitAmountCents: CLEANING_EQUIPMENT_FEE_CENTS,
+    amountCents: CLEANING_EQUIPMENT_FEE_CENTS,
+  };
+}
+
+export function buildIntensityLineItem(
+  input: PricingInput,
+  preIntensitySubtotalCents: number,
+): PricingLineItem | null {
+  if (input.serviceSlug !== "regular-cleaning") return null;
+
+  const intensity: CleaningIntensity = input.cleaningIntensity ?? "standard";
+  if (intensity === "standard") return null;
+
+  const multiplier = CLEANING_INTENSITY_MULTIPLIERS[intensity];
+  const surchargeCents = Math.round(preIntensitySubtotalCents * (multiplier - 1));
+  if (surchargeCents <= 0) return null;
+
+  return {
+    code: "cleaning_intensity",
+    label: INTENSITY_LINE_LABELS[intensity],
+    amountCents: surchargeCents,
+  };
 }
 
 export function buildFrequencyLineItem(

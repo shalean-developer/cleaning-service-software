@@ -1,5 +1,9 @@
+import { offerTeamRole } from "@/features/assignments/server/offerTeamRole";
 import type {
   AssignmentOfferRow,
+  BookingCleanerRole,
+  BookingCleanerRow,
+  BookingCleanerStatus,
   BookingRow,
   BookingStateAuditRow,
   Json,
@@ -24,6 +28,7 @@ export class InMemoryBookingCommandBackend implements BookingCommandBackend {
   bookings = new Map<string, BookingRow>();
   payments = new Map<string, PaymentRow>();
   offers = new Map<string, AssignmentOfferRow>();
+  bookingCleaners = new Map<string, BookingCleanerRow>();
   audits: BookingStateAuditRow[] = [];
   notifications: NotificationOutboxRow[] = [];
   earnings: EarningLineRow[] = [];
@@ -85,19 +90,32 @@ export class InMemoryBookingCommandBackend implements BookingCommandBackend {
     this.bookings.set(bookingId, booking);
   }
 
+  async updateAssignmentDispatchAt(
+    bookingId: string,
+    assignmentDispatchAt: string | null,
+  ): Promise<void> {
+    const booking = this.bookings.get(bookingId);
+    if (!booking) throw new Error("BOOKING_NOT_FOUND");
+    booking.assignment_dispatch_at = assignmentDispatchAt;
+    booking.updated_at = nowIso();
+    this.bookings.set(bookingId, booking);
+  }
+
   async insertPayment(payment: PaymentRow): Promise<void> {
     this.payments.set(payment.id, payment);
   }
 
   async insertOffer(offer: AssignmentOfferRow): Promise<void> {
     if (offer.status === "offered") {
+      const slot = offerTeamRole(offer);
       for (const existing of this.offers.values()) {
         if (
           existing.booking_id === offer.booking_id &&
-          existing.status === "offered"
+          existing.status === "offered" &&
+          offerTeamRole(existing) === slot
         ) {
           throw new Error(
-            'duplicate key value violates unique constraint "idx_assignment_offers_one_open_per_booking"',
+            'duplicate key value violates unique constraint "idx_assignment_offers_one_open_per_booking_team_role"',
           );
         }
       }
@@ -107,6 +125,63 @@ export class InMemoryBookingCommandBackend implements BookingCommandBackend {
 
   async updateOffer(offer: AssignmentOfferRow): Promise<void> {
     this.offers.set(offer.id, offer);
+  }
+
+  async listBookingCleanersForBooking(bookingId: string): Promise<BookingCleanerRow[]> {
+    return [...this.bookingCleaners.values()].filter((r) => r.booking_id === bookingId);
+  }
+
+  async upsertBookingCleanerRoster(params: {
+    bookingId: string;
+    cleanerId: string;
+    role: BookingCleanerRole;
+    status: BookingCleanerStatus;
+    assignedByProfileId?: string | null;
+  }): Promise<BookingCleanerRow> {
+    const ts = nowIso();
+    for (const row of this.bookingCleaners.values()) {
+      if (row.booking_id === params.bookingId && row.cleaner_id === params.cleanerId) {
+        const updated: BookingCleanerRow = {
+          ...row,
+          role: params.role,
+          status: params.status,
+          assigned_by_profile_id:
+            params.assignedByProfileId ?? row.assigned_by_profile_id,
+          support_completed_at: row.support_completed_at ?? null,
+          support_note: row.support_note ?? null,
+          updated_at: ts,
+        };
+        this.bookingCleaners.set(row.id, updated);
+        return updated;
+      }
+    }
+    const row: BookingCleanerRow = {
+      id: id(),
+      booking_id: params.bookingId,
+      cleaner_id: params.cleanerId,
+      role: params.role,
+      status: params.status,
+      assigned_by_profile_id: params.assignedByProfileId ?? null,
+      support_completed_at: null,
+      support_note: null,
+      created_at: ts,
+      updated_at: ts,
+    };
+    this.bookingCleaners.set(row.id, row);
+    return row;
+  }
+
+  async updateBookingCleanerRosterStatus(
+    rosterId: string,
+    status: BookingCleanerStatus,
+  ): Promise<void> {
+    const row = this.bookingCleaners.get(rosterId);
+    if (!row) throw new Error("ROSTER_NOT_FOUND");
+    this.bookingCleaners.set(rosterId, {
+      ...row,
+      status,
+      updated_at: nowIso(),
+    });
   }
 
   async appendAudit(
@@ -159,6 +234,8 @@ export class InMemoryBookingCommandBackend implements BookingCommandBackend {
       payout_status: line.payout_status ?? "pending",
       payout_batch_id: line.payout_batch_id ?? null,
       calculation_metadata: line.calculation_metadata ?? {},
+      team_earning_role: line.team_earning_role ?? null,
+      team_earning_source: line.team_earning_source ?? null,
       id: id(),
       created_at: nowIso(),
     };
@@ -167,6 +244,37 @@ export class InMemoryBookingCommandBackend implements BookingCommandBackend {
 
   async listEarningLinesForBooking(bookingId: string): Promise<EarningLineRow[]> {
     return this.earnings.filter((e) => e.booking_id === bookingId);
+  }
+
+  async updateEarningLinePayoutAmount(
+    bookingId: string,
+    lineId: string,
+    payoutAmountCents: number,
+    teamMetadata?: {
+      team_earning_role?: EarningLineRow["team_earning_role"];
+      team_earning_source?: EarningLineRow["team_earning_source"];
+    },
+  ): Promise<boolean> {
+    const index = this.earnings.findIndex(
+      (line) => line.booking_id === bookingId && line.id === lineId,
+    );
+    if (index < 0) return false;
+    const line = this.earnings[index]!;
+    if (line.payout_status !== "pending") return false;
+
+    this.earnings[index] = {
+      ...line,
+      amount_cents: payoutAmountCents,
+      payout_amount_cents: payoutAmountCents,
+      team_earning_role: teamMetadata?.team_earning_role ?? line.team_earning_role,
+      team_earning_source: teamMetadata?.team_earning_source ?? line.team_earning_source,
+      calculation_metadata: {
+        ...(line.calculation_metadata as Record<string, unknown>),
+        trueUpAdjustedAt: nowIso(),
+        trueUpExpectedShareCents: payoutAmountCents,
+      } as EarningLineRow["calculation_metadata"],
+    };
+    return true;
   }
 
   async updateEarningLinesPayoutStatus(

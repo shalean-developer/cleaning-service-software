@@ -1,5 +1,21 @@
-import type { AssignmentOfferRow, BookingRow, Json } from "@/lib/database/types";
+import type {
+  AssignmentOfferRow,
+  BookingCleanerRole,
+  BookingRow,
+  Json,
+} from "@/lib/database/types";
 import { mergeBookingMetadataAssignment } from "@/features/assignments/server/assignmentMetadata";
+import {
+  DEFAULT_OFFER_TEAM_ROLE,
+  isSupportOfferTeamRole,
+  offerTeamRole,
+} from "@/features/assignments/server/offerTeamRole";
+import {
+  syncRosterOnOfferAccepted,
+  syncRosterOnOfferCreated,
+  syncRosterOnOfferEnded,
+} from "@/features/assignments/server/rosterSyncForOffer";
+import { isTeamOffersEnabled } from "@/features/assignments/server/teamOffersConfig";
 import { markBookingEarningsPaid } from "@/features/earnings/server/markPaidOut";
 import { markBookingEarningsPayoutReady } from "@/features/earnings/server/markPayoutReady";
 import { recordEarningsForBooking } from "@/features/earnings/server/recordEarningsForBooking";
@@ -80,26 +96,35 @@ function isOpenOfferUniqueViolation(err: unknown): boolean {
   const msg = err.message.toLowerCase();
   return (
     msg.includes("idx_assignment_offers_one_open_per_booking") ||
+    msg.includes("idx_assignment_offers_one_open_per_booking_team_role") ||
     msg.includes("duplicate key") ||
     msg.includes("23505")
   );
 }
 
-async function expireOtherOpenOffers(
+function cmdTeamRole(cmd: { teamRole?: BookingCleanerRole }): BookingCleanerRole {
+  return cmd.teamRole ?? DEFAULT_OFFER_TEAM_ROLE;
+}
+
+async function expireOtherOpenOffersInSlot(
   backend: BookingCommandBackend,
   bookingId: string,
   exceptOfferId: string,
+  slotRole: BookingCleanerRole,
 ): Promise<void> {
   const offers = await backend.listOffersForBooking(bookingId);
   const now = new Date().toISOString();
+  const legacyCancelAll = !isTeamOffersEnabled();
   for (const o of offers) {
     if (o.id === exceptOfferId || o.status !== "offered") continue;
+    if (!legacyCancelAll && offerTeamRole(o) !== slotRole) continue;
     await backend.updateOffer({
       ...o,
       status: "cancelled",
       responded_at: now,
       updated_at: now,
     });
+    await syncRosterOnOfferEnded(backend, o, "removed");
   }
 }
 
@@ -152,6 +177,7 @@ export async function executeBookingCommand(
           status: "draft",
           scheduled_start: cmd.scheduledStart,
           scheduled_end: cmd.scheduledEnd,
+          assignment_dispatch_at: null,
           price_cents: cmd.priceCents,
           currency: cmd.currency ?? "USD",
           series_id: null,
@@ -334,9 +360,28 @@ export async function executeBookingCommand(
     case "OFFER_TO_CLEANER": {
       const booking = await backend.getBooking(cmd.bookingId);
       if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
+
+      const teamRole = cmdTeamRole(cmd);
       const shape = assertTransitionShape(cmd, booking.status);
-      if (shape) return shape;
-      if (booking.cleaner_id && booking.cleaner_id !== cmd.cleanerId) {
+      if (shape) {
+        const supportOfferOnActiveJob =
+          isTeamOffersEnabled() &&
+          isSupportOfferTeamRole(teamRole) &&
+          (booking.status === "assigned" || booking.status === "in_progress");
+        if (!supportOfferOnActiveJob) return shape;
+      }
+      if (isSupportOfferTeamRole(teamRole) && !isTeamOffersEnabled()) {
+        return fail(
+          "FORBIDDEN",
+          "Support assignment offers require TEAM_OFFERS_ENABLED.",
+        );
+      }
+
+      if (
+        booking.cleaner_id &&
+        booking.cleaner_id !== cmd.cleanerId &&
+        (!isTeamOffersEnabled() || !isSupportOfferTeamRole(teamRole))
+      ) {
         return fail(
           "ASSIGNMENT_CONFLICT",
           "Booking is already assigned to another cleaner.",
@@ -353,12 +398,14 @@ export async function executeBookingCommand(
           status: "expired",
           updated_at: nowIso,
         });
+        await syncRosterOnOfferEnded(backend, existing, "removed");
       }
 
       existingOffers = await backend.listOffersForBooking(booking.id);
 
       for (const existing of existingOffers) {
         if (existing.cleaner_id !== cmd.cleanerId) continue;
+        if (offerTeamRole(existing) !== teamRole) continue;
         if (existing.status === "accepted") {
           return ok(booking.id, booking.status, true);
         }
@@ -367,24 +414,48 @@ export async function executeBookingCommand(
         }
       }
 
-      const otherOpenOffer = existingOffers.find(
-        (o) => o.status === "offered" && o.cleaner_id !== cmd.cleanerId,
+      const slotConflict = existingOffers.find(
+        (o) =>
+          o.status === "offered" &&
+          o.cleaner_id !== cmd.cleanerId &&
+          offerTeamRole(o) === teamRole,
       );
-      if (otherOpenOffer) {
+      if (slotConflict) {
         return fail(
           "OPEN_OFFER_EXISTS",
-          "Booking already has an open assignment offer to another cleaner.",
+          isTeamOffersEnabled()
+            ? `Booking already has an open ${teamRole} assignment offer to another cleaner.`
+            : "Booking already has an open assignment offer to another cleaner.",
         );
+      }
+
+      if (!isTeamOffersEnabled()) {
+        const otherOpenOffer = existingOffers.find(
+          (o) => o.status === "offered" && o.cleaner_id !== cmd.cleanerId,
+        );
+        if (otherOpenOffer) {
+          return fail(
+            "OPEN_OFFER_EXISTS",
+            "Booking already has an open assignment offer to another cleaner.",
+          );
+        }
       }
 
       const ts = nowIso;
       const oid = crypto.randomUUID();
       try {
+        const rosterId = await syncRosterOnOfferCreated(backend, cmd, {
+          bookingId: booking.id,
+          cleanerId: cmd.cleanerId,
+          teamRole,
+        });
         await backend.insertOffer({
           id: oid,
           booking_id: booking.id,
           cleaner_id: cmd.cleanerId,
           status: "offered",
+          team_role: teamRole,
+          roster_id: rosterId,
           offered_at: ts,
           responded_at: null,
           expires_at: cmd.expiresAt ?? null,
@@ -411,11 +482,17 @@ export async function executeBookingCommand(
     case "DECLINE_CLEANER_ASSIGNMENT": {
       const booking = await backend.getBooking(cmd.bookingId);
       if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
-      const shape = assertTransitionShape(cmd, booking.status);
-      if (shape) return shape;
       const offer = await backend.getOffer(cmd.offerId);
       if (!offer || offer.booking_id !== booking.id) {
         return fail("OFFER_NOT_FOUND", "Offer not found for this booking.");
+      }
+      const shape = assertTransitionShape(cmd, booking.status);
+      if (shape) {
+        const supportDeclineOnActiveJob =
+          isTeamOffersEnabled() &&
+          isSupportOfferTeamRole(offerTeamRole(offer)) &&
+          (booking.status === "assigned" || booking.status === "in_progress");
+        if (!supportDeclineOnActiveJob) return shape;
       }
       const cln = assertCleanerIs(cmd, offer.cleaner_id, ctx);
       if (cln) return cln;
@@ -432,6 +509,7 @@ export async function executeBookingCommand(
           updated_at: new Date().toISOString(),
         };
         await backend.updateOffer(expired);
+        await syncRosterOnOfferEnded(backend, expired, "removed");
         return fail("OFFER_NOT_OPEN", "Offer has expired.");
       }
       offer.status = "declined";
@@ -439,6 +517,7 @@ export async function executeBookingCommand(
       offer.updated_at = offer.responded_at;
       try {
         await backend.updateOffer(offer);
+        await syncRosterOnOfferEnded(backend, offer, "declined");
         return ok(booking.id, booking.status, false);
       } catch {
         return fail("PERSISTENCE_ERROR", "Could not decline assignment offer.");
@@ -470,12 +549,14 @@ export async function executeBookingCommand(
       }
       const now = new Date().toISOString();
       try {
-        await backend.updateOffer({
+        const cancelled = {
           ...offer,
-          status: "cancelled",
+          status: "cancelled" as const,
           responded_at: now,
           updated_at: now,
-        });
+        };
+        await backend.updateOffer(cancelled);
+        await syncRosterOnOfferEnded(backend, cancelled, "removed");
         await backend.appendAudit(cmd, booking.id, booking.status, booking.status);
         return ok(booking.id, booking.status, false);
       } catch {
@@ -492,6 +573,61 @@ export async function executeBookingCommand(
       }
       const cln = assertCleanerIs(cmd, offer.cleaner_id, ctx);
       if (cln) return cln;
+
+      const slotRole = offerTeamRole(offer);
+      const supportAccept =
+        isTeamOffersEnabled() && isSupportOfferTeamRole(slotRole);
+
+      if (supportAccept) {
+        if (offer.status === "accepted") {
+          return ok(booking.id, booking.status, true);
+        }
+        if (offer.status !== "offered") {
+          return fail("OFFER_NOT_OPEN", "Offer is not open for acceptance.");
+        }
+        if (isOfferExpired(offer)) {
+          const expired: AssignmentOfferRow = {
+            ...offer,
+            status: "expired",
+            updated_at: new Date().toISOString(),
+          };
+          await backend.updateOffer(expired);
+          await syncRosterOnOfferEnded(backend, expired, "removed");
+          return fail("OFFER_NOT_OPEN", "Offer has expired.");
+        }
+        if (booking.status === "pending_assignment") {
+          return fail(
+            "ASSIGNMENT_CONFLICT",
+            "Primary cleaner must accept before support can join.",
+          );
+        }
+        if (
+          booking.status !== "assigned" &&
+          booking.status !== "in_progress"
+        ) {
+          return fail(
+            "ASSIGNMENT_CONFLICT",
+            "Support offers can only be accepted while the job is active.",
+          );
+        }
+        try {
+          offer.status = "accepted";
+          offer.responded_at = new Date().toISOString();
+          offer.updated_at = offer.responded_at;
+          await backend.updateOffer(offer);
+          await syncRosterOnOfferAccepted(backend, offer);
+          await expireOtherOpenOffersInSlot(
+            backend,
+            booking.id,
+            offer.id,
+            slotRole,
+          );
+          return ok(booking.id, booking.status, false);
+        } catch {
+          return fail("PERSISTENCE_ERROR", "Accept support assignment failed.");
+        }
+      }
+
       if (
         offer.status === "accepted" &&
         booking.status === "assigned" &&
@@ -517,6 +653,7 @@ export async function executeBookingCommand(
           updated_at: new Date().toISOString(),
         };
         await backend.updateOffer(expired);
+        await syncRosterOnOfferEnded(backend, expired, "removed");
         return fail("OFFER_NOT_OPEN", "Offer has expired.");
       }
       if (booking.cleaner_id && booking.cleaner_id !== offer.cleaner_id) {
@@ -534,7 +671,13 @@ export async function executeBookingCommand(
         offer.responded_at = new Date().toISOString();
         offer.updated_at = offer.responded_at;
         await backend.updateOffer(offer);
-        await expireOtherOpenOffers(backend, booking.id, offer.id);
+        await syncRosterOnOfferAccepted(backend, offer);
+        await expireOtherOpenOffersInSlot(
+          backend,
+          booking.id,
+          offer.id,
+          slotRole,
+        );
         await enqueueNotificationWhenNotIdempotent(
           backend,
           r.idempotent,
@@ -710,6 +853,8 @@ export async function executeBookingCommand(
             description: "Explicit snapshot from MARK_COMPLETED",
             metadata: { guarded: true },
             calculation_metadata: { source: "MARK_COMPLETED_snapshot" },
+            team_earning_role: null,
+            team_earning_source: null,
           });
         }
         return ok(booking.id, r.status, r.idempotent);
@@ -800,6 +945,10 @@ export async function executeBookingCommand(
       }
       try {
         const r = await backend.expireAssignmentOffer(cmd, booking.id, cmd.offerId);
+        const expiredOffer = await backend.getOffer(cmd.offerId);
+        if (expiredOffer) {
+          await syncRosterOnOfferEnded(backend, expiredOffer, "removed");
+        }
         return ok(booking.id, r.status, r.idempotent);
       } catch {
         return fail("PERSISTENCE_ERROR", "Could not expire assignment offer.");

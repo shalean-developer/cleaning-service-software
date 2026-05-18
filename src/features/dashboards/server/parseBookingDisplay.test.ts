@@ -73,6 +73,14 @@ describe("serviceLabelFromSlug", () => {
 });
 
 describe("parseBookingDisplay", () => {
+  it("reads contactPhone from metadata", () => {
+    const display = parseBookingDisplay({
+      contactPhone: "+27821234567",
+    });
+    expect(display.contactPhone).toBe("+27821234567");
+    expect(display.contactPhoneDisplay).toBe("082 123 4567");
+  });
+
   it("labels wizard metadata with nested quote input", () => {
     const display = parseBookingDisplay({
       quote: { input: { serviceSlug: "office-cleaning" } },

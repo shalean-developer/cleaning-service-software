@@ -1,10 +1,14 @@
 import { computeCleanerEarningsPreview } from "./computeCleanerEarnings";
 import {
   buildAddonLineItems,
+  buildEquipmentLineItem,
   buildFrequencyLineItem,
+  buildIntensityLineItem,
   buildServiceLineItems,
+  buildTeamSupportRequestLineItem,
   sumLineItems,
 } from "./computeLineItems";
+import { requestedTeamSizeForPricingInput } from "./resolveRequestedTeamSize";
 import type {
   CleanerEarningsPreview,
   PricingBreakdown,
@@ -46,19 +50,37 @@ export function calculateQuote(input: PricingInput): PricingQuoteResult {
   if (validationError) return validationError;
 
   const frequency = input.frequency ?? "once";
+  const requestedTeamSize = requestedTeamSizeForPricingInput(input);
   const teamSize = input.teamSize ?? 1;
 
   const serviceItems = buildServiceLineItems(input);
   const addonItems = buildAddonLineItems(input.addons);
-  const preDiscountItems = [...serviceItems, ...addonItems];
+  const preIntensityItems = [...serviceItems, ...addonItems];
 
-  const lineError = assertNonNegativeLineItems(preDiscountItems);
+  const lineError = assertNonNegativeLineItems(preIntensityItems);
   if (lineError) return lineError;
 
-  const subtotalCents = sumLineItems(preDiscountItems);
-  if (subtotalCents <= 0) {
+  const preIntensitySubtotalCents = sumLineItems(preIntensityItems);
+  if (preIntensitySubtotalCents <= 0) {
     return fail("ZERO_TOTAL", "Quote subtotal must be greater than zero.");
   }
+
+  const intensityItem = buildIntensityLineItem(input, preIntensitySubtotalCents);
+  const afterIntensityItems = intensityItem
+    ? [...preIntensityItems, intensityItem]
+    : [...preIntensityItems];
+
+  const equipmentItem = buildEquipmentLineItem(input);
+  const afterEquipmentItems = equipmentItem
+    ? [...afterIntensityItems, equipmentItem]
+    : [...afterIntensityItems];
+
+  const teamSupportItem = buildTeamSupportRequestLineItem(input);
+  const preDiscountItems = teamSupportItem
+    ? [...afterEquipmentItems, teamSupportItem]
+    : [...afterEquipmentItems];
+
+  const subtotalCents = sumLineItems(preDiscountItems);
 
   const frequencyItem = buildFrequencyLineItem(subtotalCents, frequency);
   const lineItems = frequencyItem
@@ -102,8 +124,12 @@ export function calculateQuote(input: PricingInput): PricingQuoteResult {
     metadata: {
       bedrooms: input.bedrooms,
       bathrooms: input.bathrooms,
+      extraRooms: input.extraRooms ?? 0,
+      cleaningIntensity: input.cleaningIntensity ?? "standard",
+      equipmentSupply: input.equipmentSupply ?? "customer",
       propertySizeSqm: input.propertySizeSqm ?? null,
       teamSize,
+      requestedTeamSize,
       addons: input.addons ?? [],
     },
   };

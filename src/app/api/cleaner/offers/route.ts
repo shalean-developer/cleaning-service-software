@@ -31,6 +31,7 @@ export async function GET() {
       earningsCents: offer.earningsCents,
       earningsLabel: offer.earningsLabel,
       isExpired: offer.isExpired,
+      teamRoleLabel: offer.teamRoleLabel,
     })),
   };
 

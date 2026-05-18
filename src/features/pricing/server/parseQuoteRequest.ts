@@ -1,4 +1,10 @@
-import { isAddonSlug, isPricingFrequency, isServiceSlug } from "./catalog";
+import {
+  isAddonSlug,
+  isCleaningIntensity,
+  isEquipmentSupply,
+  isPricingFrequency,
+  isServiceSlug,
+} from "./catalog";
 import type { PricingInput } from "./types";
 
 export function parsePricingInputFromJson(
@@ -20,6 +26,47 @@ export function parsePricingInputFromJson(
 
   if (typeof bedrooms !== "number" || typeof bathrooms !== "number") {
     return { error: "bedrooms and bathrooms are required numbers." };
+  }
+
+  const extraRooms =
+    typeof body.extraRooms === "number"
+      ? body.extraRooms
+      : typeof body.extra_rooms === "number"
+        ? body.extra_rooms
+        : undefined;
+
+  const cleaningIntensityRaw =
+    typeof body.cleaningIntensity === "string"
+      ? body.cleaningIntensity
+      : typeof body.cleaning_intensity === "string"
+        ? body.cleaning_intensity
+        : undefined;
+  const cleaningIntensity =
+    cleaningIntensityRaw == null
+      ? undefined
+      : isCleaningIntensity(cleaningIntensityRaw)
+        ? cleaningIntensityRaw
+        : undefined;
+
+  if (cleaningIntensityRaw != null && cleaningIntensity === undefined) {
+    return { error: "cleaningIntensity is invalid." };
+  }
+
+  const equipmentSupplyRaw =
+    typeof body.equipmentSupply === "string"
+      ? body.equipmentSupply
+      : typeof body.equipment_supply === "string"
+        ? body.equipment_supply
+        : undefined;
+  const equipmentSupply =
+    equipmentSupplyRaw == null
+      ? undefined
+      : isEquipmentSupply(equipmentSupplyRaw)
+        ? equipmentSupplyRaw
+        : undefined;
+
+  if (equipmentSupplyRaw != null && equipmentSupply === undefined) {
+    return { error: "equipmentSupply is invalid." };
   }
 
   const frequencyRaw =
@@ -56,6 +103,13 @@ export function parsePricingInputFromJson(
         ? body.team_size
         : undefined;
 
+  const requestedTeamSize =
+    typeof body.requestedTeamSize === "number"
+      ? body.requestedTeamSize
+      : typeof body.requested_team_size === "number"
+        ? body.requested_team_size
+        : undefined;
+
   const propertySizeSqm =
     typeof body.propertySizeSqm === "number"
       ? body.propertySizeSqm
@@ -78,10 +132,14 @@ export function parsePricingInputFromJson(
     serviceSlug: serviceSlugRaw,
     bedrooms,
     bathrooms,
+    extraRooms,
+    cleaningIntensity,
+    equipmentSupply,
     propertySizeSqm,
     frequency,
     addons: addons.length > 0 ? addons : undefined,
     teamSize,
+    requestedTeamSize,
     cleanerTenureMonths,
   };
 }

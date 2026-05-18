@@ -1,5 +1,11 @@
 import { SERVICE_CATALOG } from "@/features/pricing/server/catalog";
-import type { AddonSlug, PricingFrequency, ServiceSlug } from "@/features/pricing/server/types";
+import type {
+  AddonSlug,
+  CleaningIntensity,
+  EquipmentSupply,
+  PricingFrequency,
+  ServiceSlug,
+} from "@/features/pricing/server/types";
 
 export const WIZARD_TIMEZONE = "Africa/Johannesburg";
 export const WIZARD_JOB_DURATION_MINUTES = 180;
@@ -56,6 +62,70 @@ export const ADDON_STEP_DESCRIPTIONS: Record<AddonSlug, string> = {
   "inside-oven": "Racks, glass, interior degrease.",
   balcony: "Outdoor balcony sweep and surface tidy.",
 };
+
+/** Step 4 cleaning intensity — regular cleaning only; values match `CLEANING_INTENSITIES`. */
+export type CleaningIntensityStepOption = {
+  value: CleaningIntensity;
+  label: string;
+  description: string;
+};
+
+/** Step 4 equipment supply — regular cleaning only; values match `EQUIPMENT_SUPPLY_OPTIONS`. */
+export type EquipmentSupplyStepOption = {
+  value: EquipmentSupply;
+  label: string;
+  description: string;
+};
+
+export type TeamSupportStepOption = {
+  value: 1 | 2;
+  label: string;
+  description: string;
+};
+
+export const TEAM_SUPPORT_STEP_OPTIONS: TeamSupportStepOption[] = [
+  {
+    value: 1,
+    label: "1 cleaner",
+    description: "Standard visit for most homes",
+  },
+  {
+    value: 2,
+    label: "Request 2 cleaners",
+    description: "+R200 request surcharge — team availability confirmed after payment",
+  },
+];
+
+export const EQUIPMENT_SUPPLY_STEP_OPTIONS: EquipmentSupplyStepOption[] = [
+  {
+    value: "customer",
+    label: "I have cleaning supplies",
+    description: "No extra charge — you provide supplies and equipment",
+  },
+  {
+    value: "shalean",
+    label: "Bring cleaning equipment",
+    description: "+R100 — cleaner arrives with Shalean supplies and equipment",
+  },
+];
+
+export const CLEANING_INTENSITY_STEP_OPTIONS: CleaningIntensityStepOption[] = [
+  {
+    value: "standard",
+    label: "Standard",
+    description: "Normal routine clean — no extra charge",
+  },
+  {
+    value: "detailed",
+    label: "Detailed",
+    description: "Extra attention where needed — +15%",
+  },
+  {
+    value: "heavy",
+    label: "Heavy",
+    description: "High-use home, deeper attention — +30% (still regular cleaning)",
+  },
+];
 
 export const FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
   { value: "once", label: "Once-off", description: "Single scheduled visit" },

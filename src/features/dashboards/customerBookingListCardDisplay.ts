@@ -23,6 +23,7 @@ export type CustomerBookingListCardLayersInput = {
   paymentStatus: PaymentStatus | null;
   paymentFailureReason: PaymentFailureReason;
   display: Pick<BookingDisplayFields, "assignmentCustomerMessage">;
+  deferredAssignmentMessage?: string | null;
   assignedCleanerLabel: string | null;
 };
 
@@ -94,6 +95,11 @@ function paymentStatusLineForBooking(
 function supportingMessageForBooking(
   input: CustomerBookingListCardLayersInput,
 ): CustomerBookingListCardSupportingMessage | null {
+  const deferredMessage = input.deferredAssignmentMessage?.trim();
+  if (input.status !== "payment_failed" && deferredMessage) {
+    return { kind: "assignment", text: deferredMessage };
+  }
+
   if (
     input.status !== "payment_failed" &&
     input.display.assignmentCustomerMessage

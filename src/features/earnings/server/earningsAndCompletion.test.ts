@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { executeBookingCommand } from "@/features/bookings/server/commands/executeBookingCommand";
 import { InMemoryBookingCommandBackend } from "@/features/bookings/server/commands/inMemoryBookingCommandBackend";
+import { testAssignmentOfferRow } from "@/features/bookings/server/commands/testAssignmentOfferRow";
 import { buildBookingQuoteMetadata } from "@/features/pricing/server/metadata";
 import { calculateQuote } from "@/features/pricing/server/calculateQuote";
 import { computeEarningsForBooking } from "./computeEarningsForBooking";
@@ -83,7 +84,7 @@ async function paidAssignedInProgress(
 
   const offerId = crypto.randomUUID();
   const ts = new Date().toISOString();
-  await backend.insertOffer({
+  await backend.insertOffer(testAssignmentOfferRow({
     id: offerId,
     booking_id: bookingId,
     cleaner_id: cleanerId,
@@ -93,7 +94,7 @@ async function paidAssignedInProgress(
     expires_at: null,
     created_at: ts,
     updated_at: ts,
-  });
+  }));
 
   await executeBookingCommand(
     backend,

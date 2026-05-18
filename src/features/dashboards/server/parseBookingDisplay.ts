@@ -5,7 +5,15 @@ import {
   type AssignmentVisibilityKey,
 } from "@/features/assignments/server/resolveAssignmentVisibility";
 import type { Json } from "@/lib/database/types";
+import {
+  formatZaMobileForDisplay,
+  normalizeZaMobilePhone,
+} from "@/lib/validation/zaPhone";
 import { parseCustomerBookingServiceDetails } from "../customerBookingServiceDetailsDisplay";
+import {
+  readTeamRequestFulfillment,
+  teamRequestFulfillmentLabel,
+} from "./adminTeamSupportObservation";
 
 export type BookingDisplayFields = {
   serviceSlug: string | null;
@@ -15,11 +23,21 @@ export type BookingDisplayFields = {
   addressLine: string | null;
   locationSummary: string;
   homeSizeSummary: string | null;
+  cleaningIntensityLabel: string | null;
+  equipmentSupplyLabel: string | null;
+  equipmentSupplyOperationalLabel: string | null;
   frequencyLabel: string | null;
   addonsSummary: string | null;
+  teamSupportLabel: string | null;
+  teamSupportCleanerNote: string | null;
+  isTwoCleanerRequest: boolean;
+  teamRequestFulfillmentLabel: string | null;
   cleanerPreferenceMode: string | null;
   preferredCleanerId: string | null;
   specialInstructions: string | null;
+  /** E.164 snapshot from booking metadata. */
+  contactPhone: string | null;
+  contactPhoneDisplay: string | null;
   assignmentAttention: string | null;
   assignmentReason: string | null;
   assignmentVisibilityKey: AssignmentVisibilityKey;
@@ -110,6 +128,10 @@ export function parseBookingDisplay(metadata: Json | null | undefined): BookingD
 
   const assignment = readAssignmentMetadata(metadata);
   const serviceDetails = parseCustomerBookingServiceDetails(metadata, serviceSlug);
+  const contactPhoneRaw =
+    readNonEmptyString(record.contactPhone) ?? readNonEmptyString(record.customerPhone);
+  const contactPhone = normalizeZaMobilePhone(contactPhoneRaw);
+  const contactPhoneDisplay = formatZaMobileForDisplay(contactPhone);
 
   return {
     serviceSlug,
@@ -119,14 +141,26 @@ export function parseBookingDisplay(metadata: Json | null | undefined): BookingD
     addressLine: line1,
     locationSummary,
     homeSizeSummary: serviceDetails.homeSizeSummary,
+    cleaningIntensityLabel: serviceDetails.cleaningIntensityLabel,
+    equipmentSupplyLabel: serviceDetails.equipmentSupplyLabel,
+    equipmentSupplyOperationalLabel: serviceDetails.equipmentSupplyOperationalLabel,
     frequencyLabel: serviceDetails.frequencyLabel,
     addonsSummary: serviceDetails.addonsSummary,
+    teamSupportLabel: serviceDetails.teamSupportLabel,
+    teamSupportCleanerNote: serviceDetails.teamSupportCleanerNote,
+    isTwoCleanerRequest: serviceDetails.isTwoCleanerRequest,
+    teamRequestFulfillmentLabel: teamRequestFulfillmentLabel(
+      readTeamRequestFulfillment(metadata),
+      serviceDetails.isTwoCleanerRequest,
+    ),
     cleanerPreferenceMode:
       typeof record.cleanerPreferenceMode === "string" ? record.cleanerPreferenceMode : null,
     preferredCleanerId:
       typeof record.preferred_cleaner_id === "string" ? record.preferred_cleaner_id : null,
     specialInstructions:
       typeof record.specialInstructions === "string" ? record.specialInstructions : null,
+    contactPhone,
+    contactPhoneDisplay,
     assignmentAttention: assignment?.status ?? null,
     assignmentReason: assignment?.reason ?? null,
     assignmentVisibilityKey: null,

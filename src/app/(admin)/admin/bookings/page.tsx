@@ -31,6 +31,12 @@ const VALID_FILTERS = new Set<AdminBookingFilter>([
   "selected_declined",
   "max_attempts",
   "recovery_needed",
+  "two_cleaner_request",
+  "operational_load",
+  "team_awaiting_coordination",
+  "team_fully_coordinated",
+  "high_operational_load",
+  "team_high_risk_combo",
 ]);
 
 type PageProps = {

@@ -53,7 +53,7 @@ export async function findAssignmentRecoveryCandidates(
 
     const { data: booking, error: bookErr } = await client
       .from("bookings")
-      .select("id, status, customer_id, cleaner_id")
+      .select("id, status, customer_id, cleaner_id, assignment_dispatch_at")
       .eq("id", payment.booking_id)
       .maybeSingle();
 

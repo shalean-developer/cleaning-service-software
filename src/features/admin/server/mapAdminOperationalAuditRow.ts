@@ -4,8 +4,10 @@ import { summarizeAdminOperationalMetadata } from "./recordAdminOperationalAudit
 
 const ACTION_LABELS: Record<string, string> = {
   assignment_recovery: "Assignment recovery",
+  deferred_dispatch_now: "Dispatch now (deferred)",
   manual_dispatch_offer: "Manual dispatch offer",
   replace_open_offer: "Replace open offer",
+  notification_requeue: "Notification requeue",
 };
 
 const OUTCOME_LABELS: Record<string, string> = {

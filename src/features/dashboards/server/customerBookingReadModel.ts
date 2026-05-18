@@ -19,6 +19,7 @@ import {
   showsPrePaymentAssignmentExpectation,
 } from "@/features/bookings/server/paymentFailureDisplay";
 import { assessPaymentRetryEligibility } from "@/features/bookings/server/paymentRetryEligibility";
+import { resolveDeferredDispatchStatus } from "@/features/assignments/server/deferredDispatchStatus";
 import { buildLifecycleTimeline } from "./lifecycleTimeline";
 import type { CustomerBookingDetail, CustomerBookingListItem, PaymentSummary } from "./types";
 import type { BookingRow, BookingStateAuditRow } from "@/lib/database/types";
@@ -73,6 +74,7 @@ type BookingRowSlice = {
   status: CustomerBookingListItem["status"];
   scheduled_start: string;
   scheduled_end: string;
+  assignment_dispatch_at: string | null;
   price_cents: number;
   currency: string;
   cleaner_id: string | null;
@@ -86,7 +88,21 @@ function mapListItem(
   paymentFailureReason: string | null,
   displayOverride?: ReturnType<typeof parseBookingDisplay>,
 ): CustomerBookingListItem {
-  const display = displayOverride ?? parseBookingDisplay(booking.metadata_raw);
+  const displayBase = displayOverride ?? parseBookingDisplay(booking.metadata_raw);
+  const deferred = resolveDeferredDispatchStatus({
+    bookingStatus: booking.status,
+    assignmentDispatchAt: booking.assignment_dispatch_at,
+    scheduledStart: booking.scheduled_start,
+  });
+  const display = deferred.customerMessage
+    ? {
+        ...displayBase,
+        assignmentCustomerMessage: deferred.customerMessage,
+        showCustomerAssignmentWarning: false,
+        assignmentVisibilityKey: null,
+        assignmentAttention: null,
+      }
+    : displayBase;
   return {
     id: booking.id,
     status: booking.status,
@@ -103,6 +119,7 @@ function mapListItem(
       booking.cleaner_id && showsPrePaymentAssignmentExpectation(booking.status)
         ? "Cleaner assigned"
         : null,
+    deferredAssignmentMessage: deferred.customerMessage,
     updatedAt: booking.updated_at,
   };
 }
@@ -130,7 +147,7 @@ export async function listCustomerBookings(
   const { data: bookings, error } = await client
     .from("bookings")
     .select(
-      "id, status, scheduled_start, scheduled_end, price_cents, currency, cleaner_id, metadata, updated_at",
+      "id, status, scheduled_start, scheduled_end, assignment_dispatch_at, price_cents, currency, cleaner_id, metadata, updated_at",
     )
     .eq("customer_id", ctx.actingCustomerId)
     .order("scheduled_start", { ascending: false });
@@ -170,6 +187,7 @@ export async function listCustomerBookings(
           status: row.status,
           scheduled_start: row.scheduled_start,
           scheduled_end: row.scheduled_end,
+          assignment_dispatch_at: row.assignment_dispatch_at ?? null,
           price_cents: row.price_cents,
           currency: row.currency,
           cleaner_id: row.cleaner_id,
@@ -210,7 +228,7 @@ export async function getCustomerBookingDetail(
   const { data: row, error } = await client
     .from("bookings")
     .select(
-      "id, status, scheduled_start, scheduled_end, price_cents, currency, cleaner_id, metadata, created_at, updated_at, customer_id",
+      "id, status, scheduled_start, scheduled_end, assignment_dispatch_at, price_cents, currency, cleaner_id, metadata, created_at, updated_at, customer_id",
     )
     .eq("id", bookingId)
     .maybeSingle();
@@ -253,6 +271,7 @@ export async function getCustomerBookingDetail(
       status: row.status,
       scheduled_start: row.scheduled_start,
       scheduled_end: row.scheduled_end,
+      assignment_dispatch_at: row.assignment_dispatch_at ?? null,
       price_cents: row.price_cents,
       currency: row.currency,
       cleaner_id: row.cleaner_id,

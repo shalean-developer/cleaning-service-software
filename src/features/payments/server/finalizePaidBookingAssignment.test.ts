@@ -5,15 +5,16 @@ import { executeBookingCommand } from "@/features/bookings/server/commands/execu
 import type { Database, PaymentRow } from "@/lib/database/types";
 import { readAssignmentMetadata } from "@/features/assignments/server/assignmentMetadata";
 import { DISPATCH_NOT_STARTED_REASON } from "@/features/assignments/server/isAssignmentRecoveryCandidate";
+import { handlePostPaymentAssignmentFailure } from "@/features/assignments/server/postPaymentAssignmentObservability";
 import { finalizePaidBookingWithDeps } from "./finalizePaidBooking";
 import type { PaystackChargeSuccess } from "./paystackTypes";
 
-const assignmentMock = vi.hoisted(() => ({
-  runAssignmentAfterPayment: vi.fn(),
+const dispatchMock = vi.hoisted(() => ({
+  runPostPaymentAssignmentDispatch: vi.fn(),
 }));
 
-vi.mock("@/features/assignments/server/runAssignmentAfterPayment", () => ({
-  runAssignmentAfterPayment: assignmentMock.runAssignmentAfterPayment,
+vi.mock("./postPaymentAssignmentDispatch", () => ({
+  runPostPaymentAssignmentDispatch: dispatchMock.runPostPaymentAssignmentDispatch,
 }));
 
 const systemActor = { actorType: "system" as const, profileId: null };
@@ -97,7 +98,20 @@ const charge: PaystackChargeSuccess = {
 
 describe("finalizePaidBooking assignment observability", () => {
   beforeEach(() => {
-    assignmentMock.runAssignmentAfterPayment.mockReset();
+    dispatchMock.runPostPaymentAssignmentDispatch.mockReset();
+    dispatchMock.runPostPaymentAssignmentDispatch.mockResolvedValue({
+      action: "skipped_immediate",
+      assignmentDispatchAt: new Date().toISOString(),
+      assignmentResult: {
+        ok: true,
+        bookingId: "x",
+        bookingStatus: "pending_assignment",
+        outcome: "offered",
+        offerId: null,
+        cleanerId: null,
+        idempotent: false,
+      },
+    });
   });
 
   afterEach(() => {
@@ -109,7 +123,20 @@ describe("finalizePaidBooking assignment observability", () => {
     const { bookingId, payment } = await seedPending(backend, "cust-fail");
     const { client } = createPaymentStoreMock(payment);
 
-    assignmentMock.runAssignmentAfterPayment.mockRejectedValue(new Error("dispatch blew up"));
+    dispatchMock.runPostPaymentAssignmentDispatch.mockImplementation(
+      async (_client, backend, _booking, input) => {
+        await handlePostPaymentAssignmentFailure(backend, {
+          bookingId: input.bookingId,
+          paymentId: input.paymentId,
+          customerId: input.customerId,
+          assignmentCode: "ASSIGNMENT_EXCEPTION",
+          assignmentMessage: "dispatch blew up",
+          bookingStatusAfter: "confirmed",
+          thrown: true,
+        });
+        throw new Error("dispatch blew up");
+      },
+    );
 
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -141,11 +168,19 @@ describe("finalizePaidBooking assignment observability", () => {
     const { bookingId, payment } = await seedPending(backend, "cust-fail-2");
     const { client } = createPaymentStoreMock(payment);
 
-    assignmentMock.runAssignmentAfterPayment.mockResolvedValue({
-      ok: false,
-      code: "ASSIGNMENT_CONTEXT_MISSING",
-      message: "Could not load booking assignment context.",
-    });
+    dispatchMock.runPostPaymentAssignmentDispatch.mockImplementation(
+      async (_client, backend, _booking, input) => {
+        await handlePostPaymentAssignmentFailure(backend, {
+          bookingId: input.bookingId,
+          paymentId: input.paymentId,
+          customerId: input.customerId,
+          assignmentCode: "ASSIGNMENT_CONTEXT_MISSING",
+          assignmentMessage: "Could not load booking assignment context.",
+          bookingStatusAfter: "confirmed",
+          thrown: false,
+        });
+      },
+    );
 
     vi.spyOn(console, "warn").mockImplementation(() => {});
 

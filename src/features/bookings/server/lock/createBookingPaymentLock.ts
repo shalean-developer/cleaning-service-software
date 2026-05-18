@@ -17,6 +17,8 @@ import {
 import { hashLockInputs } from "./hashLockInputs";
 import { validateCleanerPreferenceForLock } from "./validateCleanerPreference";
 import type { BookingLockInput, BookingPaymentLockResult } from "./types";
+import { syncCustomerPhoneFromLock } from "@/features/bookings/server/syncCustomerPhoneFromLock";
+import { validateBookingContactPhoneMetadata } from "@/features/bookings/server/validateBookingContactPhone";
 import { paymentIdempotencyKeyForLock } from "./constants";
 
 function fail(
@@ -70,6 +72,11 @@ export async function createBookingPaymentLock(
   const cleanerCheck = await validateCleanerPreferenceForLock(input);
   if (!cleanerCheck.ok) {
     return fail("CLEANER_INELIGIBLE", cleanerCheck.message, 422);
+  }
+
+  const phoneCheck = validateBookingContactPhoneMetadata(input.bookingMetadata);
+  if (!phoneCheck.ok) {
+    return fail("INVALID_PAYLOAD", phoneCheck.message, 400);
   }
 
   const quoteResult = calculateQuote(input.pricingInput);
@@ -150,6 +157,7 @@ export async function createBookingPaymentLock(
       currency: quoteResult.breakdown.currency,
       metadata: {
         ...input.bookingMetadata,
+        contactPhone: phoneCheck.contactPhone,
         paymentLock: {
           checkoutIdempotencyKey: key,
           lockedAt: new Date().toISOString(),
@@ -174,8 +182,13 @@ export async function createBookingPaymentLock(
       input,
       lockedPriceCents: serverTotal,
       currency: quoteResult.breakdown.currency,
-      lockedMetadata: input.bookingMetadata,
+      lockedMetadata: {
+        ...input.bookingMetadata,
+        contactPhone: phoneCheck.contactPhone,
+      },
     });
+
+    await syncCustomerPhoneFromLock(userClient, ctx.actingCustomerId, phoneCheck.contactPhone);
 
     return {
       ok: true,

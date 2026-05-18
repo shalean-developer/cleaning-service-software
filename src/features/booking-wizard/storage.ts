@@ -11,8 +11,13 @@ const PERSIST_KEYS: (keyof BookingWizardState)[] = [
   "suburb",
   "city",
   "locationNotes",
+  "contactPhone",
   "bedrooms",
   "bathrooms",
+  "extraRooms",
+  "cleaningIntensity",
+  "equipmentSupply",
+  "requestedTeamSize",
   "propertySizeSqm",
   "frequency",
   "addons",
@@ -34,10 +39,16 @@ export function loadWizardState(): BookingWizardState {
       ? (parsed.step as BookingWizardState["step"])
       : INITIAL_WIZARD_STATE.step;
 
+    const persisted = pickPersisted(parsed);
+    const requestedTeamSize =
+      persisted.requestedTeamSize === 2 ? 2 : INITIAL_WIZARD_STATE.requestedTeamSize;
+
     return {
       ...INITIAL_WIZARD_STATE,
-      ...pickPersisted(parsed),
+      ...persisted,
+      requestedTeamSize,
       step,
+      profilePhone: null,
       quote: null,
       reviewConfirmed: false,
       availableCleaners: [],

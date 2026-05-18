@@ -72,6 +72,18 @@ export function resolveAssignmentVisibility(input: {
   const hasDeclinedOffer = offerStatuses.includes("declined");
   const lastOfferOutcome = inferLastOfferOutcome(assignment, offerStatuses, reason);
 
+  if (assignment?.status === "deferred") {
+    return {
+      key: null,
+      adminLabel: "Awaiting dispatch window",
+      customerMessage: null,
+      showCustomerAssignmentWarning: false,
+      lastOfferOutcome,
+      opsSearching: false,
+      opsAdminRequired: false,
+    };
+  }
+
   if (input.dispatchNotStarted || isDispatchNotStartedAttentionReason(reason)) {
     return {
       key: "dispatch_not_started",

@@ -1,7 +1,12 @@
-import { SERVICE_CATALOG } from "@/features/pricing/server/catalog";
+import {
+  isCleaningIntensity,
+  isEquipmentSupply,
+  SERVICE_CATALOG,
+} from "@/features/pricing/server/catalog";
 import { normalizeAreaSlug } from "@/features/cleaners/server/eligibility/normalize";
 import type { BookingWizardState, StepValidationResult, WizardStep } from "./types";
 import { WIZARD_SERVICE_OPTIONS } from "./constants";
+import { resolveWizardContactPhone } from "./contactPhone";
 import { buildWizardSlot, isSlotInPast } from "./slot";
 
 function result(valid: boolean, errors: Record<string, string> = {}): StepValidationResult {
@@ -47,6 +52,10 @@ export function validateLocationStep(state: BookingWizardState): StepValidationR
   if (state.suburb.trim() && !areaSlug) {
     errors.suburb = "Suburb could not be recognized.";
   }
+  if (!resolveWizardContactPhone(state.contactPhone, state.profilePhone)) {
+    errors.contactPhone =
+      "Enter a valid South African mobile number (e.g. 082 123 4567).";
+  }
   return result(Object.keys(errors).length === 0, errors);
 }
 
@@ -68,6 +77,25 @@ export function validateDetailsStep(state: BookingWizardState): StepValidationRe
     errors.bathrooms = "Bathrooms must be between 0 and 20.";
   } else if (!rule.allowZeroRooms && state.bathrooms < 1) {
     errors.bathrooms = "At least 1 bathroom is required.";
+  }
+
+  if (state.serviceSlug === "regular-cleaning") {
+    if (
+      !Number.isInteger(state.extraRooms) ||
+      state.extraRooms < 0 ||
+      state.extraRooms > 6
+    ) {
+      errors.extraRooms = "Extra rooms must be between 0 and 6.";
+    }
+    if (!isCleaningIntensity(state.cleaningIntensity)) {
+      errors.cleaningIntensity = "Please select a cleaning intensity.";
+    }
+    if (!isEquipmentSupply(state.equipmentSupply)) {
+      errors.equipmentSupply = "Please choose who provides cleaning supplies.";
+    }
+    if (state.requestedTeamSize !== 1 && state.requestedTeamSize !== 2) {
+      errors.requestedTeamSize = "Please choose team support.";
+    }
   }
 
   if (state.serviceSlug === "office-cleaning") {

@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { AssignmentOfferRow, BookingRow, Database } from "@/lib/database/types";
 import { listOffersForCleaner } from "./offerRepository";
 import { isOfferPastExpiry } from "./buildOfferExpiry";
+import { offerBookingStatusAllowed } from "./offerTeamRole";
 
 export type CleanerOfferView = {
   offer: AssignmentOfferRow;
@@ -64,7 +65,7 @@ export async function getCleanerOffers(
       .maybeSingle();
 
     if (error || !booking) continue;
-    if (booking.status !== "pending_assignment") continue;
+    if (!offerBookingStatusAllowed(offer, booking.status)) continue;
 
     views.push({ offer, booking });
   }

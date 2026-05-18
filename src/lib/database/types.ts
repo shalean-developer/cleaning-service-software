@@ -35,6 +35,19 @@ export const ASSIGNMENT_OFFER_STATUSES = [
 ] as const;
 export type AssignmentOfferStatus = (typeof ASSIGNMENT_OFFER_STATUSES)[number];
 
+export const BOOKING_CLEANER_ROLES = ["primary", "support"] as const;
+export type BookingCleanerRole = (typeof BOOKING_CLEANER_ROLES)[number];
+
+export const BOOKING_CLEANER_STATUSES = [
+  "planned",
+  "offered",
+  "accepted",
+  "declined",
+  "removed",
+  "completed",
+] as const;
+export type BookingCleanerStatus = (typeof BOOKING_CLEANER_STATUSES)[number];
+
 export const BOOKING_LOCK_STATUSES = ["active", "consumed", "expired"] as const;
 export type BookingLockStatus = (typeof BOOKING_LOCK_STATUSES)[number];
 
@@ -128,6 +141,7 @@ export type BookingRow = {
   status: BookingStatus;
   scheduled_start: string;
   scheduled_end: string;
+  assignment_dispatch_at: string | null;
   price_cents: number;
   currency: string;
   series_id: string | null;
@@ -189,9 +203,26 @@ export type AssignmentOfferRow = {
   booking_id: string;
   cleaner_id: string;
   status: AssignmentOfferStatus;
+  team_role: BookingCleanerRole;
+  roster_id: string | null;
   offered_at: string;
   responded_at: string | null;
   expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type BookingCleanerRow = {
+  id: string;
+  booking_id: string;
+  cleaner_id: string;
+  role: BookingCleanerRole;
+  status: BookingCleanerStatus;
+  assigned_by_profile_id: string | null;
+  /** NF-7F: set when support cleaner confirms participation (roster-only). */
+  support_completed_at: string | null;
+  /** NF-7F: optional note from support cleaner. */
+  support_note: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -212,6 +243,10 @@ export type EarningLineRow = {
   description: string | null;
   metadata: Json;
   calculation_metadata: Json;
+  /** NF-7G: primary | support */
+  team_earning_role: string | null;
+  /** NF-7G: team_split | manual_adjustment | legacy_primary */
+  team_earning_source: string | null;
   created_at: string;
 };
 
@@ -242,6 +277,21 @@ export type NotificationOutboxRow = {
 };
 
 export type NotificationWorkerRunTriggerSource = "cron" | "manual";
+
+export type DeferredDispatchCronRunRow = {
+  id: string;
+  started_at: string;
+  completed_at: string;
+  ok: boolean;
+  trigger_source: "cron" | "manual";
+  candidate_count: number;
+  attempted_count: number;
+  dispatched_count: number;
+  skipped_count: number;
+  failed_count: number;
+  failed: Json;
+  created_at: string;
+};
 
 export type NotificationWorkerRunRow = {
   id: string;
@@ -397,10 +447,12 @@ export type Database = {
       payments: PublicTable<PaymentRow>;
       payment_events: PublicTable<PaymentEventRow>;
       assignment_offers: PublicTable<AssignmentOfferRow>;
+      booking_cleaners: PublicTable<BookingCleanerRow>;
       earning_lines: PublicTable<EarningLineRow>;
       payout_batches: PublicTable<PayoutBatchRow>;
       notification_outbox: PublicTable<NotificationOutboxRow>;
       notification_worker_runs: PublicTable<NotificationWorkerRunRow>;
+      deferred_dispatch_cron_runs: PublicTable<DeferredDispatchCronRunRow>;
       notification_metrics_hourly: PublicTable<NotificationMetricsHourlyRow>;
       assignment_metrics_hourly: PublicTable<AssignmentMetricsHourlyRow>;
       booking_state_audit: PublicTable<BookingStateAuditRow>;
@@ -418,6 +470,8 @@ export type Database = {
       booking_status: BookingStatus;
       payment_status: PaymentStatus;
       assignment_offer_status: AssignmentOfferStatus;
+      booking_cleaner_role: BookingCleanerRole;
+      booking_cleaner_status: BookingCleanerStatus;
       notification_outbox_status: NotificationOutboxStatus;
       booking_lock_status: BookingLockStatus;
       earning_payout_status: EarningPayoutStatus;

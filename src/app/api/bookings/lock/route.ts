@@ -3,7 +3,12 @@ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { createBookingPaymentLock } from "@/features/bookings/server/lock/createBookingPaymentLock";
 import type { BookingLockInput } from "@/features/bookings/server/lock/types";
 import { isServiceSlug } from "@/features/pricing/server/catalog";
-import { isAddonSlug, isPricingFrequency } from "@/features/pricing/server/catalog";
+import {
+  isAddonSlug,
+  isCleaningIntensity,
+  isEquipmentSupply,
+  isPricingFrequency,
+} from "@/features/pricing/server/catalog";
 import { normalizeAreaSlug } from "@/features/cleaners/server/eligibility/normalize";
 
 export async function POST(request: Request) {
@@ -88,6 +93,27 @@ function parseLockBody(
     return { error: "bedrooms and bathrooms are required." };
   }
 
+  const extraRooms =
+    typeof payload.extraRooms === "number"
+      ? payload.extraRooms
+      : typeof payload.extra_rooms === "number"
+        ? payload.extra_rooms
+        : 0;
+
+  const cleaningIntensityRaw =
+    typeof payload.cleaningIntensity === "string"
+      ? payload.cleaningIntensity
+      : typeof payload.cleaning_intensity === "string"
+        ? payload.cleaning_intensity
+        : "standard";
+
+  const equipmentSupplyRaw =
+    typeof payload.equipmentSupply === "string"
+      ? payload.equipmentSupply
+      : typeof payload.equipment_supply === "string"
+        ? payload.equipment_supply
+        : "customer";
+
   const scheduledStart =
     typeof payload.scheduledStart === "string" ? payload.scheduledStart : null;
   const scheduledEnd =
@@ -124,6 +150,38 @@ function parseLockBody(
     return { error: "Invalid frequency." };
   }
 
+  const cleaningIntensity = isCleaningIntensity(cleaningIntensityRaw)
+    ? cleaningIntensityRaw
+    : "standard";
+  if (
+    serviceSlugRaw !== "regular-cleaning" &&
+    cleaningIntensity !== "standard"
+  ) {
+    return { error: "Cleaning intensity is only available for regular cleaning." };
+  }
+
+  const equipmentSupply = isEquipmentSupply(equipmentSupplyRaw)
+    ? equipmentSupplyRaw
+    : "customer";
+  if (serviceSlugRaw !== "regular-cleaning" && equipmentSupply !== "customer") {
+    return { error: "Equipment supply option is only available for regular cleaning." };
+  }
+
+  const requestedTeamSizeRaw =
+    typeof payload.requestedTeamSize === "number"
+      ? payload.requestedTeamSize
+      : typeof payload.requested_team_size === "number"
+        ? payload.requested_team_size
+        : 1;
+  const requestedTeamSize =
+    serviceSlugRaw === "regular-cleaning" && requestedTeamSizeRaw === 2 ? 2 : 1;
+  if (
+    requestedTeamSizeRaw !== 1 &&
+    requestedTeamSizeRaw !== 2
+  ) {
+    return { error: "requestedTeamSize must be 1 or 2." };
+  }
+
   const addons: BookingLockInput["pricingInput"]["addons"] = [];
   if (Array.isArray(payload.addons)) {
     for (const a of payload.addons) {
@@ -149,11 +207,17 @@ function parseLockBody(
       serviceSlug: serviceSlugRaw,
       bedrooms,
       bathrooms,
+      extraRooms,
+      cleaningIntensity:
+        serviceSlugRaw === "regular-cleaning" ? cleaningIntensity : "standard",
+      equipmentSupply:
+        serviceSlugRaw === "regular-cleaning" ? equipmentSupply : "customer",
       propertySizeSqm:
         typeof payload.propertySizeSqm === "number" ? payload.propertySizeSqm : undefined,
       frequency,
       addons: addons.length > 0 ? addons : undefined,
       teamSize: 1,
+      requestedTeamSize,
     },
     scheduledStart,
     scheduledEnd,

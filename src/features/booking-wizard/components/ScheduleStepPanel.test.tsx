@@ -26,8 +26,9 @@ describe("ScheduleStepPanel", () => {
     expect(html).toContain("max-md:w-[4.25rem]");
     expect(html).toContain("data-date-value");
     expect((html.match(/md:snap-start/g) ?? []).length).toBe(7);
-    expect(html).toContain("Scroll dates backward");
-    expect(html).toContain("Scroll dates forward");
+    expect(html).toMatch(/Scroll dates backward|Previous available date/);
+    expect(html).toMatch(/Scroll dates forward|Next available date/);
+    expect(html).toContain("h-11 w-11");
     expect(html).toContain('aria-pressed="true"');
     expect(html).toContain("justify-center");
     expect(html).toContain('type="date"');

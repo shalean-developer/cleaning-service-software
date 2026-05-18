@@ -16,6 +16,11 @@ import {
   type AdminReplaceOpenOfferResultStatus,
 } from "@/features/assignments/server/adminReplaceOpenOffer";
 import {
+  logAdminDeferredDispatchNow,
+  type AdminDeferredDispatchResultStatus,
+} from "@/features/assignments/server/adminDeferredDispatchNow";
+import {
+  adminDeferredDispatchNowIdempotencyKey,
   adminDispatchIdempotencyKey,
   adminRecoveryIdempotencyKey,
   adminReplaceIdempotencyKey,
@@ -199,6 +204,62 @@ export async function auditAdminReplaceOpenOffer(
       result_status: payload.resultStatus,
       cancelled_cleaner_id: payload.cancelledCleanerId,
       target_cleaner_id: payload.targetCleanerId,
+    },
+  });
+}
+
+type DeferredDispatchNowAuditPayload = {
+  bookingId: string;
+  adminProfileId: string;
+  reason: string;
+  eligible: boolean;
+  resultStatus: AdminDeferredDispatchResultStatus;
+  bookingStatusBefore?: string | null;
+  bookingStatusAfter: string | null;
+  engine?: RunAssignmentResult | null;
+  resultCode?: string | null;
+  idempotent?: boolean;
+};
+
+export async function auditAdminDeferredDispatchNow(
+  client: SupabaseClient<Database> | null,
+  payload: DeferredDispatchNowAuditPayload,
+): Promise<void> {
+  logAdminDeferredDispatchNow({
+    bookingId: payload.bookingId,
+    adminProfileId: payload.adminProfileId,
+    reason: payload.reason,
+    eligible: payload.eligible,
+    resultStatus: payload.resultStatus,
+    bookingStatusAfter: payload.bookingStatusAfter,
+    engine: payload.engine,
+  });
+
+  const engineOk = payload.engine?.ok === true ? payload.engine : null;
+  const outcome = mapAdminOperationalOutcome(payload.resultStatus, {
+    idempotent: payload.idempotent ?? engineOk?.idempotent,
+  });
+
+  await recordAdminOperationalAudit(client, {
+    bookingId: payload.bookingId,
+    adminProfileId: payload.adminProfileId,
+    action: "deferred_dispatch_now",
+    outcome,
+    reason: payload.reason,
+    resultCode: payload.resultCode ?? null,
+    cleanerId: engineOk?.cleanerId ?? null,
+    offerId: engineOk?.offerId ?? null,
+    idempotencyKey:
+      outcome === "success" || outcome === "idempotent"
+        ? adminDeferredDispatchNowIdempotencyKey(payload.bookingId)
+        : null,
+    bookingStatusBefore: payload.bookingStatusBefore ?? null,
+    bookingStatusAfter: payload.bookingStatusAfter,
+    metadata: {
+      eligible: payload.eligible,
+      engine_outcome: engineOk?.outcome,
+      engine_idempotent: engineOk?.idempotent,
+      result_status: payload.resultStatus,
     },
   });
 }

@@ -5,8 +5,10 @@ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getAdminBookingDetail } from "@/features/dashboards/server/adminOperationsReadModel";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { AdminDeferredDispatchPanel } from "@/components/dashboard/AdminDeferredDispatchPanel";
 import { AdminOperationalStatusPanel } from "@/components/dashboard/AdminOperationalStatusPanel";
 import { AdminPayoutActions } from "@/components/dashboard/AdminPayoutActions";
+import { AdminTeamEarningsReconciliationPanel } from "@/components/dashboard/AdminTeamEarningsReconciliationPanel";
 import { AdminOperationalTimeline } from "@/components/dashboard/AdminOperationalTimeline";
 import { AdminBookingNotificationsSection } from "@/components/dashboard/AdminBookingNotificationsSection";
 import {
@@ -14,6 +16,9 @@ import {
   AdminPaymentFailureInset,
 } from "@/components/dashboard/admin/AdminBookingDetailHero";
 import { AdminDetailSection } from "@/components/dashboard/admin/AdminDetailSection";
+import { AdminTeamSupportOperationsPanel } from "@/components/dashboard/admin/AdminTeamSupportOperationsPanel";
+import { AdminTeamRosterFoundationPanel } from "@/components/dashboard/admin/AdminTeamRosterFoundationPanel";
+import { buildAdminOperationalLoadBadges } from "@/features/dashboards/server/adminTeamSupportObservation";
 import { LifecycleTimeline } from "@/components/dashboard/LifecycleTimeline";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
@@ -50,6 +55,10 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
 
   const heroBadges = [
     { label: labelForBookingStatus(b.status), tone: toneForBookingStatus(b.status) },
+    ...buildAdminOperationalLoadBadges(b.observation.operationalLoad).map((badge) => ({
+      label: badge.label,
+      tone: badge.tone,
+    })),
     ...(b.status !== "payment_failed"
       ? [{ label: labelForPaymentStatus(b.paymentStatus), tone: toneForPaymentStatus(b.paymentStatus) }]
       : [
@@ -95,8 +104,41 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           badges={heroBadges}
           rows={[
             { label: "When", value: b.scheduleLabel },
+            ...(b.display.homeSizeSummary
+              ? [{ label: "Home size", value: b.display.homeSizeSummary }]
+              : []),
+            ...(b.display.cleaningIntensityLabel
+              ? [{ label: "Cleaning intensity", value: b.display.cleaningIntensityLabel }]
+              : []),
+            ...(b.display.equipmentSupplyLabel
+              ? [{ label: "Cleaning supplies", value: b.display.equipmentSupplyLabel }]
+              : []),
+            ...(b.display.teamSupportLabel
+              ? [{ label: "Team support", value: b.display.teamSupportLabel }]
+              : []),
+            ...(b.display.teamRequestFulfillmentLabel
+              ? [
+                  {
+                    label: "2-cleaner fulfillment",
+                    value: b.display.teamRequestFulfillmentLabel,
+                  },
+                ]
+              : []),
+            ...(b.observation.coordinationStatusLabel
+              ? [
+                  {
+                    label: "Team coordination",
+                    value: b.observation.coordinationStatusLabel,
+                  },
+                ]
+              : []),
             { label: "Where", value: b.display.locationSummary },
             { label: "Customer", value: b.customerLabel },
+            {
+              label: "Customer phone",
+              value: b.customerPhone ?? "Not provided",
+              valueClassName: b.customerPhone ? undefined : "text-zinc-500",
+            },
             {
               label: "Cleaner",
               value: b.cleanerLabel ?? "Unassigned",
@@ -129,6 +171,26 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           }
           footer={<AdminPayoutActions bookingId={b.id} status={b.status} />}
         />
+
+        <AdminTeamSupportOperationsPanel
+          bookingId={b.id}
+          isTwoCleanerRequest={b.observation.isTwoCleanerRequest}
+          assignedCleanerLabel={b.cleanerLabel}
+          homeSizeSummary={b.display.homeSizeSummary}
+          cleaningIntensityLabel={b.display.cleaningIntensityLabel}
+          equipmentSupplyLabel={b.display.equipmentSupplyLabel}
+          operationalLoad={b.observation.operationalLoad}
+          teamRequestFulfillment={b.observation.teamRequestFulfillment}
+          teamRequestFulfillmentLabel={b.observation.teamRequestFulfillmentLabel}
+          initialTeamSupportOps={b.observation.teamSupportOps}
+          initialCoordinationStatusLabel={b.observation.coordinationStatusLabel}
+        />
+
+        <AdminTeamRosterFoundationPanel rows={b.teamRosterFoundation} />
+
+        {b.deferredDispatch ? (
+          <AdminDeferredDispatchPanel deferredDispatch={b.deferredDispatch} />
+        ) : null}
 
         <AdminOperationalStatusPanel bookingId={b.id} operational={b.operational} />
 
@@ -179,6 +241,9 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
                   ))}
                 </ul>
               )}
+              <AdminTeamEarningsReconciliationPanel
+                reconciliation={b.teamEarningsReconciliation}
+              />
             </section>
             <section className="border-t border-zinc-100 pt-3">
               <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">

@@ -1,9 +1,21 @@
-import type { AddonSlug, PricingFrequency, ServiceSlug } from "./types";
+import type {
+  AddonSlug,
+  CleaningIntensity,
+  EquipmentSupply,
+  PricingFrequency,
+  ServiceSlug,
+} from "./types";
 
 /** All amounts are integer ZAR cents. */
 export const FIXED_CLEANER_PAYOUT_CENTS = 25_000;
 export const MIN_PERCENT_PAYOUT_CENTS = 25_000;
 export const MAX_PERCENT_PAYOUT_CENTS = 30_000;
+
+/** Flat fee when Shalean brings cleaning supplies/equipment (regular cleaning). */
+export const CLEANING_EQUIPMENT_FEE_CENTS = 10_000;
+
+/** Flat request surcharge when customer requests 2 cleaners (regular cleaning only; NF-7B). */
+export const TEAM_SUPPORT_REQUEST_SURCHARGE_CENTS = 20_000;
 
 export type ServicePricingRule = {
   slug: ServiceSlug;
@@ -12,6 +24,8 @@ export type ServicePricingRule = {
   baseCents: number;
   extraBedroomCents: number;
   extraBathroomCents: number;
+  /** Per additional non-bedroom/bathroom space (regular cleaning only). */
+  extraRoomCents?: number;
   /** When true, bedrooms/bathrooms may be 0 (office). */
   allowZeroRooms?: boolean;
   /** Per sqm over threshold (office). */
@@ -30,6 +44,7 @@ export const SERVICE_CATALOG: Record<ServiceSlug, ServicePricingRule> = {
     baseCents: 45_000,
     extraBedroomCents: 8_000,
     extraBathroomCents: 6_000,
+    extraRoomCents: 7_000,
   },
   "deep-cleaning": {
     slug: "deep-cleaning",
@@ -90,6 +105,13 @@ export const ADDON_CATALOG: Record<
   balcony: { slug: "balcony", label: "Balcony", amountCents: 10_000 },
 };
 
+/** Applied to service + add-on subtotal before frequency discount (regular cleaning only). */
+export const CLEANING_INTENSITY_MULTIPLIERS: Record<CleaningIntensity, number> = {
+  standard: 1,
+  detailed: 1.15,
+  heavy: 1.3,
+};
+
 /** Multiplier applied to subtotal (before rounding). */
 export const FREQUENCY_MULTIPLIERS: Record<PricingFrequency, number> = {
   once: 1,
@@ -108,4 +130,12 @@ export function isAddonSlug(value: string): value is AddonSlug {
 
 export function isPricingFrequency(value: string): value is PricingFrequency {
   return value in FREQUENCY_MULTIPLIERS;
+}
+
+export function isCleaningIntensity(value: string): value is CleaningIntensity {
+  return value in CLEANING_INTENSITY_MULTIPLIERS;
+}
+
+export function isEquipmentSupply(value: string): value is EquipmentSupply {
+  return value === "customer" || value === "shalean";
 }

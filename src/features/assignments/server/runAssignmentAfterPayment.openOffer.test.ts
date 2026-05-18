@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { InMemoryBookingCommandBackend } from "@/features/bookings/server/commands/inMemoryBookingCommandBackend";
+import { testAssignmentOfferRow } from "@/features/bookings/server/commands/testAssignmentOfferRow";
 import { executeBookingCommand } from "@/features/bookings/server/commands/executeBookingCommand";
 import { buildOfferExpiresAt } from "./buildOfferExpiry";
 import { runAssignmentAfterPayment } from "./runAssignmentAfterPayment";
@@ -74,6 +75,7 @@ async function seedPendingAssignmentWithStaleOffer(
     status: "pending_assignment",
     scheduled_start: new Date(Date.now() + 86_400_000).toISOString(),
     scheduled_end: new Date(Date.now() + 90_000_000).toISOString(),
+    assignment_dispatch_at: null,
     price_cents: 50_000,
     currency: "ZAR",
     series_id: null,
@@ -83,7 +85,7 @@ async function seedPendingAssignmentWithStaleOffer(
     created_at: ts,
     updated_at: ts,
   });
-  await backend.insertOffer({
+  await backend.insertOffer(testAssignmentOfferRow({
     id: "stale-offer",
     booking_id: bookingId,
     cleaner_id: cleanerA,
@@ -93,7 +95,7 @@ async function seedPendingAssignmentWithStaleOffer(
     expires_at: new Date(Date.now() - 3600_000).toISOString(),
     created_at: ts,
     updated_at: ts,
-  });
+  }));
 }
 
 beforeEach(() => {
@@ -136,6 +138,7 @@ describe("runAssignmentAfterPayment open-offer semantics (Stage 3C-a)", () => {
       status: "pending_assignment",
       scheduled_start: new Date(Date.now() + 86_400_000).toISOString(),
       scheduled_end: new Date(Date.now() + 90_000_000).toISOString(),
+      assignment_dispatch_at: null,
       price_cents: 50_000,
       currency: "ZAR",
       series_id: null,
@@ -143,7 +146,7 @@ describe("runAssignmentAfterPayment open-offer semantics (Stage 3C-a)", () => {
       created_at: ts,
       updated_at: ts,
     });
-    await backend.insertOffer({
+    await backend.insertOffer(testAssignmentOfferRow({
       id: "active-offer",
       booking_id: bookingId,
       cleaner_id: cleanerA,
@@ -153,7 +156,7 @@ describe("runAssignmentAfterPayment open-offer semantics (Stage 3C-a)", () => {
       expires_at: buildOfferExpiresAt(),
       created_at: ts,
       updated_at: ts,
-    });
+    }));
 
     const client = createOffersClient(backend);
     const result = await runAssignmentAfterPayment(client, backend, bookingId);

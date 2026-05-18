@@ -1,3 +1,4 @@
+import type { BookingCleanerRole } from "@/lib/database/types";
 import type { BookingId, BookingStatus } from "../types";
 
 /** Who initiated a command (never read from editable user_metadata for auth). */
@@ -100,6 +101,8 @@ export type OfferToCleanerCommand = BaseCommand & {
   bookingId: BookingId;
   cleanerId: string;
   expiresAt?: string | null;
+  /** NF-7D: primary (default) or support slot when TEAM_OFFERS_ENABLED. */
+  teamRole?: BookingCleanerRole;
 };
 
 export type AcceptCleanerAssignmentCommand = BaseCommand & {
@@ -231,7 +234,8 @@ export type BookingCommandErrorCode =
   | "CONCURRENCY_CONFLICT"
   | "IDEMPOTENCY_REQUIRED"
   | "EARNINGS_NOT_FOUND"
-  | "EARNINGS_INVALID";
+  | "EARNINGS_INVALID"
+  | "EARNINGS_RECONCILIATION_BLOCKED";
 
 export type BookingCommandFailure = {
   ok: false;

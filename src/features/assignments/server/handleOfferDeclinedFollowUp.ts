@@ -4,6 +4,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AssignmentOfferRow, Database } from "@/lib/database/types";
 import type { BookingCommandBackend } from "@/features/bookings/server/commands/bookingCommandBackend";
 import { readAssignmentMetadata } from "./assignmentMetadata";
+import { isSupportOfferTeamRole, offerTeamRole } from "./offerTeamRole";
+import { isTeamOffersEnabled } from "./teamOffersConfig";
 import {
   isRedispatchEligiblePath,
   processBookingAfterOfferEnded,
@@ -22,6 +24,10 @@ export async function handleOfferDeclinedFollowUp(
 ): Promise<void> {
   const booking = await backend.getBooking(offer.booking_id);
   if (!booking) return;
+
+  if (isTeamOffersEnabled() && isSupportOfferTeamRole(offerTeamRole(offer))) {
+    return;
+  }
 
   const meta = readAssignmentMetadata(booking.metadata);
   const path = meta?.path ?? (await resolveAssignmentPathForBooking(client, booking));

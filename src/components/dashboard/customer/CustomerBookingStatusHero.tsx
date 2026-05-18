@@ -27,6 +27,7 @@ type Props = {
   status: BookingStatus;
   paymentStatus: PaymentStatus | null;
   paymentFailureReason: PaymentFailureReason;
+  deferredAssignmentMessage?: string | null;
 };
 
 export function CustomerBookingStatusHero({
@@ -38,8 +39,11 @@ export function CustomerBookingStatusHero({
   status,
   paymentStatus,
   paymentFailureReason,
+  deferredAssignmentMessage,
 }: Props) {
-  const hero = customerBookingStatusHero(status, paymentFailureReason);
+  const hero = customerBookingStatusHero(status, paymentFailureReason, {
+    deferredAssignmentMessage,
+  });
   const showPaymentChip = shouldShowPaymentStatusChip(status, paymentStatus);
   const amountLabel = customerBookingAmountLabel(status, paymentStatus);
   const amountFormatted = formatZar(priceCents, currency);

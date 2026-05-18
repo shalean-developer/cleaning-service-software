@@ -28,6 +28,7 @@ import {
   matchesAdminBookingFilter,
 } from "./adminOperationalHelpers";
 import type { AdminBookingListItem } from "./types";
+import { EMPTY_ADMIN_BOOKING_OBSERVATION } from "./adminBookingObservationFixtures";
 
 const DISPATCH_NOW = new Date("2026-05-18T12:00:00.000Z");
 const DISPATCH_PAID_AT = "2026-05-18T10:00:00.000Z";
@@ -71,6 +72,8 @@ function listItemFromRow(
     serviceLabel: "Deep clean",
     scheduleLabel: "Mon",
     priceLabel: "R500",
+    priceCents: 50_000,
+    observation: EMPTY_ADMIN_BOOKING_OBSERVATION,
     assignmentAttention: visibility.key ?? assignment?.status ?? null,
     assignmentVisibilityKey: visibility.key,
     dispatchNotStarted: false,
@@ -328,6 +331,8 @@ describe("dispatch_not_started filter parity", () => {
       serviceLabel: "Deep clean",
       scheduleLabel: "Mon",
       priceLabel: "R500",
+      priceCents: 50_000,
+      observation: EMPTY_ADMIN_BOOKING_OBSERVATION,
       assignmentAttention: null,
       assignmentVisibilityKey: visibility.key,
       dispatchNotStarted,

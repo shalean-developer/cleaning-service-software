@@ -36,6 +36,7 @@ function bookingRow(overrides: Partial<BookingRow> = {}): BookingRow {
     status: "payment_failed",
     scheduled_start: future.toISOString(),
     scheduled_end: end.toISOString(),
+    assignment_dispatch_at: null,
     price_cents: 53_000,
     currency: "ZAR",
     series_id: null,
@@ -52,7 +53,82 @@ describe("parseRetryLockFromBooking", () => {
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
     expect(parsed.pricingInput.serviceSlug).toBe("regular-cleaning");
+    expect(parsed.pricingInput.extraRooms).toBe(0);
     expect(parsed.areaSlug).toBe("sea-point");
+  });
+
+  it("defaults cleaningIntensity to standard when missing from quote.input", () => {
+    const parsed = parseRetryLockFromBooking(bookingRow());
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    expect(parsed.pricingInput.cleaningIntensity).toBe("standard");
+  });
+
+  it("parses cleaningIntensity from quote.input", () => {
+    const row = bookingRow();
+    const metadata = row.metadata as Record<string, unknown>;
+    const quote = metadata.quote as Record<string, unknown>;
+    const input = quote.input as Record<string, unknown>;
+    input.cleaningIntensity = "heavy";
+
+    const parsed = parseRetryLockFromBooking(row);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    expect(parsed.pricingInput.cleaningIntensity).toBe("heavy");
+  });
+
+  it("parses extraRooms from quote.input", () => {
+    const row = bookingRow();
+    const metadata = row.metadata as Record<string, unknown>;
+    const quote = metadata.quote as Record<string, unknown>;
+    const input = quote.input as Record<string, unknown>;
+    input.extraRooms = 3;
+
+    const parsed = parseRetryLockFromBooking(row);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    expect(parsed.pricingInput.extraRooms).toBe(3);
+  });
+
+  it("reads equipmentSupply from quote.input", () => {
+    const row = bookingRow();
+    const metadata = row.metadata as Record<string, unknown>;
+    const quote = metadata.quote as Record<string, unknown>;
+    const input = quote.input as Record<string, unknown>;
+    input.equipmentSupply = "shalean";
+
+    const parsed = parseRetryLockFromBooking(row);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    expect(parsed.pricingInput.equipmentSupply).toBe("shalean");
+  });
+
+  it("defaults missing equipmentSupply to customer", () => {
+    const parsed = parseRetryLockFromBooking(bookingRow());
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    expect(parsed.pricingInput.equipmentSupply).toBe("customer");
+  });
+
+  it("parses requestedTeamSize from quote.input and keeps teamSize at 1", () => {
+    const row = bookingRow();
+    const metadata = row.metadata as Record<string, unknown>;
+    const quote = metadata.quote as Record<string, unknown>;
+    const input = quote.input as Record<string, unknown>;
+    input.requestedTeamSize = 2;
+
+    const parsed = parseRetryLockFromBooking(row);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    expect(parsed.pricingInput.requestedTeamSize).toBe(2);
+    expect(parsed.pricingInput.teamSize).toBe(1);
+  });
+
+  it("defaults requestedTeamSize to 1 when missing", () => {
+    const parsed = parseRetryLockFromBooking(bookingRow());
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    expect(parsed.pricingInput.requestedTeamSize).toBe(1);
   });
 
   it("rejects missing quote.input", () => {

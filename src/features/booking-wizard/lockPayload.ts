@@ -10,6 +10,10 @@ export type LockRequestBody = {
   serviceSlug: string;
   bedrooms: number;
   bathrooms: number;
+  extraRooms: number;
+  cleaningIntensity: string;
+  equipmentSupply: string;
+  requestedTeamSize: number;
   propertySizeSqm: number | null;
   frequency: string;
   addons: string[];
@@ -49,6 +53,13 @@ export function buildLockRequestPayload(
     serviceSlug: state.serviceSlug,
     bedrooms: state.bedrooms,
     bathrooms: state.bathrooms,
+    extraRooms: state.serviceSlug === "regular-cleaning" ? state.extraRooms : 0,
+    cleaningIntensity:
+      state.serviceSlug === "regular-cleaning" ? state.cleaningIntensity : "standard",
+    equipmentSupply:
+      state.serviceSlug === "regular-cleaning" ? state.equipmentSupply : "customer",
+    requestedTeamSize:
+      state.serviceSlug === "regular-cleaning" ? state.requestedTeamSize : 1,
     propertySizeSqm: state.propertySizeSqm,
     frequency: state.frequency,
     addons: state.addons,

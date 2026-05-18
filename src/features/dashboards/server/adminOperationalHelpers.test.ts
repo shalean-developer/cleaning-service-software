@@ -10,6 +10,7 @@ import {
   summarizeAuditMetadata,
 } from "./adminOperationalHelpers";
 import type { AdminBookingListItem } from "./types";
+import { EMPTY_ADMIN_BOOKING_OBSERVATION } from "./adminBookingObservationFixtures";
 
 function listItem(
   overrides: Partial<AdminBookingListItem> = {},
@@ -25,6 +26,8 @@ function listItem(
     scheduleLabel: "Mon",
     scheduledStart: "2026-05-20T08:00:00.000Z",
     priceLabel: "R500",
+    priceCents: 50_000,
+    observation: EMPTY_ADMIN_BOOKING_OBSERVATION,
     assignmentAttention: "attention_required",
     assignmentVisibilityKey: "needs_assignment",
     dispatchNotStarted: false,
@@ -140,6 +143,67 @@ describe("adminOperationalHelpers", () => {
     const selected = listItem({ assignmentVisibilityKey: "selected_declined_admin" });
     expect(matchesAdminBookingFilter(selected, "selected_declined")).toBe(true);
     expect(matchesAdminBookingFilter(selected, "max_attempts")).toBe(false);
+  });
+
+  it("matchesAdminBookingFilter supports team support observation filters", () => {
+    const teamItem = listItem({
+      observation: {
+        ...EMPTY_ADMIN_BOOKING_OBSERVATION,
+        isTwoCleanerRequest: true,
+        operationalLoad: {
+          isTwoCleanerRequest: true,
+          isShaleanEquipment: true,
+          isHeavyIntensity: false,
+          operationalLoadScore: 3,
+        },
+      },
+    });
+    expect(matchesAdminBookingFilter(teamItem, "two_cleaner_request")).toBe(true);
+    expect(matchesAdminBookingFilter(teamItem, "operational_load")).toBe(true);
+    expect(matchesAdminBookingFilter(listItem(), "two_cleaner_request")).toBe(false);
+  });
+
+  it("matchesAdminBookingFilter supports NF-7B.2 team coordination filters", () => {
+    const awaiting = listItem({
+      observation: {
+        ...EMPTY_ADMIN_BOOKING_OBSERVATION,
+        isTwoCleanerRequest: true,
+        operationalLoad: {
+          isTwoCleanerRequest: true,
+          isShaleanEquipment: true,
+          isHeavyIntensity: true,
+          operationalLoadScore: 4,
+        },
+        teamSupportOps: {
+          supportingCleaner: null,
+          teamSupportNotes: null,
+          coordinationStatus: null,
+        },
+        coordinationStatusLabel: "Coordination not recorded",
+      },
+    });
+    expect(matchesAdminBookingFilter(awaiting, "team_awaiting_coordination")).toBe(true);
+    expect(matchesAdminBookingFilter(awaiting, "team_high_risk_combo")).toBe(true);
+    expect(matchesAdminBookingFilter(awaiting, "high_operational_load")).toBe(true);
+
+    const coordinated = listItem({
+      observation: {
+        ...awaiting.observation,
+        teamSupportOps: {
+          supportingCleaner: null,
+          teamSupportNotes: "Ops notes",
+          coordinationStatus: {
+            status: "fully_coordinated",
+            recordedAt: "2026-05-18T10:00:00.000Z",
+            recordedByProfileId: "admin-1",
+          },
+        },
+        hasTeamSupportNotes: true,
+        coordinationStatusLabel: "Fully coordinated",
+      },
+    });
+    expect(matchesAdminBookingFilter(coordinated, "team_fully_coordinated")).toBe(true);
+    expect(matchesAdminBookingFilter(coordinated, "team_awaiting_coordination")).toBe(false);
   });
 
   it("computeAdminOperationsSummary distinguishes totals from visible slice", () => {

@@ -3,7 +3,12 @@ import {
   addDaysToDateString,
   buildScheduleDateOptions,
   formatTimeSlotLabel,
+  resolveAdjacentScheduleDateValue,
+  resolveScheduleDateArrowNavigationState,
+  resolveScheduleDateScrollButtonsState,
+  resolveScheduleDateScrollStepPx,
   resolveScheduleTimeSlots,
+  scheduleDateScrollerHasOverflow,
   SCHEDULE_DATE_OPTION_COUNT,
   SCHEDULE_TIME_PRESETS,
 } from "./scheduleStepDisplay";
@@ -37,5 +42,47 @@ describe("scheduleStepDisplay", () => {
   it("includes a non-preset selected time in the slot list", () => {
     expect(resolveScheduleTimeSlots("07:30")).toContain("07:30");
     expect(resolveScheduleTimeSlots("09:00")).toEqual([...SCHEDULE_TIME_PRESETS]);
+  });
+
+  it("detects horizontal overflow for the date scroller", () => {
+    expect(scheduleDateScrollerHasOverflow(400, 300)).toBe(true);
+    expect(scheduleDateScrollerHasOverflow(300, 300)).toBe(false);
+  });
+
+  it("derives scroll arrow disabled state from scroll metrics", () => {
+    expect(
+      resolveScheduleDateScrollButtonsState(0, 400, 300),
+    ).toEqual({ canScrollLeft: false, canScrollRight: true });
+
+    expect(
+      resolveScheduleDateScrollButtonsState(100, 400, 300),
+    ).toEqual({ canScrollLeft: true, canScrollRight: false });
+  });
+
+  it("resolves adjacent enabled dates for non-overflow navigation", () => {
+    const options = buildScheduleDateOptions("2026-05-18");
+
+    expect(resolveScheduleDateArrowNavigationState(options, "2026-05-18")).toEqual({
+      canGoPrevious: false,
+      canGoNext: true,
+    });
+    expect(resolveScheduleDateArrowNavigationState(options, "2026-05-24")).toEqual({
+      canGoPrevious: true,
+      canGoNext: false,
+    });
+    expect(
+      resolveAdjacentScheduleDateValue(options, "2026-05-18", 1),
+    ).toBe("2026-05-19");
+    expect(
+      resolveAdjacentScheduleDateValue(options, "2026-05-24", -1),
+    ).toBe("2026-05-23");
+    expect(
+      resolveAdjacentScheduleDateValue(options, "2026-05-18", -1),
+    ).toBeNull();
+  });
+
+  it("computes scroll step from card width", () => {
+    expect(resolveScheduleDateScrollStepPx(68)).toBe(74);
+    expect(resolveScheduleDateScrollStepPx(0)).toBe(72);
   });
 });

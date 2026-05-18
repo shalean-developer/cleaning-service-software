@@ -9,10 +9,12 @@ export function mapAdminOperationalOutcome(
 
   switch (resultStatus) {
     case "recovered":
+    case "dispatched":
     case "offered":
     case "replaced":
       return "success";
     case "already_recovered":
+    case "already_dispatched":
     case "already_offered":
     case "already_replaced":
       return "idempotent";
@@ -28,6 +30,10 @@ export function mapAdminOperationalOutcome(
 
 export function adminRecoveryIdempotencyKey(bookingId: string): string {
   return `admin:recovery:${bookingId}`;
+}
+
+export function adminDeferredDispatchNowIdempotencyKey(bookingId: string): string {
+  return `admin:deferred_dispatch:${bookingId}`;
 }
 
 export function adminDispatchIdempotencyKey(

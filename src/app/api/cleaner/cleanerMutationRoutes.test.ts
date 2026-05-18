@@ -8,6 +8,7 @@ const ALLOWED_CLEANER_POST_ROUTES = new Set([
   "offers/[offerId]/decline/route.ts",
   "jobs/[bookingId]/start/route.ts",
   "jobs/[bookingId]/complete/route.ts",
+  "jobs/[bookingId]/support-complete/route.ts",
 ]);
 
 describe("cleaner mutation API routes", () => {

@@ -29,6 +29,16 @@ export const ADDON_SLUGS = [
 
 export type AddonSlug = (typeof ADDON_SLUGS)[number];
 
+/** Home condition / workload for regular cleaning (not a service type). */
+export const CLEANING_INTENSITIES = ["standard", "detailed", "heavy"] as const;
+
+export type CleaningIntensity = (typeof CLEANING_INTENSITIES)[number];
+
+/** Who provides cleaning supplies/equipment (regular cleaning only). */
+export const EQUIPMENT_SUPPLY_OPTIONS = ["customer", "shalean"] as const;
+
+export type EquipmentSupply = (typeof EQUIPMENT_SUPPLY_OPTIONS)[number];
+
 export const PRICING_VERSION = "2026-05-16-mvp";
 
 export const PRICING_CURRENCY = "ZAR" as const;
@@ -37,12 +47,32 @@ export type PricingInput = {
   serviceSlug: ServiceSlug;
   bedrooms: number;
   bathrooms: number;
+  /**
+   * Additional non-bedroom/bathroom spaces (regular cleaning only).
+   * Examples: study, laundry room, playroom, second lounge.
+   */
+  extraRooms?: number;
+  /**
+   * Regular cleaning only — home condition / workload (default standard).
+   * Detailed (+15%) and heavy (+30%) add time; not a deep clean.
+   */
+  cleaningIntensity?: CleaningIntensity;
+  /**
+   * Regular cleaning only — who brings cleaning supplies/equipment (default customer).
+   * `shalean` adds a flat equipment fee; `customer` is no charge.
+   */
+  equipmentSupply?: EquipmentSupply;
   /** Optional property size in square metres (office / large homes). */
   propertySizeSqm?: number | null;
   frequency?: PricingFrequency;
   addons?: AddonSlug[];
   /** Number of cleaners on the job (default 1). Values above 1 use team payout rules. */
   teamSize?: number;
+  /**
+   * Regular cleaning only — customer preference for team size (1 or 2).
+   * Request-only in NF-7B: adds a surcharge when 2; does not affect assignment or payout.
+   */
+  requestedTeamSize?: number;
   /**
    * Months the assigned cleaner has been active (for earnings preview only).
    * When omitted, a conservative preview is used.
@@ -88,10 +118,14 @@ export type PricingErrorCode =
   | "UNKNOWN_SERVICE"
   | "INVALID_BEDROOMS"
   | "INVALID_BATHROOMS"
+  | "INVALID_EXTRA_ROOMS"
+  | "INVALID_CLEANING_INTENSITY"
+  | "INVALID_EQUIPMENT_SUPPLY"
   | "INVALID_PROPERTY_SIZE"
   | "INVALID_FREQUENCY"
   | "UNKNOWN_ADDON"
   | "INVALID_TEAM_SIZE"
+  | "INVALID_REQUESTED_TEAM_SIZE"
   | "NEGATIVE_AMOUNT"
   | "ZERO_TOTAL"
   | "UNSAFE_TOTAL"

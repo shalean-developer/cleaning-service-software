@@ -1,6 +1,7 @@
 import { buildBookingQuoteMetadata } from "@/features/pricing/server/metadata";
 import type { PricingBreakdown, PricingInput } from "@/features/pricing/server/types";
 import { normalizeAreaSlug } from "@/features/cleaners/server/eligibility/normalize";
+import { resolveContactPhoneForMetadata } from "./contactPhone";
 import type { BookingWizardState } from "./types";
 
 export function wizardStateToPricingInput(state: BookingWizardState): PricingInput | null {
@@ -10,10 +11,17 @@ export function wizardStateToPricingInput(state: BookingWizardState): PricingInp
     serviceSlug: state.serviceSlug,
     bedrooms: state.bedrooms,
     bathrooms: state.bathrooms,
+    extraRooms: state.serviceSlug === "regular-cleaning" ? state.extraRooms : 0,
+    cleaningIntensity:
+      state.serviceSlug === "regular-cleaning" ? state.cleaningIntensity : "standard",
+    equipmentSupply:
+      state.serviceSlug === "regular-cleaning" ? state.equipmentSupply : "customer",
     propertySizeSqm: state.propertySizeSqm,
     frequency: state.frequency,
     addons: state.addons.length > 0 ? state.addons : undefined,
     teamSize: 1,
+    requestedTeamSize:
+      state.serviceSlug === "regular-cleaning" ? state.requestedTeamSize : 1,
   };
 }
 
@@ -23,9 +31,11 @@ export function buildWizardBookingMetadata(
 ): Record<string, unknown> {
   const pricingInput = wizardStateToPricingInput(state)!;
   const quoteMeta = buildBookingQuoteMetadata(pricingInput, quote);
+  const contactPhone = resolveContactPhoneForMetadata(state);
 
   return {
     ...quoteMeta,
+    ...(contactPhone ? { contactPhone } : {}),
     areaSlug: normalizeAreaSlug(state.suburb),
     suburb: state.suburb.trim(),
     city: state.city.trim(),

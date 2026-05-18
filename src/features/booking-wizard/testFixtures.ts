@@ -11,6 +11,7 @@ export function filledState(
     addressLine1: "12 Main Rd",
     suburb: "Cape Town",
     city: "Cape Town",
+    contactPhone: "082 123 4567",
     bedrooms: 2,
     bathrooms: 1,
     cleanerPreferenceMode: "best_available",

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AdminBookingListItem } from "./types";
+import { EMPTY_ADMIN_BOOKING_OBSERVATION } from "./adminBookingObservationFixtures";
 import {
   ADMIN_BOOKINGS_EXPORT_LIMIT,
   assertCsvExcludesSensitivePatterns,
@@ -26,6 +27,8 @@ function sampleListItem(overrides: Partial<AdminBookingListItem> = {}): AdminBoo
     suburb: "Sandton",
     city: "Johannesburg",
     priceLabel: "R 500.00",
+    priceCents: 50_000,
+    observation: EMPTY_ADMIN_BOOKING_OBSERVATION,
     assignmentAttention: "needs_assignment",
     assignmentVisibilityKey: "needs_assignment",
     latestProviderRef: "paystack_tx_abc",
@@ -58,6 +61,36 @@ describe("adminBookingsExport", () => {
     expect(row.provider_ref).toBe("paystack_tx_abc");
     expect(row).not.toHaveProperty("metadata");
     expect(row).not.toHaveProperty("email");
+  });
+
+  it("maps NF-7B.2 team support ops export columns", () => {
+    const row = mapAdminBookingListItemToCsvRow(
+      sampleListItem({
+        observation: {
+          ...EMPTY_ADMIN_BOOKING_OBSERVATION,
+          isTwoCleanerRequest: true,
+          teamSupportOps: {
+            supportingCleaner: {
+              name: "Sam",
+              recordedAt: "2026-05-18T10:00:00.000Z",
+              recordedByProfileId: "admin-1",
+            },
+            teamSupportNotes: "Coordinate arrival",
+            coordinationStatus: {
+              status: "fully_coordinated",
+              recordedAt: "2026-05-18T10:00:00.000Z",
+              recordedByProfileId: "admin-1",
+            },
+          },
+          supportingCleanerLabel: "Sam",
+          coordinationStatusLabel: "Fully coordinated",
+          hasTeamSupportNotes: true,
+        },
+      }),
+    );
+    expect(row.supporting_cleaner).toBe("Sam");
+    expect(row.coordination_status).toBe("Fully coordinated");
+    expect(row.team_ops_notes_present).toBe("yes");
   });
 
   it("renders header row and truncation comment", () => {

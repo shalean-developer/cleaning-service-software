@@ -408,6 +408,7 @@ describe("dashboard read models", () => {
               currency: "ZAR",
               metadata: wizardBookingMetadata("airbnb-cleaning"),
               updated_at: "2026-05-16T10:00:00.000Z",
+              cleaner_id: "cleaner-1",
             },
           ]);
         }
@@ -625,6 +626,83 @@ describe("dashboard read models", () => {
       expect(serialized).not.toContain("hidden");
       expect(serialized).not.toContain("@");
       expect(result.booking.notifications[0]).not.toHaveProperty("payload");
+      expect(result.booking.teamRosterFoundation).toEqual([]);
+    }
+  });
+
+  it("admin booking detail includes team roster foundation when rows exist", async () => {
+    createSupabaseServerClientMock.mockResolvedValue({
+      from: vi.fn((table: string) => {
+        if (table === "bookings") {
+          return chainable({
+            id: "booking-1",
+            status: "assigned",
+            customer_id: "cust-1",
+            cleaner_id: "cleaner-primary",
+            scheduled_start: "2026-05-20T08:00:00.000Z",
+            scheduled_end: "2026-05-20T10:00:00.000Z",
+            price_cents: 50000,
+            currency: "ZAR",
+            metadata: wizardBookingMetadata("regular-cleaning"),
+            created_at: "2026-05-16T09:00:00.000Z",
+            updated_at: "2026-05-16T10:00:00.000Z",
+          });
+        }
+        if (table === "booking_cleaners") {
+          return chainable([
+            {
+              id: "bc-1",
+              booking_id: "booking-1",
+              cleaner_id: "cleaner-primary",
+              role: "primary",
+              status: "accepted",
+              assigned_by_profile_id: "admin-profile-1",
+              created_at: "2026-05-23T10:00:00.000Z",
+              updated_at: "2026-05-23T10:00:00.000Z",
+            },
+            {
+              id: "bc-2",
+              booking_id: "booking-1",
+              cleaner_id: "cleaner-support",
+              role: "support",
+              status: "planned",
+              assigned_by_profile_id: null,
+              created_at: "2026-05-23T10:01:00.000Z",
+              updated_at: "2026-05-23T10:01:00.000Z",
+            },
+          ]);
+        }
+        if (table === "cleaners") {
+          return chainable([
+            { id: "cleaner-primary", profile_id: "profile-primary" },
+            { id: "cleaner-support", profile_id: "profile-support" },
+          ]);
+        }
+        if (table === "profiles") {
+          return chainable([
+            { id: "profile-primary", full_name: "Primary Cleaner" },
+            { id: "profile-support", full_name: "Support Cleaner" },
+          ]);
+        }
+        if (table === "payments") return chainable([]);
+        if (table === "assignment_offers") return chainable([]);
+        if (table === "booking_state_audit") return chainable([]);
+        if (table === "earning_lines") return chainable([]);
+        if (table === "admin_operational_audit") return chainable([]);
+        if (table === "customers") return chainable({ company_name: "Acme Co" });
+        if (table === "notification_outbox") return chainable([]);
+        return chainable([]);
+      }),
+    });
+
+    const { getAdminBookingDetail } = await import("./adminOperationsReadModel");
+    const result = await getAdminBookingDetail(adminUser, "booking-1");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.booking.teamRosterFoundation).toHaveLength(2);
+      expect(result.booking.teamRosterFoundation[0]?.role).toBe("primary");
+      expect(result.booking.teamRosterFoundation[0]?.cleanerLabel).toBe("Primary Cleaner");
+      expect(result.booking.cleanerId).toBe("cleaner-primary");
     }
   });
 

@@ -14,6 +14,8 @@ import { buildInitializeCheckoutPayload } from "../checkout";
 import { buildLockRequestPayload, shouldReturnToReview } from "../lockPayload";
 import { nextStep, previousStep } from "../navigation";
 import { clearWizardStorage, loadWizardState, saveWizardState } from "../storage";
+import { initialContactPhoneField } from "../contactPhone";
+import { wizardPatchForServiceSelection } from "../serviceSelection";
 import { INITIAL_WIZARD_STATE, type BookingWizardState } from "../types";
 import { validateWizardStep } from "../validation";
 import {
@@ -30,6 +32,9 @@ import { Field, inputClass } from "./Field";
 import { AddonsStepPanel } from "./AddonsStepPanel";
 import { CheckoutStepPanel } from "./CheckoutStepPanel";
 import { CleanerStepPanel } from "./CleanerStepPanel";
+import { CleaningIntensityStepPanel } from "./CleaningIntensityStepPanel";
+import { EquipmentSupplyStepPanel } from "./EquipmentSupplyStepPanel";
+import { TeamSupportStepPanel } from "./TeamSupportStepPanel";
 import { FrequencyStepPanel } from "./FrequencyStepPanel";
 import { ReviewStepPanel } from "./ReviewStepPanel";
 import { ScheduleStepPanel } from "./ScheduleStepPanel";
@@ -44,9 +49,15 @@ import { WizardStepHeading } from "./WizardStepHeading";
 
 type Props = {
   customerEmail: string;
+  initialServiceSlug?: ServiceSlug;
+  initialCustomerPhone?: string | null;
 };
 
-export function BookingWizard({ customerEmail }: Props) {
+export function BookingWizard({
+  customerEmail,
+  initialServiceSlug,
+  initialCustomerPhone = null,
+}: Props) {
   const [state, setState] = useState<BookingWizardState>(INITIAL_WIZARD_STATE);
   const [stepErrors, setStepErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -55,9 +66,20 @@ export function BookingWizard({ customerEmail }: Props) {
   const checkoutLock = useRef(false);
 
   useEffect(() => {
-    setState(loadWizardState());
+    const loaded = loadWizardState();
+    const profilePhone = initialCustomerPhone?.trim() || null;
+    const withPhone = {
+      ...loaded,
+      profilePhone,
+      contactPhone: initialContactPhoneField(loaded.contactPhone, profilePhone),
+    };
+    if (initialServiceSlug) {
+      setState({ ...withPhone, ...wizardPatchForServiceSelection(initialServiceSlug) });
+    } else {
+      setState(withPhone);
+    }
     hydrated.current = true;
-  }, []);
+  }, [initialServiceSlug, initialCustomerPhone]);
 
   useEffect(() => {
     if (!hydrated.current) return;
@@ -72,11 +94,7 @@ export function BookingWizard({ customerEmail }: Props) {
 
   const handleSelectService = useCallback(
     (slug: ServiceSlug) => {
-      patch({
-        serviceSlug: slug,
-        bedrooms: slug === "office-cleaning" ? 0 : 2,
-        bathrooms: slug === "office-cleaning" ? 0 : 1,
-      });
+      patch(wizardPatchForServiceSelection(slug));
     },
     [patch],
   );
@@ -393,6 +411,20 @@ export function BookingWizard({ customerEmail }: Props) {
                 onChange={(e) => patch({ locationNotes: e.target.value })}
               />
             </Field>
+            <Field
+              label="Mobile number"
+              error={stepErrors.contactPhone}
+              hint="South African mobile for booking updates (e.g. 082 123 4567)."
+            >
+              <input
+                className={inputClass}
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                value={state.contactPhone}
+                onChange={(e) => patch({ contactPhone: e.target.value })}
+              />
+            </Field>
           </>
         ) : null}
 
@@ -408,6 +440,7 @@ export function BookingWizard({ customerEmail }: Props) {
               }
             />
             {state.serviceSlug !== "office-cleaning" ? (
+              <>
               <div className="mb-4 grid grid-cols-2 gap-3 md:gap-4 [&>label]:mb-0">
                 <Field label="Bedrooms" error={stepErrors.bedrooms}>
                   <input
@@ -430,6 +463,45 @@ export function BookingWizard({ customerEmail }: Props) {
                   />
                 </Field>
               </div>
+                {state.serviceSlug === "regular-cleaning" ? (
+                  <div className="mb-4">
+                    <Field label="Extra rooms" error={stepErrors.extraRooms}>
+                      <p className="mb-2 text-xs leading-relaxed text-zinc-500">
+                        Add rooms like a study, laundry room, playroom, or second lounge.
+                      </p>
+                      <input
+                        type="number"
+                        min={0}
+                        max={6}
+                        className={inputClass}
+                        value={state.extraRooms}
+                        onChange={(e) => patch({ extraRooms: Number(e.target.value) })}
+                      />
+                    </Field>
+                  </div>
+                ) : null}
+                {state.serviceSlug === "regular-cleaning" ? (
+                  <CleaningIntensityStepPanel
+                    value={state.cleaningIntensity}
+                    onChange={(cleaningIntensity) => patch({ cleaningIntensity })}
+                    error={stepErrors.cleaningIntensity}
+                  />
+                ) : null}
+                {state.serviceSlug === "regular-cleaning" ? (
+                  <EquipmentSupplyStepPanel
+                    value={state.equipmentSupply}
+                    onChange={(equipmentSupply) => patch({ equipmentSupply })}
+                    error={stepErrors.equipmentSupply}
+                  />
+                ) : null}
+                {state.serviceSlug === "regular-cleaning" ? (
+                  <TeamSupportStepPanel
+                    value={state.requestedTeamSize}
+                    onChange={(requestedTeamSize) => patch({ requestedTeamSize })}
+                    error={stepErrors.requestedTeamSize}
+                  />
+                ) : null}
+              </>
             ) : (
               <Field label="Property size (sqm)" error={stepErrors.propertySizeSqm}>
                 <input
@@ -509,8 +581,14 @@ export function BookingWizard({ customerEmail }: Props) {
                   addressLine1={state.addressLine1}
                   suburb={state.suburb}
                   city={state.city}
+                  contactPhone={state.contactPhone}
+                  profilePhone={state.profilePhone}
                   bedrooms={state.bedrooms}
                   bathrooms={state.bathrooms}
+                  extraRooms={state.extraRooms}
+                  cleaningIntensity={state.cleaningIntensity}
+                  equipmentSupply={state.equipmentSupply}
+                  requestedTeamSize={state.requestedTeamSize}
                   propertySizeSqm={state.propertySizeSqm}
                   frequency={state.frequency}
                   addons={state.addons}
@@ -539,6 +617,10 @@ export function BookingWizard({ customerEmail }: Props) {
             city={state.city}
             bedrooms={state.bedrooms}
             bathrooms={state.bathrooms}
+            extraRooms={state.extraRooms}
+            cleaningIntensity={state.cleaningIntensity}
+            equipmentSupply={state.equipmentSupply}
+            requestedTeamSize={state.requestedTeamSize}
             propertySizeSqm={state.propertySizeSqm}
             frequency={state.frequency}
             quote={state.quote}

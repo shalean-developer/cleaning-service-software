@@ -56,6 +56,7 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
           status={b.status}
           paymentStatus={b.paymentStatus}
           paymentFailureReason={b.paymentFailureReason}
+          deferredAssignmentMessage={b.deferredAssignmentMessage}
         />
 
         {b.status === "payment_failed" ? (
@@ -72,12 +73,16 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
         <CustomerBookingDetailsCard
           serviceLabel={b.display.serviceLabel}
           homeSizeSummary={b.display.homeSizeSummary}
+          cleaningIntensityLabel={b.display.cleaningIntensityLabel}
+          equipmentSupplyLabel={b.display.equipmentSupplyLabel}
           frequencyLabel={b.display.frequencyLabel}
           addonsSummary={b.display.addonsSummary}
+          teamSupportLabel={b.display.teamSupportLabel}
           cleanerPreferenceLabel={b.cleanerPreferenceLabel}
           assignedCleanerLabel={b.assignedCleanerLabel}
           assignmentCustomerMessage={b.display.assignmentCustomerMessage}
           specialInstructions={b.display.specialInstructions}
+          contactPhoneDisplay={b.display.contactPhoneDisplay}
           priceCents={b.priceCents}
           currency={b.currency}
           payments={b.payments}

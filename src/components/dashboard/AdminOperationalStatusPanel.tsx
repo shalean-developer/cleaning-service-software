@@ -7,6 +7,7 @@ import {
 } from "@/features/dashboards/adminDisplay";
 import { AdminManualDispatchAction } from "./AdminManualDispatchAction";
 import { AdminReplaceOpenOfferAction } from "./AdminReplaceOpenOfferAction";
+import { AdminDispatchDeferredNowAction } from "./AdminDispatchDeferredNowAction";
 import { AdminRecoverAssignmentAction } from "./AdminRecoverAssignmentAction";
 import { AdminRunbookRef } from "./AdminRunbookRef";
 
@@ -98,6 +99,11 @@ export function AdminOperationalStatusPanel({ bookingId, operational }: Props) {
       {operational.runbookKey ? (
         <AdminRunbookRef runbookKey={operational.runbookKey} className="mt-3" />
       ) : null}
+
+      <AdminDispatchDeferredNowAction
+        bookingId={bookingId}
+        deferredDispatchNowEligible={operational.deferredDispatchNowEligible}
+      />
 
       <AdminRecoverAssignmentAction
         bookingId={bookingId}

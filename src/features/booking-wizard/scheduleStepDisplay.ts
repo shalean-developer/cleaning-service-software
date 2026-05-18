@@ -111,3 +111,87 @@ export function isScheduleTimeSlotDisabled(date: string, time: string): boolean 
   if (!date.trim()) return false;
   return isSlotInPast(date, time);
 }
+
+const SCROLL_EDGE_THRESHOLD_PX = 2;
+
+/** Whether the date scroller has horizontal overflow (display-only UI helper). */
+export function scheduleDateScrollerHasOverflow(
+  scrollWidth: number,
+  clientWidth: number,
+): boolean {
+  return scrollWidth - clientWidth > SCROLL_EDGE_THRESHOLD_PX;
+}
+
+export type ScheduleDateScrollButtonsState = {
+  canScrollLeft: boolean;
+  canScrollRight: boolean;
+};
+
+/** Derive arrow disabled state from scroller metrics (display-only UI helper). */
+export function resolveScheduleDateScrollButtonsState(
+  scrollLeft: number,
+  scrollWidth: number,
+  clientWidth: number,
+): ScheduleDateScrollButtonsState {
+  const maxScroll = scrollWidth - clientWidth;
+  return {
+    canScrollLeft: scrollLeft > SCROLL_EDGE_THRESHOLD_PX,
+    canScrollRight: scrollLeft < maxScroll - SCROLL_EDGE_THRESHOLD_PX,
+  };
+}
+
+export function listEnabledScheduleDateOptions(
+  options: readonly ScheduleDateOption[],
+): ScheduleDateOption[] {
+  return options.filter((option) => !option.disabled);
+}
+
+export type ScheduleDateArrowNavigationState = {
+  canGoPrevious: boolean;
+  canGoNext: boolean;
+};
+
+/** When all date cards fit, arrows move selection across enabled options. */
+export function resolveScheduleDateArrowNavigationState(
+  options: readonly ScheduleDateOption[],
+  selectedDate: string,
+): ScheduleDateArrowNavigationState {
+  const enabled = listEnabledScheduleDateOptions(options);
+  if (enabled.length === 0) {
+    return { canGoPrevious: false, canGoNext: false };
+  }
+
+  const index = enabled.findIndex((option) => option.value === selectedDate);
+  if (index === -1) {
+    return { canGoPrevious: false, canGoNext: enabled.length > 1 };
+  }
+
+  return {
+    canGoPrevious: index > 0,
+    canGoNext: index < enabled.length - 1,
+  };
+}
+
+/** Next/previous enabled date value, or null when at the boundary / none selected. */
+export function resolveAdjacentScheduleDateValue(
+  options: readonly ScheduleDateOption[],
+  selectedDate: string,
+  direction: -1 | 1,
+): string | null {
+  const enabled = listEnabledScheduleDateOptions(options);
+  if (enabled.length === 0) return null;
+
+  const index = enabled.findIndex((option) => option.value === selectedDate);
+  const targetIndex = index === -1 ? (direction === 1 ? 0 : enabled.length - 1) : index + direction;
+  const target = enabled[targetIndex];
+  return target?.value ?? null;
+}
+
+/** Pixel distance for one date-card scroll step (display-only UI helper). */
+export function resolveScheduleDateScrollStepPx(
+  cardWidth: number,
+  gapPx: number = 6,
+): number {
+  if (cardWidth <= 0) return 72;
+  return cardWidth + gapPx;
+}

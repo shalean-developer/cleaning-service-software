@@ -13,7 +13,8 @@ export type AssignmentOutcomeStatus =
   | "offered"
   | "attention_required"
   | "already_assigned"
-  | "skipped";
+  | "skipped"
+  | "deferred";
 
 /** Terminal offer event before the current assignment snapshot (3B-2b visibility). */
 export type LastOfferOutcome = "declined" | "expired" | "cancelled";

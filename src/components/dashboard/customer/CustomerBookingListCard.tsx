@@ -12,7 +12,10 @@ type Props = {
 };
 
 export function CustomerBookingListCard({ booking }: Props) {
-  const layers = customerBookingListCardLayers(booking);
+  const layers = customerBookingListCardLayers({
+    ...booking,
+    deferredAssignmentMessage: booking.deferredAssignmentMessage,
+  });
   const amountLabel = formatZar(booking.priceCents, booking.currency);
 
   return (

@@ -1,6 +1,17 @@
 import { ADDON_CATALOG } from "@/features/pricing/server/catalog";
-import type { AddonSlug, PricingFrequency, ServiceSlug } from "@/features/pricing/server/types";
-import { ADDON_STEP_DISPLAY_ORDER, FREQUENCY_STEP_OPTIONS } from "./constants";
+import type {
+  AddonSlug,
+  CleaningIntensity,
+  EquipmentSupply,
+  PricingFrequency,
+  ServiceSlug,
+} from "@/features/pricing/server/types";
+import {
+  ADDON_STEP_DISPLAY_ORDER,
+  CLEANING_INTENSITY_STEP_OPTIONS,
+  EQUIPMENT_SUPPLY_STEP_OPTIONS,
+  FREQUENCY_STEP_OPTIONS,
+} from "./constants";
 import type { CleanerPreferenceMode } from "./types";
 
 export function getFrequencyLabel(frequency: PricingFrequency): string {
@@ -28,6 +39,62 @@ export function formatCleanerPreference(
 export function formatSuburbLocation(suburb: string, city: string): string {
   const parts = [suburb.trim(), city.trim()].filter(Boolean);
   return parts.length > 0 ? parts.join(", ") : "\u2014";
+}
+
+export function getCleaningIntensityLabel(intensity: CleaningIntensity): string {
+  return (
+    CLEANING_INTENSITY_STEP_OPTIONS.find((option) => option.value === intensity)?.label ??
+    intensity
+  );
+}
+
+export function getCleaningIntensityExplanation(
+  intensity: CleaningIntensity,
+): string | null {
+  if (intensity === "standard") return null;
+  if (intensity === "detailed") {
+    return "Extra attention for areas that need more time — still a regular clean, not a full deep clean.";
+  }
+  return "High-use home or rooms needing deeper attention — still regular cleaning with extra time, not a full deep clean.";
+}
+
+export function getEquipmentSupplyCustomerLabel(supply: EquipmentSupply): string {
+  return supply === "shalean" ? "Shalean-provided" : "Customer-provided";
+}
+
+export function getEquipmentSupplyExplanation(supply: EquipmentSupply): string | null {
+  if (supply !== "shalean") return null;
+  return "Your cleaner will arrive with Shalean cleaning supplies and equipment.";
+}
+
+export function getEquipmentSupplyOperationalLabel(supply: EquipmentSupply): string {
+  return supply === "shalean" ? "Bring cleaning equipment" : "Customer provides supplies";
+}
+
+export function getEquipmentSupplyStepLabel(supply: EquipmentSupply): string {
+  return (
+    EQUIPMENT_SUPPLY_STEP_OPTIONS.find((option) => option.value === supply)?.label ?? supply
+  );
+}
+
+export function getTeamSupportCustomerLabel(requestedTeamSize: 1 | 2): string {
+  return requestedTeamSize === 2 ? "Request 2 cleaners" : "1 cleaner";
+}
+
+export function getTeamSupportExplanation(requestedTeamSize: 1 | 2): string | null {
+  if (requestedTeamSize !== 2) return null;
+  return "We'll confirm team availability after payment.";
+}
+
+/** Neutral cleaner-facing note — not a team/dual-assignment label. */
+export function getTeamSupportCleanerNote(requestedTeamSize: 1 | 2): string | null {
+  if (requestedTeamSize !== 2) return null;
+  return "Team support requested. Coordinate arrival with operations if needed.";
+}
+
+export function formatExtraRoomsSummary(extraRooms: number): string | null {
+  if (extraRooms <= 0) return null;
+  return `${extraRooms} extra room${extraRooms === 1 ? "" : "s"}`;
 }
 
 export function formatBedroomBathroomSummary(

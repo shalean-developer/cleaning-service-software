@@ -1,4 +1,5 @@
 import { isOfferOpenForOps } from "./buildOfferExpiry";
+import { isDeferredDispatchFailureExempt } from "./deferredDispatchStatus";
 
 export const DISPATCH_NOT_STARTED_REASON =
   "Paid but dispatch not started; assignment recovery pending.";
@@ -12,6 +13,7 @@ export function isDispatchNotStartedAttentionReason(
 type RecoveryBooking = {
   status: string;
   cleaner_id: string | null;
+  assignment_dispatch_at?: string | null;
 };
 
 type RecoveryPayment = {
@@ -41,6 +43,15 @@ export function isAssignmentRecoveryCandidate(input: {
 
   if (booking.status !== "confirmed") return false;
   if (booking.cleaner_id) return false;
+
+  if (
+    isDeferredDispatchFailureExempt({
+      assignmentDispatchAt: booking.assignment_dispatch_at,
+      now,
+    })
+  ) {
+    return false;
+  }
 
   const paidPayment = payments.find((p) => p.status === "paid");
   if (!paidPayment) return false;

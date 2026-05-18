@@ -4,10 +4,12 @@ import { collectPostRoutes } from "@/tests/security/staticGuardSupport";
 
 /** Cron POST mutation routes (intentional; also expose GET for manual invoke). */
 const ALLOWED_CRON_POST_ROUTES = new Set([
+  "dispatch-deferred-assignments/route.ts",
   "expire-assignment-offers/route.ts",
   "expire-pending-payments/route.ts",
   "recover-assignment-after-payment/route.ts",
   "process-notification-outbox/route.ts",
+  "rollup-assignment-metrics/route.ts",
   "rollup-notification-metrics/route.ts",
   "cleanup-notification-retention/route.ts",
 ]);

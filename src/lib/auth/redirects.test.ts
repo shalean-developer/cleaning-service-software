@@ -20,6 +20,9 @@ describe("buildCustomerSetupRedirectPath", () => {
     expect(buildCustomerSetupRedirectPath("/customer/book")).toBe(
       "/customer/setup?redirectedFrom=%2Fcustomer%2Fbook",
     );
+    expect(buildCustomerSetupRedirectPath("/customer/book/regular-cleaning")).toBe(
+      "/customer/setup?redirectedFrom=%2Fcustomer%2Fbook%2Fregular-cleaning",
+    );
   });
 
   it("ignores setup path and foreign role namespaces", () => {
@@ -55,6 +58,9 @@ describe("resolvePostSignInPath", () => {
 
   it("honours redirectedFrom when allowed for role", () => {
     expect(resolvePostSignInPath("customer", "/customer/book")).toBe("/customer/book");
+    expect(resolvePostSignInPath("customer", "/customer/book/regular-cleaning")).toBe(
+      "/customer/book/regular-cleaning",
+    );
     expect(resolvePostSignInPath("cleaner", "/cleaner/offers")).toBe("/cleaner/offers");
     expect(resolvePostSignInPath("admin", "/admin/payouts")).toBe("/admin/payouts");
   });
@@ -69,6 +75,9 @@ describe("resolvePostSignInPath", () => {
 describe("isDashboardPathAllowedForRole", () => {
   it("allows role-prefixed paths only", () => {
     expect(isDashboardPathAllowedForRole("/customer/book", "customer")).toBe(true);
+    expect(isDashboardPathAllowedForRole("/customer/book/regular-cleaning", "customer")).toBe(
+      true,
+    );
     expect(isDashboardPathAllowedForRole("/admin", "admin")).toBe(true);
     expect(isDashboardPathAllowedForRole("/cleaner/offers", "cleaner")).toBe(true);
     expect(isDashboardPathAllowedForRole("/admin", "customer")).toBe(false);

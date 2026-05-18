@@ -102,6 +102,11 @@ export const MUTATION_ROUTE_RULES: MutationRouteRule[] = [
     requiredFacadeImports: ["runAdminSingleBookingAssignmentRecovery"],
   },
   {
+    routeFile: "admin/bookings/[bookingId]/dispatch-deferred-assignment/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["runAdminDeferredDispatchNow"],
+  },
+  {
     routeFile: "cron/expire-pending-payments/route.ts",
     category: "cron",
     requiredFacadeImports: ["expireStalePendingPayments"],
@@ -119,6 +124,13 @@ export const MUTATION_ROUTE_RULES: MutationRouteRule[] = [
     routeFile: "cron/recover-assignment-after-payment/route.ts",
     category: "cron",
     requiredFacadeImports: ["runAssignmentRecoveryBatch"],
+    requiredAdditionalImports: ["verifyCronSecret", "createBookingCommandBackend"],
+    mayImportServiceRole: true,
+  },
+  {
+    routeFile: "cron/dispatch-deferred-assignments/route.ts",
+    category: "cron",
+    requiredFacadeImports: ["runDeferredAssignmentDispatchBatch"],
     requiredAdditionalImports: ["verifyCronSecret", "createBookingCommandBackend"],
     mayImportServiceRole: true,
   },
@@ -164,6 +176,7 @@ export const ADMIN_POST_ALLOWLIST = [
   "bookings/[bookingId]/payout-ready/route.ts",
   "bookings/[bookingId]/mark-paid-out/route.ts",
   "bookings/[bookingId]/recover-assignment/route.ts",
+  "bookings/[bookingId]/dispatch-deferred-assignment/route.ts",
   "bookings/[bookingId]/dispatch-offer/route.ts",
   "bookings/[bookingId]/replace-open-offer/route.ts",
 ] as const;
@@ -173,6 +186,7 @@ export const CRON_POST_ALLOWLIST = [
   "expire-assignment-offers/route.ts",
   "expire-pending-payments/route.ts",
   "recover-assignment-after-payment/route.ts",
+  "dispatch-deferred-assignments/route.ts",
 ] as const;
 
 /** Paystack POST mutation routes (customer + webhook). */

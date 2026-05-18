@@ -14,6 +14,7 @@ type Props = {
   locationSummary: string;
   earningsLabel: string;
   status: BookingStatus;
+  teamRoleLabel?: string | null;
 };
 
 export function CleanerJobListCard({
@@ -23,6 +24,7 @@ export function CleanerJobListCard({
   locationSummary,
   earningsLabel,
   status,
+  teamRoleLabel,
 }: Props) {
   return (
     <Link
@@ -38,6 +40,9 @@ export function CleanerJobListCard({
           tone={toneForCleanerJobStatus(status)}
           variant="soft"
         />
+        {teamRoleLabel ? (
+          <StatusBadge label={teamRoleLabel} tone="info" variant="soft" />
+        ) : null}
       </div>
 
       <dl className="mt-3 grid gap-2 sm:grid-cols-3">

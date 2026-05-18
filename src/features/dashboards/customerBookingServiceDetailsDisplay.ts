@@ -1,12 +1,37 @@
-import { formatBedroomBathroomSummary, formatSelectedAddons, getFrequencyLabel } from "@/features/booking-wizard/reviewDisplay";
-import type { AddonSlug, PricingFrequency } from "@/features/pricing/server/types";
-import { isServiceSlug } from "@/features/pricing/server/catalog";
+import {
+  formatBedroomBathroomSummary,
+  formatExtraRoomsSummary,
+  formatSelectedAddons,
+  getCleaningIntensityLabel,
+  getEquipmentSupplyCustomerLabel,
+  getEquipmentSupplyOperationalLabel,
+  getFrequencyLabel,
+  getTeamSupportCleanerNote,
+  getTeamSupportCustomerLabel,
+} from "@/features/booking-wizard/reviewDisplay";
+import type {
+  AddonSlug,
+  CleaningIntensity,
+  EquipmentSupply,
+  PricingFrequency,
+} from "@/features/pricing/server/types";
+import {
+  isCleaningIntensity,
+  isEquipmentSupply,
+  isServiceSlug,
+} from "@/features/pricing/server/catalog";
 import type { Json } from "@/lib/database/types";
 
 export type CustomerBookingServiceDetails = {
   homeSizeSummary: string | null;
+  cleaningIntensityLabel: string | null;
+  equipmentSupplyLabel: string | null;
+  equipmentSupplyOperationalLabel: string | null;
   frequencyLabel: string | null;
   addonsSummary: string | null;
+  teamSupportLabel: string | null;
+  teamSupportCleanerNote: string | null;
+  isTwoCleanerRequest: boolean;
 };
 
 function asRecord(metadata: Json | null | undefined): Record<string, unknown> {
@@ -32,9 +57,23 @@ function readFrequency(value: unknown): PricingFrequency | null {
   return null;
 }
 
+function readCleaningIntensity(value: unknown): CleaningIntensity {
+  if (typeof value === "string" && isCleaningIntensity(value)) return value;
+  return "standard";
+}
+
+function readEquipmentSupply(value: unknown): EquipmentSupply {
+  if (typeof value === "string" && isEquipmentSupply(value)) return value;
+  return "customer";
+}
+
 function readAddons(value: unknown): AddonSlug[] {
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is AddonSlug => typeof item === "string");
+}
+
+function readRequestedTeamSize(value: unknown): 1 | 2 {
+  return value === 2 ? 2 : 1;
 }
 
 function resolveInputRecord(record: Record<string, unknown>): Record<string, unknown> {
@@ -59,11 +98,18 @@ export function parseCustomerBookingServiceDetails(
 
   const bedrooms = readNumber(merged.bedrooms);
   const bathrooms = readNumber(merged.bathrooms);
+  const extraRooms = readNumber(merged.extraRooms) ?? 0;
   const propertySizeSqm = readNumber(merged.propertySizeSqm);
   const frequency = readFrequency(merged.frequency);
   const addons = readAddons(merged.addons);
+  const cleaningIntensity = readCleaningIntensity(merged.cleaningIntensity);
+  const equipmentSupply = readEquipmentSupply(merged.equipmentSupply);
+  const requestedTeamSize = readRequestedTeamSize(merged.requestedTeamSize);
 
   let homeSizeSummary: string | null = null;
+  let cleaningIntensityLabel: string | null = null;
+  let equipmentSupplyLabel: string | null = null;
+  let equipmentSupplyOperationalLabel: string | null = null;
   if (bedrooms != null && bathrooms != null) {
     const { bedroomsLabel, bathroomsLabel } = formatBedroomBathroomSummary(
       slug,
@@ -71,13 +117,33 @@ export function parseCustomerBookingServiceDetails(
       bathrooms,
       propertySizeSqm,
     );
-    const parts = [bedroomsLabel, bathroomsLabel].filter(Boolean);
+    const extraRoomsLabel = formatExtraRoomsSummary(extraRooms);
+    const parts = [bedroomsLabel, bathroomsLabel, extraRoomsLabel].filter(Boolean);
     homeSizeSummary = parts.length > 0 ? parts.join(" · ") : null;
+  }
+
+  if (slug === "regular-cleaning" && cleaningIntensity !== "standard") {
+    cleaningIntensityLabel = getCleaningIntensityLabel(cleaningIntensity);
+  }
+
+  let teamSupportLabel: string | null = null;
+  let teamSupportCleanerNote: string | null = null;
+  if (slug === "regular-cleaning") {
+    equipmentSupplyLabel = getEquipmentSupplyCustomerLabel(equipmentSupply);
+    equipmentSupplyOperationalLabel = getEquipmentSupplyOperationalLabel(equipmentSupply);
+    teamSupportLabel = getTeamSupportCustomerLabel(requestedTeamSize);
+    teamSupportCleanerNote = getTeamSupportCleanerNote(requestedTeamSize);
   }
 
   return {
     homeSizeSummary,
+    cleaningIntensityLabel,
+    equipmentSupplyLabel,
+    equipmentSupplyOperationalLabel,
     frequencyLabel: frequency ? getFrequencyLabel(frequency) : null,
     addonsSummary: addons.length > 0 ? formatSelectedAddons(addons) : null,
+    teamSupportLabel,
+    teamSupportCleanerNote,
+    isTwoCleanerRequest: slug === "regular-cleaning" && requestedTeamSize === 2,
   };
 }

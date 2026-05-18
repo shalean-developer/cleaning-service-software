@@ -24,6 +24,7 @@ export const ALLOWED_SERVICE_ROLE_LIFECYCLE_IMPORTERS = new Set([
   "app/api/cron/expire-assignment-offers/route.ts",
   "app/api/cron/expire-pending-payments/route.ts",
   "app/api/cron/recover-assignment-after-payment/route.ts",
+  "app/api/cron/dispatch-deferred-assignments/route.ts",
   // Notification cron passes service-role client into the worker; worker does not import serviceRole.
   "app/api/cron/process-notification-outbox/route.ts",
   "app/api/cron/cleanup-notification-retention/route.ts",

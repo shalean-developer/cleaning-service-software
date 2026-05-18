@@ -1,3 +1,4 @@
+import { requestedTeamSizeForPricingInput } from "./resolveRequestedTeamSize";
 import type { PricingBreakdown, PricingInput } from "./types";
 
 /**
@@ -15,10 +16,14 @@ export function buildBookingQuoteMetadata(
         serviceSlug: input.serviceSlug,
         bedrooms: input.bedrooms,
         bathrooms: input.bathrooms,
+        extraRooms: input.extraRooms ?? 0,
+        cleaningIntensity: input.cleaningIntensity ?? "standard",
+        equipmentSupply: input.equipmentSupply ?? "customer",
         propertySizeSqm: input.propertySizeSqm ?? null,
         frequency: input.frequency ?? "once",
         addons: input.addons ?? [],
-        teamSize: input.teamSize ?? 1,
+        teamSize: 1,
+        requestedTeamSize: requestedTeamSizeForPricingInput(input),
       },
       breakdown: {
         lineItems: breakdown.lineItems,

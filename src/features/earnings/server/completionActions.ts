@@ -1,11 +1,41 @@
 import "server-only";
 
+import { isTeamOffersEnabled } from "@/features/assignments/server/teamOffersConfig";
+import { loadRosterRowForCleaner } from "@/features/dashboards/server/cleanerTeamJobVisibility";
 import { createBookingCommandBackend } from "@/features/bookings/server/commands/runBookingCommand";
 import { executeBookingCommand } from "@/features/bookings/server/commands/executeBookingCommand";
 import type { BookingCommandResult } from "@/features/bookings/server/commands/types";
 import type { CurrentUser } from "@/lib/auth/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resolveActorScope } from "@/lib/auth/resolveActorScope";
+
+async function assertLeadCleanerForLifecycle(
+  bookingId: string,
+  actingCleanerId: string,
+): Promise<BookingCommandResult | null> {
+  if (!isTeamOffersEnabled()) return null;
+
+  const client = await createSupabaseServerClient();
+  if (!client) return null;
+
+  const { data: booking } = await client
+    .from("bookings")
+    .select("cleaner_id")
+    .eq("id", bookingId)
+    .maybeSingle();
+
+  if (booking?.cleaner_id === actingCleanerId) return null;
+
+  const rosterRow = await loadRosterRowForCleaner(client, bookingId, actingCleanerId);
+  if (rosterRow?.role === "support") {
+    return {
+      ok: false,
+      code: "FORBIDDEN",
+      message: "Support cleaners cannot start or complete the booking lifecycle.",
+    };
+  }
+  return null;
+}
 
 async function cleanerContext(user: CurrentUser) {
   const client = await createSupabaseServerClient();
@@ -18,7 +48,8 @@ async function cleanerContext(user: CurrentUser) {
     };
   }
   const scope = await resolveActorScope(client, user.profileId, user.role);
-  if (!scope.actingCleanerId) {
+  const actingCleanerId = scope.actingCleanerId;
+  if (!actingCleanerId) {
     return {
       ok: false as const,
       status: 403,
@@ -26,7 +57,7 @@ async function cleanerContext(user: CurrentUser) {
       message: "Cleaner profile not linked.",
     };
   }
-  return { ok: true as const, scope };
+  return { ok: true as const, scope: { actingCleanerId } };
 }
 
 export async function startCleanerJob(
@@ -44,6 +75,14 @@ export async function startCleanerJob(
       message: ctxResult.message,
       httpStatus: ctxResult.status,
     };
+  }
+
+  const lifecycleGuard = await assertLeadCleanerForLifecycle(
+    bookingId,
+    ctxResult.scope.actingCleanerId,
+  );
+  if (lifecycleGuard) {
+    return { ...lifecycleGuard, httpStatus: 403 };
   }
 
   const backend = createBookingCommandBackend();
@@ -78,6 +117,14 @@ export async function completeCleanerJob(
       message: ctxResult.message,
       httpStatus: ctxResult.status,
     };
+  }
+
+  const lifecycleGuard = await assertLeadCleanerForLifecycle(
+    bookingId,
+    ctxResult.scope.actingCleanerId,
+  );
+  if (lifecycleGuard) {
+    return { ...lifecycleGuard, httpStatus: 403 };
   }
 
   const backend = createBookingCommandBackend();

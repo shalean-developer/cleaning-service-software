@@ -1,6 +1,12 @@
 ﻿"use client";
 
-import type { PricingBreakdown, PricingFrequency, ServiceSlug } from "@/features/pricing/server/types";
+import type {
+  CleaningIntensity,
+  EquipmentSupply,
+  PricingBreakdown,
+  PricingFrequency,
+  ServiceSlug,
+} from "@/features/pricing/server/types";
 import { formatDateLabel, formatZar } from "../format";
 import {
   getRecurringPaymentExplanation,
@@ -9,7 +15,14 @@ import {
 } from "../recurringDisplay";
 import {
   formatBedroomBathroomSummary,
+  formatExtraRoomsSummary,
   formatSuburbLocation,
+  getCleaningIntensityExplanation,
+  getCleaningIntensityLabel,
+  getEquipmentSupplyExplanation,
+  getEquipmentSupplyCustomerLabel,
+  getTeamSupportCustomerLabel,
+  getTeamSupportExplanation,
 } from "../reviewDisplay";
 import { LockIcon } from "./wizardIcons";
 import { WizardStepHeading } from "./WizardStepHeading";
@@ -23,6 +36,10 @@ type Props = {
   city: string;
   bedrooms: number;
   bathrooms: number;
+  extraRooms: number;
+  cleaningIntensity: CleaningIntensity;
+  equipmentSupply: EquipmentSupply;
+  requestedTeamSize: 1 | 2;
   propertySizeSqm: number | null;
   frequency: PricingFrequency;
   quote: PricingBreakdown;
@@ -33,6 +50,8 @@ function buildMiniSummaryDetail(
   serviceSlug: ServiceSlug | null,
   bedrooms: number,
   bathrooms: number,
+  extraRooms: number,
+  cleaningIntensity: CleaningIntensity,
   propertySizeSqm: number | null,
 ): string | null {
   const { bedroomsLabel, bathroomsLabel } = formatBedroomBathroomSummary(
@@ -50,7 +69,13 @@ function buildMiniSummaryDetail(
 
   const bedShort = bedrooms === 1 ? "1 bed" : `${bedrooms} beds`;
   const bathShort = bathrooms === 1 ? "1 bath" : `${bathrooms} baths`;
-  return `${bedShort} \u00b7 ${bathShort}`;
+  const extraLabel = formatExtraRoomsSummary(extraRooms);
+  const parts = [bedShort, bathShort];
+  if (extraLabel) parts.push(extraLabel);
+  if (serviceSlug === "regular-cleaning" && cleaningIntensity !== "standard") {
+    parts.push(getCleaningIntensityLabel(cleaningIntensity));
+  }
+  return parts.join(" \u00b7 ");
 }
 
 const REASSURANCE_ITEMS = [
@@ -81,6 +106,10 @@ export function CheckoutStepPanel({
   city,
   bedrooms,
   bathrooms,
+  extraRooms,
+  cleaningIntensity,
+  equipmentSupply,
+  requestedTeamSize,
   propertySizeSqm,
   frequency,
   quote,
@@ -92,8 +121,30 @@ export function CheckoutStepPanel({
     serviceSlug,
     bedrooms,
     bathrooms,
+    extraRooms,
+    cleaningIntensity,
     propertySizeSqm,
   );
+  const intensityExplanation =
+    serviceSlug === "regular-cleaning"
+      ? getCleaningIntensityExplanation(cleaningIntensity)
+      : null;
+  const equipmentSupplyExplanation =
+    serviceSlug === "regular-cleaning"
+      ? getEquipmentSupplyExplanation(equipmentSupply)
+      : null;
+  const equipmentSupplyLabel =
+    serviceSlug === "regular-cleaning" && equipmentSupply === "shalean"
+      ? getEquipmentSupplyCustomerLabel(equipmentSupply)
+      : null;
+  const teamSupportLabel =
+    serviceSlug === "regular-cleaning"
+      ? getTeamSupportCustomerLabel(requestedTeamSize)
+      : null;
+  const teamSupportExplanation =
+    serviceSlug === "regular-cleaning"
+      ? getTeamSupportExplanation(requestedTeamSize)
+      : null;
   const recurringPaymentNote = getRecurringPaymentExplanation(frequency);
   const recurringScheduleNote = getRecurringScheduleExplanation(frequency);
 
@@ -123,6 +174,23 @@ export function CheckoutStepPanel({
           <p className="mt-2 text-sm font-medium text-zinc-900">{scheduleLabel}</p>
         ) : null}
         {homeDetail ? <p className="mt-1 text-sm text-zinc-600">{homeDetail}</p> : null}
+        {intensityExplanation ? (
+          <p className="mt-2 text-xs leading-relaxed text-zinc-500">{intensityExplanation}</p>
+        ) : null}
+        {equipmentSupplyLabel ? (
+          <p className="mt-2 text-sm text-zinc-600">
+            Cleaning supplies: {equipmentSupplyLabel}
+          </p>
+        ) : null}
+        {equipmentSupplyExplanation ? (
+          <p className="mt-2 text-xs leading-relaxed text-zinc-500">{equipmentSupplyExplanation}</p>
+        ) : null}
+        {teamSupportLabel ? (
+          <p className="mt-2 text-sm text-zinc-600">Team support: {teamSupportLabel}</p>
+        ) : null}
+        {teamSupportExplanation ? (
+          <p className="mt-2 text-xs leading-relaxed text-zinc-500">{teamSupportExplanation}</p>
+        ) : null}
         {locationLabel !== "\u2014" ? (
           <p className="mt-1 break-words text-sm text-zinc-600">{locationLabel}</p>
         ) : null}

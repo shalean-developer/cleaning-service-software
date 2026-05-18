@@ -52,20 +52,69 @@ import {
   type AdminBookingsQuery,
 } from "./adminOperationalHelpers";
 import {
+  computeAdminTeamSupportAnalytics,
+  mapTeamSupportObservationRow,
+  parseAdminOperationalLoadSignals,
+  readTeamRequestFulfillment,
+  readTeamSupportOps,
+  supportingCleanerDisplayLabel,
+  teamCoordinationStatusLabel,
+  teamRequestFulfillmentLabel,
+} from "./adminTeamSupportObservation";
+import {
   enrichBookingDisplayWithAssignmentVisibility,
   formatScheduleRange,
   formatZar,
   parseBookingDisplay,
 } from "./parseBookingDisplay";
+import { resolveDeferredDispatchStatus } from "@/features/assignments/server/deferredDispatchStatus";
+import { listTeamRosterFoundationForBooking } from "./bookingCleanersReadModel";
+import { reconcileTeamEarningsForBooking } from "@/features/earnings/server/teamEarningsReconciliation";
+import {
+  formatZaMobileForDisplay,
+  normalizeZaMobilePhone,
+} from "@/lib/validation/zaPhone";
 import type {
   AdminAssignmentQueueItem,
   AdminAssignmentQueueResult,
   AdminBookingDetail,
   AdminBookingListItem,
+  AdminBookingObservation,
   AdminBookingsListResult,
   AdminOperationsSummary,
+  AdminTeamSupportAnalytics,
   OfferSummary,
 } from "./types";
+import type { Json } from "@/lib/database/types";
+import type { BookingDisplayFields } from "./parseBookingDisplay";
+
+const ADMIN_TEAM_SUPPORT_ANALYTICS_LIMIT = 500;
+
+function buildAdminBookingObservation(
+  metadata: Json | null | undefined,
+  display: Pick<BookingDisplayFields, "isTwoCleanerRequest" | "serviceSlug">,
+): AdminBookingObservation {
+  const teamSupportOps = readTeamSupportOps(metadata);
+  const teamRequestFulfillment = readTeamRequestFulfillment(metadata);
+  const isTwoCleanerRequest = display.isTwoCleanerRequest;
+
+  return {
+    isTwoCleanerRequest,
+    operationalLoad: parseAdminOperationalLoadSignals(metadata, display.serviceSlug),
+    teamRequestFulfillment,
+    teamRequestFulfillmentLabel: teamRequestFulfillmentLabel(
+      teamRequestFulfillment,
+      isTwoCleanerRequest,
+    ),
+    teamSupportOps,
+    supportingCleanerLabel: supportingCleanerDisplayLabel(teamSupportOps.supportingCleaner),
+    coordinationStatusLabel: teamCoordinationStatusLabel(
+      teamSupportOps.coordinationStatus,
+      isTwoCleanerRequest,
+    ),
+    hasTeamSupportNotes: teamSupportOps.teamSupportNotes != null,
+  };
+}
 
 async function resolveCustomerLabel(
   client: Awaited<ReturnType<typeof createSupabaseServerClient>>,
@@ -78,6 +127,26 @@ async function resolveCustomerLabel(
     .eq("id", customerId)
     .maybeSingle();
   return data?.company_name?.trim() || `Customer ${customerId.slice(0, 8)}`;
+}
+
+async function resolveCustomerPhone(
+  client: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  customerId: string,
+  metadata: import("@/lib/database/types").Json | null | undefined,
+): Promise<{ e164: string | null; display: string | null }> {
+  let e164: string | null = null;
+  if (client) {
+    const { data } = await client
+      .from("customers")
+      .select("phone")
+      .eq("id", customerId)
+      .maybeSingle();
+    e164 = normalizeZaMobilePhone(data?.phone);
+  }
+  if (!e164) {
+    e164 = parseBookingDisplay(metadata).contactPhone;
+  }
+  return { e164, display: formatZaMobileForDisplay(e164) };
 }
 
 async function resolveCleanerLabel(
@@ -146,6 +215,7 @@ type BookingListRow = {
   cleaner_id: string | null;
   scheduled_start: string;
   scheduled_end: string;
+  assignment_dispatch_at: string | null;
   price_cents: number;
   currency: string;
   metadata: import("@/lib/database/types").Json;
@@ -172,9 +242,18 @@ async function buildAdminBookingListItem(
 
   const offerRows = offers ?? [];
   const openOffers = offerRows.filter((o) => isOfferOpenForOps(o));
+  const deferredDispatch = resolveDeferredDispatchStatus({
+    bookingStatus: row.status,
+    assignmentDispatchAt: row.assignment_dispatch_at,
+    scheduledStart: row.scheduled_start,
+    hasOpenOffer: openOffers.length > 0,
+    hasAcceptedOffer: offerRows.some((o) => o.status === "accepted"),
+    hasCleaner: Boolean(row.cleaner_id),
+  });
   const dispatchNotStarted = computeDispatchNotStarted({
     bookingStatus: row.status,
     cleanerId: row.cleaner_id,
+    assignmentDispatchAt: row.assignment_dispatch_at,
     assignmentReason: readAssignmentMetadata(row.metadata)?.reason,
     payments: paymentList,
     offers: offerRows,
@@ -194,6 +273,7 @@ async function buildAdminBookingListItem(
   const { eligibility } = computeRecoveryEligibility({
     bookingStatus: row.status,
     cleanerId: row.cleaner_id,
+    assignmentDispatchAt: row.assignment_dispatch_at,
     payments: paymentList,
     offers: offerRows,
     hasOpenOffer: openOffers.length > 0,
@@ -204,6 +284,8 @@ async function buildAdminBookingListItem(
   const providerRefs = paymentList
     .map((p) => p.provider_ref)
     .filter((r): r is string => typeof r === "string");
+
+  const observation = buildAdminBookingObservation(row.metadata, display);
 
   return {
     id: row.id,
@@ -220,11 +302,14 @@ async function buildAdminBookingListItem(
     suburb: display.suburb,
     city: display.city,
     priceLabel: formatZar(row.price_cents, row.currency),
+    priceCents: row.price_cents,
+    observation,
     latestProviderRef: payment?.provider_ref ?? null,
     assignmentAttention: display.assignmentVisibilityKey ?? display.assignmentAttention,
     assignmentVisibilityKey: display.assignmentVisibilityKey,
     dispatchNotStarted,
     recoveryEligible: eligibility === "eligible",
+    deferredDispatch,
     updatedAt: row.updated_at,
     searchText: buildSearchText([row.id, customerLabel, ...providerRefs]),
   };
@@ -275,7 +360,7 @@ export async function listAdminBookings(
   }
 
   const bookingColumns =
-    "id, status, customer_id, cleaner_id, scheduled_start, scheduled_end, price_cents, currency, metadata, created_at, updated_at";
+    "id, status, customer_id, cleaner_id, scheduled_start, scheduled_end, assignment_dispatch_at, price_cents, currency, metadata, created_at, updated_at";
 
   let listQuery = client.from("bookings").select(bookingColumns);
   if (applySql) {
@@ -411,7 +496,7 @@ export async function exportAdminBookingsCsv(
   }
 
   const bookingColumns =
-    "id, status, customer_id, cleaner_id, scheduled_start, scheduled_end, price_cents, currency, metadata, created_at, updated_at";
+    "id, status, customer_id, cleaner_id, scheduled_start, scheduled_end, assignment_dispatch_at, price_cents, currency, metadata, created_at, updated_at";
 
   let listQuery = client.from("bookings").select(bookingColumns);
   if (applySql) {
@@ -594,9 +679,19 @@ export async function getAdminBookingDetail(
   const offerRows = offers ?? [];
   const openOfferRows = offerRows.filter((o) => isOfferOpenForOps(o));
 
+  const deferredDispatch = resolveDeferredDispatchStatus({
+    bookingStatus: row.status,
+    assignmentDispatchAt: row.assignment_dispatch_at,
+    scheduledStart: row.scheduled_start,
+    hasOpenOffer: openOfferRows.length > 0,
+    hasAcceptedOffer: offerRows.some((o) => o.status === "accepted"),
+    hasCleaner: Boolean(row.cleaner_id),
+  });
+
   const dispatchNotStarted = computeDispatchNotStarted({
     bookingStatus: row.status,
     cleanerId: row.cleaner_id,
+    assignmentDispatchAt: row.assignment_dispatch_at,
     assignmentReason: readAssignmentMetadata(row.metadata)?.reason,
     payments: paymentList,
     offers: offerRows,
@@ -628,6 +723,7 @@ export async function getAdminBookingDetail(
   const { eligibility, graceMinutesRemaining } = computeRecoveryEligibility({
     bookingStatus: row.status,
     cleanerId: row.cleaner_id,
+    assignmentDispatchAt: row.assignment_dispatch_at,
     payments: paymentList,
     offers: offerRows,
     hasOpenOffer: openOfferRows.length > 0,
@@ -650,6 +746,7 @@ export async function getAdminBookingDetail(
     visibilityKey: visibility.key,
     assignmentReason: assignmentMeta?.reason ?? display.assignmentReason,
     dispatchNotStarted,
+    assignmentDispatchAt: row.assignment_dispatch_at,
     opsSearching: visibility.opsSearching,
     opsAdminRequired: visibility.opsAdminRequired,
     openOfferCount: openOfferRows.length,
@@ -665,8 +762,42 @@ export async function getAdminBookingDetail(
 
   const { data: earningRows } = await client
     .from("earning_lines")
-    .select("id, cleaner_id, gross_amount_cents, payout_amount_cents, payout_status")
+    .select(
+      "id, cleaner_id, booking_id, amount_cents, gross_amount_cents, payout_amount_cents, payout_status, payout_batch_id, line_type, description, metadata, calculation_metadata, team_earning_role, team_earning_source, created_at",
+    )
     .eq("booking_id", row.id);
+
+  const { data: rosterRows } = await client
+    .from("booking_cleaners")
+    .select("*")
+    .eq("booking_id", row.id);
+
+  const teamEarningsReport = reconcileTeamEarningsForBooking({
+    booking: row,
+    roster: rosterRows ?? [],
+    earningLines: earningRows ?? [],
+  });
+  const teamEarningsReconciliation = {
+    enabled: teamEarningsReport.enabled,
+    splitPolicy: teamEarningsReport.splitPolicy,
+    expectedParticipantCount: teamEarningsReport.expectedParticipantCount,
+    expectedShareCents: teamEarningsReport.expectedShareCents,
+    totalPoolCents: teamEarningsReport.totalPoolCents,
+    recordedPayoutCents: teamEarningsReport.recordedPayoutCents,
+    status: teamEarningsReport.status,
+    canMarkPayoutReady: teamEarningsReport.canMarkPayoutReady,
+    blockingIssues: teamEarningsReport.blockingIssues.map((issue) => ({
+      code: issue.code,
+      severity: "error" as const,
+      message: issue.message,
+    })),
+    warnings: teamEarningsReport.warnings.map((issue) => ({
+      code: issue.code,
+      severity: issue.severity === "info" ? ("info" as const) : ("warning" as const),
+      message: issue.message,
+    })),
+    issues: teamEarningsReport.issues,
+  };
 
   const paymentIds = paymentList.map((p) => p.id);
   let paymentEvents: AdminBookingDetail["paymentEvents"] = [];
@@ -684,8 +815,10 @@ export async function getAdminBookingDetail(
   }
 
   const customerLabel = await resolveCustomerLabel(client, row.customer_id);
+  const customerPhone = await resolveCustomerPhone(client, row.customer_id, row.metadata);
 
   const notifications = await listNotificationsForBooking(client, row.id);
+  const teamRosterFoundation = await listTeamRosterFoundationForBooking(client, row.id);
 
   return {
     ok: true,
@@ -697,15 +830,20 @@ export async function getAdminBookingDetail(
       customerId: row.customer_id,
       cleanerId: row.cleaner_id,
       customerLabel,
+      customerPhone: customerPhone.display,
+      customerPhoneE164: customerPhone.e164,
       cleanerLabel: await resolveCleanerLabel(client, row.cleaner_id),
       serviceLabel: display.serviceLabel,
       scheduleLabel: formatScheduleRange(row.scheduled_start, row.scheduled_end),
       scheduledStart: row.scheduled_start,
       priceLabel: formatZar(row.price_cents, row.currency),
+      priceCents: row.price_cents,
+      observation: buildAdminBookingObservation(row.metadata, display),
       assignmentAttention: display.assignmentVisibilityKey ?? display.assignmentAttention,
       assignmentVisibilityKey: display.assignmentVisibilityKey,
       dispatchNotStarted,
       recoveryEligible: eligibility === "eligible",
+      deferredDispatch,
       updatedAt: row.updated_at,
       display,
       operational,
@@ -732,13 +870,18 @@ export async function getAdminBookingDetail(
         payoutAmountCents: e.payout_amount_cents,
         grossAmountCents: e.gross_amount_cents,
         payoutStatus: e.payout_status,
+        lineType: e.line_type,
+        teamEarningRole: e.team_earning_role,
+        teamEarningSource: e.team_earning_source,
       })),
+      teamEarningsReconciliation,
       audits: (audits ?? []).map((a) => mapAuditRow(a)),
       operationalAudits: (operationalAuditRows ?? []).map((a: AdminOperationalAuditRow) =>
         mapAdminOperationalAuditRow(a, adminLabels.get(a.admin_profile_id) ?? null),
       ),
       paymentEvents,
       notifications,
+      teamRosterFoundation,
     },
   };
 }
@@ -761,7 +904,7 @@ export async function listAdminAssignmentQueue(
   const { data: bookings, error } = await client
     .from("bookings")
     .select(
-      "id, status, customer_id, cleaner_id, scheduled_start, scheduled_end, metadata, updated_at",
+      "id, status, customer_id, cleaner_id, scheduled_start, scheduled_end, assignment_dispatch_at, metadata, updated_at",
     )
     .in("status", ["pending_assignment", "confirmed"])
     .order("updated_at", { ascending: false })
@@ -792,6 +935,7 @@ export async function listAdminAssignmentQueue(
     const dispatchNotStarted = computeDispatchNotStarted({
       bookingStatus: row.status,
       cleanerId: row.cleaner_id,
+      assignmentDispatchAt: row.assignment_dispatch_at,
       assignmentReason: display.assignmentReason,
       payments: payments ?? [],
       offers: offerRows,
@@ -854,5 +998,49 @@ export async function listAdminAssignmentQueue(
     items,
     total: items.length,
     limit: ADMIN_ASSIGNMENT_QUEUE_LIMIT,
+  };
+}
+
+export async function getAdminTeamSupportAnalytics(
+  user: CurrentUser,
+): Promise<
+  | { ok: true; analytics: AdminTeamSupportAnalytics }
+  | { ok: false; code: string; message: string; status: number }
+> {
+  if (user.role !== "admin") {
+    return { ok: false, code: "FORBIDDEN", message: "Admins only.", status: 403 };
+  }
+
+  const client = await createSupabaseServerClient();
+  if (!client) {
+    return {
+      ok: false,
+      code: "AUTH_NOT_CONFIGURED",
+      message: "Supabase not configured.",
+      status: 503,
+    };
+  }
+
+  const { data: bookings, error } = await client
+    .from("bookings")
+    .select("id, price_cents, metadata")
+    .order("created_at", { ascending: false })
+    .limit(ADMIN_TEAM_SUPPORT_ANALYTICS_LIMIT);
+
+  if (error) {
+    return { ok: false, code: "PERSISTENCE_ERROR", message: error.message, status: 500 };
+  }
+
+  const rows = (bookings ?? []).map((row) =>
+    mapTeamSupportObservationRow({
+      bookingId: row.id,
+      priceCents: row.price_cents,
+      metadata: row.metadata,
+    }),
+  );
+
+  return {
+    ok: true,
+    analytics: computeAdminTeamSupportAnalytics(rows, ADMIN_TEAM_SUPPORT_ANALYTICS_LIMIT),
   };
 }

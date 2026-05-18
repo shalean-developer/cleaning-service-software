@@ -7,6 +7,7 @@ import {
   toneForPaymentStatus,
 } from "@/features/bookings/server/statusLabels";
 import type { AdminBookingListCardBadge } from "@/components/dashboard/admin/AdminBookingListCard";
+import { buildAdminOperationalLoadBadges } from "@/features/dashboards/server/adminTeamSupportObservation";
 import type { AdminBookingListItem } from "@/features/dashboards/server/types";
 
 type BookingListBadgeInput = Pick<
@@ -16,6 +17,8 @@ type BookingListBadgeInput = Pick<
   | "paymentFailureReason"
   | "assignmentVisibilityKey"
   | "assignmentAttention"
+  | "deferredDispatch"
+  | "observation"
 >;
 
 /** Display-only badge stack for admin booking list cards. */
@@ -41,7 +44,26 @@ export function adminBookingListBadges(
     });
   }
 
-  const assignmentKey = b.assignmentVisibilityKey ?? b.assignmentAttention;
+  const deferredPhase = b.deferredDispatch?.phase;
+  const showDeferredBadge =
+    deferredPhase && deferredPhase !== "not_applicable" && b.deferredDispatch?.adminLabel;
+
+  if (showDeferredBadge) {
+    badges.push({
+      label: b.deferredDispatch!.adminLabel!,
+      tone:
+        deferredPhase === "dispatch_overdue"
+          ? "warning"
+          : deferredPhase === "ready_for_dispatch"
+            ? "info"
+            : "neutral",
+    });
+  }
+
+  const assignmentKey =
+    showDeferredBadge && deferredPhase !== "dispatch_overdue"
+      ? null
+      : (b.assignmentVisibilityKey ?? b.assignmentAttention);
   if (assignmentKey) {
     badges.push({
       label: labelForAssignmentAttention(assignmentKey),
@@ -51,6 +73,31 @@ export function adminBookingListBadges(
         b.assignmentVisibilityKey === "offer_sent"
           ? "info"
           : "warning",
+    });
+  }
+
+  for (const loadBadge of buildAdminOperationalLoadBadges(b.observation.operationalLoad)) {
+    badges.push(loadBadge);
+  }
+
+  if (b.observation.isTwoCleanerRequest && b.observation.teamRequestFulfillmentLabel) {
+    const fulfilled = b.observation.teamRequestFulfillment?.fulfilledCleanerCount === 2;
+    badges.push({
+      label: b.observation.teamRequestFulfillmentLabel,
+      tone: fulfilled ? "success" : b.observation.teamRequestFulfillment ? "warning" : "neutral",
+    });
+  }
+
+  if (b.observation.isTwoCleanerRequest && b.observation.coordinationStatusLabel) {
+    const status = b.observation.teamSupportOps.coordinationStatus?.status;
+    badges.push({
+      label: b.observation.coordinationStatusLabel,
+      tone:
+        status === "fully_coordinated"
+          ? "success"
+          : status === "partially_fulfilled"
+            ? "info"
+            : "neutral",
     });
   }
 

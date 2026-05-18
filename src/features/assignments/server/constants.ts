@@ -19,3 +19,11 @@ export const ASSIGNMENT_RECOVERY_GRACE_MINUTES = Number(
 
 /** Max bookings processed per recovery cron / ops batch. */
 export const ASSIGNMENT_RECOVERY_BATCH_SIZE = 50;
+
+/**
+ * Grace after assignment_dispatch_at before a deferred booking is treated as overdue
+ * (ops attention / dispatch_overdue phase). Defaults to 60 minutes for hourly cron slack.
+ */
+export const DEFERRED_DISPATCH_OVERDUE_GRACE_MINUTES = Number(
+  process.env.DEFERRED_DISPATCH_OVERDUE_GRACE_MINUTES ?? 60,
+);

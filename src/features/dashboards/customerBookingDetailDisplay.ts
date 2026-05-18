@@ -112,16 +112,18 @@ function heroCopyForStatus(
 export function customerBookingStatusHero(
   status: BookingStatus,
   paymentFailureReason: PaymentFailureReason,
+  options?: { deferredAssignmentMessage?: string | null },
 ): CustomerBookingStatusHeroPresentation {
   const tone =
     status === "payment_failed" ? "warning" : toneForBookingStatus(status);
   const surfaces = HERO_SURFACE_BY_TONE[tone];
   const copy = heroCopyForStatus(status, paymentFailureReason);
+  const deferredMessage = options?.deferredAssignmentMessage?.trim();
 
   return {
     statusLabel: labelForCustomerBookingStatus(status, paymentFailureReason),
-    description: copy.description,
-    expectedUpdate: copy.expectedUpdate,
+    description: deferredMessage ?? copy.description,
+    expectedUpdate: deferredMessage ? "Closer to your service date" : copy.expectedUpdate,
     tone,
     surfaceClass: surfaces.surface,
     ringClass: surfaces.ring,

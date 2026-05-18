@@ -7,12 +7,16 @@ import {
 } from "./types";
 import {
   isAddonSlug,
+  isCleaningIntensity,
+  isEquipmentSupply,
   isPricingFrequency,
   isServiceSlug,
   SERVICE_CATALOG,
 } from "./catalog";
+import { CLEANING_INTENSITIES, EQUIPMENT_SUPPLY_OPTIONS } from "./types";
 
 const MAX_ROOMS = 20;
+const MAX_EXTRA_ROOMS = 6;
 const MAX_TEAM_SIZE = 10;
 const MAX_PROPERTY_SQ_M = 10_000;
 
@@ -60,6 +64,48 @@ export function validatePricingInput(raw: PricingInput): PricingQuoteFailure | n
     }
   }
 
+  const extraRooms = raw.extraRooms ?? 0;
+  if (!Number.isInteger(extraRooms) || extraRooms < 0 || extraRooms > MAX_EXTRA_ROOMS) {
+    return fail(
+      "INVALID_EXTRA_ROOMS",
+      `extraRooms must be an integer between 0 and ${MAX_EXTRA_ROOMS}.`,
+    );
+  }
+  if (raw.serviceSlug !== "regular-cleaning" && extraRooms > 0) {
+    return fail(
+      "INVALID_EXTRA_ROOMS",
+      "Extra rooms are only available for regular cleaning.",
+    );
+  }
+
+  const cleaningIntensity = raw.cleaningIntensity ?? "standard";
+  if (!isCleaningIntensity(cleaningIntensity)) {
+    return fail(
+      "INVALID_CLEANING_INTENSITY",
+      `cleaningIntensity must be one of: ${CLEANING_INTENSITIES.join(", ")}.`,
+    );
+  }
+  if (raw.serviceSlug !== "regular-cleaning" && cleaningIntensity !== "standard") {
+    return fail(
+      "INVALID_CLEANING_INTENSITY",
+      "Cleaning intensity is only available for regular cleaning.",
+    );
+  }
+
+  const equipmentSupply = raw.equipmentSupply ?? "customer";
+  if (!isEquipmentSupply(equipmentSupply)) {
+    return fail(
+      "INVALID_EQUIPMENT_SUPPLY",
+      `equipmentSupply must be one of: ${EQUIPMENT_SUPPLY_OPTIONS.join(", ")}.`,
+    );
+  }
+  if (raw.serviceSlug !== "regular-cleaning" && equipmentSupply !== "customer") {
+    return fail(
+      "INVALID_EQUIPMENT_SUPPLY",
+      "Equipment supply option is only available for regular cleaning.",
+    );
+  }
+
   if (raw.propertySizeSqm != null) {
     if (
       typeof raw.propertySizeSqm !== "number" ||
@@ -97,6 +143,20 @@ export function validatePricingInput(raw: PricingInput): PricingQuoteFailure | n
     return fail(
       "INVALID_TEAM_SIZE",
       `teamSize must be an integer between 1 and ${MAX_TEAM_SIZE}.`,
+    );
+  }
+
+  const requestedTeamSize = raw.requestedTeamSize ?? 1;
+  if (!Number.isInteger(requestedTeamSize) || (requestedTeamSize !== 1 && requestedTeamSize !== 2)) {
+    return fail(
+      "INVALID_REQUESTED_TEAM_SIZE",
+      "requestedTeamSize must be 1 or 2.",
+    );
+  }
+  if (raw.serviceSlug !== "regular-cleaning" && requestedTeamSize !== 1) {
+    return fail(
+      "INVALID_REQUESTED_TEAM_SIZE",
+      "2-cleaner requests are only available for regular cleaning.",
     );
   }
 

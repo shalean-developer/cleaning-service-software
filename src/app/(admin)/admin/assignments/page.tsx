@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+import { getDeferredAssignmentConfig } from "@/features/assignments/server/assignmentDispatchConfig";
+import { getDeferredAssignmentDiagnostics } from "@/features/assignments/server/deferredAssignmentDiagnostics";
 import { listAdminAssignmentQueue } from "@/features/dashboards/server/adminOperationsReadModel";
+import { AdminDeferredAssignmentDiagnosticsPanel } from "@/components/dashboard/AdminDeferredAssignmentDiagnosticsPanel";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAdminOperationalQueueCounts } from "@/features/dashboards/server/adminOperationalQueueCounts";
 import { AdminAssignmentQueueStripFootnote } from "@/components/dashboard/AdminAssignmentQueueStripFootnote";
 import { AdminOperationalQueueStrip } from "@/components/dashboard/AdminOperationalQueueStrip";
@@ -27,9 +31,15 @@ export default async function AdminAssignmentsPage() {
   const user = await getCurrentUser();
   if (!user) return null;
 
-  const [result, queueCounts] = await Promise.all([
+  const client = await createSupabaseServerClient();
+  const deferredConfig = getDeferredAssignmentConfig();
+
+  const [result, queueCounts, deferredDiagnostics] = await Promise.all([
     listAdminAssignmentQueue(user),
     getAdminOperationalQueueCounts(user),
+    client
+      ? getDeferredAssignmentDiagnostics(client, { deferredEnabled: deferredConfig.enabled })
+      : null,
   ]);
 
   return (
@@ -38,6 +48,10 @@ export default async function AdminAssignmentsPage() {
       subtitle="Dispatch attention and open offers."
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
+      {deferredDiagnostics ? (
+        <AdminDeferredAssignmentDiagnosticsPanel diagnostics={deferredDiagnostics} />
+      ) : null}
+
       {queueCounts.ok ? <AdminOperationalQueueStrip queues={queueCounts.queues} /> : null}
 
       {queueCounts.ok ? <AdminAssignmentQueueStripFootnote /> : null}

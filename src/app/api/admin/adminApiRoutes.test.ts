@@ -7,6 +7,7 @@ const ALLOWED_ADMIN_POST_ROUTES = new Set([
   "bookings/[bookingId]/payout-ready/route.ts",
   "bookings/[bookingId]/mark-paid-out/route.ts",
   "bookings/[bookingId]/recover-assignment/route.ts",
+  "bookings/[bookingId]/dispatch-deferred-assignment/route.ts",
   "bookings/[bookingId]/dispatch-offer/route.ts",
   "bookings/[bookingId]/replace-open-offer/route.ts",
   "notifications/[outboxId]/requeue/route.ts",

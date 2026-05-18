@@ -1,6 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   AssignmentOfferRow,
+  BookingCleanerRole,
+  BookingCleanerRow,
+  BookingCleanerStatus,
   BookingRow,
   BookingStateAuditRow,
   Database,
@@ -122,6 +125,17 @@ export class SupabaseBookingCommandBackend implements BookingCommandBackend {
     const { error } = await this.client
       .from("bookings")
       .update({ metadata, updated_at: nowIso() })
+      .eq("id", bookingId);
+    if (error) throw new Error(error.message);
+  }
+
+  async updateAssignmentDispatchAt(
+    bookingId: string,
+    assignmentDispatchAt: string | null,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("bookings")
+      .update({ assignment_dispatch_at: assignmentDispatchAt, updated_at: nowIso() })
       .eq("id", bookingId);
     if (error) throw new Error(error.message);
   }
@@ -319,6 +333,50 @@ export class SupabaseBookingCommandBackend implements BookingCommandBackend {
     return data ?? [];
   }
 
+  async updateEarningLinePayoutAmount(
+    bookingId: string,
+    lineId: string,
+    payoutAmountCents: number,
+    teamMetadata?: {
+      team_earning_role?: EarningLineRow["team_earning_role"];
+      team_earning_source?: EarningLineRow["team_earning_source"];
+    },
+  ): Promise<boolean> {
+    const { data: existing, error: fetchError } = await this.client
+      .from("earning_lines")
+      .select("id, payout_status, calculation_metadata")
+      .eq("booking_id", bookingId)
+      .eq("id", lineId)
+      .maybeSingle();
+    if (fetchError) throw new Error(fetchError.message);
+    if (!existing || existing.payout_status !== "pending") return false;
+
+    const priorMeta =
+      existing.calculation_metadata && typeof existing.calculation_metadata === "object"
+        ? (existing.calculation_metadata as Record<string, unknown>)
+        : {};
+
+    const { data, error } = await this.client
+      .from("earning_lines")
+      .update({
+        amount_cents: payoutAmountCents,
+        payout_amount_cents: payoutAmountCents,
+        team_earning_role: teamMetadata?.team_earning_role,
+        team_earning_source: teamMetadata?.team_earning_source,
+        calculation_metadata: {
+          ...priorMeta,
+          trueUpAdjustedAt: new Date().toISOString(),
+          trueUpExpectedShareCents: payoutAmountCents,
+        },
+      })
+      .eq("booking_id", bookingId)
+      .eq("id", lineId)
+      .eq("payout_status", "pending")
+      .select("id");
+    if (error) throw new Error(error.message);
+    return (data?.length ?? 0) > 0;
+  }
+
   async updateEarningLinesPayoutStatus(
     bookingId: string,
     from: EarningLineRow["payout_status"],
@@ -335,5 +393,77 @@ export class SupabaseBookingCommandBackend implements BookingCommandBackend {
       .select("id");
     if (error) throw new Error(error.message);
     return data?.length ?? 0;
+  }
+
+  async listBookingCleanersForBooking(bookingId: string): Promise<BookingCleanerRow[]> {
+    const { data, error } = await this.client
+      .from("booking_cleaners")
+      .select("*")
+      .eq("booking_id", bookingId);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  }
+
+  async upsertBookingCleanerRoster(params: {
+    bookingId: string;
+    cleanerId: string;
+    role: BookingCleanerRole;
+    status: BookingCleanerStatus;
+    assignedByProfileId?: string | null;
+  }): Promise<BookingCleanerRow> {
+    const ts = nowIso();
+    const { data: existing, error: findError } = await this.client
+      .from("booking_cleaners")
+      .select("*")
+      .eq("booking_id", params.bookingId)
+      .eq("cleaner_id", params.cleanerId)
+      .maybeSingle();
+    if (findError) throw new Error(findError.message);
+
+    if (existing) {
+      const { data, error } = await this.client
+        .from("booking_cleaners")
+        .update({
+          role: params.role,
+          status: params.status,
+          assigned_by_profile_id:
+            params.assignedByProfileId ?? existing.assigned_by_profile_id,
+          updated_at: ts,
+        })
+        .eq("id", existing.id)
+        .select("*")
+        .single();
+      if (error) throw new Error(error.message);
+      return data;
+    }
+
+    const { data, error } = await this.client
+      .from("booking_cleaners")
+      .insert({
+        booking_id: params.bookingId,
+        cleaner_id: params.cleanerId,
+        role: params.role,
+        status: params.status,
+        assigned_by_profile_id: params.assignedByProfileId ?? null,
+        support_completed_at: null,
+        support_note: null,
+        created_at: ts,
+        updated_at: ts,
+      })
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return data;
+  }
+
+  async updateBookingCleanerRosterStatus(
+    rosterId: string,
+    status: BookingCleanerStatus,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("booking_cleaners")
+      .update({ status, updated_at: nowIso() })
+      .eq("id", rosterId);
+    if (error) throw new Error(error.message);
   }
 }

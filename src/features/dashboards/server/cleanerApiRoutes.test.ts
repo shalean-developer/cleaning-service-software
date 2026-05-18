@@ -46,6 +46,7 @@ const safeOffer = {
   earningsCents: 25_000,
   earningsLabel: "R250.00",
   isExpired: false,
+  teamRoleLabel: null,
 };
 
 const safeJobDetail = {
@@ -62,6 +63,18 @@ const safeJobDetail = {
   timeline: [],
   specialInstructions: null,
   earnings: [],
+  teamRoleLabel: "Lead cleaner",
+  isTeamJob: false,
+  team: {
+    isTeamJob: false,
+    viewerRole: "lead" as const,
+    viewerRoleLabel: "Lead cleaner",
+    leadCleanerName: null,
+    supportCleanerNames: [],
+    fasterCompletionRequested: false,
+    canStartJob: true,
+    canCompleteJob: true,
+  },
 };
 
 describe("cleaner API financial serialization", () => {

@@ -54,6 +54,7 @@ export default async function CleanerJobsPage() {
                 locationSummary={j.locationSummary}
                 earningsLabel={j.earningsLabel}
                 status={j.status}
+                teamRoleLabel={j.teamRoleLabel}
               />
             </li>
           ))}

@@ -29,6 +29,12 @@ export const ADMIN_BOOKINGS_CSV_HEADERS = [
   "created_at",
   "updated_at",
   "provider_ref",
+  "two_cleaner_request",
+  "operational_load_score",
+  "team_fulfillment",
+  "supporting_cleaner",
+  "coordination_status",
+  "team_ops_notes_present",
 ] as const;
 
 export type AdminBookingCsvRow = Record<(typeof ADMIN_BOOKINGS_CSV_HEADERS)[number], string>;
@@ -100,6 +106,12 @@ export function mapAdminBookingListItemToCsvRow(item: AdminBookingListItem): Adm
     created_at: item.createdAt ?? "",
     updated_at: item.updatedAt,
     provider_ref: item.latestProviderRef ?? "",
+    two_cleaner_request: item.observation.isTwoCleanerRequest ? "yes" : "no",
+    operational_load_score: String(item.observation.operationalLoad.operationalLoadScore),
+    team_fulfillment: item.observation.teamRequestFulfillmentLabel ?? "",
+    supporting_cleaner: item.observation.supportingCleanerLabel ?? "",
+    coordination_status: item.observation.coordinationStatusLabel ?? "",
+    team_ops_notes_present: item.observation.hasTeamSupportNotes ? "yes" : "no",
   };
 }
 

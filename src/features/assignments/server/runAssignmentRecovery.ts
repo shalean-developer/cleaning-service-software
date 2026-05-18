@@ -33,7 +33,7 @@ async function stillRecoveryCandidate(
 ): Promise<boolean> {
   const { data: booking, error: bookErr } = await client
     .from("bookings")
-    .select("id, status, cleaner_id")
+    .select("id, status, cleaner_id, assignment_dispatch_at")
     .eq("id", bookingId)
     .maybeSingle();
   if (bookErr) throw new Error(bookErr.message);

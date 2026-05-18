@@ -3,6 +3,7 @@ import type { PaymentFailureReason } from "@/features/bookings/server/paymentFai
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { NotificationOutboxStatus } from "@/lib/database/types";
 import type { AssignmentVisibilityKey } from "@/features/assignments/server/resolveAssignmentVisibility";
+import type { DeferredDispatchStatus } from "@/features/assignments/server/deferredDispatchStatus";
 import type {
   AdminAuditEntry,
   AdminOperationalStatus,
@@ -10,6 +11,11 @@ import type {
 } from "./adminOperationalHelpers";
 import type { LifecycleEvent } from "./lifecycleTimeline";
 import type { BookingDisplayFields } from "./parseBookingDisplay";
+import type {
+  AdminOperationalLoadSignals,
+  TeamRequestFulfillment,
+  TeamSupportOps,
+} from "./adminTeamSupportObservation";
 
 export type { AdminAuditEntry, AdminOperationalStatus, AdminOperationsSummary };
 
@@ -45,6 +51,8 @@ export type CustomerBookingListItem = {
   display: BookingDisplayFields;
   scheduleLabel: string;
   assignedCleanerLabel: string | null;
+  /** Shown when assignment is intentionally deferred until closer to service date. */
+  deferredAssignmentMessage: string | null;
   updatedAt: string;
 };
 
@@ -55,6 +63,8 @@ export type CustomerBookingDetail = CustomerBookingListItem & {
   /** Same-booking Paystack retry via payment-retry-lock (detail page only). */
   canRetryPayment: boolean;
 };
+
+export type CleanerJobTeamContext = import("./cleanerTeamJobVisibility").CleanerJobTeamContext;
 
 export type CleanerOfferListItem = {
   offerId: string;
@@ -68,6 +78,8 @@ export type CleanerOfferListItem = {
   earningsCents: number | null;
   earningsLabel: string;
   isExpired: boolean;
+  /** NF-7E: e.g. "Support cleaner" when team offers enabled. */
+  teamRoleLabel: string | null;
 };
 
 export type CleanerJobListItem = {
@@ -81,6 +93,8 @@ export type CleanerJobListItem = {
   earningsCents: number | null;
   earningsLabel: string;
   updatedAt: string;
+  teamRoleLabel: string | null;
+  isTeamJob: boolean;
 };
 
 export type CleanerJobEarningSummary = {
@@ -92,9 +106,27 @@ export type CleanerJobEarningSummary = {
 
 export type CleanerJobDetail = CleanerJobListItem & {
   timeline: LifecycleEvent[];
+  homeSizeSummary: string | null;
+  cleaningIntensityLabel: string | null;
+  equipmentSupplyOperationalLabel: string | null;
+  teamSupportCleanerNote: string | null;
   specialInstructions: string | null;
   earnings: CleanerJobEarningSummary[];
+  team: CleanerJobTeamContext;
 };
+
+export type AdminBookingObservation = {
+  isTwoCleanerRequest: boolean;
+  operationalLoad: AdminOperationalLoadSignals;
+  teamRequestFulfillment: TeamRequestFulfillment | null;
+  teamRequestFulfillmentLabel: string | null;
+  teamSupportOps: TeamSupportOps;
+  supportingCleanerLabel: string | null;
+  coordinationStatusLabel: string | null;
+  hasTeamSupportNotes: boolean;
+};
+
+export type AdminTeamSupportAnalytics = import("./adminTeamSupportObservation").AdminTeamSupportAnalytics;
 
 export type AdminBookingListItem = {
   id: string;
@@ -111,10 +143,13 @@ export type AdminBookingListItem = {
   suburb?: string | null;
   city?: string | null;
   priceLabel: string;
+  priceCents: number;
+  observation: AdminBookingObservation;
   assignmentAttention: string | null;
   assignmentVisibilityKey?: AssignmentVisibilityKey;
   dispatchNotStarted?: boolean;
   recoveryEligible?: boolean;
+  deferredDispatch?: DeferredDispatchStatus;
   latestProviderRef?: string | null;
   updatedAt: string;
 };
@@ -136,6 +171,35 @@ export type AdminEarningSummary = {
   payoutAmountCents: number;
   grossAmountCents: number;
   payoutStatus: import("@/lib/database/types").EarningPayoutStatus;
+  lineType?: string;
+  teamEarningRole?: string | null;
+  teamEarningSource?: string | null;
+};
+
+export type AdminTeamEarningsReconciliation = {
+  enabled: boolean;
+  splitPolicy: "equal" | null;
+  expectedParticipantCount: number;
+  expectedShareCents: number | null;
+  totalPoolCents: number | null;
+  recordedPayoutCents: number;
+  status: "disabled" | "ok" | "blocked" | "warnings";
+  canMarkPayoutReady: boolean;
+  blockingIssues: {
+    code: string;
+    severity: "error";
+    message: string;
+  }[];
+  warnings: {
+    code: string;
+    severity: "info" | "warning";
+    message: string;
+  }[];
+  issues: {
+    code: string;
+    severity: "info" | "warning" | "error";
+    message: string;
+  }[];
 };
 
 export type AdminNotificationOutboxEntry = {
@@ -186,13 +250,21 @@ export type AdminOperationalAuditEntry = {
   metadataSummary: string | null;
 };
 
+export type TeamRosterFoundationRow = import("./bookingCleanersReadModel").TeamRosterFoundationRow;
+
 export type AdminBookingDetail = AdminBookingListItem & {
   customerId: string;
   cleanerId: string | null;
+  /** NF-7C display-only roster rows when booking_cleaners has data. */
+  teamRosterFoundation: TeamRosterFoundationRow[];
+  /** Formatted SA mobile for ops (profile or booking snapshot). */
+  customerPhone: string | null;
+  customerPhoneE164: string | null;
   timeline: LifecycleEvent[];
   payments: PaymentSummary[];
   offers: OfferSummary[];
   earnings: AdminEarningSummary[];
+  teamEarningsReconciliation: AdminTeamEarningsReconciliation;
   audits: AdminAuditEntry[];
   operationalAudits: AdminOperationalAuditEntry[];
   paymentEvents: { id: string; eventType: string | null; at: string }[];

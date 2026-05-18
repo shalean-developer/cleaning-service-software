@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { InMemoryBookingCommandBackend } from "./inMemoryBookingCommandBackend";
 import { executeBookingCommand } from "./executeBookingCommand";
+import { testAssignmentOfferRow } from "./testAssignmentOfferRow";
 import { buildCronExpireOfferAuditIdempotencyKey } from "@/features/assignments/server/recordAssignmentOfferExpiredAudit";
 
 const serviceActor = { actorType: "service" as const, profileId: null };
@@ -29,6 +30,7 @@ describe("EXPIRE_ASSIGNMENT_OFFER", () => {
       status: "pending_assignment",
       scheduled_start: ts,
       scheduled_end: ts,
+      assignment_dispatch_at: null,
       price_cents: 1000,
       currency: "ZAR",
       series_id: null,
@@ -37,7 +39,7 @@ describe("EXPIRE_ASSIGNMENT_OFFER", () => {
       updated_at: ts,
     });
 
-    await backend.insertOffer({
+    await backend.insertOffer(testAssignmentOfferRow({
       id: offerId,
       booking_id: bookingId,
       cleaner_id: "cleaner-1",
@@ -47,7 +49,7 @@ describe("EXPIRE_ASSIGNMENT_OFFER", () => {
       expires_at: pastExpiry(),
       created_at: ts,
       updated_at: ts,
-    });
+    }));
 
     const beforeNotifications = backend.notifications.length;
 
@@ -96,6 +98,7 @@ describe("EXPIRE_ASSIGNMENT_OFFER", () => {
       status: "pending_assignment",
       scheduled_start: ts,
       scheduled_end: ts,
+      assignment_dispatch_at: null,
       price_cents: 1000,
       currency: "ZAR",
       series_id: null,
@@ -104,7 +107,7 @@ describe("EXPIRE_ASSIGNMENT_OFFER", () => {
       updated_at: ts,
     });
 
-    await backend.insertOffer({
+    await backend.insertOffer(testAssignmentOfferRow({
       id: offerId,
       booking_id: bookingId,
       cleaner_id: "cleaner-1",
@@ -114,7 +117,7 @@ describe("EXPIRE_ASSIGNMENT_OFFER", () => {
       expires_at: pastExpiry(),
       created_at: ts,
       updated_at: ts,
-    });
+    }));
 
     const cmd = {
       type: "EXPIRE_ASSIGNMENT_OFFER" as const,
@@ -150,6 +153,7 @@ describe("EXPIRE_ASSIGNMENT_OFFER", () => {
       status: "pending_assignment",
       scheduled_start: ts,
       scheduled_end: ts,
+      assignment_dispatch_at: null,
       price_cents: 1000,
       currency: "ZAR",
       series_id: null,
@@ -158,7 +162,7 @@ describe("EXPIRE_ASSIGNMENT_OFFER", () => {
       updated_at: ts,
     });
 
-    await backend.insertOffer({
+    await backend.insertOffer(testAssignmentOfferRow({
       id: offerId,
       booking_id: bookingId,
       cleaner_id: "cleaner-1",
@@ -168,7 +172,7 @@ describe("EXPIRE_ASSIGNMENT_OFFER", () => {
       expires_at: pastExpiry(),
       created_at: ts,
       updated_at: ts,
-    });
+    }));
 
     const result = await executeBookingCommand(backend, {
       type: "EXPIRE_ASSIGNMENT_OFFER",
@@ -200,6 +204,7 @@ describe("EXPIRE_ASSIGNMENT_OFFER", () => {
       status: "pending_assignment",
       scheduled_start: ts,
       scheduled_end: ts,
+      assignment_dispatch_at: null,
       price_cents: 1000,
       currency: "ZAR",
       series_id: null,
@@ -208,7 +213,7 @@ describe("EXPIRE_ASSIGNMENT_OFFER", () => {
       updated_at: ts,
     });
 
-    await backend.insertOffer({
+    await backend.insertOffer(testAssignmentOfferRow({
       id: offerId,
       booking_id: bookingId,
       cleaner_id: "cleaner-1",
@@ -218,7 +223,7 @@ describe("EXPIRE_ASSIGNMENT_OFFER", () => {
       expires_at: futureExpiry(),
       created_at: ts,
       updated_at: ts,
-    });
+    }));
 
     const result = await executeBookingCommand(backend, {
       type: "EXPIRE_ASSIGNMENT_OFFER",
@@ -253,6 +258,7 @@ describe("EXPIRE_ASSIGNMENT_OFFER", () => {
         status: "pending_assignment",
         scheduled_start: ts,
         scheduled_end: ts,
+        assignment_dispatch_at: null,
         price_cents: 1000,
         currency: "ZAR",
         series_id: null,
@@ -261,7 +267,7 @@ describe("EXPIRE_ASSIGNMENT_OFFER", () => {
         updated_at: ts,
       });
 
-      await backend.insertOffer({
+      await backend.insertOffer(testAssignmentOfferRow({
         id: offerId,
         booking_id: bookingId,
         cleaner_id: "cleaner-1",
@@ -271,7 +277,7 @@ describe("EXPIRE_ASSIGNMENT_OFFER", () => {
         expires_at: pastExpiry(),
         created_at: ts,
         updated_at: ts,
-      });
+      }));
 
       const result = await executeBookingCommand(backend, {
         type: "EXPIRE_ASSIGNMENT_OFFER",

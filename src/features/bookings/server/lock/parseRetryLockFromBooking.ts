@@ -3,10 +3,17 @@ import type { BookingRow } from "@/lib/database/types";
 import { normalizeAreaSlug } from "@/features/cleaners/server/eligibility/normalize";
 import {
   isAddonSlug,
+  isCleaningIntensity,
+  isEquipmentSupply,
   isPricingFrequency,
   isServiceSlug,
 } from "@/features/pricing/server/catalog";
-import type { AddonSlug, PricingInput, PricingFrequency } from "@/features/pricing/server/types";
+import type {
+  AddonSlug,
+  EquipmentSupply,
+  PricingInput,
+  PricingFrequency,
+} from "@/features/pricing/server/types";
 import type { CleanerPreferenceLock } from "./types";
 
 function asRecord(metadata: Json | null | undefined): Record<string, unknown> {
@@ -86,15 +93,42 @@ export function parseRetryLockFromBooking(booking: BookingRow): ParsedRetryLockC
         ? metadata.selectedCleanerId
         : null;
 
+  const extraRooms =
+    typeof inputRecord.extraRooms === "number" ? inputRecord.extraRooms : 0;
+
+  const cleaningIntensityRaw =
+    typeof inputRecord.cleaningIntensity === "string"
+      ? inputRecord.cleaningIntensity
+      : "standard";
+  const cleaningIntensity = isCleaningIntensity(cleaningIntensityRaw)
+    ? cleaningIntensityRaw
+    : "standard";
+
+  const equipmentSupplyRaw =
+    typeof inputRecord.equipmentSupply === "string" ? inputRecord.equipmentSupply : "customer";
+  const equipmentSupply: EquipmentSupply = isEquipmentSupply(equipmentSupplyRaw)
+    ? equipmentSupplyRaw
+    : "customer";
+
   const pricingInput: PricingInput = {
     serviceSlug: serviceSlugRaw,
     bedrooms,
     bathrooms,
+    extraRooms,
+    cleaningIntensity:
+      serviceSlugRaw === "regular-cleaning" ? cleaningIntensity : "standard",
+    equipmentSupply:
+      serviceSlugRaw === "regular-cleaning" ? equipmentSupply : "customer",
     propertySizeSqm:
       typeof inputRecord.propertySizeSqm === "number" ? inputRecord.propertySizeSqm : undefined,
     frequency,
     addons: addons.length > 0 ? addons : undefined,
-    teamSize: typeof inputRecord.teamSize === "number" ? inputRecord.teamSize : 1,
+    teamSize: 1,
+    requestedTeamSize:
+      typeof inputRecord.requestedTeamSize === "number" &&
+      inputRecord.requestedTeamSize === 2
+        ? 2
+        : 1,
   };
 
   return {

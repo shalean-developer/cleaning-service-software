@@ -23,6 +23,7 @@ function paymentFailedBooking(priceCents: number): BookingRow {
     status: "payment_failed",
     scheduled_start: future.toISOString(),
     scheduled_end: end.toISOString(),
+    assignment_dispatch_at: null,
     price_cents: priceCents,
     currency: "ZAR",
     series_id: null,

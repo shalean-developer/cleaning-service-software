@@ -23,6 +23,10 @@ vi.mock("@/lib/auth/resolveActorScope", () => ({
   resolveActorScope: vi.fn(async () => ({ actingCustomerId: "customer-1" })),
 }));
 
+vi.mock("@/features/bookings/server/syncCustomerPhoneFromLock", () => ({
+  syncCustomerPhoneFromLock: vi.fn(async () => undefined),
+}));
+
 const lockStore = new InMemoryLockStore();
 
 vi.mock("@/lib/supabase/serviceRole", () => ({
@@ -66,7 +70,7 @@ function baseInput(overrides: Partial<BookingLockInput> = {}): BookingLockInput 
     scheduledEnd: end.toISOString(),
     areaSlug: "cape-town",
     cleanerPreference: { mode: "best_available", selectedCleanerId: null },
-    bookingMetadata: { quote: { input: {} } },
+    bookingMetadata: { quote: { input: {} }, contactPhone: "+27821234567" },
     ...overrides,
   };
 }

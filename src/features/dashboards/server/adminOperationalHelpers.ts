@@ -10,6 +10,8 @@ import {
   isAssignmentRecoveryCandidate,
   isDispatchNotStartedAttentionReason,
 } from "@/features/assignments/server/isAssignmentRecoveryCandidate";
+import { computeDeferredDispatchNowEligible } from "@/features/assignments/server/deferredDispatchNowEligibility";
+import { isDeferredDispatchFailureExempt } from "@/features/assignments/server/deferredDispatchStatus";
 import {
   resolveAssignmentVisibility,
   type AssignmentVisibilityKey,
@@ -44,7 +46,13 @@ export type AdminBookingFilter =
   | "dispatch_not_started"
   | "selected_declined"
   | "max_attempts"
-  | "recovery_needed";
+  | "recovery_needed"
+  | "two_cleaner_request"
+  | "operational_load"
+  | "team_awaiting_coordination"
+  | "team_fully_coordinated"
+  | "high_operational_load"
+  | "team_high_risk_combo";
 
 export type AdminBookingsQuery = {
   filter?: AdminBookingFilter;
@@ -101,6 +109,7 @@ export type AdminOperationalStatus = {
   recoveryCronCanHandle: boolean;
   manualInterventionNeeded: boolean;
   manualDispatchEligible: boolean;
+  deferredDispatchNowEligible: boolean;
   replaceOfferEligible: boolean;
   openOfferForReplace: {
     offerId: string;
@@ -217,16 +226,30 @@ export function mapAuditRow(row: BookingStateAuditRow): AdminAuditEntry {
 export function computeDispatchNotStarted(input: {
   bookingStatus: BookingStatus;
   cleanerId: string | null;
+  assignmentDispatchAt?: string | null;
   assignmentReason: string | null | undefined;
   payments: readonly Pick<PaymentRow, "status" | "updated_at" | "created_at">[];
   offers: readonly { status: string; expires_at: string | null }[];
   now?: Date;
   graceMinutes?: number;
 }): boolean {
+  if (
+    isDeferredDispatchFailureExempt({
+      assignmentDispatchAt: input.assignmentDispatchAt,
+      now: input.now,
+    })
+  ) {
+    return false;
+  }
+
   return (
     isDispatchNotStartedAttentionReason(input.assignmentReason) ||
     isAssignmentRecoveryCandidate({
-      booking: { status: input.bookingStatus, cleaner_id: input.cleanerId },
+      booking: {
+        status: input.bookingStatus,
+        cleaner_id: input.cleanerId,
+        assignment_dispatch_at: input.assignmentDispatchAt,
+      },
       payments: input.payments,
       offers: input.offers,
       now: input.now,
@@ -238,6 +261,7 @@ export function computeDispatchNotStarted(input: {
 export function computeRecoveryEligibility(input: {
   bookingStatus: BookingStatus;
   cleanerId: string | null;
+  assignmentDispatchAt?: string | null;
   payments: readonly Pick<PaymentRow, "status" | "updated_at" | "created_at">[];
   offers: readonly { status: string; expires_at: string | null }[];
   hasOpenOffer: boolean;
@@ -248,6 +272,15 @@ export function computeRecoveryEligibility(input: {
   const now = input.now ?? new Date();
 
   if (input.bookingStatus !== "confirmed" || input.cleanerId) {
+    return { eligibility: "not_applicable", graceMinutesRemaining: null };
+  }
+
+  if (
+    isDeferredDispatchFailureExempt({
+      assignmentDispatchAt: input.assignmentDispatchAt,
+      now: input.now,
+    })
+  ) {
     return { eligibility: "not_applicable", graceMinutesRemaining: null };
   }
 
@@ -262,7 +295,11 @@ export function computeRecoveryEligibility(input: {
 
   if (
     isAssignmentRecoveryCandidate({
-      booking: { status: input.bookingStatus, cleaner_id: input.cleanerId },
+      booking: {
+        status: input.bookingStatus,
+        cleaner_id: input.cleanerId,
+        assignment_dispatch_at: input.assignmentDispatchAt,
+      },
       payments: input.payments,
       offers: input.offers,
       now,
@@ -360,6 +397,7 @@ export function buildAdminOperationalStatus(input: {
   visibilityKey: AssignmentVisibilityKey;
   assignmentReason: string | null;
   dispatchNotStarted: boolean;
+  assignmentDispatchAt?: string | null;
   opsSearching: boolean;
   opsAdminRequired: boolean;
   openOfferCount: number;
@@ -460,6 +498,15 @@ export function buildAdminOperationalStatus(input: {
       manualInterventionNeeded,
       openOfferCount: input.openOfferCount,
     });
+  const deferredDispatchNowEligible =
+    !replaceOfferEligible &&
+    computeDeferredDispatchNowEligible({
+      bookingStatus: input.bookingStatus,
+      hasAssignedCleaner: input.hasAssignedCleaner,
+      hasPaidPayment: input.hasPaidPayment,
+      assignmentDispatchAt: input.assignmentDispatchAt ?? null,
+      openOfferCount: input.openOfferCount,
+    });
   const maxDispatchAttemptsReached =
     input.totalOfferCount >= ASSIGNMENT_MAX_DISPATCH_ATTEMPTS_PER_BOOKING;
 
@@ -477,6 +524,7 @@ export function buildAdminOperationalStatus(input: {
     recoveryCronCanHandle,
     manualInterventionNeeded,
     manualDispatchEligible,
+    deferredDispatchNowEligible,
     replaceOfferEligible,
     openOfferForReplace: input.openOfferForReplace,
     dispatchOfferCount: input.totalOfferCount,
@@ -489,7 +537,11 @@ export function matchesAdminBookingFilter(
   item: Pick<
     AdminBookingListItem,
     "status" | "assignmentVisibilityKey" | "assignmentAttention" | "paymentFailureReason"
-  > & { dispatchNotStarted?: boolean; recoveryEligible?: boolean },
+  > & {
+    observation?: AdminBookingListItem["observation"];
+    dispatchNotStarted?: boolean;
+    recoveryEligible?: boolean;
+  },
   filter: AdminBookingFilter,
 ): boolean {
   const key = item.assignmentVisibilityKey;
@@ -513,6 +565,29 @@ export function matchesAdminBookingFilter(
       return key === "max_attempts_admin";
     case "recovery_needed":
       return item.recoveryEligible === true || key === "dispatch_not_started";
+    case "two_cleaner_request":
+      return item.observation?.isTwoCleanerRequest === true;
+    case "operational_load":
+      return (item.observation?.operationalLoad.operationalLoadScore ?? 0) >= 2;
+    case "team_awaiting_coordination":
+      if (!item.observation?.isTwoCleanerRequest) return false;
+      return (
+        item.observation.teamSupportOps.coordinationStatus?.status ===
+          "awaiting_coordination" || item.observation.teamSupportOps.coordinationStatus == null
+      );
+    case "team_fully_coordinated":
+      return (
+        item.observation?.isTwoCleanerRequest === true &&
+        item.observation.teamSupportOps.coordinationStatus?.status === "fully_coordinated"
+      );
+    case "high_operational_load":
+      return (item.observation?.operationalLoad.operationalLoadScore ?? 0) >= 3;
+    case "team_high_risk_combo":
+      return (
+        item.observation?.isTwoCleanerRequest === true &&
+        item.observation.operationalLoad.isShaleanEquipment === true &&
+        item.observation.operationalLoad.isHeavyIntensity === true
+      );
     default:
       return true;
   }

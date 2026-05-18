@@ -29,12 +29,16 @@ function DetailRow({ label, value, valueClassName }: DetailRowProps) {
 type Props = {
   serviceLabel: string;
   homeSizeSummary: string | null;
+  cleaningIntensityLabel: string | null;
+  equipmentSupplyLabel: string | null;
   frequencyLabel: string | null;
   addonsSummary: string | null;
+  teamSupportLabel: string | null;
   cleanerPreferenceLabel: string;
   assignedCleanerLabel: string | null;
   assignmentCustomerMessage: string | null;
   specialInstructions: string | null;
+  contactPhoneDisplay: string | null;
   priceCents: number;
   currency: string;
   payments: PaymentSummary[];
@@ -43,18 +47,27 @@ type Props = {
 export function CustomerBookingDetailsCard({
   serviceLabel,
   homeSizeSummary,
+  cleaningIntensityLabel,
+  equipmentSupplyLabel,
   frequencyLabel,
   addonsSummary,
+  teamSupportLabel,
   cleanerPreferenceLabel,
   assignedCleanerLabel,
   assignmentCustomerMessage,
   specialInstructions,
+  contactPhoneDisplay,
   priceCents,
   currency,
   payments,
 }: Props) {
   const hasServiceDetails =
-    homeSizeSummary != null || frequencyLabel != null || addonsSummary != null;
+    homeSizeSummary != null ||
+    cleaningIntensityLabel != null ||
+    equipmentSupplyLabel != null ||
+    frequencyLabel != null ||
+    addonsSummary != null ||
+    teamSupportLabel != null;
 
   return (
     <section className={`${CUSTOMER_BOOKING_DETAIL_CARD_CLASS} p-4 sm:p-5`}>
@@ -65,9 +78,21 @@ export function CustomerBookingDetailsCard({
         {hasServiceDetails ? (
           <>
             {homeSizeSummary ? <DetailRow label="Home size" value={homeSizeSummary} /> : null}
+            {cleaningIntensityLabel ? (
+              <DetailRow label="Cleaning intensity" value={cleaningIntensityLabel} />
+            ) : null}
+            {equipmentSupplyLabel ? (
+              <DetailRow label="Cleaning supplies" value={equipmentSupplyLabel} />
+            ) : null}
             {frequencyLabel ? <DetailRow label="Frequency" value={frequencyLabel} /> : null}
             {addonsSummary ? <DetailRow label="Add-ons" value={addonsSummary} /> : null}
+            {teamSupportLabel ? (
+              <DetailRow label="Team support" value={teamSupportLabel} />
+            ) : null}
           </>
+        ) : null}
+        {contactPhoneDisplay ? (
+          <DetailRow label="Contact number" value={contactPhoneDisplay} />
         ) : null}
         <DetailRow label="Cleaner preference" value={cleanerPreferenceLabel} />
         {assignedCleanerLabel ? (

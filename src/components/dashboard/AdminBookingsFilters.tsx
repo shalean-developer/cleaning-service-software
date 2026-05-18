@@ -15,6 +15,12 @@ const FILTER_OPTIONS: { value: AdminBookingFilter | ""; label: string }[] = [
   { value: "selected_declined", label: "Selected cleaner declined" },
   { value: "max_attempts", label: "No cleaner accepted" },
   { value: "recovery_needed", label: "Recovery needed" },
+  { value: "two_cleaner_request", label: "2-cleaner request" },
+  { value: "operational_load", label: "Operational load" },
+  { value: "team_awaiting_coordination", label: "Awaiting team coordination" },
+  { value: "team_fully_coordinated", label: "Fully coordinated (team)" },
+  { value: "high_operational_load", label: "High operational load" },
+  { value: "team_high_risk_combo", label: "Team + equipment + heavy" },
 ];
 
 type Props = {

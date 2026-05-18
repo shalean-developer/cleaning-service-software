@@ -69,6 +69,7 @@ describe("expireStaleAssignmentOffers command fail-soft", () => {
       status: "pending_assignment",
       scheduled_start: ts,
       scheduled_end: ts,
+      assignment_dispatch_at: null,
       price_cents: 1000,
       currency: "ZAR",
       series_id: null,

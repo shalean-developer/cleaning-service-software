@@ -40,6 +40,9 @@ export function CleanerOfferCard({ offer }: Props) {
 
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <StatusBadge label={statusLabel} tone={statusTone} variant="soft" />
+        {offer.teamRoleLabel ? (
+          <StatusBadge label={offer.teamRoleLabel} tone="info" variant="soft" />
+        ) : null}
         {canRespond && expiry.relativeLabel ? (
           <OfferExpiryChip
             relativeLabel={expiry.relativeLabel}

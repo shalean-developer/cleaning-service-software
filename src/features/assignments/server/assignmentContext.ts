@@ -8,6 +8,7 @@ import type { BookingRow, Database } from "@/lib/database/types";
 import type { PricingInput } from "@/features/pricing/server/types";
 import type { ServiceSlug } from "@/features/pricing/server/types";
 import { isServiceSlug } from "@/features/pricing/server/catalog";
+import { isTeamOffersEnabled } from "./teamOffersConfig";
 import type { AssignmentContext } from "./types";
 
 function cleanerPreferenceFromMetadata(
@@ -25,10 +26,17 @@ function cleanerPreferenceFromMetadata(
   return { mode: "best_available", selectedCleanerId: null };
 }
 
+function dispatchTeamSizeFromQuoteInput(input: Record<string, unknown>): number {
+  if (!isTeamOffersEnabled()) return 1;
+  const requested =
+    typeof input.requestedTeamSize === "number" ? input.requestedTeamSize : 1;
+  return requested === 2 ? 2 : 1;
+}
+
 function pricingInputFromMetadata(
   metadata: Record<string, unknown>,
   serviceSlug: string,
-  booking: BookingRow,
+  _booking: BookingRow,
 ): PricingInput | null {
   const quote = metadata.quote;
   if (quote != null && typeof quote === "object" && !Array.isArray(quote)) {
@@ -49,7 +57,11 @@ function pricingInputFromMetadata(
             ? i.frequency
             : "once",
         addons: Array.isArray(i.addons) ? (i.addons as PricingInput["addons"]) : undefined,
-        teamSize: 1,
+        teamSize: dispatchTeamSizeFromQuoteInput(i),
+        requestedTeamSize:
+          typeof i.requestedTeamSize === "number" && i.requestedTeamSize === 2
+            ? 2
+            : 1,
       };
     }
   }

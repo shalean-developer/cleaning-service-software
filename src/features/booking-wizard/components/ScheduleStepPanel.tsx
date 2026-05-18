@@ -12,7 +12,13 @@ import {
   buildScheduleDateOptions,
   formatTimeSlotLabel,
   isScheduleTimeSlotDisabled,
+  resolveAdjacentScheduleDateValue,
+  resolveScheduleDateArrowNavigationState,
+  resolveScheduleDateScrollButtonsState,
+  resolveScheduleDateScrollStepPx,
   resolveScheduleTimeSlots,
+  scheduleDateScrollerHasOverflow,
+  type ScheduleDateOption,
 } from "../scheduleStepDisplay";
 import {
   WIZARD_CARD_TRANSITION,
@@ -68,27 +74,53 @@ function ChevronRightIcon({ className }: { className?: string }) {
 type DateScrollRowProps = {
   children: ReactNode;
   selectedDate: string;
+  dateOptions: ScheduleDateOption[];
+  onDateChange: (value: string) => void;
 };
 
-function DateScrollRow({ children, selectedDate }: DateScrollRowProps) {
+function DateScrollRow({
+  children,
+  selectedDate,
+  dateOptions,
+  onDateChange,
+}: DateScrollRowProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const [hasOverflow, setHasOverflow] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const dateNavigation = useMemo(
+    () => resolveScheduleDateArrowNavigationState(dateOptions, selectedDate),
+    [dateOptions, selectedDate],
+  );
 
   const updateScrollState = useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
 
-    const maxScroll = el.scrollWidth - el.clientWidth;
-    setCanScrollLeft(el.scrollLeft > 2);
-    setCanScrollRight(el.scrollLeft < maxScroll - 2);
+    const overflow = scheduleDateScrollerHasOverflow(el.scrollWidth, el.clientWidth);
+    setHasOverflow(overflow);
+
+    const { canScrollLeft: left, canScrollRight: right } =
+      resolveScheduleDateScrollButtonsState(
+        el.scrollLeft,
+        el.scrollWidth,
+        el.clientWidth,
+      );
+    setCanScrollLeft(left);
+    setCanScrollRight(right);
   }, []);
 
   useEffect(() => {
     const el = scrollerRef.current;
     if (!el) return;
 
-    updateScrollState();
+    const runUpdate = () => {
+      updateScrollState();
+    };
+
+    runUpdate();
+    const frame = requestAnimationFrame(runUpdate);
 
     const onScroll = () => updateScrollState();
     el.addEventListener("scroll", onScroll, { passive: true });
@@ -97,6 +129,7 @@ function DateScrollRow({ children, selectedDate }: DateScrollRowProps) {
     observer.observe(el);
 
     return () => {
+      cancelAnimationFrame(frame);
       el.removeEventListener("scroll", onScroll);
       observer.disconnect();
     };
@@ -109,7 +142,7 @@ function DateScrollRow({ children, selectedDate }: DateScrollRowProps) {
     const card = root.querySelector<HTMLElement>(
       `[data-date-value="${selectedDate}"]`,
     );
-    card?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    card?.scrollIntoView({ inline: "nearest", block: "nearest", behavior: "smooth" });
   }, [selectedDate, children]);
 
   const scrollByStep = (direction: -1 | 1) => {
@@ -117,22 +150,51 @@ function DateScrollRow({ children, selectedDate }: DateScrollRowProps) {
     if (!root) return;
 
     const card = root.querySelector<HTMLElement>("[data-date-card]");
-    const gap = 6;
-    const step = card ? card.offsetWidth + gap : 72;
+    const step = resolveScheduleDateScrollStepPx(card?.offsetWidth ?? 0);
     root.scrollBy({ left: direction * step, behavior: "smooth" });
   };
 
+  const selectAdjacentDate = (direction: -1 | 1) => {
+    const nextValue = resolveAdjacentScheduleDateValue(
+      dateOptions,
+      selectedDate,
+      direction,
+    );
+    if (nextValue) onDateChange(nextValue);
+  };
+
+  const handlePrevious = () => {
+    if (hasOverflow) {
+      scrollByStep(-1);
+      return;
+    }
+    selectAdjacentDate(-1);
+  };
+
+  const handleNext = () => {
+    if (hasOverflow) {
+      scrollByStep(1);
+      return;
+    }
+    selectAdjacentDate(1);
+  };
+
+  const previousDisabled = hasOverflow ? !canScrollLeft : !dateNavigation.canGoPrevious;
+  const nextDisabled = hasOverflow ? !canScrollRight : !dateNavigation.canGoNext;
+  const previousLabel = hasOverflow ? "Scroll dates backward" : "Previous available date";
+  const nextLabel = hasOverflow ? "Scroll dates forward" : "Next available date";
+
   const scrollButtonClass =
-    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-200/90 bg-white text-zinc-600 shadow-[0_1px_2px_rgba(24,24,27,0.04)] transition-[border-color,background-color,color,opacity] hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:pointer-events-none disabled:opacity-35 motion-reduce:transition-none md:h-9 md:w-9";
+    "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-zinc-200/90 bg-white text-zinc-600 shadow-[0_1px_2px_rgba(24,24,27,0.04)] transition-[border-color,background-color,color,opacity] hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:pointer-events-none disabled:opacity-35 motion-reduce:transition-none md:h-9 md:w-9";
 
   return (
     <div className="flex min-w-0 items-center justify-center gap-1.5 md:gap-3">
       <button
         type="button"
         className={`${scrollButtonClass} self-center`}
-        aria-label="Scroll dates backward"
-        disabled={!canScrollLeft}
-        onClick={() => scrollByStep(-1)}
+        aria-label={previousLabel}
+        disabled={previousDisabled}
+        onClick={handlePrevious}
       >
         <ChevronLeftIcon className="h-4 w-4 md:h-5 md:w-5" />
       </button>
@@ -141,7 +203,7 @@ function DateScrollRow({ children, selectedDate }: DateScrollRowProps) {
         ref={scrollerRef}
         className="flex min-w-0 max-w-full flex-1 items-center overflow-x-auto overscroll-x-contain scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] max-md:snap-x max-md:snap-mandatory max-md:scroll-px-3 md:snap-none [&::-webkit-scrollbar]:hidden"
       >
-        <div className="flex w-max items-center gap-1.5 py-0.5 max-md:mx-auto md:mx-auto md:min-w-full md:justify-center md:gap-2 md:px-0.5">
+        <div className="flex w-max items-center justify-start gap-1.5 py-0.5 md:gap-2 md:px-0.5">
           {children}
         </div>
       </div>
@@ -149,9 +211,9 @@ function DateScrollRow({ children, selectedDate }: DateScrollRowProps) {
       <button
         type="button"
         className={`${scrollButtonClass} self-center`}
-        aria-label="Scroll dates forward"
-        disabled={!canScrollRight}
-        onClick={() => scrollByStep(1)}
+        aria-label={nextLabel}
+        disabled={nextDisabled}
+        onClick={handleNext}
       >
         <ChevronRightIcon className="h-4 w-4 md:h-5 md:w-5" />
       </button>
@@ -251,7 +313,11 @@ export function ScheduleStepPanel({
         </h3>
 
         <div className="mt-3 min-w-0" role="group" aria-label="Available dates">
-          <DateScrollRow selectedDate={date}>
+          <DateScrollRow
+            selectedDate={date}
+            dateOptions={dateOptions}
+            onDateChange={onDateChange}
+          >
             {dateOptions.map((option) => (
               <DateCard
                 key={option.value}
