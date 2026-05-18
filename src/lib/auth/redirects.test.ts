@@ -79,6 +79,9 @@ describe("isDashboardPathAllowedForRole", () => {
       true,
     );
     expect(isDashboardPathAllowedForRole("/admin", "admin")).toBe(true);
+    expect(isDashboardPathAllowedForRole("/admin/cleaners", "admin")).toBe(true);
+    expect(isDashboardPathAllowedForRole("/admin/cleaners/cleaner-1", "admin")).toBe(true);
+    expect(isDashboardPathAllowedForRole("/admin/cleaners", "customer")).toBe(false);
     expect(isDashboardPathAllowedForRole("/cleaner/offers", "cleaner")).toBe(true);
     expect(isDashboardPathAllowedForRole("/admin", "customer")).toBe(false);
   });
@@ -102,6 +105,7 @@ describe("requiredRoleForDashboardPath", () => {
     expect(requiredRoleForDashboardPath("/customer/book")).toBe("customer");
     expect(requiredRoleForDashboardPath("/cleaner/offers")).toBe("cleaner");
     expect(requiredRoleForDashboardPath("/admin/payouts")).toBe("admin");
+    expect(requiredRoleForDashboardPath("/admin/cleaners")).toBe("admin");
     expect(requiredRoleForDashboardPath("/sign-in")).toBe(null);
   });
 });

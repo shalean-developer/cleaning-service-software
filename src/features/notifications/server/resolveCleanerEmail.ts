@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database/types";
+import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 export type ResolvedCleanerEmail = {
   email: string;
@@ -50,4 +51,15 @@ export async function resolveCleanerEmail(
     ok: true,
     recipient: { email, displayName },
   };
+}
+
+/** Admin read-model helper: resolves auth email without exposing service role to UI layers. */
+export async function resolveCleanerEmailOrNull(cleanerId: string): Promise<string | null> {
+  try {
+    const client = requireServiceRoleClient();
+    const result = await resolveCleanerEmail(client, cleanerId);
+    return result.ok ? result.recipient.email : null;
+  } catch {
+    return null;
+  }
 }

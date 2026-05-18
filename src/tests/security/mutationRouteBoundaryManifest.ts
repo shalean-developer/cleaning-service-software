@@ -25,7 +25,7 @@ export type MutationRouteRule = {
   mayImportServiceRole?: boolean;
 };
 
-/** Lifecycle-mutating POST routes (17). */
+/** Lifecycle-mutating POST routes (24). */
 export const MUTATION_ROUTE_RULES: MutationRouteRule[] = [
   {
     routeFile: "bookings/lock/route.ts",
@@ -107,6 +107,31 @@ export const MUTATION_ROUTE_RULES: MutationRouteRule[] = [
     requiredFacadeImports: ["runAdminDeferredDispatchNow"],
   },
   {
+    routeFile: "admin/cleaners/[cleanerId]/deactivate/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["deactivateCleaner"],
+  },
+  {
+    routeFile: "admin/cleaners/[cleanerId]/suspend/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["suspendCleaner"],
+  },
+  {
+    routeFile: "admin/cleaners/[cleanerId]/reactivate/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["reactivateCleaner"],
+  },
+  {
+    routeFile: "admin/cleaners/[cleanerId]/unsuspend/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["unsuspendCleaner"],
+  },
+  {
+    routeFile: "admin/cleaners/[cleanerId]/archive/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["archiveCleaner"],
+  },
+  {
     routeFile: "cron/expire-pending-payments/route.ts",
     category: "cron",
     requiredFacadeImports: ["expireStalePendingPayments"],
@@ -179,6 +204,11 @@ export const ADMIN_POST_ALLOWLIST = [
   "bookings/[bookingId]/dispatch-deferred-assignment/route.ts",
   "bookings/[bookingId]/dispatch-offer/route.ts",
   "bookings/[bookingId]/replace-open-offer/route.ts",
+  "cleaners/[cleanerId]/deactivate/route.ts",
+  "cleaners/[cleanerId]/suspend/route.ts",
+  "cleaners/[cleanerId]/reactivate/route.ts",
+  "cleaners/[cleanerId]/unsuspend/route.ts",
+  "cleaners/[cleanerId]/archive/route.ts",
 ] as const;
 
 /** Matches 5B-2a `cronMutationRoutes.test.ts`. */

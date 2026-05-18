@@ -41,6 +41,7 @@ export const ALLOWED_SERVICE_ROLE_LIFECYCLE_IMPORTERS = new Set([
   "app/api/cron/cleanup-notification-retention/route.ts",
   "app/api/cron/rollup-notification-metrics/route.ts",
   "features/notifications/server/adminRequeueNotificationOutbox.ts",
+  "features/notifications/server/resolveCleanerEmail.ts",
   "scripts/recoverAssignmentAfterPayment.ts",
   "scripts/repairOrphanedAssignments.ts",
 ]);

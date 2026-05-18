@@ -5,6 +5,19 @@ import type { Database } from "@/lib/database/types";
 
 const ACTIVE_BOOKING_STATUSES = ["assigned", "in_progress"] as const;
 
+export async function countOpenOffersForCleaner(
+  client: SupabaseClient<Database>,
+  cleanerId: string,
+): Promise<number> {
+  const { count, error } = await client
+    .from("assignment_offers")
+    .select("*", { count: "exact", head: true })
+    .eq("cleaner_id", cleanerId)
+    .eq("status", "offered");
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+
 export async function countActiveBookingsForCleaner(
   client: SupabaseClient<Database>,
   cleanerId: string,

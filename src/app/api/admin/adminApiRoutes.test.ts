@@ -10,6 +10,11 @@ const ALLOWED_ADMIN_POST_ROUTES = new Set([
   "bookings/[bookingId]/dispatch-deferred-assignment/route.ts",
   "bookings/[bookingId]/dispatch-offer/route.ts",
   "bookings/[bookingId]/replace-open-offer/route.ts",
+  "cleaners/[cleanerId]/deactivate/route.ts",
+  "cleaners/[cleanerId]/suspend/route.ts",
+  "cleaners/[cleanerId]/reactivate/route.ts",
+  "cleaners/[cleanerId]/unsuspend/route.ts",
+  "cleaners/[cleanerId]/archive/route.ts",
   "notifications/[outboxId]/requeue/route.ts",
 ]);
 
