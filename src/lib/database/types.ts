@@ -83,6 +83,10 @@ export type CleanerRow = {
   phone: string | null;
   active: boolean;
   suspended_at: string | null;
+  deleted_at: string | null;
+  onboarding_completed_at: string | null;
+  suspension_ends_at: string | null;
+  lifecycle_reason: string | null;
   average_rating: number | null;
   created_at: string;
   updated_at: string;
@@ -420,6 +424,21 @@ export type AdminOperationalAuditRow = {
   created_at: string;
 };
 
+export type CleanerOperationalAuditRow = {
+  id: string;
+  cleaner_id: string;
+  admin_profile_id: string | null;
+  action: string;
+  outcome: string;
+  reason: string | null;
+  before_state: Json;
+  after_state: Json;
+  affected_counts: Json;
+  metadata: Json;
+  idempotency_key: string | null;
+  created_at: string;
+};
+
 /** Supabase client expects Insert/Update/Relationships on each table definition. */
 export type PublicTable<Row> = {
   Row: Row;
@@ -457,6 +476,7 @@ export type Database = {
       assignment_metrics_hourly: PublicTable<AssignmentMetricsHourlyRow>;
       booking_state_audit: PublicTable<BookingStateAuditRow>;
       admin_operational_audit: PublicTable<AdminOperationalAuditRow>;
+      cleaner_operational_audit: PublicTable<CleanerOperationalAuditRow>;
     };
     Views: Record<
       string,
