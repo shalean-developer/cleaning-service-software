@@ -6,6 +6,7 @@ import {
   isLocalSupabaseUrl,
   postgrestErrorText,
 } from "@/features/bookings/server/commands/phase1IntegrationTestSupport";
+import { purgeCleanerOperationalRows } from "./rlsTestSupport";
 
 export const STAGE1C_TEST_PREFIX = "test_stage1c_";
 export const STAGE1C_TEST_EMAIL_DOMAIN = "shalean.co.za";
@@ -119,6 +120,16 @@ export async function cleanupStage1cAuthUser(
   profileId: string,
 ): Promise<void> {
   await serviceClient.from("customers").delete().eq("profile_id", profileId);
+
+  const { data: cleanerRow } = await serviceClient
+    .from("cleaners")
+    .select("id")
+    .eq("profile_id", profileId)
+    .maybeSingle();
+  if (cleanerRow?.id) {
+    await purgeCleanerOperationalRows(serviceClient, cleanerRow.id);
+  }
+
   await serviceClient.from("cleaners").delete().eq("profile_id", profileId);
   await serviceClient.from("profiles").delete().eq("id", profileId);
   await serviceClient.auth.admin.deleteUser(profileId);

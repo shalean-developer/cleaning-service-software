@@ -99,6 +99,8 @@ async function main() {
       await client.from("cleaner_service_areas").delete().eq("cleaner_id", cleaner.id);
       await client.from("assignment_offers").delete().eq("cleaner_id", cleaner.id);
       await client.from("earning_lines").delete().eq("cleaner_id", cleaner.id);
+      await client.from("booking_cleaners").delete().eq("cleaner_id", cleaner.id);
+      await client.from("bookings").update({ cleaner_id: null }).eq("cleaner_id", cleaner.id);
       await client.from("cleaners").delete().eq("id", cleaner.id);
     }
 

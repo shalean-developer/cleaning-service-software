@@ -447,6 +447,58 @@ export async function getSignedInPhase2Client(
   return client;
 }
 
+export const CLEANER_LIFECYCLE_PHASE_A_SKIP =
+  "Cleaner lifecycle Phase A not applied (cleaners_admin_delete still active). Apply supabase/migrations/20260529120000_cleaner_lifecycle_safety_phase_a.sql (e.g. supabase db reset).";
+
+/**
+ * Deletes operational rows that block cleaner DELETE under ON DELETE RESTRICT.
+ * Service-role test cleanup only — not a product lifecycle API.
+ */
+export async function purgeCleanerOperationalRows(
+  serviceClient: SupabaseClient<Database>,
+  cleanerId: string,
+): Promise<void> {
+  await serviceClient.from("earning_lines").delete().eq("cleaner_id", cleanerId);
+  await serviceClient.from("assignment_offers").delete().eq("cleaner_id", cleanerId);
+  await serviceClient.from("booking_cleaners").delete().eq("cleaner_id", cleanerId);
+  await serviceClient.from("cleaner_time_off").delete().eq("cleaner_id", cleanerId);
+  await serviceClient.from("cleaner_availability").delete().eq("cleaner_id", cleanerId);
+  await serviceClient
+    .from("cleaner_service_capabilities")
+    .delete()
+    .eq("cleaner_id", cleanerId);
+  await serviceClient.from("cleaner_service_areas").delete().eq("cleaner_id", cleanerId);
+  await serviceClient
+    .from("bookings")
+    .update({ cleaner_id: null })
+    .eq("cleaner_id", cleanerId);
+}
+
+/**
+ * Returns true when admin JWT cannot DELETE cleaners (policy dropped / privilege revoked).
+ */
+export async function isCleanerLifecycleSafetyPhaseAApplied(
+  serviceClient: SupabaseClient<Database>,
+  adminUserClient: SupabaseClient<Database>,
+  cleanerId: string,
+): Promise<boolean> {
+  const { data: deleted, error } = await adminUserClient
+    .from("cleaners")
+    .delete()
+    .eq("id", cleanerId)
+    .select("id");
+
+  const { data: stillThere } = await serviceClient
+    .from("cleaners")
+    .select("id")
+    .eq("id", cleanerId)
+    .maybeSingle();
+
+  if (error) return true;
+  if ((deleted ?? []).length === 0 && stillThere?.id === cleanerId) return true;
+  return false;
+}
+
 export async function signInAs(
   client: SupabaseClient<Database>,
   email: string,
@@ -506,6 +558,7 @@ export async function cleanupPhase2Run(
 
   for (const cleaner of cleaners ?? []) {
     if (!cleaner.phone?.includes(marker)) continue;
+    await purgeCleanerOperationalRows(serviceClient, cleaner.id);
     await serviceClient.from("cleaners").delete().eq("id", cleaner.id);
     await serviceClient.from("profiles").delete().eq("id", cleaner.profile_id);
     await serviceClient.auth.admin.deleteUser(cleaner.profile_id);
