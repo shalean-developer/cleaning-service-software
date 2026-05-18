@@ -477,6 +477,59 @@ export async function purgeCleanerOperationalRows(
 /**
  * Returns true when admin JWT cannot DELETE cleaners (policy dropped / privilege revoked).
  */
+const CLEANER_LIFECYCLE_PHASE_B_SKIP =
+  "Cleaner lifecycle Phase B not applied (lifecycle columns missing). Apply supabase/migrations/20260530120000_cleaner_lifecycle_schema_phase_b.sql (e.g. supabase db reset).";
+
+/**
+ * Returns whether Phase B lifecycle columns exist (deleted_at on cleaners).
+ */
+export async function isCleanerLifecycleSchemaPhaseBApplied(
+  serviceClient: SupabaseClient<Database>,
+): Promise<boolean> {
+  const { error } = await serviceClient.from("cleaners").select("deleted_at").limit(1);
+  return !error;
+}
+
+export { CLEANER_LIFECYCLE_PHASE_B_SKIP };
+
+export const CLEANER_LIFECYCLE_COLUMN_GUARD_PHASE_C_SKIP =
+  "Cleaner lifecycle Phase C not applied (guard_cleaner_lifecycle_columns missing). Apply supabase/migrations/20260531120000_cleaner_lifecycle_column_guard_phase_c.sql (e.g. supabase db reset).";
+
+/**
+ * Returns whether authenticated sessions are blocked from mutating lifecycle columns.
+ */
+export async function isCleanerLifecycleColumnGuardPhaseCApplied(
+  serviceClient: SupabaseClient<Database>,
+  adminUserClient: SupabaseClient<Database>,
+  cleanerId: string,
+): Promise<boolean> {
+  const { data: before } = await serviceClient
+    .from("cleaners")
+    .select("active")
+    .eq("id", cleanerId)
+    .single();
+
+  if (!before) return false;
+
+  const { error } = await adminUserClient
+    .from("cleaners")
+    .update({ active: !before.active })
+    .eq("id", cleanerId)
+    .select("id");
+
+  const { data: after } = await serviceClient
+    .from("cleaners")
+    .select("active")
+    .eq("id", cleanerId)
+    .single();
+
+  return (
+    error != null &&
+    (error.message ?? "").includes("CLEANER_LIFECYCLE_COLUMN_MUTATION_FORBIDDEN") &&
+    after?.active === before.active
+  );
+}
+
 export async function isCleanerLifecycleSafetyPhaseAApplied(
   serviceClient: SupabaseClient<Database>,
   adminUserClient: SupabaseClient<Database>,
