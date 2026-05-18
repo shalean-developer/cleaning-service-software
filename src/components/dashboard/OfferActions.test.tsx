@@ -28,6 +28,6 @@ describe("OfferActions", () => {
     expect(source).toContain("gap-3");
     expect(source).toContain("min-h-11");
     expect(source).toContain("w-full");
-    expect(source).toContain("md:flex-row");
+    expect(source).toContain("sm:flex-row");
   });
 });

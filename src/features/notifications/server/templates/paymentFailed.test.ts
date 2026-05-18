@@ -55,7 +55,7 @@ describe("paymentFailed email template", () => {
       bookingDetailUrl: `https://app.example.com/customer/bookings/${bookingId}`,
       supportEmail: null,
     });
-    expect(content.text).toContain("checkout link expired");
+    expect(content.text).toContain("checkout session ended");
     expect(content.text).toContain("retry payment on the same booking");
     expect(content.text).not.toMatch(/paystack/i);
     expect(content.text).not.toMatch(/gateway/i);
@@ -73,7 +73,7 @@ describe("paymentFailed email template", () => {
       bookingDetailUrl: `https://app.example.com/customer/bookings/${bookingId}`,
       supportEmail: "help@shalean.co.za",
     });
-    expect(content.text).toContain("declined this payment");
+    expect(content.text).toContain("could not be completed with your card provider");
     expect(content.text).toContain("start a new booking");
     expect(content.text).not.toContain("retry payment on the same booking");
     expect(content.text).toContain(shortBookingReference(bookingId));
@@ -91,7 +91,7 @@ describe("paymentFailed email template", () => {
       supportEmail: null,
     });
     expect(content.subject).toBe("Payment was not completed for your Shalean booking");
-    expect(content.text).toContain("could not confirm payment");
+    expect(content.text).toContain("have not received a successful payment");
     expect(content.text).toContain("No cleaner is assigned");
   });
 });

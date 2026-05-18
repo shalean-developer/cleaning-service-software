@@ -14,6 +14,7 @@ describe("CleanerStepPanel", () => {
             displayName: "Sam N.",
             rating: 4.8,
             eligibilityStatus: "eligible",
+            eligibilityCode: "active",
             eligibilityReason: "Available",
             serviceAreasSummary: "",
             availabilitySummary: "",

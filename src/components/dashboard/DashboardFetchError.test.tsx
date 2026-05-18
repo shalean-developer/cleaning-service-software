@@ -13,8 +13,10 @@ describe("DashboardFetchError", () => {
     );
 
     expect(errorHtml).toContain('role="alert"');
-    expect(errorHtml).toContain("border-red-200");
+    expect(errorHtml).toContain("border-zinc-200");
+    expect(errorHtml).toContain("bg-zinc-50/90");
     expect(emptyHtml).not.toContain('role="alert"');
-    expect(emptyHtml).toContain("border-dashed");
+    expect(emptyHtml).toContain("bg-white");
+    expect(emptyHtml).not.toContain("bg-zinc-50/90");
   });
 });

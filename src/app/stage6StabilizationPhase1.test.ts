@@ -57,10 +57,12 @@ describe("Stage 6 stabilization Phase 1 presentation fixes", () => {
   });
 
   it("admin list hides generic payment badge when status is payment_failed", () => {
-    const source = readPage("src/app/(admin)/admin/bookings/page.tsx");
+    const listPage = readPage("src/app/(admin)/admin/bookings/page.tsx");
+    const badges = readComponent("src/features/dashboards/adminBookingListBadges.ts");
 
-    expect(source).toContain('b.status !== "payment_failed"');
-    expect(source).toContain("labelForAdminPaymentFailureAttention");
+    expect(listPage).toContain("adminBookingListBadges(b)");
+    expect(badges).toContain('b.status !== "payment_failed"');
+    expect(badges).toContain("labelForAdminPaymentFailureAttention");
   });
 
   it("admin detail matches list assignment visibility and payment badge dedupe", () => {

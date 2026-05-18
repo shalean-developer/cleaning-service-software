@@ -98,7 +98,7 @@ export function formatTimeSlotLabel(time: string): string {
 
 /** Preset slots plus current value when it is not a preset (display only). */
 export function resolveScheduleTimeSlots(selectedTime: string): string[] {
-  const presets = [...SCHEDULE_TIME_PRESETS];
+  const presets: string[] = [...SCHEDULE_TIME_PRESETS];
   if (selectedTime && !presets.includes(selectedTime)) {
     presets.push(selectedTime);
     presets.sort();

@@ -13,6 +13,6 @@ describe("DashboardPageSkeleton", () => {
   it("renders detail variant section blocks", () => {
     const html = renderToStaticMarkup(<DashboardPageSkeleton variant="detail" />);
     expect(html).toContain('role="status"');
-    expect(html).toMatch(/rounded-xl border border-zinc-200/);
+    expect(html).toMatch(/rounded-2xl border border-zinc-200/);
   });
 });
