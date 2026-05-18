@@ -6,13 +6,7 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { labelForCustomerBookingStatus } from "@/features/bookings/server/paymentFailureDisplay";
-import {
-  labelForAssignmentAttention,
-  labelForPaymentStatus,
-  toneForBookingStatus,
-  toneForPaymentStatus,
-} from "@/features/bookings/server/statusLabels";
+import { customerBookingListCardLayers } from "@/features/dashboards/customerBookingListCardDisplay";
 
 export const metadata: Metadata = {
   title: "My bookings | Customer",
@@ -54,45 +48,43 @@ export default async function CustomerBookingsPage() {
         />
       ) : (
         <ul className="space-y-3">
-          {result.bookings.map((b) => (
-            <li key={b.id}>
-              <Link
-                href={`/customer/bookings/${b.id}`}
-                className="block rounded-xl border border-zinc-200 bg-white p-4 hover:border-zinc-300"
-              >
-                <section className="flex flex-wrap gap-2">
-                  <StatusBadge
-                    label={labelForCustomerBookingStatus(b.status, b.paymentFailureReason)}
-                    tone={toneForBookingStatus(b.status)}
-                  />
-                  {b.status !== "payment_failed" ? (
+          {result.bookings.map((b) => {
+            const layers = customerBookingListCardLayers(b);
+            return (
+              <li key={b.id}>
+                <Link
+                  href={`/customer/bookings/${b.id}`}
+                  className="block rounded-xl border border-zinc-200 bg-white p-4 hover:border-zinc-300"
+                >
+                  <section className="flex flex-wrap gap-2">
                     <StatusBadge
-                      label={labelForPaymentStatus(b.paymentStatus)}
-                      tone={toneForPaymentStatus(b.paymentStatus)}
+                      label={layers.dominantBadge.label}
+                      tone={layers.dominantBadge.tone}
                     />
+                  </section>
+                  <p className="mt-2 font-medium text-zinc-900">{b.display.serviceLabel}</p>
+                  <p className="text-sm text-zinc-600">{b.scheduleLabel}</p>
+                  <p className="mt-1 text-sm text-zinc-500">{b.display.locationSummary}</p>
+                  {layers.paymentStatusLine ? (
+                    <p
+                      className={
+                        layers.paymentStatusLine.tone === "danger"
+                          ? "mt-2 text-sm text-red-700"
+                          : "mt-2 text-sm text-zinc-500"
+                      }
+                    >
+                      {layers.paymentStatusLine.text}
+                    </p>
                   ) : null}
-                  {b.display.showCustomerAssignmentWarning &&
-                  b.status !== "payment_failed" ? (
-                    <StatusBadge label={labelForAssignmentAttention("needs_assignment")} tone="warning" />
+                  {layers.supportingMessage?.kind === "assignment" ? (
+                    <p className="mt-2 text-sm text-sky-800">{layers.supportingMessage.text}</p>
+                  ) : layers.supportingMessage?.kind === "cleaner" ? (
+                    <p className="mt-2 text-sm text-emerald-700">{layers.supportingMessage.text}</p>
                   ) : null}
-                </section>
-                <p className="mt-2 font-medium text-zinc-900">{b.display.serviceLabel}</p>
-                <p className="text-sm text-zinc-600">{b.scheduleLabel}</p>
-                <p className="mt-1 text-sm text-zinc-500">{b.display.locationSummary}</p>
-                {b.display.assignmentCustomerMessage &&
-                b.status !== "payment_failed" ? (
-                  <p className="mt-2 text-sm text-sky-800">{b.display.assignmentCustomerMessage}</p>
-                ) : null}
-                {b.assignedCleanerLabel ? (
-                  <p className="mt-2 text-sm text-emerald-700">{b.assignedCleanerLabel}</p>
-                ) : b.status === "payment_failed" ? (
-                  <p className="mt-2 text-sm text-red-700">
-                    Payment incomplete — no cleaner assigned until checkout succeeds.
-                  </p>
-                ) : null}
-              </Link>
-            </li>
-          ))}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </DashboardShell>

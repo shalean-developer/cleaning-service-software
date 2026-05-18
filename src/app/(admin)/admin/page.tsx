@@ -4,7 +4,9 @@ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listAdminAssignmentQueue, listAdminBookings } from "@/features/dashboards/server/adminOperationsReadModel";
 import { getAdminOperationalQueueCounts } from "@/features/dashboards/server/adminOperationalQueueCounts";
 import { ADMIN_HOME_PREVIEW_LIMIT } from "@/features/dashboards/server/adminOperationalHelpers";
+import { AdminOperationalQueueGuideDetails } from "@/components/dashboard/AdminOperationalQueueGuideDetails";
 import { AdminOperationalQueueStrip } from "@/components/dashboard/AdminOperationalQueueStrip";
+import { buildAdminOperationalQueueCards } from "@/features/dashboards/adminOperationalQueues";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -35,6 +37,12 @@ export default async function AdminHomePage() {
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
       {queueCounts?.ok ? <AdminOperationalQueueStrip queues={queueCounts.queues} /> : null}
+
+      {queueCounts?.ok ? (
+        <AdminOperationalQueueGuideDetails
+          cards={buildAdminOperationalQueueCards(queueCounts.queues)}
+        />
+      ) : null}
 
       <section className="mb-6 text-sm text-zinc-600">
         {attentionTotal > 0 ? (

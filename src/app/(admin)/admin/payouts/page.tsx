@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getAdminPayoutSummary } from "@/features/earnings/server/payoutReadModel";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
+import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
@@ -24,7 +25,10 @@ export default async function AdminPayoutsPage() {
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
       {!result.ok ? (
-        <p className="text-sm text-red-600">{result.message}</p>
+        <DashboardFetchError
+          title="Could not load payouts"
+          description={result.message}
+        />
       ) : (
         <>
           <section className="grid gap-4 sm:grid-cols-3">

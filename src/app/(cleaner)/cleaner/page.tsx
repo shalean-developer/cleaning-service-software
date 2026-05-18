@@ -46,9 +46,6 @@ export default async function CleanerHomePage() {
           <p className="mt-1 text-2xl font-semibold text-zinc-900">
             {offersOk ? openOffers.length : "—"}
           </p>
-          {offers && !offers.ok ? (
-            <p className="mt-1 text-xs text-red-700">Could not load offers</p>
-          ) : null}
           <Link href="/cleaner/offers" className="mt-3 inline-block text-sm text-zinc-600 hover:text-zinc-900">
             View offers →
           </Link>
@@ -58,9 +55,6 @@ export default async function CleanerHomePage() {
           <p className="mt-1 text-2xl font-semibold text-zinc-900">
             {jobsOk ? activeJobs.length : "—"}
           </p>
-          {jobs && !jobs.ok ? (
-            <p className="mt-1 text-xs text-red-700">Could not load jobs</p>
-          ) : null}
           <Link href="/cleaner/jobs" className="mt-3 inline-block text-sm text-zinc-600 hover:text-zinc-900">
             View jobs →
           </Link>
