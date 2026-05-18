@@ -29,7 +29,7 @@ export function AdminOperationalQueueExplainCard({ card }: Props) {
 
   return (
     <article
-      className={`flex h-full flex-col rounded-xl border bg-white p-4 ${toneBorderClasses(card.tone)}`}
+      className={`flex h-full flex-col rounded-xl border bg-white p-3.5 ${toneBorderClasses(card.tone)}`}
     >
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">

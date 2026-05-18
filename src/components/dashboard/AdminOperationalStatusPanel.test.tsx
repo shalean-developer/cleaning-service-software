@@ -43,8 +43,8 @@ describe("AdminOperationalStatusPanel", () => {
       <AdminOperationalStatusPanel bookingId={bookingId} operational={operational} />,
     );
 
-    expect(html).toContain("Operational status");
-    expect(html).toContain("No direct assignment or");
+    expect(html).toContain("Ops status");
+    expect(html).toContain("no status override");
     expect(html).toContain(operational.paymentState);
     expect(html).toContain(operational.nextSuggestedAction);
   });
@@ -101,7 +101,7 @@ describe("AdminOperationalStatusPanel", () => {
 
     expect(eligibleHtml).toContain("Run assignment recovery");
     expect(ineligibleHtml).not.toContain("Run assignment recovery");
-    expect(ineligibleHtml).toContain("Grace period");
+    expect(ineligibleHtml).toContain("Grace —");
   });
 
   it("shows manual dispatch only when manualDispatchEligible", () => {

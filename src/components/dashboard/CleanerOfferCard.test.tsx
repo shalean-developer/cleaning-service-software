@@ -28,7 +28,8 @@ describe("CleanerOfferCard", () => {
 
     expect(source).toContain("OfferExpiryChip");
     expect(source).toContain("formatOfferExpiryDisplay");
-    expect(source).toContain("text-lg font-semibold");
+    expect(source).toContain("text-sky-800");
+    expect(source).toContain("Your pay");
     expect(source).toContain("OfferActions");
     expect(source).toContain("serviceLabel={offer.serviceLabel}");
     expect(source).toContain("scheduleLabel={offer.scheduleLabel}");
@@ -38,6 +39,7 @@ describe("CleanerOfferCard", () => {
   it("renders past offers without accept/decline actions", () => {
     const html = renderToStaticMarkup(<CleanerOfferCard offer={pastOffer} />);
     expect(html).toContain("Declined");
+    expect(html).toContain("Standard clean");
     expect(html).not.toContain("/api/cleaner/offers/");
     expect(html).not.toContain(">Accept<");
   });

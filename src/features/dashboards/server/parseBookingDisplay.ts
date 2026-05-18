@@ -5,6 +5,7 @@ import {
   type AssignmentVisibilityKey,
 } from "@/features/assignments/server/resolveAssignmentVisibility";
 import type { Json } from "@/lib/database/types";
+import { parseCustomerBookingServiceDetails } from "../customerBookingServiceDetailsDisplay";
 
 export type BookingDisplayFields = {
   serviceSlug: string | null;
@@ -13,6 +14,9 @@ export type BookingDisplayFields = {
   city: string | null;
   addressLine: string | null;
   locationSummary: string;
+  homeSizeSummary: string | null;
+  frequencyLabel: string | null;
+  addonsSummary: string | null;
   cleanerPreferenceMode: string | null;
   preferredCleanerId: string | null;
   specialInstructions: string | null;
@@ -105,6 +109,7 @@ export function parseBookingDisplay(metadata: Json | null | undefined): BookingD
   const locationSummary = locationParts.length > 0 ? locationParts.join(", ") : "—";
 
   const assignment = readAssignmentMetadata(metadata);
+  const serviceDetails = parseCustomerBookingServiceDetails(metadata, serviceSlug);
 
   return {
     serviceSlug,
@@ -113,6 +118,9 @@ export function parseBookingDisplay(metadata: Json | null | undefined): BookingD
     city,
     addressLine: line1,
     locationSummary,
+    homeSizeSummary: serviceDetails.homeSizeSummary,
+    frequencyLabel: serviceDetails.frequencyLabel,
+    addonsSummary: serviceDetails.addonsSummary,
     cleanerPreferenceMode:
       typeof record.cleanerPreferenceMode === "string" ? record.cleanerPreferenceMode : null,
     preferredCleanerId:

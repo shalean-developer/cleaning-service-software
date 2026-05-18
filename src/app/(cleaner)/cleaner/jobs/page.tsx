@@ -5,12 +5,8 @@ import { listCleanerJobs } from "@/features/dashboards/server/cleanerJobReadMode
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { EmptyState } from "@/components/dashboard/EmptyState";
-import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { CleanerJobListCard } from "@/components/dashboard/cleaner/CleanerJobListCard";
 import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
-import {
-  labelForCleanerJobStatus,
-  toneForCleanerJobStatus,
-} from "@/features/bookings/server/statusLabels";
 
 export const metadata: Metadata = {
   title: "Jobs | Cleaner",
@@ -25,7 +21,7 @@ export default async function CleanerJobsPage() {
   return (
     <DashboardShell
       title="My jobs"
-      subtitle="Assigned cleans you are scheduled to perform."
+      subtitle="When, where, and pay for each assigned clean."
       nav={[...CLEANER_NAV_ITEMS]}
     >
       {!result.ok ? (
@@ -36,11 +32,11 @@ export default async function CleanerJobsPage() {
       ) : result.jobs.length === 0 ? (
         <EmptyState
           title="No jobs yet"
-          description="Accepted jobs and active work will appear here."
+          description="When you accept an offer, the job will appear here with your schedule and pay."
           action={
             <Link
               href="/cleaner/offers"
-              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+              className="rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800"
             >
               View offers
             </Link>
@@ -50,18 +46,14 @@ export default async function CleanerJobsPage() {
         <ul className="space-y-3">
           {result.jobs.map((j) => (
             <li key={j.bookingId}>
-              <Link
+              <CleanerJobListCard
                 href={`/cleaner/jobs/${j.bookingId}`}
-                className="block rounded-xl border border-zinc-200 bg-white p-4 hover:border-zinc-300"
-              >
-                <StatusBadge
-                  label={labelForCleanerJobStatus(j.status)}
-                  tone={toneForCleanerJobStatus(j.status)}
-                />
-                <p className="mt-2 font-medium text-zinc-900">{j.serviceLabel}</p>
-                <p className="text-sm text-zinc-600">{j.scheduleLabel}</p>
-                <p className="text-sm text-zinc-500">{j.locationSummary}</p>
-              </Link>
+                serviceLabel={j.serviceLabel}
+                scheduleLabel={j.scheduleLabel}
+                locationSummary={j.locationSummary}
+                earningsLabel={j.earningsLabel}
+                status={j.status}
+              />
             </li>
           ))}
         </ul>

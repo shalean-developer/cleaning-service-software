@@ -1,4 +1,10 @@
 import type { AdminOperationalStatus } from "@/features/dashboards/server/types";
+import {
+  ADMIN_DETAIL_CARD_CLASS,
+  ADMIN_DETAIL_INSET_CLASS,
+  ADMIN_SECTION_MUTED_CLASS,
+  ADMIN_SECTION_TITLE_CLASS,
+} from "@/features/dashboards/adminDisplay";
 import { AdminManualDispatchAction } from "./AdminManualDispatchAction";
 import { AdminReplaceOpenOfferAction } from "./AdminReplaceOpenOfferAction";
 import { AdminRecoverAssignmentAction } from "./AdminRecoverAssignmentAction";
@@ -11,81 +17,86 @@ type Props = {
 
 export function AdminOperationalStatusPanel({ bookingId, operational }: Props) {
   return (
-    <section className="mt-6 rounded-xl border border-sky-200 bg-sky-50/50 p-6">
-      <h2 className="text-sm font-semibold text-sky-950">Operational status</h2>
-      <p className="mt-1 text-xs text-sky-800/80">
-        Guidance, recovery, and manual dispatch offers for this booking. No direct assignment or
-        status override.
+    <section className={`${ADMIN_DETAIL_CARD_CLASS} border-sky-200/80 bg-sky-50/30 p-4 sm:p-5`}>
+      <h2 className={`${ADMIN_SECTION_TITLE_CLASS} text-sky-950`}>Ops status</h2>
+      <p className={ADMIN_SECTION_MUTED_CLASS}>
+        Guidance and manual actions only — no status override.
       </p>
 
-      <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
+      <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 sm:gap-x-5">
         <section>
-          <dt className="text-zinc-500">Payment</dt>
-          <dd className="font-medium text-zinc-900">{operational.paymentState}</dd>
+          <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">Payment</dt>
+          <dd className="mt-0.5 font-medium text-zinc-900">{operational.paymentState}</dd>
         </section>
         <section>
-          <dt className="text-zinc-500">Assignment</dt>
-          <dd className="font-medium text-zinc-900">{operational.assignmentState}</dd>
+          <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+            Assignment
+          </dt>
+          <dd className="mt-0.5 font-medium text-zinc-900">{operational.assignmentState}</dd>
         </section>
         <section>
-          <dt className="text-zinc-500">Recovery eligibility</dt>
-          <dd className="font-medium text-zinc-900">
+          <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">Recovery</dt>
+          <dd className="mt-0.5 font-medium text-zinc-900">
             {operational.recoveryEligibility === "eligible"
-              ? "Eligible for assignment recovery cron"
+              ? "Eligible for recovery cron"
               : operational.recoveryEligibility === "grace_period"
-                ? `Grace period — wait ~${operational.recoveryGraceMinutesRemaining ?? "?"} min`
+                ? `Grace — ~${operational.recoveryGraceMinutesRemaining ?? "?"} min`
                 : operational.recoveryEligibility === "in_progress"
                   ? "Dispatch in progress"
-                  : "Not applicable"}
+                  : "N/A"}
           </dd>
         </section>
         <section>
-          <dt className="text-zinc-500">Open offers</dt>
-          <dd className="font-medium text-zinc-900">{operational.openOfferSummary}</dd>
+          <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+            Open offers
+          </dt>
+          <dd className="mt-0.5 font-medium text-zinc-900">{operational.openOfferSummary}</dd>
         </section>
         {operational.lastOfferOutcome ? (
           <section>
-            <dt className="text-zinc-500">Last offer outcome</dt>
-            <dd className="font-medium text-zinc-900">{operational.lastOfferOutcome}</dd>
+            <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+              Last outcome
+            </dt>
+            <dd className="mt-0.5 font-medium text-zinc-900">{operational.lastOfferOutcome}</dd>
           </section>
         ) : null}
         <section className="sm:col-span-2">
-          <dt className="text-zinc-500">Suggested next step</dt>
-          <dd className="font-medium text-zinc-900">{operational.nextSuggestedAction}</dd>
+          <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+            Next step
+          </dt>
+          <dd className="mt-0.5 font-medium text-zinc-900">{operational.nextSuggestedAction}</dd>
         </section>
       </dl>
 
-      <ul className="mt-4 space-y-1 text-xs text-zinc-700">
-        <li>
-          {operational.opsSearching
-            ? "System is still searching / awaiting offer response."
-            : "System is not actively searching."}
-        </li>
+      <ul
+        className={`mt-3 space-y-0.5 ${ADMIN_DETAIL_INSET_CLASS} px-3 py-2 text-xs text-zinc-700`}
+      >
+        <li>{operational.opsSearching ? "Searching: active" : "Searching: idle"}</li>
         <li>
           {operational.opsAdminRequired
-            ? "Admin review may be required."
-            : "No admin review flag on assignment metadata."}
+            ? "Admin review: flagged"
+            : "Admin review: not flagged"}
         </li>
         <li>
           {operational.recoveryCronCanHandle
-            ? "Recovery cron can attempt post-payment dispatch for this case."
-            : "Recovery cron is not the primary fix for this state."}
+            ? "Recovery cron: can handle"
+            : "Recovery cron: not primary"}
         </li>
         <li>
           {operational.manualInterventionNeeded
             ? operational.replaceOfferEligible
-              ? "Replace open offer available below."
+              ? "Intervention: replace offer below"
               : operational.manualDispatchEligible
-                ? "Manual dispatch available below."
-                : "Manual intervention likely needed — wait for open offers to close or use recovery if dispatch not started."
+                ? "Intervention: manual dispatch below"
+                : "Intervention: wait or use recovery"
             : operational.replaceOfferEligible
-              ? "Replace open offer available below."
-              : "No manual intervention flag."}
+              ? "Intervention: replace offer below"
+              : "Intervention: not flagged"}
         </li>
       </ul>
 
       {operational.runbookKey ? (
-        <AdminRunbookRef runbookKey={operational.runbookKey} className="mt-4" />
+        <AdminRunbookRef runbookKey={operational.runbookKey} className="mt-3" />
       ) : null}
 
       <AdminRecoverAssignmentAction

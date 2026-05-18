@@ -27,11 +27,13 @@ describe("paymentFailureDisplay", () => {
 
   it("uses generic payment_failed label without failure_reason", () => {
     expect(labelForCustomerBookingStatus("payment_failed", null)).toBe("Payment failed");
-    expect(paymentIssuePanelCopy(null).body).toContain("could not confirm payment");
+    expect(paymentIssuePanelCopy(null).body).toContain("have not received");
   });
 
   it("uses paystack_declined copy in payment issue panel", () => {
-    expect(paymentIssuePanelCopy(PAYSTACK_DECLINED_FAILURE_REASON).body).toContain("declined");
+    expect(paymentIssuePanelCopy(PAYSTACK_DECLINED_FAILURE_REASON).body).toContain(
+      "card provider",
+    );
   });
 
   it("normalizePaymentFailureReasonParam allows only known reasons", () => {
@@ -50,7 +52,7 @@ describe("paymentFailureDisplay", () => {
     ).toBe("Checkout expired");
     expect(
       paymentIssuePanelCopy(CHECKOUT_EXPIRED_FAILURE_REASON).body,
-    ).toContain("checkout link expired");
+    ).toContain("checkout session ended");
     expect(labelForAdminPaymentFailureAttention(CHECKOUT_EXPIRED_FAILURE_REASON)).toBe(
       "Checkout expired",
     );

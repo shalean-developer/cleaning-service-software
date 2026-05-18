@@ -9,9 +9,15 @@ import { AdminOperationalStatusPanel } from "@/components/dashboard/AdminOperati
 import { AdminPayoutActions } from "@/components/dashboard/AdminPayoutActions";
 import { AdminOperationalTimeline } from "@/components/dashboard/AdminOperationalTimeline";
 import { AdminBookingNotificationsSection } from "@/components/dashboard/AdminBookingNotificationsSection";
+import {
+  AdminBookingDetailHero,
+  AdminPaymentFailureInset,
+} from "@/components/dashboard/admin/AdminBookingDetailHero";
+import { AdminDetailSection } from "@/components/dashboard/admin/AdminDetailSection";
 import { LifecycleTimeline } from "@/components/dashboard/LifecycleTimeline";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
+import { ADMIN_DETAIL_STACK_CLASS } from "@/features/dashboards/adminDisplay";
 import { labelForAdminPaymentFailureAttention } from "@/features/bookings/server/paymentFailureDisplay";
 import {
   labelForAssignmentAttention,
@@ -42,206 +48,232 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
 
   const b = result.booking;
 
+  const heroBadges = [
+    { label: labelForBookingStatus(b.status), tone: toneForBookingStatus(b.status) },
+    ...(b.status !== "payment_failed"
+      ? [{ label: labelForPaymentStatus(b.paymentStatus), tone: toneForPaymentStatus(b.paymentStatus) }]
+      : [
+          {
+            label: labelForAdminPaymentFailureAttention(b.paymentFailureReason),
+            tone: "warning" as const,
+          },
+        ]),
+    ...(b.assignmentVisibilityKey ?? b.assignmentAttention
+      ? [
+          {
+            label: labelForAssignmentAttention(
+              b.assignmentVisibilityKey ?? b.assignmentAttention,
+            ),
+            tone:
+              b.assignmentVisibilityKey === "decline_redispatched" ||
+              b.assignmentVisibilityKey === "finding_cleaner" ||
+              b.assignmentVisibilityKey === "offer_sent"
+                ? ("info" as const)
+                : ("warning" as const),
+          },
+        ]
+      : []),
+  ];
+
   return (
     <DashboardShell
-      title="Booking operations"
+      title="Booking"
       subtitle={b.serviceLabel}
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
-      <Link href="/admin/bookings" className="text-sm text-zinc-600 hover:text-zinc-900">
-        ← Back to bookings
+      <Link
+        href="/admin/bookings"
+        className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
+      >
+        ← Bookings
       </Link>
 
-      <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
-        <section className="flex flex-wrap gap-2">
-          <StatusBadge label={labelForBookingStatus(b.status)} tone={toneForBookingStatus(b.status)} />
-          {b.status !== "payment_failed" ? (
-            <StatusBadge
-              label={labelForPaymentStatus(b.paymentStatus)}
-              tone={toneForPaymentStatus(b.paymentStatus)}
-            />
-          ) : null}
-          {b.status === "payment_failed" ? (
-            <StatusBadge
-              label={labelForAdminPaymentFailureAttention(b.paymentFailureReason)}
-              tone="danger"
-            />
-          ) : null}
-          {b.assignmentVisibilityKey ?? b.assignmentAttention ? (
-            <StatusBadge
-              label={labelForAssignmentAttention(
-                b.assignmentVisibilityKey ?? b.assignmentAttention,
+      <section className={ADMIN_DETAIL_STACK_CLASS}>
+        <AdminBookingDetailHero
+          serviceLabel={b.serviceLabel}
+          bookingId={b.id}
+          badges={heroBadges}
+          rows={[
+            { label: "When", value: b.scheduleLabel },
+            { label: "Where", value: b.display.locationSummary },
+            { label: "Customer", value: b.customerLabel },
+            {
+              label: "Cleaner",
+              value: b.cleanerLabel ?? "Unassigned",
+              valueClassName: b.cleanerLabel ? undefined : "text-zinc-500",
+            },
+            { label: "Total", value: b.priceLabel },
+            {
+              label: "Assignment",
+              value: b.assignmentVisibilityKey
+                ? labelForAssignmentAttention(b.assignmentVisibilityKey)
+                : b.assignmentAttention
+                  ? labelForAssignmentAttention(b.assignmentAttention)
+                  : "No attention flag",
+              valueClassName:
+                b.assignmentVisibilityKey || b.assignmentAttention
+                  ? undefined
+                  : "text-zinc-500",
+            },
+          ]}
+          paymentAlert={
+            b.status === "payment_failed" ? (
+              <AdminPaymentFailureInset>
+                Payment did not complete
+                {b.paymentFailureReason === "checkout_expired"
+                  ? " — checkout expired before Paystack confirmed."
+                  : "."}{" "}
+                No assignment or earnings until payment succeeds.
+              </AdminPaymentFailureInset>
+            ) : undefined
+          }
+          footer={<AdminPayoutActions bookingId={b.id} status={b.status} />}
+        />
+
+        <AdminOperationalStatusPanel bookingId={b.id} operational={b.operational} />
+
+        <AdminDetailSection title="Assignment offers">
+          {b.offers.length === 0 ? (
+            <p className="text-sm text-zinc-600">No offers recorded.</p>
+          ) : (
+            <ul className="space-y-1.5 text-sm">
+              {b.offers.map((o) => (
+                <li
+                  key={o.id}
+                  className="flex flex-wrap items-center gap-2 border-b border-zinc-100 py-2 last:border-0"
+                >
+                  <StatusBadge
+                    label={labelForOfferStatus(o.status)}
+                    tone={toneForOfferStatus(o.status)}
+                  />
+                  <span>{o.cleanerName ?? o.cleanerId.slice(0, 8)}</span>
+                  <span className="text-xs text-zinc-500">
+                    {new Date(o.offeredAt).toLocaleString("en-ZA")}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </AdminDetailSection>
+
+        <AdminDetailSection title="Earnings & payments">
+          <section className="space-y-4">
+            <section>
+              <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                Earnings
+              </h3>
+              {b.earnings.length === 0 ? (
+                <p className="mt-1.5 text-sm text-zinc-600">No earnings recorded yet.</p>
+              ) : (
+                <ul className="mt-1.5 space-y-1.5 text-sm">
+                  {b.earnings.map((e) => (
+                    <li key={e.id} className="flex flex-wrap items-center gap-2">
+                      <StatusBadge
+                        label={labelForPayoutStatus(e.payoutStatus)}
+                        tone={toneForPayoutStatus(e.payoutStatus)}
+                      />
+                      <span>
+                        {formatZar(e.payoutAmountCents)} of {formatZar(e.grossAmountCents)} gross
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               )}
-              tone={
-                b.assignmentVisibilityKey === "decline_redispatched" ||
-                b.assignmentVisibilityKey === "finding_cleaner" ||
-                b.assignmentVisibilityKey === "offer_sent"
-                  ? "info"
-                  : "warning"
-              }
-            />
-          ) : null}
-        </section>
-
-        {b.status === "payment_failed" ? (
-          <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
-            Payment did not complete
-            {b.paymentFailureReason === "checkout_expired"
-              ? " — checkout expired before Paystack confirmed payment."
-              : "."}{" "}
-            No assignment or earnings until the customer pays successfully.
-          </p>
-        ) : null}
-
-        <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
-          <section>
-            <dt className="text-zinc-500">Customer</dt>
-            <dd className="font-medium text-zinc-900">{b.customerLabel}</dd>
+            </section>
+            <section className="border-t border-zinc-100 pt-3">
+              <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                Payments
+              </h3>
+              {b.payments.length === 0 ? (
+                <p className="mt-1.5 text-sm text-zinc-600">No payments.</p>
+              ) : (
+                <ul className="mt-1.5 space-y-1.5 text-sm">
+                  {b.payments.map((p) => (
+                    <li key={p.id} className="flex justify-between gap-4">
+                      <span>
+                        {labelForPaymentStatus(p.status)}
+                        {p.providerRef ? ` · ${p.providerRef}` : ""}
+                      </span>
+                      <span className="tabular-nums">{formatZar(p.amountCents, p.currency)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
           </section>
-          <section>
-            <dt className="text-zinc-500">Cleaner</dt>
-            <dd className="font-medium text-zinc-900">{b.cleanerLabel ?? "Unassigned"}</dd>
-          </section>
-          <section>
-            <dt className="text-zinc-500">Schedule</dt>
-            <dd className="font-medium text-zinc-900">{b.scheduleLabel}</dd>
-          </section>
-          <section>
-            <dt className="text-zinc-500">Total</dt>
-            <dd className="font-medium text-zinc-900">{b.priceLabel}</dd>
-          </section>
-          <section className="sm:col-span-2">
-            <dt className="text-zinc-500">Location</dt>
-            <dd className="font-medium text-zinc-900">{b.display.locationSummary}</dd>
-          </section>
-        </dl>
+        </AdminDetailSection>
 
-        <AdminPayoutActions bookingId={b.id} status={b.status} />
-      </section>
-
-      <AdminOperationalStatusPanel bookingId={b.id} operational={b.operational} />
-
-      <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
-        <h2 className="text-sm font-semibold text-zinc-900">Earnings</h2>
-        {b.earnings.length === 0 ? (
-          <p className="mt-2 text-sm text-zinc-600">No earnings recorded yet.</p>
-        ) : (
-          <ul className="mt-3 space-y-2 text-sm">
-            {b.earnings.map((e) => (
-              <li key={e.id} className="flex flex-wrap items-center gap-2">
-                <StatusBadge
-                  label={labelForPayoutStatus(e.payoutStatus)}
-                  tone={toneForPayoutStatus(e.payoutStatus)}
-                />
-                <span>
-                  {formatZar(e.payoutAmountCents)} of {formatZar(e.grossAmountCents)} gross
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
-        <h2 className="text-sm font-semibold text-zinc-900">Assignment offers</h2>
-        {b.offers.length === 0 ? (
-          <p className="mt-2 text-sm text-zinc-600">No offers recorded.</p>
-        ) : (
-          <ul className="mt-3 space-y-2 text-sm">
-            {b.offers.map((o) => (
-              <li key={o.id} className="flex flex-wrap items-center gap-2 border-b border-zinc-100 py-2 last:border-0">
-                <StatusBadge label={labelForOfferStatus(o.status)} tone={toneForOfferStatus(o.status)} />
-                <span>{o.cleanerName ?? o.cleanerId.slice(0, 8)}</span>
-                <span className="text-zinc-500">
-                  {new Date(o.offeredAt).toLocaleString("en-ZA")}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
-        <h2 className="text-sm font-semibold text-zinc-900">Payments</h2>
-        {b.payments.length === 0 ? (
-          <p className="mt-2 text-sm text-zinc-600">No payments.</p>
-        ) : (
-          <ul className="mt-3 space-y-2 text-sm">
-            {b.payments.map((p) => (
-              <li key={p.id} className="flex justify-between gap-4">
-                <span>
-                  {labelForPaymentStatus(p.status)}
-                  {p.providerRef ? ` · ${p.providerRef}` : ""}
-                </span>
-                <span>{formatZar(p.amountCents, p.currency)}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
-        <h2 className="text-sm font-semibold text-zinc-900">Payment events</h2>
-        {b.paymentEvents.length === 0 ? (
-          <p className="mt-2 text-sm text-zinc-600">No webhook events.</p>
-        ) : (
-          <ul className="mt-3 space-y-1 text-sm text-zinc-600">
-            {b.paymentEvents.map((e) => (
-              <li key={e.id}>
-                {e.eventType ?? "event"} · {new Date(e.at).toLocaleString("en-ZA")}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
-        <h2 className="text-sm font-semibold text-zinc-900">State audit</h2>
-        {b.audits.length === 0 ? (
-          <p className="mt-2 text-sm text-zinc-600">No audit rows.</p>
-        ) : (
-          <ul className="mt-3 space-y-2 text-xs text-zinc-700">
-            {b.audits.map((a) => (
-              <li key={a.id} className="rounded-lg border border-zinc-100 bg-zinc-50/80 px-3 py-2">
-                <p className="font-medium text-zinc-900">
-                  {a.displayTitle ?? a.command ?? "—"}
-                </p>
-                {a.displayDescription ? (
-                  <p className="mt-0.5 text-zinc-600">{a.displayDescription}</p>
-                ) : null}
-                <p className="mt-1 font-mono text-[11px] text-zinc-500">
-                  {a.command ?? "—"}: {a.from ?? "∅"} → {a.to ?? "∅"} @{" "}
-                  {new Date(a.at).toLocaleString("en-ZA")}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="mt-6 rounded-xl border border-amber-200 bg-white p-6">
-        <h2 className="text-sm font-semibold text-zinc-900">Admin operations</h2>
-        <p className="mt-1 text-xs text-zinc-500">
-          Internal admin actions (recovery, dispatch, replace). Admin-only — not shown to
-          customers.
-        </p>
-        <AdminOperationalTimeline audits={b.operationalAudits} />
-      </section>
-
-      <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
-        <h2 className="text-sm font-semibold text-zinc-900">Notifications</h2>
-        <p className="mt-1 text-xs text-zinc-500">
-          Outbox delivery history for this booking (read-only). Recipient email addresses are
-          not shown. Retry and resend are not available yet.
-        </p>
-        <AdminBookingNotificationsSection notifications={b.notifications} />
-      </section>
-
-      <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
-        <h2 className="text-sm font-semibold text-zinc-900">Lifecycle</h2>
-        <section className="mt-4">
+        <AdminDetailSection
+          title="Lifecycle"
+          description="Customer-visible progress from payment through completion."
+        >
           <LifecycleTimeline events={b.timeline} />
-        </section>
+        </AdminDetailSection>
+
+        <AdminDetailSection
+          title="Payment events"
+          description="Webhook and provider events (read-only)."
+          collapsible
+        >
+          {b.paymentEvents.length === 0 ? (
+            <p className="text-sm text-zinc-600">No webhook events.</p>
+          ) : (
+            <ul className="space-y-1 text-sm text-zinc-600">
+              {b.paymentEvents.map((e) => (
+                <li key={e.id}>
+                  {e.eventType ?? "event"} · {new Date(e.at).toLocaleString("en-ZA")}
+                </li>
+              ))}
+            </ul>
+          )}
+        </AdminDetailSection>
+
+        <AdminDetailSection
+          title="State audit"
+          description="Booking command history and state transitions."
+          collapsible
+        >
+          {b.audits.length === 0 ? (
+            <p className="text-sm text-zinc-600">No audit rows.</p>
+          ) : (
+            <ul className="space-y-1.5 text-xs text-zinc-700">
+              {b.audits.map((a) => (
+                <li
+                  key={a.id}
+                  className="rounded-lg border border-zinc-100 bg-zinc-50/80 px-3 py-2"
+                >
+                  <p className="font-medium text-zinc-900">
+                    {a.displayTitle ?? a.command ?? "—"}
+                  </p>
+                  {a.displayDescription ? (
+                    <p className="mt-0.5 text-zinc-600">{a.displayDescription}</p>
+                  ) : null}
+                  <p className="mt-1 font-mono text-[11px] text-zinc-500">
+                    {a.command ?? "—"}: {a.from ?? "∅"} → {a.to ?? "∅"} @{" "}
+                    {new Date(a.at).toLocaleString("en-ZA")}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </AdminDetailSection>
+
+        <AdminDetailSection
+          title="Admin operations"
+          description="Recovery, dispatch, and replace actions (internal)."
+          tone="ops"
+          collapsible
+        >
+          <AdminOperationalTimeline audits={b.operationalAudits} />
+        </AdminDetailSection>
+
+        <AdminDetailSection
+          title="Notifications"
+          description="Outbox delivery for this booking (read-only)."
+          collapsible
+        >
+          <AdminBookingNotificationsSection notifications={b.notifications} />
+        </AdminDetailSection>
       </section>
     </DashboardShell>
   );

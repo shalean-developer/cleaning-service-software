@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { DashboardShell } from "./DashboardShell";
 
 describe("DashboardShell (7P-1E)", () => {
-  it("uses horizontal scroll nav on mobile and relaxed padding on larger screens", () => {
+  it("uses desktop nav on sm+ and hamburger menu on mobile", () => {
     const html = renderToStaticMarkup(
       <DashboardShell
         title="Operations"
@@ -18,11 +18,9 @@ describe("DashboardShell (7P-1E)", () => {
       </DashboardShell>,
     );
 
-    expect(html).toContain("overflow-x-auto");
-    expect(html).toContain("sm:flex-wrap");
-    expect(html).toContain("sm:overflow-visible");
-    expect(html).toContain("shrink-0");
-    expect(html).toContain("min-h-10");
+    expect(html).toContain("hidden items-center gap-2 sm:flex");
+    expect(html).toContain("sm:hidden");
+    expect(html).toContain("Open menu");
     expect(html).toContain('class="mx-auto max-w-5xl px-4 py-6 sm:py-8"');
     expect(html).not.toContain('class="mx-auto max-w-5xl px-4 py-8"');
   });

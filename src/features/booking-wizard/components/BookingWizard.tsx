@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ADDON_CATALOG } from "@/features/pricing/server/catalog";
-import { PRICING_FREQUENCIES, type AddonSlug } from "@/features/pricing/server/types";
+import type { ServiceSlug } from "@/features/pricing/server/types";
 import { WIZARD_SERVICE_OPTIONS } from "../constants";
 import { minBookableDateString } from "../slot";
 import {
@@ -13,14 +12,34 @@ import {
 } from "../api";
 import { buildInitializeCheckoutPayload } from "../checkout";
 import { buildLockRequestPayload, shouldReturnToReview } from "../lockPayload";
-import { formatDateLabel, formatZar } from "../format";
 import { nextStep, previousStep } from "../navigation";
 import { clearWizardStorage, loadWizardState, saveWizardState } from "../storage";
 import { INITIAL_WIZARD_STATE, type BookingWizardState } from "../types";
 import { validateWizardStep } from "../validation";
+import {
+  getWizardCardClass,
+  getWizardNavClass,
+  getWizardShellClass,
+  WIZARD_MAIN_COLUMN_CLASS,
+  WIZARD_MOBILE_STICKY_FOOTER_CLASS,
+} from "../wizardLayout";
 import { WizardStepper } from "./WizardStepper";
 import { WizardNav } from "./WizardNav";
 import { Field, inputClass } from "./Field";
+import { AddonsStepPanel } from "./AddonsStepPanel";
+import { CheckoutStepPanel } from "./CheckoutStepPanel";
+import { CleanerStepPanel } from "./CleanerStepPanel";
+import { FrequencyStepPanel } from "./FrequencyStepPanel";
+import { ReviewStepPanel } from "./ReviewStepPanel";
+import { ScheduleStepPanel } from "./ScheduleStepPanel";
+import { ServiceStepPanel } from "./ServiceStepPanel";
+import { WizardContextStrip } from "./WizardContextStrip";
+import {
+  CheckoutMobileCommerceSummary,
+  ReviewMobileCommerceSummary,
+} from "./WizardMobileCommerceSummary";
+import { WizardMobileStickyFooter } from "./WizardMobileStickyFooter";
+import { WizardStepHeading } from "./WizardStepHeading";
 
 type Props = {
   customerEmail: string;
@@ -49,6 +68,17 @@ export function BookingWizard({ customerEmail }: Props) {
     setStepErrors({});
     setApiError(null);
   }, []);
+
+  const handleSelectService = useCallback(
+    (slug: ServiceSlug) => {
+      patch({
+        serviceSlug: slug,
+        bedrooms: slug === "office-cleaning" ? 0 : 2,
+        bathrooms: slug === "office-cleaning" ? 0 : 1,
+      });
+    },
+    [patch],
+  );
 
   const minDate = useMemo(() => minBookableDateString(), []);
 
@@ -160,7 +190,7 @@ export function BookingWizard({ customerEmail }: Props) {
       if (shouldReturnToReview(lockResult.error)) {
         setApiError(
           lockResult.message ??
-            "Your quote is out of date. Review has been refreshed — please confirm again.",
+            "Your quote is out of date. Review has been refreshed \u2014 please confirm again.",
         );
         patch({
           step: "review",
@@ -221,97 +251,118 @@ export function BookingWizard({ customerEmail }: Props) {
   }, [state, customerEmail, patch]);
 
   const serviceLabel =
-    WIZARD_SERVICE_OPTIONS.find((s) => s.slug === state.serviceSlug)?.label ?? "—";
+    WIZARD_SERVICE_OPTIONS.find((s) => s.slug === state.serviceSlug)?.label ?? "\u2014";
+
+  const isServiceStep = state.step === "service";
+  const usesMobileStickyFooter =
+    state.step === "details" || state.step === "review" || state.step === "checkout";
+  const showWizardFrequency = ["details", "cleaner", "review", "checkout"].includes(
+    state.step,
+  );
+
+  const wizardContextStrip =
+    state.serviceSlug && state.step !== "service" ? (
+      <WizardContextStrip
+        serviceLabel={serviceLabel}
+        serviceSlug={state.serviceSlug}
+        bedrooms={state.bedrooms}
+        bathrooms={state.bathrooms}
+        propertySizeSqm={state.propertySizeSqm}
+        frequency={state.frequency}
+        showFrequency={showWizardFrequency}
+      />
+    ) : null;
+
+  const mobileCommerceSummary =
+    state.step === "review" && state.quote ? (
+      <ReviewMobileCommerceSummary totalCents={state.quote.totalCents} />
+    ) : state.step === "checkout" && state.quote ? (
+      <CheckoutMobileCommerceSummary totalCents={state.quote.totalCents} />
+    ) : null;
+
+  const wizardNavElement = (
+    <WizardNav
+      className={
+        isServiceStep || usesMobileStickyFooter
+          ? `${WIZARD_MAIN_COLUMN_CLASS} mt-0 md:mt-6`
+          : [WIZARD_MAIN_COLUMN_CLASS, getWizardNavClass(state.step)].filter(Boolean).join(" ")
+      }
+      showBack={!isServiceStep}
+      onBack={goBack}
+      onContinue={
+        state.step === "checkout"
+          ? handleCheckout
+          : state.step === "review"
+            ? goNext
+            : goNext
+      }
+      continueLabel={
+        state.step === "checkout"
+          ? "Pay with Paystack"
+          : state.step === "review"
+            ? "Continue to checkout"
+            : "Continue"
+      }
+      loading={loading || state.checkoutSubmitting}
+      continueDisabled={
+        state.step === "checkout" ? state.checkoutSubmitting || !state.quote : false
+      }
+      continueVariant={state.step === "checkout" ? "secure" : "default"}
+    />
+  );
 
   return (
-    <div className="mx-auto min-h-screen max-w-lg bg-zinc-50 px-4 py-6 pb-24">
-      <header className="mb-4">
+    <div className={getWizardShellClass(state.step)}>
+      <header className={`mb-4 ${WIZARD_MAIN_COLUMN_CLASS}`}>
         <h1 className="text-xl font-semibold text-zinc-900">Book a clean</h1>
         <p className="text-sm text-zinc-600">Shalean Cleaning Services</p>
       </header>
 
-      <WizardStepper current={state.step} />
+      <div className={WIZARD_MAIN_COLUMN_CLASS}>
+        <WizardStepper current={state.step} />
+      </div>
 
       {apiError ? (
         <div
           role="alert"
-          className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+          className={`mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 ${WIZARD_MAIN_COLUMN_CLASS}`}
         >
           {apiError}
         </div>
       ) : null}
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+      <div className={`${getWizardCardClass(state.step)} ${WIZARD_MAIN_COLUMN_CLASS}`}>
         {state.step === "service" ? (
-          <div>
-            <h2 className="mb-3 text-lg font-medium">Choose a service</h2>
-            <ul className="space-y-2">
-              {WIZARD_SERVICE_OPTIONS.filter((s) => s.enabled).map((service) => (
-                <li key={service.slug}>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      patch({
-                        serviceSlug: service.slug,
-                        bedrooms: service.slug === "office-cleaning" ? 0 : 2,
-                        bathrooms: service.slug === "office-cleaning" ? 0 : 1,
-                      })
-                    }
-                    className={`w-full rounded-xl border px-4 py-3 text-left transition ${
-                      state.serviceSlug === service.slug
-                        ? "border-zinc-900 bg-zinc-900 text-white"
-                        : "border-zinc-200 bg-white text-zinc-900 hover:border-zinc-400"
-                    }`}
-                  >
-                    <span className="block font-medium">{service.label}</span>
-                    <span
-                      className={`mt-0.5 block text-xs ${
-                        state.serviceSlug === service.slug
-                          ? "text-zinc-300"
-                          : "text-zinc-500"
-                      }`}
-                    >
-                      {service.description}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {stepErrors.serviceSlug ? (
-              <p className="mt-2 text-sm text-red-600">{stepErrors.serviceSlug}</p>
-            ) : null}
-          </div>
+          <ServiceStepPanel
+            options={WIZARD_SERVICE_OPTIONS}
+            selectedSlug={state.serviceSlug}
+            onSelect={handleSelectService}
+            error={stepErrors.serviceSlug}
+          />
         ) : null}
 
         {state.step === "datetime" ? (
-          <div>
-            <h2 className="mb-3 text-lg font-medium">Date &amp; time</h2>
-            <p className="mb-4 text-sm text-zinc-600">
-              Times are in Africa/Johannesburg (SAST, UTC+2).
-            </p>
-            <Field label="Date" error={stepErrors.date}>
-              <input
-                type="date"
-                className={inputClass}
-                min={minDate}
-                value={state.date}
-                onChange={(e) => patch({ date: e.target.value })}
-              />
-            </Field>
-            <Field label="Start time" error={stepErrors.time}>
-              <input
-                type="time"
-                className={inputClass}
-                value={state.time}
-                onChange={(e) => patch({ time: e.target.value })}
-              />
-            </Field>
-          </div>
+          <>
+            {wizardContextStrip}
+            <ScheduleStepPanel
+            date={state.date}
+            time={state.time}
+            minDate={minDate}
+            dateError={stepErrors.date}
+            timeError={stepErrors.time}
+            onDateChange={(date) => patch({ date })}
+            onTimeChange={(time) => patch({ time })}
+          />
+          </>
         ) : null}
 
         {state.step === "location" ? (
-          <div>
-            <h2 className="mb-3 text-lg font-medium">Location</h2>
+          <>
+            {wizardContextStrip}
+            <WizardStepHeading
+              title="Location"
+              subtitle="Where should we come to clean?"
+            />
             <Field label="Street address" error={stepErrors.addressLine1}>
               <input
                 className={inputClass}
@@ -341,14 +392,22 @@ export function BookingWizard({ customerEmail }: Props) {
                 onChange={(e) => patch({ locationNotes: e.target.value })}
               />
             </Field>
-          </div>
+          </>
         ) : null}
 
         {state.step === "details" ? (
-          <div>
-            <h2 className="mb-3 text-lg font-medium">Details &amp; add-ons</h2>
+          <>
+            {wizardContextStrip}
+            <WizardStepHeading
+              title="Details & add-ons"
+              subtitle={
+                state.serviceSlug === "office-cleaning"
+                  ? "Workspace size, frequency, and optional add-ons."
+                  : "Home size, frequency, and optional add-ons."
+              }
+            />
             {state.serviceSlug !== "office-cleaning" ? (
-              <>
+              <div className="mb-4 grid grid-cols-2 gap-3 md:gap-4 [&>label]:mb-0">
                 <Field label="Bedrooms" error={stepErrors.bedrooms}>
                   <input
                     type="number"
@@ -369,7 +428,7 @@ export function BookingWizard({ customerEmail }: Props) {
                     onChange={(e) => patch({ bathrooms: Number(e.target.value) })}
                   />
                 </Field>
-              </>
+              </div>
             ) : (
               <Field label="Property size (sqm)" error={stepErrors.propertySizeSqm}>
                 <input
@@ -385,43 +444,14 @@ export function BookingWizard({ customerEmail }: Props) {
                 />
               </Field>
             )}
-            <Field label="Frequency">
-              <select
-                className={inputClass}
-                value={state.frequency}
-                onChange={(e) =>
-                  patch({ frequency: e.target.value as BookingWizardState["frequency"] })
-                }
-              >
-                {PRICING_FREQUENCIES.map((f) => (
-                  <option key={f} value={f}>
-                    {f.charAt(0).toUpperCase() + f.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <fieldset className="mb-4">
-              <legend className="mb-2 text-sm font-medium text-zinc-800">Add-ons</legend>
-              <ul className="space-y-2">
-                {(Object.keys(ADDON_CATALOG) as AddonSlug[]).map((slug) => (
-                  <li key={slug}>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={state.addons.includes(slug)}
-                        onChange={(e) => {
-                          const addons = e.target.checked
-                            ? [...state.addons, slug]
-                            : state.addons.filter((a) => a !== slug);
-                          patch({ addons });
-                        }}
-                      />
-                      {ADDON_CATALOG[slug].label} ({formatZar(ADDON_CATALOG[slug].amountCents)})
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            </fieldset>
+            <FrequencyStepPanel
+              value={state.frequency}
+              onChange={(frequency) => patch({ frequency })}
+            />
+            <AddonsStepPanel
+              selected={state.addons}
+              onChange={(addons) => patch({ addons })}
+            />
             <Field label="Special instructions">
               <textarea
                 className={`${inputClass} min-h-[80px]`}
@@ -429,190 +459,103 @@ export function BookingWizard({ customerEmail }: Props) {
                 onChange={(e) => patch({ specialInstructions: e.target.value })}
               />
             </Field>
-          </div>
+          </>
         ) : null}
 
         {state.step === "cleaner" ? (
-          <div>
-            <h2 className="mb-3 text-lg font-medium">Cleaner preference</h2>
-            <button
-              type="button"
-              onClick={() =>
+          <>
+            {wizardContextStrip}
+            <CleanerStepPanel
+              cleanerPreferenceMode={state.cleanerPreferenceMode}
+              selectedCleanerId={state.selectedCleanerId}
+              availableCleaners={state.availableCleaners}
+              loading={loading}
+              onSelectBestAvailable={() =>
                 patch({
                   cleanerPreferenceMode: "best_available",
                   selectedCleanerId: null,
                   selectedCleanerDisplayName: null,
                 })
               }
-              className={`mb-3 w-full rounded-xl border px-4 py-3 text-left ${
-                state.cleanerPreferenceMode === "best_available"
-                  ? "border-zinc-900 bg-zinc-50"
-                  : "border-zinc-200"
-              }`}
-            >
-              <span className="font-medium">Best available</span>
-              <span className="mt-1 block text-xs text-zinc-600">
-                We&apos;ll match the highest-rated eligible cleaner.
-              </span>
-            </button>
-            {loading && state.availableCleaners.length === 0 ? (
-              <p className="text-sm text-zinc-600">Loading cleaners…</p>
-            ) : (
-              <ul className="max-h-64 space-y-2 overflow-y-auto">
-                {state.availableCleaners.map((card) => {
-                  const selected =
-                    state.cleanerPreferenceMode === "selected" &&
-                    state.selectedCleanerId === card.cleanerId;
-                  const disabled = card.eligibilityStatus !== "eligible";
-                  return (
-                    <li key={card.cleanerId}>
-                      <button
-                        type="button"
-                        disabled={disabled}
-                        onClick={() =>
-                          patch({
-                            cleanerPreferenceMode: "selected",
-                            selectedCleanerId: card.cleanerId,
-                            selectedCleanerDisplayName: card.displayName,
-                          })
-                        }
-                        className={`w-full rounded-xl border px-3 py-2 text-left text-sm ${
-                          selected
-                            ? "border-zinc-900 bg-zinc-900 text-white"
-                            : disabled
-                              ? "cursor-not-allowed border-zinc-100 bg-zinc-50 text-zinc-400"
-                              : "border-zinc-200 hover:border-zinc-400"
-                        }`}
-                      >
-                        <span className="font-medium">{card.displayName}</span>
-                        {card.rating != null ? (
-                          <span className="ml-2 text-xs">★ {card.rating.toFixed(1)}</span>
-                        ) : null}
-                        <span
-                          className={`mt-1 block text-xs ${
-                            selected ? "text-zinc-300" : "text-zinc-500"
-                          }`}
-                        >
-                          {card.eligibilityReason}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-            {stepErrors.selectedCleanerId ? (
-              <p className="mt-2 text-sm text-red-600">{stepErrors.selectedCleanerId}</p>
-            ) : null}
-          </div>
+              onSelectCleaner={(cleanerId, displayName) =>
+                patch({
+                  cleanerPreferenceMode: "selected",
+                  selectedCleanerId: cleanerId,
+                  selectedCleanerDisplayName: displayName,
+                })
+              }
+              selectedCleanerError={stepErrors.selectedCleanerId}
+            />
+          </>
         ) : null}
 
         {state.step === "review" ? (
           <div>
-            <h2 className="mb-3 text-lg font-medium">Review</h2>
             {loading && !state.quote ? (
-              <p className="text-sm text-zinc-600">Calculating price…</p>
+              <>
+                {wizardContextStrip}
+                <WizardStepHeading title="Review" />
+                <p className="text-sm text-zinc-600">Calculating price?</p>
+              </>
             ) : state.quote ? (
               <>
-                <dl className="mb-4 space-y-2 text-sm">
-                  <div>
-                    <dt className="text-zinc-500">Service</dt>
-                    <dd className="font-medium">{serviceLabel}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-zinc-500">When</dt>
-                    <dd>{formatDateLabel(state.date, state.time)}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-zinc-500">Where</dt>
-                    <dd>
-                      {state.addressLine1}, {state.suburb}, {state.city}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-zinc-500">Cleaner</dt>
-                    <dd>
-                      {state.cleanerPreferenceMode === "best_available"
-                        ? "Best available"
-                        : state.selectedCleanerDisplayName ?? "Selected cleaner"}
-                    </dd>
-                  </div>
-                </dl>
-                <ul className="mb-4 border-t border-zinc-100 pt-3 text-sm">
-                  {state.quote.lineItems.map((item) => (
-                    <li
-                      key={item.code}
-                      className="flex justify-between gap-2 py-1 text-zinc-700"
-                    >
-                      <span>{item.label}</span>
-                      <span>{formatZar(item.amountCents)}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="text-lg font-semibold">
-                  Total {formatZar(state.quote.totalCents)}
-                </p>
-                <label className="mt-4 flex items-start gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={state.reviewConfirmed}
-                    onChange={(e) => patch({ reviewConfirmed: e.target.checked })}
-                    className="mt-1"
-                  />
-                  <span>I confirm these details are correct.</span>
-                </label>
-                {stepErrors.reviewConfirmed ? (
-                  <p className="mt-1 text-sm text-red-600">{stepErrors.reviewConfirmed}</p>
-                ) : null}
+                {wizardContextStrip}
+                <ReviewStepPanel
+                  serviceLabel={serviceLabel}
+                  serviceSlug={state.serviceSlug}
+                  date={state.date}
+                  time={state.time}
+                  addressLine1={state.addressLine1}
+                  suburb={state.suburb}
+                  city={state.city}
+                  bedrooms={state.bedrooms}
+                  bathrooms={state.bathrooms}
+                  propertySizeSqm={state.propertySizeSqm}
+                  frequency={state.frequency}
+                  addons={state.addons}
+                  cleanerPreferenceMode={state.cleanerPreferenceMode}
+                  selectedCleanerDisplayName={state.selectedCleanerDisplayName}
+                  quote={state.quote}
+                  reviewConfirmed={state.reviewConfirmed}
+                  onReviewConfirmedChange={(reviewConfirmed) => patch({ reviewConfirmed })}
+                  onEditStep={(step) => patch({ step })}
+                  reviewConfirmedError={stepErrors.reviewConfirmed}
+                />
               </>
             ) : null}
           </div>
         ) : null}
 
-        {state.step === "checkout" ? (
-          <div>
-            <h2 className="mb-3 text-lg font-medium">Checkout</h2>
-            <p className="mb-4 text-sm text-zinc-600">
-              You&apos;ll be redirected to Paystack to pay securely. Your booking stays in
-              <strong> pending payment</strong> until payment succeeds — it is never confirmed
-              in the browser.
-            </p>
-            {state.quote ? (
-              <p className="mb-4 text-2xl font-semibold">
-                {formatZar(state.quote.totalCents)}
-              </p>
-            ) : null}
-            <p className="text-sm text-zinc-600">
-              Paying as <span className="font-medium text-zinc-900">{customerEmail}</span>
-            </p>
-          </div>
+        {state.step === "checkout" && state.quote ? (
+          <>
+            {wizardContextStrip}
+            <CheckoutStepPanel
+            serviceLabel={serviceLabel}
+            serviceSlug={state.serviceSlug}
+            date={state.date}
+            time={state.time}
+            suburb={state.suburb}
+            city={state.city}
+            bedrooms={state.bedrooms}
+            bathrooms={state.bathrooms}
+            propertySizeSqm={state.propertySizeSqm}
+            frequency={state.frequency}
+            quote={state.quote}
+            customerEmail={customerEmail}
+          />
+          </>
         ) : null}
       </div>
 
-      <WizardNav
-        showBack={state.step !== "service"}
-        onBack={goBack}
-        onContinue={
-          state.step === "checkout"
-            ? handleCheckout
-            : state.step === "review"
-              ? goNext
-              : goNext
-        }
-        continueLabel={
-          state.step === "checkout"
-            ? "Pay with Paystack"
-            : state.step === "review"
-              ? "Continue to checkout"
-              : "Continue"
-        }
-        loading={loading || state.checkoutSubmitting}
-        continueDisabled={
-          state.step === "checkout"
-            ? state.checkoutSubmitting || !state.quote
-            : false
-        }
-      />
+      {isServiceStep ? (
+        <div className={WIZARD_MOBILE_STICKY_FOOTER_CLASS}>{wizardNavElement}</div>
+      ) : usesMobileStickyFooter ? (
+        <WizardMobileStickyFooter summary={mobileCommerceSummary}>
+          {wizardNavElement}
+        </WizardMobileStickyFooter>
+      ) : (
+        <div className={WIZARD_MAIN_COLUMN_CLASS}>{wizardNavElement}</div>
+      )}
     </div>
   );
 }

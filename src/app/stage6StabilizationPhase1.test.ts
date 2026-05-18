@@ -18,8 +18,8 @@ describe("Stage 6 stabilization Phase 1 presentation fixes", () => {
     expect(source).toContain("DashboardFetchError");
     expect(source).toContain("!result.ok");
     expect(source).toContain("Could not load your bookings");
-    expect(source).toContain("result?.ok && recent.length === 0");
-    expect(source).not.toMatch(/\{recent\.length === 0 \?/);
+    expect(source).toContain("allBookings.length === 0");
+    expect(source.indexOf("!result.ok")).toBeLessThan(source.indexOf("allBookings.length === 0"));
   });
 
   it("admin bookings list uses DashboardFetchError on fetch failure", () => {

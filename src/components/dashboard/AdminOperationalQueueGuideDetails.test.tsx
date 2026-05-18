@@ -21,7 +21,7 @@ describe("AdminOperationalQueueGuideDetails (7P-1B)", () => {
     const html = renderToStaticMarkup(<AdminOperationalQueueGuideDetails cards={sampleCards} />);
 
     expect(html).toMatch(/<details(?![^>]*\bopen\b)[^>]*>/);
-    expect(html).toContain("Queue guide — what each queue means");
+    expect(html).toContain("Queue guide");
     expect(html).toContain('aria-label="Operational queue explanations"');
     expect(html).toContain("Needs assignment");
     expect(html).toContain("Dispatch not started");

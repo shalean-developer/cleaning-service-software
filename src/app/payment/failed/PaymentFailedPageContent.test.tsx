@@ -23,7 +23,9 @@ describe("PaymentFailedPageContent", () => {
         model={buildPaymentFailedPageModel({ reason: CHECKOUT_EXPIRED_FAILURE_REASON })}
       />,
     );
-    expect(html).toContain("checkout link expired");
+    expect(html).toContain("checkout session ended");
+    expect(html).toContain("What happens next");
+    expect(html).toContain("Book a clean");
   });
 
   it("shows booking retry CTA when booking id is present", () => {

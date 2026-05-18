@@ -5,25 +5,18 @@ import { listAdminBookings } from "@/features/dashboards/server/adminOperationsR
 import { getAdminOperationalQueueCounts } from "@/features/dashboards/server/adminOperationalQueueCounts";
 import { AdminOperationalQueueContextCard } from "@/components/dashboard/AdminOperationalQueueContextCard";
 import { AdminOperationalQueueStrip } from "@/components/dashboard/AdminOperationalQueueStrip";
+import { AdminBookingListCard } from "@/components/dashboard/admin/AdminBookingListCard";
 import {
   buildAdminOperationalQueueContextCard,
   isAdminOperationalQueueFilter,
 } from "@/features/dashboards/adminOperationalQueues";
 import type { AdminBookingFilter } from "@/features/dashboards/server/adminOperationalHelpers";
+import { adminBookingListBadges } from "@/features/dashboards/adminBookingListBadges";
 import { AdminBookingsFilters } from "@/components/dashboard/AdminBookingsFilters";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { EmptyState } from "@/components/dashboard/EmptyState";
-import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { labelForAdminPaymentFailureAttention } from "@/features/bookings/server/paymentFailureDisplay";
-import {
-  labelForAssignmentAttention,
-  labelForBookingStatus,
-  labelForPaymentStatus,
-  toneForBookingStatus,
-  toneForPaymentStatus,
-} from "@/features/bookings/server/statusLabels";
 
 export const metadata: Metadata = {
   title: "Bookings | Admin",
@@ -77,7 +70,7 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
   return (
     <DashboardShell
       title="All bookings"
-      subtitle="Lifecycle, payment, and assignment state across customers."
+      subtitle="Lifecycle, payment, and assignment."
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
       {queueCounts.ok ? (
@@ -111,7 +104,7 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
           description={
             filter || params.q
               ? "Try clearing filters or widening your search."
-              : "Bookings will appear here as customers checkout."
+              : "Bookings appear here as customers checkout."
           }
           action={
             filter || params.q ? (
@@ -125,55 +118,17 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
           }
         />
       ) : (
-        <ul className="space-y-3">
+        <ul className="space-y-2.5">
           {result.bookings.map((b) => (
             <li key={b.id}>
-              <Link
+              <AdminBookingListCard
                 href={`/admin/bookings/${b.id}`}
-                className="block rounded-xl border border-zinc-200 bg-white p-4 hover:border-zinc-300"
-              >
-                <section className="flex flex-wrap gap-2">
-                  <StatusBadge
-                    label={labelForBookingStatus(b.status)}
-                    tone={toneForBookingStatus(b.status)}
-                  />
-                  {b.status !== "payment_failed" ? (
-                    <StatusBadge
-                      label={labelForPaymentStatus(b.paymentStatus)}
-                      tone={toneForPaymentStatus(b.paymentStatus)}
-                    />
-                  ) : null}
-                  {b.status === "payment_failed" ? (
-                    <StatusBadge
-                      label={labelForAdminPaymentFailureAttention(b.paymentFailureReason)}
-                      tone="danger"
-                    />
-                  ) : null}
-                  {b.assignmentVisibilityKey ?? b.assignmentAttention ? (
-                    <StatusBadge
-                      label={labelForAssignmentAttention(
-                        b.assignmentVisibilityKey ?? b.assignmentAttention,
-                      )}
-                      tone={
-                        b.assignmentVisibilityKey === "decline_redispatched" ||
-                        b.assignmentVisibilityKey === "finding_cleaner" ||
-                        b.assignmentVisibilityKey === "offer_sent"
-                          ? "info"
-                          : "warning"
-                      }
-                    />
-                  ) : null}
-                </section>
-                <p className="mt-2 font-medium text-zinc-900">{b.serviceLabel}</p>
-                <p className="text-sm text-zinc-600">
-                  {b.customerLabel}
-                  {b.cleanerLabel ? ` · ${b.cleanerLabel}` : " · Unassigned"}
-                </p>
-                <p className="text-sm text-zinc-500">
-                  {b.scheduleLabel} · {b.priceLabel}
-                </p>
-                <p className="mt-1 font-mono text-xs text-zinc-400">{b.id}</p>
-              </Link>
+                badges={adminBookingListBadges(b)}
+                title={b.serviceLabel}
+                meta={`${b.customerLabel}${b.cleanerLabel ? ` · ${b.cleanerLabel}` : " · Unassigned"}`}
+                secondary={`${b.scheduleLabel} · ${b.priceLabel}`}
+                footnote={b.id}
+              />
             </li>
           ))}
         </ul>

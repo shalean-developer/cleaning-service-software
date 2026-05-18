@@ -43,11 +43,15 @@ export function JobCompletionActions({ bookingId, status }: Props) {
           type="button"
           disabled={loading !== null}
           onClick={() => call(`/api/cleaner/jobs/${bookingId}/start`, "start")}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="w-full rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white shadow-[0_2px_10px_rgba(24,24,27,0.12)] disabled:opacity-50 sm:w-auto"
         >
           {loading === "start" ? "Starting…" : "Start job"}
         </button>
-        {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
+        {error ? (
+          <p className="mt-2 rounded-xl border border-amber-100 bg-amber-50/90 px-3 py-2 text-sm text-amber-950" role="alert">
+            {error}
+          </p>
+        ) : null}
       </section>
     );
   }
@@ -59,11 +63,15 @@ export function JobCompletionActions({ bookingId, status }: Props) {
           type="button"
           disabled={loading !== null}
           onClick={() => call(`/api/cleaner/jobs/${bookingId}/complete`, "complete")}
-          className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="w-full rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white shadow-[0_2px_10px_rgba(24,24,27,0.12)] disabled:opacity-50 sm:w-auto"
         >
           {loading === "complete" ? "Completing…" : "Mark complete"}
         </button>
-        {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
+        {error ? (
+          <p className="mt-2 rounded-xl border border-amber-100 bg-amber-50/90 px-3 py-2 text-sm text-amber-950" role="alert">
+            {error}
+          </p>
+        ) : null}
       </section>
     );
   }

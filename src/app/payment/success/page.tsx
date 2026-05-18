@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PaymentSuccessVerifier } from "./PaymentSuccessVerifier";
+import { PaymentVerificationLoadingFallback } from "./PaymentVerificationShell";
 
 export const metadata: Metadata = {
   title: "Payment verification",
@@ -9,13 +10,7 @@ export const metadata: Metadata = {
 
 export default function PaymentSuccessPage() {
   return (
-    <Suspense
-      fallback={
-        <main className="mx-auto flex min-h-screen max-w-md items-center justify-center px-4">
-          <p className="text-sm text-zinc-600">Verifying payment…</p>
-        </main>
-      }
-    >
+    <Suspense fallback={<PaymentVerificationLoadingFallback />}>
       <PaymentSuccessVerifier />
     </Suspense>
   );

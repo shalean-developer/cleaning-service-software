@@ -22,16 +22,17 @@ describe("cleaner pages Stage 6F-1a wiring", () => {
     expect(source).not.toMatch(/nav=\{\[\s*\{ href: "\/cleaner"/);
   });
 
-  it("uses cleaner job status labels on job surfaces", () => {
+  it("uses cleaner job list/detail components with status labels", () => {
     const home = readPage("src/app/(cleaner)/cleaner/page.tsx");
     const jobs = readPage("src/app/(cleaner)/cleaner/jobs/page.tsx");
     const detail = readPage("src/app/(cleaner)/cleaner/jobs/[bookingId]/page.tsx");
 
-    for (const source of [home, jobs, detail]) {
-      expect(source).toContain("labelForCleanerJobStatus");
-      expect(source).toContain("toneForCleanerJobStatus");
-      expect(source).not.toContain("labelForBookingStatus");
-    }
+    expect(home).toContain("CleanerJobListCard");
+    expect(jobs).toContain("CleanerJobListCard");
+    expect(detail).toContain("CleanerJobStatusHero");
+    expect(readPage("src/components/dashboard/cleaner/CleanerJobListCard.tsx")).toContain(
+      "labelForCleanerJobStatus",
+    );
   });
 
   it("keeps payout-specific labels on earnings page", () => {

@@ -14,9 +14,9 @@ function toneClasses(tone: AdminOperationalQueueCountItem["tone"], active: boole
   }
   switch (tone) {
     case "danger":
-      return "border-red-200 bg-red-50 text-red-950 hover:border-red-300";
-    case "warning":
       return "border-amber-200 bg-amber-50 text-amber-950 hover:border-amber-300";
+    case "warning":
+      return "border-amber-200 bg-amber-50/80 text-amber-950 hover:border-amber-300";
     case "info":
       return "border-sky-200 bg-sky-50 text-sky-950 hover:border-sky-300";
     default:
@@ -31,14 +31,12 @@ function filterFromHref(href: string): string | null {
 
 export function AdminOperationalQueueStrip({ queues, activeFilter }: Props) {
   return (
-    <section aria-label="Operational queues" className="mb-6">
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-        Operational queues
-      </p>
+    <section aria-label="Operational queues" className="mb-5">
+      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Queues</p>
       <p className="mt-0.5 text-xs text-zinc-500">
-        Exact counts across all bookings. Read-only — open a queue to review and act.
+        Exact counts · open a queue to review
       </p>
-      <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+      <div className="mt-2.5 flex gap-2 overflow-x-auto pb-0.5">
         {queues.map((queue) => {
           const queueFilter = filterFromHref(queue.href);
           const active = Boolean(activeFilter && queueFilter === activeFilter);
@@ -47,10 +45,10 @@ export function AdminOperationalQueueStrip({ queues, activeFilter }: Props) {
               key={queue.key}
               href={queue.href}
               aria-current={active ? "true" : undefined}
-              className={`flex min-w-[9.5rem] shrink-0 flex-col rounded-xl border px-3 py-2.5 transition-colors ${toneClasses(queue.tone, active)}`}
+              className={`flex min-w-[8.5rem] shrink-0 flex-col rounded-xl border px-2.5 py-2 transition-colors ${toneClasses(queue.tone, active)}`}
             >
-              <span className="text-xs font-medium leading-tight">{queue.label}</span>
-              <span className="mt-1 text-xl font-semibold tabular-nums">{queue.count}</span>
+              <span className="text-[11px] font-medium leading-tight">{queue.label}</span>
+              <span className="mt-0.5 text-lg font-semibold tabular-nums">{queue.count}</span>
             </Link>
           );
         })}

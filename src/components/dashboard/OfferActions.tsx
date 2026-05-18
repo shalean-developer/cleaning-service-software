@@ -71,26 +71,31 @@ export function OfferActions({
 
   return (
     <>
-      <section className="flex w-full flex-col gap-3 md:flex-row md:flex-wrap md:gap-2">
+      <section className="flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
         <button
           type="button"
           disabled={disabled || loading !== null}
           onClick={() => respond("accept")}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 md:min-h-10 md:w-auto"
+          className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white shadow-[0_2px_10px_rgba(24,24,27,0.12)] disabled:opacity-50 sm:min-h-10"
         >
-          {loading === "accept" ? "Accepting…" : "Accept"}
+          {loading === "accept" ? "Accepting…" : "Accept job"}
         </button>
         <button
           ref={declineButtonRef}
           type="button"
           disabled={disabled || loading !== null}
           onClick={openDeclineConfirm}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-800 disabled:opacity-50 md:min-h-10 md:w-auto"
+          className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-800 hover:bg-zinc-50 disabled:opacity-50 sm:min-h-10"
         >
           Decline
         </button>
         {!confirmOpen && error ? (
-          <p className="w-full text-sm text-red-600">{error}</p>
+          <p
+            className="w-full rounded-xl border border-amber-100 bg-amber-50/90 px-3 py-2 text-sm text-amber-950 sm:basis-full"
+            role="alert"
+          >
+            {error}
+          </p>
         ) : null}
       </section>
 

@@ -6,10 +6,10 @@ import { getAdminOperationalQueueCounts } from "@/features/dashboards/server/adm
 import { ADMIN_HOME_PREVIEW_LIMIT } from "@/features/dashboards/server/adminOperationalHelpers";
 import { AdminOperationalQueueGuideDetails } from "@/components/dashboard/AdminOperationalQueueGuideDetails";
 import { AdminOperationalQueueStrip } from "@/components/dashboard/AdminOperationalQueueStrip";
+import { AdminBookingListCard } from "@/components/dashboard/admin/AdminBookingListCard";
 import { buildAdminOperationalQueueCards } from "@/features/dashboards/adminOperationalQueues";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import {
   labelForAssignmentAttention,
   labelForBookingStatus,
@@ -33,7 +33,7 @@ export default async function AdminHomePage() {
   return (
     <DashboardShell
       title="Operations"
-      subtitle="Bookings, payments, and assignment oversight."
+      subtitle="Queues, bookings, and assignment oversight."
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
       {queueCounts?.ok ? <AdminOperationalQueueStrip queues={queueCounts.queues} /> : null}
@@ -44,79 +44,79 @@ export default async function AdminHomePage() {
         />
       ) : null}
 
-      <section className="mb-6 text-sm text-zinc-600">
-        {attentionTotal > 0 ? (
-          <p>
-            Assignment queue: showing {attention.length} of {attentionTotal} booking
-            {attentionTotal === 1 ? "" : "s"}
-            {attentionTotal > ADMIN_HOME_PREVIEW_LIMIT
-              ? ` (preview limit ${ADMIN_HOME_PREVIEW_LIMIT} on home)`
-              : ""}
-            .
-          </p>
-        ) : (
-          <p>Assignment queue is clear.</p>
-        )}
-      </section>
-
       {attention.length > 0 ? (
-        <section className="mb-8">
-          <h2 className="text-sm font-semibold text-zinc-900">Needs attention</h2>
-          <ul className="mt-3 space-y-3">
+        <section className="mb-6">
+          <header className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-sm font-semibold text-zinc-900">Needs attention</h2>
+            <Link
+              href="/admin/assignments"
+              className="text-xs font-medium text-zinc-600 hover:text-zinc-900"
+            >
+              Full queue ({attentionTotal}) →
+            </Link>
+          </header>
+          <ul className="mt-2.5 space-y-2.5">
             {attention.map((item) => (
               <li key={item.bookingId}>
-                <Link
+                <AdminBookingListCard
                   href={`/admin/bookings/${item.bookingId}`}
-                  className="block rounded-xl border border-zinc-200 bg-white p-4 hover:border-zinc-300"
-                >
-                  <StatusBadge
-                    label={labelForAssignmentAttention(
-                      item.assignmentAttention,
-                      item.assignmentReason,
-                    )}
-                    tone="warning"
-                  />
-                  <p className="mt-2 font-medium text-zinc-900">{item.serviceLabel}</p>
-                  <p className="text-sm text-zinc-600">
-                    {item.customerLabel} · {item.scheduleLabel}
-                  </p>
-                  {item.openOffers.length > 0 ? (
-                    <p className="mt-1 text-xs text-zinc-500">
-                      {item.openOffers.length} open offer(s)
-                    </p>
-                  ) : null}
-                </Link>
+                  badges={[
+                    {
+                      label: labelForAssignmentAttention(
+                        item.assignmentAttention,
+                        item.assignmentReason,
+                      ),
+                      tone: "warning",
+                    },
+                  ]}
+                  title={item.serviceLabel}
+                  meta={`${item.customerLabel} · ${item.scheduleLabel}`}
+                  secondary={
+                    item.openOffers.length > 0
+                      ? `${item.openOffers.length} open offer${item.openOffers.length === 1 ? "" : "s"}`
+                      : undefined
+                  }
+                />
               </li>
             ))}
           </ul>
         </section>
-      ) : null}
-
-      <h2 className="text-sm font-semibold text-zinc-900">Recent bookings</h2>
-      {recent.length === 0 ? (
-        <p className="mt-2 text-sm text-zinc-600">No bookings in the system yet.</p>
       ) : (
-        <ul className="mt-3 space-y-3">
-          {recent.map((b) => (
-            <li key={b.id}>
-              <Link
-                href={`/admin/bookings/${b.id}`}
-                className="block rounded-xl border border-zinc-200 bg-white p-4 hover:border-zinc-300"
-              >
-                <StatusBadge
-                  label={labelForBookingStatus(b.status)}
-                  tone={toneForBookingStatus(b.status)}
-                />
-                <p className="mt-2 font-medium text-zinc-900">{b.serviceLabel}</p>
-                <p className="text-sm text-zinc-600">
-                  {b.customerLabel}
-                  {b.cleanerLabel ? ` · ${b.cleanerLabel}` : ""}
-                </p>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <p className="mb-6 text-sm text-zinc-500">Assignment queue is clear.</p>
       )}
+
+      <section>
+        <header className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-sm font-semibold text-zinc-900">Recent bookings</h2>
+          <Link
+            href="/admin/bookings"
+            className="text-xs font-medium text-zinc-600 hover:text-zinc-900"
+          >
+            View all →
+          </Link>
+        </header>
+        {recent.length === 0 ? (
+          <p className="mt-2 text-sm text-zinc-500">No bookings yet.</p>
+        ) : (
+          <ul className="mt-2.5 space-y-2.5">
+            {recent.map((b) => (
+              <li key={b.id}>
+                <AdminBookingListCard
+                  href={`/admin/bookings/${b.id}`}
+                  badges={[
+                    {
+                      label: labelForBookingStatus(b.status),
+                      tone: toneForBookingStatus(b.status),
+                    },
+                  ]}
+                  title={b.serviceLabel}
+                  meta={`${b.customerLabel}${b.cleanerLabel ? ` · ${b.cleanerLabel}` : ""}`}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </DashboardShell>
   );
 }

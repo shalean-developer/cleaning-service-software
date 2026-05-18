@@ -7,6 +7,7 @@ import { AdminAssignmentQueueStripFootnote } from "@/components/dashboard/AdminA
 import { AdminOperationalQueueStrip } from "@/components/dashboard/AdminOperationalQueueStrip";
 import { AdminAssignmentQueueGuidance } from "@/components/dashboard/AdminAssignmentQueueGuidance";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
+import { ADMIN_QUEUE_CARD_CLASS } from "@/features/dashboards/adminDisplay";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -34,7 +35,7 @@ export default async function AdminAssignmentsPage() {
   return (
     <DashboardShell
       title="Assignment queue"
-      subtitle="Bookings needing dispatch attention or with open offers."
+      subtitle="Dispatch attention and open offers."
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
       {queueCounts.ok ? <AdminOperationalQueueStrip queues={queueCounts.queues} /> : null}
@@ -42,28 +43,22 @@ export default async function AdminAssignmentsPage() {
       {queueCounts.ok ? <AdminAssignmentQueueStripFootnote /> : null}
 
       {result.ok && result.total > 0 ? (
-        <p className="mb-4 text-sm text-zinc-600">
-          {result.items.length} of {result.total} in queue
-          {result.total >= result.limit
-            ? ` (scan limit ${result.limit} pending_assignment / confirmed bookings)`
-            : ""}
-          .
+        <p className="mb-3 text-xs text-zinc-500">
+          Showing {result.items.length} of {result.total}
+          {result.total >= result.limit ? ` (limit ${result.limit})` : ""}
         </p>
       ) : null}
 
       {!result.ok || result.items.length === 0 ? (
         <EmptyState
           title="Queue is clear"
-          description="No bookings currently need assignment attention."
+          description="No bookings need assignment attention right now."
         />
       ) : (
-        <ul className="space-y-4">
+        <ul className="space-y-2.5">
           {result.items.map((item) => (
-            <li
-              key={item.bookingId}
-              className="rounded-xl border border-zinc-200 bg-white p-5"
-            >
-              <section className="flex flex-wrap gap-2">
+            <li key={item.bookingId} className={ADMIN_QUEUE_CARD_CLASS}>
+              <section className="flex flex-wrap items-center gap-1.5">
                 <StatusBadge
                   label={labelForAssignmentAttention(
                     item.assignmentAttention,
@@ -76,22 +71,22 @@ export default async function AdminAssignmentsPage() {
                   tone={toneForBookingStatus(item.status)}
                 />
               </section>
-              <p className="mt-3 font-medium text-zinc-900">{item.serviceLabel}</p>
-              <p className="text-sm text-zinc-600">
+              <p className="mt-2 text-sm font-semibold text-zinc-900">{item.serviceLabel}</p>
+              <p className="mt-0.5 text-sm text-zinc-600">
                 {item.customerLabel} · {item.scheduleLabel}
               </p>
               {item.assignmentReason ? (
-                <p className="mt-2 text-sm text-amber-800">{item.assignmentReason}</p>
+                <p className="mt-1.5 text-xs text-amber-900/90">{item.assignmentReason}</p>
               ) : null}
 
               <AdminAssignmentQueueGuidance item={item} />
 
               {item.openOffers.length > 0 ? (
-                <section className="mt-4">
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                <section className="mt-3 border-t border-zinc-100 pt-3">
+                  <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
                     Open offers
                   </h3>
-                  <ul className="mt-2 space-y-2 text-sm">
+                  <ul className="mt-1.5 space-y-1.5 text-sm">
                     {item.openOffers.map((o) => (
                       <li key={o.id} className="flex flex-wrap items-center gap-2">
                         <StatusBadge
@@ -100,7 +95,7 @@ export default async function AdminAssignmentsPage() {
                         />
                         <span>{o.cleanerName ?? o.cleanerId.slice(0, 8)}</span>
                         {o.expiresAt ? (
-                          <span className="text-zinc-500">
+                          <span className="text-xs text-zinc-500">
                             expires {new Date(o.expiresAt).toLocaleString("en-ZA")}
                           </span>
                         ) : null}
@@ -109,14 +104,14 @@ export default async function AdminAssignmentsPage() {
                   </ul>
                 </section>
               ) : (
-                <p className="mt-3 text-sm text-zinc-500">No open offers</p>
+                <p className="mt-2 text-xs text-zinc-500">No open offers</p>
               )}
 
               <Link
                 href={`/admin/bookings/${item.bookingId}`}
-                className="mt-4 inline-block text-sm font-medium text-zinc-700 hover:text-zinc-900"
+                className="mt-3 inline-block text-sm font-medium text-zinc-700 hover:text-zinc-900"
               >
-                View booking →
+                Open booking →
               </Link>
             </li>
           ))}

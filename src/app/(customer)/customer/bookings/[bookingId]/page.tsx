@@ -4,16 +4,12 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getCustomerBookingDetail } from "@/features/dashboards/server/customerBookingReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { LifecycleTimeline } from "@/components/dashboard/LifecycleTimeline";
 import { PaymentIssuePanel } from "@/components/dashboard/PaymentIssuePanel";
-import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
-import { labelForCustomerBookingStatus } from "@/features/bookings/server/paymentFailureDisplay";
-import {
-  labelForPaymentStatus,
-  toneForBookingStatus,
-  toneForPaymentStatus,
-} from "@/features/bookings/server/statusLabels";
+import { CustomerBookingDetailsCard } from "@/components/dashboard/customer/CustomerBookingDetailsCard";
+import { CustomerBookingStatusHero } from "@/components/dashboard/customer/CustomerBookingStatusHero";
+import { CustomerBookingWhatHappensNext } from "@/components/dashboard/customer/CustomerBookingWhatHappensNext";
+import { CustomerLifecycleTimeline } from "@/components/dashboard/customer/CustomerLifecycleTimeline";
+import { CUSTOMER_BOOKING_DETAIL_CARD_CLASS } from "@/features/dashboards/customerBookingDetailDisplay";
 
 type PageProps = { params: Promise<{ bookingId: string }> };
 
@@ -35,102 +31,66 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
 
   return (
     <DashboardShell
-      title="Booking details"
-      subtitle={b.display.serviceLabel}
+      title="Your booking"
+      subtitle="Track payment, assignment, and service details in one place."
       nav={[
         { href: "/customer", label: "Home" },
         { href: "/customer/bookings", label: "Bookings" },
         { href: "/customer/book", label: "Book a clean" },
       ]}
     >
-      <Link href="/customer/bookings" className="text-sm text-zinc-600 hover:text-zinc-900">
+      <Link
+        href="/customer/bookings"
+        className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
+      >
         ← Back to bookings
       </Link>
 
-      <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
-        <section className="flex flex-wrap gap-2">
-          <StatusBadge
-            label={labelForCustomerBookingStatus(b.status, b.paymentFailureReason)}
-            tone={toneForBookingStatus(b.status)}
-          />
-          {b.status !== "payment_failed" ? (
-            <StatusBadge
-              label={labelForPaymentStatus(b.paymentStatus)}
-              tone={toneForPaymentStatus(b.paymentStatus)}
-            />
-          ) : null}
-        </section>
-
-        <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
-          <section>
-            <dt className="text-zinc-500">Schedule</dt>
-            <dd className="font-medium text-zinc-900">{b.scheduleLabel}</dd>
-          </section>
-          <section>
-            <dt className="text-zinc-500">Total</dt>
-            <dd className="font-medium text-zinc-900">{formatZar(b.priceCents, b.currency)}</dd>
-          </section>
-          <section>
-            <dt className="text-zinc-500">Location</dt>
-            <dd className="font-medium text-zinc-900">{b.display.locationSummary}</dd>
-          </section>
-          <section>
-            <dt className="text-zinc-500">Cleaner preference</dt>
-            <dd className="font-medium text-zinc-900">{b.cleanerPreferenceLabel}</dd>
-          </section>
-          {b.assignedCleanerLabel ? (
-            <section>
-              <dt className="text-zinc-500">Assignment</dt>
-              <dd className="font-medium text-emerald-700">{b.assignedCleanerLabel}</dd>
-            </section>
-          ) : null}
-        </dl>
-
-        {b.display.assignmentCustomerMessage ? (
-          <p className="mt-4 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
-            {b.display.assignmentCustomerMessage}
-          </p>
-        ) : null}
-
-        {b.display.specialInstructions ? (
-          <p className="mt-4 text-sm text-zinc-600">
-            <span className="font-medium text-zinc-800">Notes:</span> {b.display.specialInstructions}
-          </p>
-        ) : null}
-      </section>
-
-      {b.status === "payment_failed" ? (
-        <PaymentIssuePanel
-          bookingId={b.id}
-          customerEmail={customerEmail}
+      <section className="mt-4 space-y-3 sm:mt-5 sm:space-y-4">
+        <CustomerBookingStatusHero
+          serviceLabel={b.display.serviceLabel}
+          scheduleLabel={b.scheduleLabel}
+          locationSummary={b.display.locationSummary}
+          priceCents={b.priceCents}
+          currency={b.currency}
+          status={b.status}
+          paymentStatus={b.paymentStatus}
           paymentFailureReason={b.paymentFailureReason}
-          canRetryPayment={b.canRetryPayment}
         />
-      ) : null}
 
-      <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
-        <h2 className="text-sm font-semibold text-zinc-900">Payments</h2>
-        {b.payments.length === 0 ? (
-          <p className="mt-2 text-sm text-zinc-600">No payment records.</p>
+        {b.status === "payment_failed" ? (
+          <PaymentIssuePanel
+            bookingId={b.id}
+            customerEmail={customerEmail}
+            paymentFailureReason={b.paymentFailureReason}
+            canRetryPayment={b.canRetryPayment}
+          />
         ) : (
-          <ul className="mt-3 space-y-2 text-sm">
-            {b.payments.map((p) => (
-              <li key={p.id} className="flex justify-between gap-4">
-                <span>
-                  {labelForPaymentStatus(p.status)}
-                  {p.providerRef ? ` · ${p.providerRef}` : ""}
-                </span>
-                <span>{formatZar(p.amountCents, p.currency)}</span>
-              </li>
-            ))}
-          </ul>
+          <CustomerBookingWhatHappensNext status={b.status} />
         )}
-      </section>
 
-      <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
-        <h2 className="text-sm font-semibold text-zinc-900">Lifecycle</h2>
-        <section className="mt-4">
-          <LifecycleTimeline events={b.timeline} />
+        <CustomerBookingDetailsCard
+          serviceLabel={b.display.serviceLabel}
+          homeSizeSummary={b.display.homeSizeSummary}
+          frequencyLabel={b.display.frequencyLabel}
+          addonsSummary={b.display.addonsSummary}
+          cleanerPreferenceLabel={b.cleanerPreferenceLabel}
+          assignedCleanerLabel={b.assignedCleanerLabel}
+          assignmentCustomerMessage={b.display.assignmentCustomerMessage}
+          specialInstructions={b.display.specialInstructions}
+          priceCents={b.priceCents}
+          currency={b.currency}
+          payments={b.payments}
+        />
+
+        <section className={`${CUSTOMER_BOOKING_DETAIL_CARD_CLASS} p-4 sm:p-5`}>
+          <h2 className="text-sm font-medium text-zinc-800">Activity</h2>
+          <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">
+            Progress from payment through completion.
+          </p>
+          <section className="mt-3">
+            <CustomerLifecycleTimeline events={b.timeline} />
+          </section>
         </section>
       </section>
     </DashboardShell>

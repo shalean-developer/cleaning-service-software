@@ -7,14 +7,10 @@ import {
 } from "@/features/dashboards/server/cleanerJobReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
-import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { CleanerJobListCard } from "@/components/dashboard/cleaner/CleanerJobListCard";
+import { CleanerOfferListCard } from "@/components/dashboard/cleaner/CleanerOfferListCard";
 import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
-import {
-  labelForCleanerJobStatus,
-  labelForOfferStatus,
-  toneForCleanerJobStatus,
-  toneForOfferStatus,
-} from "@/features/bookings/server/statusLabels";
+import { CLEANER_DETAIL_CARD_CLASS } from "@/features/dashboards/cleanerJobDetailDisplay";
 
 export const metadata: Metadata = {
   title: "Cleaner | Cleaning Services",
@@ -36,55 +32,56 @@ export default async function CleanerHomePage() {
 
   return (
     <DashboardShell
-      title="Cleaner dashboard"
-      subtitle="Review offers and manage assigned jobs."
+      title="Cleaner home"
+      subtitle="Offers waiting for you and jobs on your schedule."
       nav={[...CLEANER_NAV_ITEMS]}
     >
-      <section className="grid gap-6 sm:grid-cols-2">
-        <section className="rounded-xl border border-zinc-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-zinc-900">Open offers</h2>
-          <p className="mt-1 text-2xl font-semibold text-zinc-900">
+      <section className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+        <section className={`${CLEANER_DETAIL_CARD_CLASS} p-4 sm:p-5`}>
+          <h2 className="text-sm font-medium text-zinc-800">Open offers</h2>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-zinc-900">
             {offersOk ? openOffers.length : "—"}
           </p>
-          <Link href="/cleaner/offers" className="mt-3 inline-block text-sm text-zinc-600 hover:text-zinc-900">
-            View offers →
+          <Link
+            href="/cleaner/offers"
+            className="mt-3 inline-block text-sm font-medium text-zinc-600 underline-offset-2 hover:text-zinc-900 hover:underline"
+          >
+            View all offers
           </Link>
         </section>
-        <section className="rounded-xl border border-zinc-200 bg-white p-5">
-          <h2 className="text-sm font-semibold text-zinc-900">Active jobs</h2>
-          <p className="mt-1 text-2xl font-semibold text-zinc-900">
+        <section className={`${CLEANER_DETAIL_CARD_CLASS} p-4 sm:p-5`}>
+          <h2 className="text-sm font-medium text-zinc-800">Active jobs</h2>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-zinc-900">
             {jobsOk ? activeJobs.length : "—"}
           </p>
-          <Link href="/cleaner/jobs" className="mt-3 inline-block text-sm text-zinc-600 hover:text-zinc-900">
-            View jobs →
+          <Link
+            href="/cleaner/jobs"
+            className="mt-3 inline-block text-sm font-medium text-zinc-600 underline-offset-2 hover:text-zinc-900 hover:underline"
+          >
+            View all jobs
           </Link>
         </section>
       </section>
 
       {offers && !offers.ok ? (
-        <section className="mt-8">
-          <DashboardFetchError
-            title="Could not load offers"
-            description={offers.message}
-          />
+        <section className="mt-6">
+          <DashboardFetchError title="Could not load offers" description={offers.message} />
         </section>
       ) : openOffers.length > 0 ? (
-        <section className="mt-8">
-          <h2 className="text-sm font-semibold text-zinc-900">Needs response</h2>
+        <section className="mt-6 sm:mt-8">
+          <h2 className="text-sm font-medium text-zinc-800">Needs your response</h2>
           <ul className="mt-3 space-y-3">
             {openOffers.slice(0, 3).map((o) => (
               <li key={o.offerId}>
-                <Link
+                <CleanerOfferListCard
                   href="/cleaner/offers"
-                  className="block rounded-xl border border-zinc-200 bg-white p-4 hover:border-zinc-300"
-                >
-                  <StatusBadge
-                    label={labelForOfferStatus(o.status)}
-                    tone={toneForOfferStatus(o.status)}
-                  />
-                  <p className="mt-2 font-medium text-zinc-900">{o.serviceLabel}</p>
-                  <p className="text-sm text-zinc-600">{o.scheduleLabel}</p>
-                </Link>
+                  serviceLabel={o.serviceLabel}
+                  scheduleLabel={o.scheduleLabel}
+                  locationSummary={o.locationSummary}
+                  earningsLabel={o.earningsLabel}
+                  status={o.status}
+                  isExpired={o.isExpired}
+                />
               </li>
             ))}
           </ul>
@@ -92,29 +89,23 @@ export default async function CleanerHomePage() {
       ) : null}
 
       {jobs && !jobs.ok ? (
-        <section className="mt-8">
-          <DashboardFetchError
-            title="Could not load jobs"
-            description={jobs.message}
-          />
+        <section className="mt-6">
+          <DashboardFetchError title="Could not load jobs" description={jobs.message} />
         </section>
       ) : activeJobs.length > 0 ? (
-        <section className="mt-8">
-          <h2 className="text-sm font-semibold text-zinc-900">Upcoming jobs</h2>
+        <section className="mt-6 sm:mt-8">
+          <h2 className="text-sm font-medium text-zinc-800">Upcoming jobs</h2>
           <ul className="mt-3 space-y-3">
             {activeJobs.slice(0, 3).map((j) => (
               <li key={j.bookingId}>
-                <Link
+                <CleanerJobListCard
                   href={`/cleaner/jobs/${j.bookingId}`}
-                  className="block rounded-xl border border-zinc-200 bg-white p-4 hover:border-zinc-300"
-                >
-                  <StatusBadge
-                    label={labelForCleanerJobStatus(j.status)}
-                    tone={toneForCleanerJobStatus(j.status)}
-                  />
-                  <p className="mt-2 font-medium text-zinc-900">{j.serviceLabel}</p>
-                  <p className="text-sm text-zinc-600">{j.scheduleLabel}</p>
-                </Link>
+                  serviceLabel={j.serviceLabel}
+                  scheduleLabel={j.scheduleLabel}
+                  locationSummary={j.locationSummary}
+                  earningsLabel={j.earningsLabel}
+                  status={j.status}
+                />
               </li>
             ))}
           </ul>

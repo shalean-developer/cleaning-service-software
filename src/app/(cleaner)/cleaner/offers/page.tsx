@@ -21,8 +21,8 @@ export default async function CleanerOffersPage() {
 
   return (
     <DashboardShell
-      title="Assignment offers"
-      subtitle="Accept or decline jobs offered to you."
+      title="Job offers"
+      subtitle="Review when, where, and pay — then accept or decline."
       nav={[...CLEANER_NAV_ITEMS]}
     >
       {!result.ok ? (
@@ -32,8 +32,8 @@ export default async function CleanerOffersPage() {
         />
       ) : result.offers.length === 0 ? (
         <EmptyState
-          title="No job offers right now"
-          description="New offers will appear here when jobs are available."
+          title="No offers right now"
+          description="New jobs will appear here when they match your area and availability."
         />
       ) : (
         <CleanerOffersList offers={result.offers} />
@@ -50,17 +50,17 @@ function CleanerOffersList({
   const { needsResponse, pastOffers } = partitionCleanerOffers(offers);
 
   return (
-    <section className="space-y-8">
+    <section className="space-y-6 sm:space-y-8">
       <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-700">
+        <h2 className="text-sm font-medium text-zinc-800">
           Needs your response{needsResponse.length > 0 ? ` (${needsResponse.length})` : ""}
         </h2>
         {needsResponse.length === 0 ? (
-          <p className="mt-3 text-sm text-zinc-600">
-            No offers need a response right now.
+          <p className="mt-2 text-sm leading-relaxed text-zinc-600">
+            You're all caught up — no offers need a response.
           </p>
         ) : (
-          <ul className="mt-3 space-y-4">
+          <ul className="mt-3 space-y-3">
             {needsResponse.map((offer) => (
               <li key={offer.offerId}>
                 <CleanerOfferCard offer={offer} />
@@ -72,10 +72,10 @@ function CleanerOffersList({
 
       {pastOffers.length > 0 ? (
         <section>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-700">
+          <h2 className="text-sm font-medium text-zinc-800">
             Past offers ({pastOffers.length})
           </h2>
-          <ul className="mt-3 space-y-4">
+          <ul className="mt-3 space-y-3">
             {pastOffers.map((offer) => (
               <li key={offer.offerId}>
                 <CleanerOfferCard offer={offer} />

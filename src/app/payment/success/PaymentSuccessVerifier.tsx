@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -8,6 +7,16 @@ import {
   parseVerifyPaymentResponse,
   resolvePaystackReference,
 } from "@/lib/app/paymentReturn";
+import { resolvePaymentSuccessVariant } from "@/lib/app/paymentReturnDisplay";
+import {
+  PaymentConfirmedPanel,
+  PaymentVerifyingPanel,
+  PaymentVerifyErrorPanel,
+} from "./PaymentReturnPanels";
+import {
+  PaymentVerificationPanel,
+  PaymentVerificationShell,
+} from "./PaymentVerificationShell";
 
 type Phase = "verifying" | "success" | "error";
 
@@ -15,7 +24,9 @@ export function PaymentSuccessVerifier() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [phase, setPhase] = useState<Phase>("verifying");
-  const [message, setMessage] = useState("Verifying payment…");
+  const [message, setMessage] = useState("Confirming payment…");
+  const [confirmedBookingId, setConfirmedBookingId] = useState<string | null>(null);
+  const [successIdempotent, setSuccessIdempotent] = useState(false);
   const inFlight = useRef(false);
 
   const runVerify = useCallback(async () => {
@@ -23,7 +34,7 @@ export function PaymentSuccessVerifier() {
     if (!reference) {
       setPhase("error");
       setMessage(
-        "No payment reference was found. If you completed payment, check your bookings or contact support.",
+        "We could not find a payment reference for this visit. If you completed checkout, open My bookings or contact support.",
       );
       return;
     }
@@ -31,7 +42,8 @@ export function PaymentSuccessVerifier() {
     if (inFlight.current) return;
     inFlight.current = true;
     setPhase("verifying");
-    setMessage("Verifying payment…");
+    setMessage("Confirming payment…");
+    setConfirmedBookingId(null);
 
     try {
       const response = await fetch(
@@ -49,10 +61,12 @@ export function PaymentSuccessVerifier() {
 
       if (result.paid && result.bookingId) {
         setPhase("success");
+        setConfirmedBookingId(result.bookingId);
+        setSuccessIdempotent(result.idempotent);
         setMessage(
           result.idempotent
-            ? "Payment already confirmed. Taking you to your booking…"
-            : "Payment successful! Taking you to your booking…",
+            ? "Payment already confirmed. Opening your booking…"
+            : "Payment confirmed. Opening your booking…",
         );
         window.setTimeout(() => {
           router.replace(customerBookingDetailPath(result.bookingId));
@@ -64,11 +78,13 @@ export function PaymentSuccessVerifier() {
       setMessage(
         !result.paid && result.message
           ? result.message
-          : `Payment is not complete yet (status: ${result.status || "unknown"}). Try again in a moment.`,
+          : "Payment is still processing. Wait a moment and try again.",
       );
     } catch {
       setPhase("error");
-      setMessage("Could not reach the server. Check your connection and try again.");
+      setMessage(
+        "We could not reach our servers. Check your connection and try again.",
+      );
     } finally {
       inFlight.current = false;
     }
@@ -79,47 +95,21 @@ export function PaymentSuccessVerifier() {
   }, [runVerify]);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-4 py-16">
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        {phase === "verifying" ? (
-          <div className="flex flex-col items-center gap-4 text-center">
-            <div
-              className="h-10 w-10 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-900"
-              role="status"
-              aria-label="Verifying"
-            />
-            <p className="text-sm text-zinc-700">{message}</p>
-          </div>
-        ) : null}
+    <PaymentVerificationShell>
+      <PaymentVerificationPanel busy={phase === "verifying"}>
+        {phase === "verifying" ? <PaymentVerifyingPanel statusMessage={message} /> : null}
 
-        {phase === "success" ? (
-          <div className="text-center">
-            <p className="text-lg font-semibold text-zinc-900">Thank you</p>
-            <p className="mt-2 text-sm text-zinc-600">{message}</p>
-          </div>
+        {phase === "success" && confirmedBookingId ? (
+          <PaymentConfirmedPanel
+            variant={resolvePaymentSuccessVariant(successIdempotent)}
+            bookingDetailHref={customerBookingDetailPath(confirmedBookingId)}
+          />
         ) : null}
 
         {phase === "error" ? (
-          <div className="flex flex-col gap-4">
-            <p className="text-sm text-red-800" role="alert">
-              {message}
-            </p>
-            <button
-              type="button"
-              onClick={() => void runVerify()}
-              className="rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white"
-            >
-              Try again
-            </button>
-            <Link
-              href="/customer/bookings"
-              className="text-center text-sm font-medium text-zinc-700 underline-offset-2 hover:underline"
-            >
-              View my bookings
-            </Link>
-          </div>
+          <PaymentVerifyErrorPanel message={message} onRetry={() => void runVerify()} />
         ) : null}
-      </section>
-    </main>
+      </PaymentVerificationPanel>
+    </PaymentVerificationShell>
   );
 }
