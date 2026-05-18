@@ -32,30 +32,27 @@ export function CleanerStepPanel({
 }: Props) {
   return (
     <div>
-      <WizardStepHeading
-        title="Cleaner preference"
-        subtitle="Choose a specific cleaner or let us assign the best match."
-      />
+      <WizardStepHeading title="Cleaner" />
 
       <button
         type="button"
         onClick={onSelectBestAvailable}
-        className={`mb-3 w-full rounded-xl border px-4 py-3 text-left ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${
+        className={`mb-2.5 w-full rounded-xl border px-4 py-2.5 text-left ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${
           cleanerPreferenceMode === "best_available"
             ? wizardCardClass(true)
             : wizardCardClass(false)
         }`}
       >
         <span className="font-medium text-zinc-900">Best available</span>
-        <span className="mt-1 block text-xs text-zinc-600">
-          We&apos;ll match the highest-rated eligible cleaner.
+        <span className="mt-0.5 block text-xs text-zinc-500">
+          Highest-rated eligible match.
         </span>
       </button>
 
       {loading && availableCleaners.length === 0 ? (
         <p className="text-sm text-zinc-600">{WIZARD_LOADING_CLEANERS_LABEL}</p>
       ) : (
-        <ul className="max-h-64 space-y-2 overflow-y-auto">
+        <ul className="max-h-64 space-y-1.5 overflow-y-auto">
           {availableCleaners.map((card) => {
             const selected =
               cleanerPreferenceMode === "selected" && selectedCleanerId === card.cleanerId;
@@ -82,7 +79,9 @@ export function CleanerStepPanel({
                       {card.rating.toFixed(1)}
                     </span>
                   ) : null}
-                  <span className="mt-1 block text-xs text-zinc-500">{card.eligibilityReason}</span>
+                  <span className="mt-0.5 block text-[0.6875rem] leading-snug text-zinc-500">
+                    {card.eligibilityReason}
+                  </span>
                 </button>
               </li>
             );

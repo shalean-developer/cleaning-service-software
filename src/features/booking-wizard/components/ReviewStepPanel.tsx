@@ -20,13 +20,10 @@ import {
   formatCleanerPreference,
   formatSelectedAddons,
   formatSuburbLocation,
-  getCleaningIntensityExplanation,
   getCleaningIntensityLabel,
   getEquipmentSupplyCustomerLabel,
-  getEquipmentSupplyExplanation,
   getFrequencyLabel,
   getTeamSupportCustomerLabel,
-  getTeamSupportExplanation,
 } from "../reviewDisplay";
 import { resolveWizardContactPhone } from "../contactPhone";
 import { formatZaMobileForDisplay } from "@/lib/validation/zaPhone";
@@ -149,61 +146,62 @@ export function ReviewStepPanel({
     serviceSlug === "regular-cleaning"
       ? getCleaningIntensityLabel(cleaningIntensity)
       : null;
-  const intensityExplanation =
-    serviceSlug === "regular-cleaning"
-      ? getCleaningIntensityExplanation(cleaningIntensity)
-      : null;
   const equipmentSupplyLabel =
     serviceSlug === "regular-cleaning"
       ? getEquipmentSupplyCustomerLabel(equipmentSupply)
       : null;
-  const equipmentSupplyExplanation =
-    serviceSlug === "regular-cleaning"
-      ? getEquipmentSupplyExplanation(equipmentSupply)
-      : null;
   const teamSupportLabel =
     serviceSlug === "regular-cleaning"
       ? getTeamSupportCustomerLabel(requestedTeamSize)
-      : null;
-  const teamSupportExplanation =
-    serviceSlug === "regular-cleaning"
-      ? getTeamSupportExplanation(requestedTeamSize)
       : null;
   const recurringScheduleNote = getRecurringScheduleExplanation(frequency);
   const hasAddons = addons.length > 0;
 
   return (
     <div>
-      <WizardStepHeading
-        title="Review your booking"
-        subtitle="Confirm everything looks right before you pay."
-      />
+      <WizardStepHeading title="Review" />
 
       <div className="mb-4 rounded-2xl border border-zinc-200 bg-gradient-to-b from-zinc-50 to-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">
-              {serviceLabel}
-            </p>
-            <p className="mt-2 text-base font-semibold leading-snug text-zinc-900">
-              {scheduleLabel}
-            </p>
-            <p className="mt-1 text-sm text-zinc-600">{locationLabel}</p>
-            {streetAddress !== "\u2014" ? (
-              <p className="mt-0.5 text-sm text-zinc-500">{streetAddress}</p>
-            ) : null}
-          </div>
-          {onEditStep ? (
-            <button
-              type="button"
-              onClick={() => onEditStep("datetime")}
-              className="shrink-0 text-sm font-medium text-zinc-600 underline-offset-2 hover:text-zinc-900 hover:underline"
-            >
-              Edit
-            </button>
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">
+            {serviceLabel}
+          </p>
+          <p className="mt-2 text-base font-semibold leading-snug text-zinc-900">
+            {locationLabel}
+          </p>
+          {streetAddress !== "\u2014" ? (
+            <p className="mt-0.5 text-sm text-zinc-500">{streetAddress}</p>
           ) : null}
         </div>
       </div>
+
+      <SectionCard title="Schedule" editStep="datetime" onEditStep={onEditStep}>
+        <dl className="space-y-2.5 text-sm">
+          <SummaryRow label="Date & time" value={scheduleLabel} />
+        </dl>
+        <div className="mt-4 rounded-xl border border-zinc-200/90 bg-zinc-50/90 p-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                Frequency
+              </p>
+              <p className="mt-0.5 text-sm font-semibold text-zinc-900">
+                {getFrequencyLabel(frequency)}
+              </p>
+              {recurringScheduleNote ? (
+                <p className="mt-1.5 text-xs leading-relaxed text-zinc-600">
+                  {recurringScheduleNote}
+                </p>
+              ) : null}
+            </div>
+            {isRecurringFrequency(frequency) ? (
+              <span className="shrink-0 rounded-full bg-zinc-900 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-white">
+                Recurring
+              </span>
+            ) : null}
+          </div>
+        </div>
+      </SectionCard>
 
       <SectionCard title="Home & plan" editStep="details" onEditStep={onEditStep}>
         <dl className="space-y-2.5 text-sm">
@@ -227,50 +225,15 @@ export function ReviewStepPanel({
             <SummaryRow label="Team support" value={teamSupportLabel} />
           ) : null}
         </dl>
-        {intensityExplanation ? (
-          <p className="mt-3 text-xs leading-relaxed text-zinc-600">{intensityExplanation}</p>
-        ) : null}
-        {equipmentSupplyExplanation ? (
-          <p className="mt-3 text-xs leading-relaxed text-zinc-600">{equipmentSupplyExplanation}</p>
-        ) : null}
-        {teamSupportExplanation ? (
-          <p className="mt-3 text-xs leading-relaxed text-zinc-600">{teamSupportExplanation}</p>
-        ) : null}
-
         <div className="mt-4 rounded-xl border border-zinc-200/90 bg-zinc-50/90 p-3">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-                Frequency
-              </p>
-              <p className="mt-0.5 text-sm font-semibold text-zinc-900">
-                {getFrequencyLabel(frequency)}
-              </p>
-              {recurringScheduleNote ? (
-                <p className="mt-1.5 text-xs leading-relaxed text-zinc-600">
-                  {recurringScheduleNote}
-                </p>
-              ) : null}
-            </div>
-            {isRecurringFrequency(frequency) ? (
-              <span className="shrink-0 rounded-full bg-zinc-900 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-white">
-                Recurring
-              </span>
-            ) : null}
-          </div>
-
-          <div className="mt-3 border-t border-zinc-200/80 pt-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-              Add-ons
-            </p>
-            <p
-              className={`mt-0.5 text-sm font-medium ${
-                hasAddons ? "text-zinc-900" : "text-zinc-500"
-              }`}
-            >
-              {formatSelectedAddons(addons)}
-            </p>
-          </div>
+          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Add-ons</p>
+          <p
+            className={`mt-0.5 text-sm font-medium ${
+              hasAddons ? "text-zinc-900" : "text-zinc-500"
+            }`}
+          >
+            {formatSelectedAddons(addons)}
+          </p>
         </div>
       </SectionCard>
 

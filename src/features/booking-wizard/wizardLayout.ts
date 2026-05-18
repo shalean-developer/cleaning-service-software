@@ -59,10 +59,13 @@ function getWidePickerShellClass(
   const paddingBottom =
     step === "service"
       ? WIZARD_SHELL_PB_SERVICE
-      : step === "details"
-        ? WIZARD_SHELL_PB_DETAILS_STICKY
-        : step === "review" || step === "checkout"
-          ? WIZARD_SHELL_PB_SUMMARY_STICKY
+      : step === "review" || step === "checkout"
+        ? WIZARD_SHELL_PB_SUMMARY_STICKY
+        : step === "datetime" ||
+            step === "location" ||
+            step === "details" ||
+            step === "cleaner"
+          ? WIZARD_SHELL_PB_DETAILS_STICKY
           : WIZARD_SHELL_PB_DEFAULT;
 
   return `${WIZARD_SHELL_WIDE_CLASS} ${paddingBottom}`;
@@ -86,10 +89,8 @@ export function getWizardShellClass(step: WizardStep): string {
 }
 
 export function getWizardCardClass(step: WizardStep): string {
-  const padding =
-    step === "service" ? "p-3 md:p-6" : step === "datetime" ? "p-4 md:p-6" : "p-4";
-
-  return `w-full rounded-2xl border border-zinc-200 bg-white shadow-sm ${padding}`;
+  void step;
+  return "w-full rounded-2xl border border-zinc-200 bg-white shadow-sm p-4 md:p-6";
 }
 
 /** Keeps stepper, card, and nav on the same horizontal track as the shell. */

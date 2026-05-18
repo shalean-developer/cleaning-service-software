@@ -58,18 +58,27 @@ describe("wizardLayout", () => {
     expect(getWizardNavClass("service")).toBeUndefined();
   });
 
-  it("reserves extra mobile padding for commerce sticky steps", () => {
+  it("reserves extra mobile padding for sticky nav steps", () => {
+    expect(getWizardShellClass("datetime")).toContain("7.5rem");
+    expect(getWizardShellClass("location")).toContain("7.5rem");
     expect(getWizardShellClass("details")).toContain("7.5rem");
+    expect(getWizardShellClass("cleaner")).toContain("7.5rem");
     expect(getWizardShellClass("review")).toContain("10.75rem");
     expect(getWizardShellClass("checkout")).toContain("10.75rem");
     expect(getWizardShellClass("review")).toContain("safe-area-inset-bottom");
   });
 
-  it("applies matching card padding for picker steps", () => {
-    expect(getWizardCardClass("service")).toContain("p-3 md:p-6");
-    expect(getWizardCardClass("datetime")).toContain("p-4 md:p-6");
-    expect(getWizardCardClass("location")).toBe(
-      "w-full rounded-2xl border border-zinc-200 bg-white shadow-sm p-4",
-    );
+  it("applies consistent card padding across picker steps", () => {
+    for (const step of [
+      "service",
+      "datetime",
+      "location",
+      "details",
+      "cleaner",
+      "review",
+      "checkout",
+    ] as const) {
+      expect(getWizardCardClass(step)).toContain("p-4 md:p-6");
+    }
   });
 });
