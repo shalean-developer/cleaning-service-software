@@ -1,4 +1,5 @@
 import { offerTeamRole } from "@/features/assignments/server/offerTeamRole";
+import type { CleanerLifecycleSnapshot } from "@/features/cleaners/server/lifecycle/operationalState";
 import type {
   AssignmentOfferRow,
   BookingCleanerRole,
@@ -24,8 +25,17 @@ function id(): string {
   return crypto.randomUUID();
 }
 
+const DEFAULT_OPERATIONAL_CLEANER: CleanerLifecycleSnapshot = {
+  active: true,
+  suspendedAt: null,
+  deletedAt: null,
+  onboardingCompletedAt: "2024-01-01T00:00:00.000Z",
+};
+
 export class InMemoryBookingCommandBackend implements BookingCommandBackend {
   bookings = new Map<string, BookingRow>();
+  /** Per-cleaner lifecycle overrides for command guard tests. */
+  cleanerLifecycleById = new Map<string, CleanerLifecycleSnapshot>();
   payments = new Map<string, PaymentRow>();
   offers = new Map<string, AssignmentOfferRow>();
   bookingCleaners = new Map<string, BookingCleanerRow>();
@@ -76,6 +86,16 @@ export class InMemoryBookingCommandBackend implements BookingCommandBackend {
       if (p.booking_id === bookingId && p.status === "paid") return true;
     }
     return false;
+  }
+
+  setCleanerLifecycle(cleanerId: string, snapshot: CleanerLifecycleSnapshot): void {
+    this.cleanerLifecycleById.set(cleanerId, snapshot);
+  }
+
+  async getCleanerLifecycleSnapshot(
+    cleanerId: string,
+  ): Promise<CleanerLifecycleSnapshot | null> {
+    return this.cleanerLifecycleById.get(cleanerId) ?? DEFAULT_OPERATIONAL_CLEANER;
   }
 
   async insertBooking(row: BookingRow): Promise<void> {

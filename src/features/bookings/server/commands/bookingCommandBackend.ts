@@ -10,6 +10,7 @@ import type {
   Json,
   PaymentRow,
 } from "@/lib/database/types";
+import type { CleanerLifecycleSnapshot } from "@/features/cleaners/server/lifecycle/operationalState";
 import type { BookingStatus } from "../types";
 import type { BookingCommand } from "./types";
 
@@ -34,6 +35,9 @@ export interface BookingCommandBackend {
     key: string | null | undefined,
   ): Promise<BookingStateAuditRow[]>;
   hasPaidPaymentForBooking(bookingId: string): Promise<boolean>;
+  getCleanerLifecycleSnapshot(
+    cleanerId: string,
+  ): Promise<CleanerLifecycleSnapshot | null>;
 
   insertBooking(row: BookingRow): Promise<void>;
   updateBookingMetadata(bookingId: string, metadata: Json): Promise<void>;

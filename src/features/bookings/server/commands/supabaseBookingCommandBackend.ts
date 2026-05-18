@@ -11,6 +11,7 @@ import type {
   Json,
   PaymentRow,
 } from "@/lib/database/types";
+import type { CleanerLifecycleSnapshot } from "@/features/cleaners/server/lifecycle/operationalState";
 import type { BookingStatus } from "../types";
 import type { BookingCommandBackend, TransitionResult } from "./bookingCommandBackend";
 import { buildAuditEnvelope } from "./bookingCommandAudit";
@@ -114,6 +115,24 @@ export class SupabaseBookingCommandBackend implements BookingCommandBackend {
       .eq("status", "paid");
     if (error) throw new Error(error.message);
     return (count ?? 0) > 0;
+  }
+
+  async getCleanerLifecycleSnapshot(
+    cleanerId: string,
+  ): Promise<CleanerLifecycleSnapshot | null> {
+    const { data, error } = await this.client
+      .from("cleaners")
+      .select("active, suspended_at, deleted_at, onboarding_completed_at")
+      .eq("id", cleanerId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return null;
+    return {
+      active: data.active,
+      suspendedAt: data.suspended_at,
+      deletedAt: data.deleted_at,
+      onboardingCompletedAt: data.onboarding_completed_at,
+    };
   }
 
   async insertBooking(row: BookingRow): Promise<void> {

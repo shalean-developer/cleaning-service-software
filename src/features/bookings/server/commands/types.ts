@@ -235,7 +235,8 @@ export type BookingCommandErrorCode =
   | "IDEMPOTENCY_REQUIRED"
   | "EARNINGS_NOT_FOUND"
   | "EARNINGS_INVALID"
-  | "EARNINGS_RECONCILIATION_BLOCKED";
+  | "EARNINGS_RECONCILIATION_BLOCKED"
+  | "CLEANER_NOT_OPERATIONAL";
 
 export type BookingCommandFailure = {
   ok: false;

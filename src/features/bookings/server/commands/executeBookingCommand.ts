@@ -25,6 +25,7 @@ import {
   assertActorAuthorizedForCommand,
   assertTransitionShape,
 } from "./bookingCommandGuards";
+import { assertCleanerOperationalForOffer } from "./cleanerOfferOperationalGuard";
 import type { BookingCommandBackend } from "./bookingCommandBackend";
 import type {
   BookingCommand,
@@ -441,6 +442,10 @@ export async function executeBookingCommand(
         }
       }
 
+      const offerLifecycle = await backend.getCleanerLifecycleSnapshot(cmd.cleanerId);
+      const offerOperationalGuard = assertCleanerOperationalForOffer(offerLifecycle);
+      if (offerOperationalGuard) return offerOperationalGuard;
+
       const ts = nowIso;
       const oid = crypto.randomUUID();
       try {
@@ -582,6 +587,12 @@ export async function executeBookingCommand(
         if (offer.status === "accepted") {
           return ok(booking.id, booking.status, true);
         }
+        const supportLifecycle = await backend.getCleanerLifecycleSnapshot(
+          offer.cleaner_id,
+        );
+        const supportOperationalGuard =
+          assertCleanerOperationalForOffer(supportLifecycle);
+        if (supportOperationalGuard) return supportOperationalGuard;
         if (offer.status !== "offered") {
           return fail("OFFER_NOT_OPEN", "Offer is not open for acceptance.");
         }
@@ -635,6 +646,11 @@ export async function executeBookingCommand(
       ) {
         return ok(booking.id, booking.status, true);
       }
+      const acceptLifecycle = await backend.getCleanerLifecycleSnapshot(
+        offer.cleaner_id,
+      );
+      const acceptOperationalGuard = assertCleanerOperationalForOffer(acceptLifecycle);
+      if (acceptOperationalGuard) return acceptOperationalGuard;
       const shape = assertTransitionShape(cmd, booking.status);
       if (shape) return shape;
       if (booking.status !== "pending_assignment") {
