@@ -11,9 +11,9 @@ describe("cleanerJobDetailDisplay", () => {
     expect(hero.expectedUpdate).toContain("Start");
   });
 
-  it("returns what to do next for in-progress jobs", () => {
+  it("returns what happens next for in-progress jobs", () => {
     const next = cleanerJobWhatHappensNext("in_progress");
-    expect(next?.title).toBe("What to do next");
+    expect(next?.title).toBe("What happens next");
     expect(next?.steps.some((s) => s.title === "Mark complete")).toBe(true);
   });
 

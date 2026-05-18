@@ -24,8 +24,8 @@ describe("customerBookingListCardLayers", () => {
       tone: "danger",
     });
     expect(layers.paymentStatusLine).toEqual({
-      text: "Payment incomplete — no cleaner assigned until checkout succeeds.",
-      tone: "danger",
+      text: "Payment incomplete — complete checkout to assign a cleaner.",
+      tone: "attention",
     });
     expect(layers.supportingMessage).toBeNull();
   });
@@ -40,7 +40,7 @@ describe("customerBookingListCardLayers", () => {
     });
 
     expect(layers.dominantBadge.label).toBe("Checkout expired");
-    expect(layers.paymentStatusLine?.tone).toBe("danger");
+    expect(layers.paymentStatusLine?.tone).toBe("attention");
     expect(layers.supportingMessage).toBeNull();
   });
 

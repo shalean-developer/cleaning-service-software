@@ -112,7 +112,7 @@ export function PaymentConfirmedPanel({
       >
         View booking details
       </Link>
-      <p className="text-center text-xs text-zinc-500">Redirecting automatically…</p>
+      <p className="text-center text-xs text-zinc-500">Opening your booking…</p>
     </div>
   );
 }
@@ -132,7 +132,7 @@ export function PaymentVerifyErrorPanel({
         </h2>
         <p className="text-sm leading-relaxed text-zinc-600">{PAYMENT_VERIFY_ERROR_INTRO}</p>
         <p
-          className="rounded-xl border border-amber-100 bg-amber-50/90 px-3 py-2.5 text-sm leading-relaxed text-amber-950"
+          className="break-words rounded-xl border border-amber-100 bg-amber-50/90 px-3 py-2.5 text-sm leading-relaxed text-amber-950"
           role="alert"
         >
           {message}
@@ -157,7 +157,7 @@ export function PaymentVerifyErrorPanel({
         <button
           type="button"
           onClick={onRetry}
-          className="rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white hover:bg-zinc-800"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white hover:bg-zinc-800"
         >
           Try again
         </button>

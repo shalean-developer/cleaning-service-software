@@ -11,8 +11,12 @@ import {
 } from "@/features/bookings/server/statusLabels";
 import type { BookingDisplayFields } from "@/features/dashboards/server/parseBookingDisplay";
 
-const PAYMENT_FAILED_LIST_HELPER =
-  "Payment incomplete — no cleaner assigned until checkout succeeds." as const;
+import {
+  CUSTOMER_PAYMENT_INCOMPLETE_LIST_HELPER,
+  customerBookingPaymentLineClass,
+} from "@/lib/app/dashboardEcosystemDisplay";
+
+export { customerBookingPaymentLineClass };
 
 export type CustomerBookingListCardLayersInput = {
   status: BookingStatus;
@@ -29,7 +33,7 @@ export type CustomerBookingListCardDominantBadge = {
 
 export type CustomerBookingListCardPaymentLine = {
   text: string;
-  tone: "muted" | "danger";
+  tone: "muted" | "attention";
 };
 
 export type CustomerBookingListCardSupportingMessage =
@@ -47,7 +51,7 @@ function paymentStatusLineForBooking(
   paymentStatus: PaymentStatus | null,
 ): CustomerBookingListCardPaymentLine | null {
   if (status === "payment_failed") {
-    return { text: PAYMENT_FAILED_LIST_HELPER, tone: "danger" };
+    return { text: CUSTOMER_PAYMENT_INCOMPLETE_LIST_HELPER, tone: "attention" };
   }
 
   if (

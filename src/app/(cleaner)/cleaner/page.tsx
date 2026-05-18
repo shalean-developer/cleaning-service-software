@@ -11,6 +11,7 @@ import { CleanerJobListCard } from "@/components/dashboard/cleaner/CleanerJobLis
 import { CleanerOfferListCard } from "@/components/dashboard/cleaner/CleanerOfferListCard";
 import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
 import { CLEANER_DETAIL_CARD_CLASS } from "@/features/dashboards/cleanerJobDetailDisplay";
+import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
 
 export const metadata: Metadata = {
   title: "Cleaner | Cleaning Services",
@@ -65,7 +66,10 @@ export default async function CleanerHomePage() {
 
       {offers && !offers.ok ? (
         <section className="mt-6">
-          <DashboardFetchError title="Could not load offers" description={offers.message} />
+          <DashboardFetchError
+            title={dashboardFetchErrorTitle("offers", "cleaner")}
+            description={offers.message}
+          />
         </section>
       ) : openOffers.length > 0 ? (
         <section className="mt-6 sm:mt-8">
@@ -90,7 +94,10 @@ export default async function CleanerHomePage() {
 
       {jobs && !jobs.ok ? (
         <section className="mt-6">
-          <DashboardFetchError title="Could not load jobs" description={jobs.message} />
+          <DashboardFetchError
+            title={dashboardFetchErrorTitle("jobs", "cleaner")}
+            description={jobs.message}
+          />
         </section>
       ) : activeJobs.length > 0 ? (
         <section className="mt-6 sm:mt-8">

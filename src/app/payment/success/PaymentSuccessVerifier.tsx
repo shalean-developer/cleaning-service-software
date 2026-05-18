@@ -7,6 +7,7 @@ import {
   parseVerifyPaymentResponse,
   resolvePaystackReference,
 } from "@/lib/app/paymentReturn";
+import { PAYMENT_VERIFY_STATUS_MESSAGE } from "@/lib/app/dashboardEcosystemDisplay";
 import { resolvePaymentSuccessVariant } from "@/lib/app/paymentReturnDisplay";
 import {
   PaymentConfirmedPanel,
@@ -24,7 +25,7 @@ export function PaymentSuccessVerifier() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [phase, setPhase] = useState<Phase>("verifying");
-  const [message, setMessage] = useState("Confirming payment…");
+  const [message, setMessage] = useState<string>(PAYMENT_VERIFY_STATUS_MESSAGE);
   const [confirmedBookingId, setConfirmedBookingId] = useState<string | null>(null);
   const [successIdempotent, setSuccessIdempotent] = useState(false);
   const inFlight = useRef(false);
@@ -34,7 +35,7 @@ export function PaymentSuccessVerifier() {
     if (!reference) {
       setPhase("error");
       setMessage(
-        "We could not find a payment reference for this visit. If you completed checkout, open My bookings or contact support.",
+        "We couldn't find a payment reference for this visit. If you completed checkout, open your bookings or contact support.",
       );
       return;
     }
@@ -42,7 +43,7 @@ export function PaymentSuccessVerifier() {
     if (inFlight.current) return;
     inFlight.current = true;
     setPhase("verifying");
-    setMessage("Confirming payment…");
+    setMessage(PAYMENT_VERIFY_STATUS_MESSAGE);
     setConfirmedBookingId(null);
 
     try {

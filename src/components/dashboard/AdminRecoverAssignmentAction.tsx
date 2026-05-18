@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { RecoveryEligibility } from "@/features/dashboards/server/adminOperationalHelpers";
+import { ADMIN_ACTION_ERROR_CLASS } from "@/lib/app/dashboardEcosystemDisplay";
 
 type Props = {
   bookingId: string;
@@ -99,7 +100,7 @@ export function AdminRecoverAssignmentAction({ bookingId, recoveryEligibility }:
         {loading ? "Recovering…" : "Run assignment recovery"}
       </button>
       {message ? <p className="mt-2 text-sm text-emerald-800">{message}</p> : null}
-      {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className={`mt-2 ${ADMIN_ACTION_ERROR_CLASS}`}>{error}</p> : null}
     </form>
   );
 }

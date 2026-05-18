@@ -9,11 +9,11 @@ import {
 describe("PaymentReturnPanels", () => {
   it("renders verifying panel with Paystack trust row", () => {
     const html = renderToStaticMarkup(
-      <PaymentVerifyingPanel statusMessage="Confirming payment…" />,
+      <PaymentVerifyingPanel statusMessage="Confirming your payment…" />,
     );
     expect(html).toContain("Secured by Paystack");
     expect(html).toContain("Confirming your payment");
-    expect(html).toContain("keep this window open");
+    expect(html).toContain("Keep this window open");
   });
 
   it("renders confirmed panel with next steps and booking CTA", () => {
@@ -27,7 +27,7 @@ describe("PaymentReturnPanels", () => {
     expect(html).toContain("What happens next");
     expect(html).toContain("Email updates");
     expect(html).toContain("View booking details");
-    expect(html).toContain("Redirecting automatically");
+    expect(html).toContain("Opening your booking");
   });
 
   it("renders trust row for checkout continuity", () => {

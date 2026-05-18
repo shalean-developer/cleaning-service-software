@@ -6,6 +6,7 @@ import {
   WIZARD_FOCUS_RING,
   wizardCardClass,
 } from "../wizardSelection";
+import { WIZARD_LOADING_CLEANERS_LABEL } from "@/lib/app/dashboardEcosystemDisplay";
 import type { CleanerPreferenceMode } from "../types";
 import { StarIcon } from "./wizardIcons";
 import { WizardStepHeading } from "./WizardStepHeading";
@@ -52,7 +53,7 @@ export function CleanerStepPanel({
       </button>
 
       {loading && availableCleaners.length === 0 ? (
-        <p className="text-sm text-zinc-600">Loading cleaners…</p>
+        <p className="text-sm text-zinc-600">{WIZARD_LOADING_CLEANERS_LABEL}</p>
       ) : (
         <ul className="max-h-64 space-y-2 overflow-y-auto">
           {availableCleaners.map((card) => {

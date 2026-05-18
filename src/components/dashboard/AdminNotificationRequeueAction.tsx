@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { AdminNotificationOutboxEntry } from "@/features/dashboards/server/types";
+import { ADMIN_ACTION_ERROR_CLASS } from "@/lib/app/dashboardEcosystemDisplay";
 
 type Props = {
   notification: AdminNotificationOutboxEntry;
@@ -132,7 +133,7 @@ export function AdminNotificationRequeueAction({ notification }: Props) {
             </button>
           </div>
           {message ? <p className="mt-2 text-xs text-emerald-800">{message}</p> : null}
-          {error ? <p className="mt-2 text-xs text-red-600">{error}</p> : null}
+          {error ? <p className={`mt-2 text-xs ${ADMIN_ACTION_ERROR_CLASS}`}>{error}</p> : null}
         </form>
       )}
     </div>

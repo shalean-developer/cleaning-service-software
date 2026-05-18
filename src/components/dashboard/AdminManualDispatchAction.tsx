@@ -4,6 +4,10 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { CleanerPublicCard } from "@/features/cleaners/server/types";
 import type { AdminOperationalStatus } from "@/features/dashboards/server/adminOperationalHelpers";
+import {
+  ADMIN_ACTION_ERROR_CLASS,
+  ADMIN_LOADING_ELIGIBLE_CLEANERS_LABEL,
+} from "@/lib/app/dashboardEcosystemDisplay";
 
 type Props = {
   bookingId: string;
@@ -128,7 +132,7 @@ export function AdminManualDispatchAction({ bookingId, operational }: Props) {
       </p>
 
       {loadingCleaners ? (
-        <p className="mt-3 text-sm text-amber-900/70">Loading eligible cleaners…</p>
+        <p className="mt-3 text-sm text-zinc-600">{ADMIN_LOADING_ELIGIBLE_CLEANERS_LABEL}</p>
       ) : cleaners.length === 0 ? (
         <p className="mt-3 text-sm text-amber-900/70">No cleaners returned for this booking.</p>
       ) : (
@@ -199,7 +203,7 @@ export function AdminManualDispatchAction({ bookingId, operational }: Props) {
         {loading ? "Sending offer…" : "Send offer to cleaner"}
       </button>
       {message ? <p className="mt-2 text-sm text-emerald-800">{message}</p> : null}
-      {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className={`mt-2 ${ADMIN_ACTION_ERROR_CLASS}`}>{error}</p> : null}
     </form>
   );
 }

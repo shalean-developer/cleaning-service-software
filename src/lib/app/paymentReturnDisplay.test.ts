@@ -9,7 +9,7 @@ import {
 describe("paymentReturnDisplay", () => {
   it("uses calm confirming copy for loading state", () => {
     expect(PAYMENT_VERIFY_LOADING_COPY.title).toBe("Confirming your payment");
-    expect(PAYMENT_VERIFY_LOADING_COPY.body).toContain("securely");
+    expect(PAYMENT_VERIFY_LOADING_COPY.body).toContain("Paystack");
   });
 
   it("uses lifecycle-safe success titles", () => {

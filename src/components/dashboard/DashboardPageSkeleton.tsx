@@ -1,3 +1,5 @@
+import { DASHBOARD_LOADING_SR_LABEL } from "@/lib/app/dashboardEcosystemDisplay";
+
 type Variant = "list" | "detail";
 
 type Props = {
@@ -71,7 +73,7 @@ export function DashboardPageSkeleton({ variant = "list", showShell = true }: Pr
   if (!showShell) {
     return (
       <section role="status" aria-busy="true" aria-live="polite">
-        <span className="sr-only">Loading dashboard…</span>
+        <span className="sr-only">{DASHBOARD_LOADING_SR_LABEL}</span>
         {body}
       </section>
     );
@@ -79,7 +81,7 @@ export function DashboardPageSkeleton({ variant = "list", showShell = true }: Pr
 
   return (
     <section className="min-h-screen bg-zinc-50" role="status" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading dashboard…</span>
+      <span className="sr-only">{DASHBOARD_LOADING_SR_LABEL}</span>
       <header className="border-b border-zinc-200 bg-white">
         <section className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <section className="space-y-2">

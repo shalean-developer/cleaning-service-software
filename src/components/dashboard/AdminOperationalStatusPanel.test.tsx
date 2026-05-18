@@ -44,7 +44,7 @@ describe("AdminOperationalStatusPanel", () => {
     );
 
     expect(html).toContain("Ops status");
-    expect(html).toContain("no status override");
+    expect(html).toContain("statuses are not overridden");
     expect(html).toContain(operational.paymentState);
     expect(html).toContain(operational.nextSuggestedAction);
   });

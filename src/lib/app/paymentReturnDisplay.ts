@@ -4,10 +4,10 @@ export const PAYMENT_VERIFY_TRUST_LABEL = "Secured by Paystack" as const;
 
 export const PAYMENT_VERIFY_LOADING_COPY = {
   title: "Confirming your payment",
-  body: "We're securely confirming your payment with Paystack. This usually takes a few seconds.",
+  body: "We're confirming your payment with Paystack. This usually takes a few seconds.",
   reassurance:
-    "Your booking updates automatically as soon as payment is confirmed — no need to refresh.",
-  footnote: "Please keep this window open while we finish up.",
+    "Your booking updates as soon as payment is confirmed — no need to refresh.",
+  footnote: "Keep this window open while we finish up.",
 } as const;
 
 export type PaymentSuccessVariant = "confirmed" | "already_confirmed";
@@ -29,11 +29,11 @@ export function paymentSuccessLead(variant: PaymentSuccessVariant): string {
 export const PAYMENT_SUCCESS_NEXT_STEPS = [
   {
     title: "Payment confirmed",
-    body: "Paystack has accepted your payment and your booking is no longer pending checkout.",
+    body: "Your payment is on file and your booking is active.",
   },
   {
     title: "Cleaner assignment",
-    body: "We match an eligible cleaner to your schedule and preferences after payment.",
+    body: "We match a cleaner to your schedule and preferences after payment.",
   },
   {
     title: "Booking details",
@@ -50,6 +50,6 @@ export const PAYMENT_VERIFY_ERROR_INTRO =
 
 export const PAYMENT_VERIFY_ERROR_NEXT_STEPS = [
   "Wait a few seconds, then tap Try again.",
-  "Open My bookings to see whether payment already went through.",
+  "Open your bookings to see whether payment already went through.",
   "Contact support if you were charged but your booking still shows unpaid.",
 ] as const;

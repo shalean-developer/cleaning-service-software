@@ -36,7 +36,7 @@ export function AdminOperationalQueueStrip({ queues, activeFilter }: Props) {
       <p className="mt-0.5 text-xs text-zinc-500">
         Exact counts · open a queue to review
       </p>
-      <div className="mt-2.5 flex gap-2 overflow-x-auto pb-0.5">
+      <div className="-mx-4 mt-2.5 flex gap-2 overflow-x-auto scroll-px-4 px-4 pb-0.5 sm:mx-0 sm:px-0">
         {queues.map((queue) => {
           const queueFilter = filterFromHref(queue.href);
           const active = Boolean(activeFilter && queueFilter === activeFilter);
@@ -47,7 +47,9 @@ export function AdminOperationalQueueStrip({ queues, activeFilter }: Props) {
               aria-current={active ? "true" : undefined}
               className={`flex min-w-[8.5rem] shrink-0 flex-col rounded-xl border px-2.5 py-2 transition-colors ${toneClasses(queue.tone, active)}`}
             >
-              <span className="text-[11px] font-medium leading-tight">{queue.label}</span>
+              <span className="text-[11px] font-medium leading-tight [overflow-wrap:anywhere]">
+                {queue.label}
+              </span>
               <span className="mt-0.5 text-lg font-semibold tabular-nums">{queue.count}</span>
             </Link>
           );

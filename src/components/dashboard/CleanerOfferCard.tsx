@@ -34,7 +34,7 @@ export function CleanerOfferCard({ offer }: Props) {
         isPast ? "opacity-90" : ""
       }`}
     >
-      <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">
+      <p className="break-words text-xs font-semibold uppercase tracking-wide text-sky-800">
         {offer.serviceLabel}
       </p>
 
@@ -62,7 +62,7 @@ export function CleanerOfferCard({ offer }: Props) {
         </div>
         <div className="sm:col-span-2">
           <dt className="text-xs font-medium text-zinc-500">Where</dt>
-          <dd className="mt-0.5 text-sm text-zinc-700">{offer.locationSummary}</dd>
+          <dd className="mt-0.5 break-words text-sm text-zinc-700">{offer.locationSummary}</dd>
         </div>
       </dl>
 

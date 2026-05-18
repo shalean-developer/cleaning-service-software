@@ -6,6 +6,7 @@ import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError"
 import { CustomerBookingsDashboard } from "@/components/dashboard/customer/CustomerBookingsDashboard";
 import { CustomerBookingsEmptyState } from "@/components/dashboard/customer/CustomerBookingsEmptyState";
 import { CustomerBookingsPageHeader } from "@/components/dashboard/customer/CustomerBookingsPageHeader";
+import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
 
 export const metadata: Metadata = {
   title: "My Bookings | Customer",
@@ -26,7 +27,7 @@ export default async function CustomerHomePage() {
     >
       {result && !result.ok ? (
         <DashboardFetchError
-          title="Could not load your bookings"
+          title={dashboardFetchErrorTitle("bookings", "customer")}
           description={result.message}
         />
       ) : result?.ok ? (
@@ -35,7 +36,7 @@ export default async function CustomerHomePage() {
           {allBookings.length === 0 ? (
             <CustomerBookingsEmptyState
               title="No bookings yet"
-              description="Book your first clean and it will appear here once checkout is complete."
+              description="Book a clean and it will show here once checkout is complete."
             />
           ) : (
             <CustomerBookingsDashboard bookings={allBookings} />

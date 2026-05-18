@@ -13,7 +13,7 @@ describe("PaymentVerificationShell", () => {
     expect(source).toContain('current="checkout"');
     expect(source).toContain("getWizardShellClass");
     expect(source).toContain("PaymentVerifyingPanel");
-    expect(source).toContain("Confirming payment");
+    expect(source).toContain("PAYMENT_VERIFY_STATUS_MESSAGE");
     expect(source).not.toMatch(/progress-bar|fake.*progress/i);
   });
 });

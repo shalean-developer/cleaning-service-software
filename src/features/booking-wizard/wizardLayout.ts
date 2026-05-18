@@ -2,14 +2,14 @@ import type { WizardStep } from "./types";
 
 /** Centered booking page shell shared across wizard steps. */
 export const WIZARD_SHELL_BASE =
-  "mx-auto flex min-h-screen w-full flex-col bg-zinc-50 px-4 py-6";
+  "mx-auto flex min-h-screen w-full flex-col overflow-x-clip bg-zinc-50 px-4 py-6";
 
 /** Primary picker and review steps — wide centered column. */
 export const WIZARD_SHELL_MAX_DESKTOP = "max-w-3xl";
 
 /** Literal wide shell for Tailwind scan + service/schedule parity (do not join dynamically). */
 export const WIZARD_SHELL_WIDE_CLASS =
-  "mx-auto flex min-h-screen w-full max-w-3xl flex-col bg-zinc-50 px-4 py-6";
+  "mx-auto flex min-h-screen w-full max-w-3xl flex-col overflow-x-clip bg-zinc-50 px-4 py-6";
 
 /** Default narrow column for steps not yet widened; schedule keeps this on mobile only. */
 export const WIZARD_SHELL_MAX_MOBILE = "max-w-lg";
@@ -94,6 +94,9 @@ export function getWizardCardClass(step: WizardStep): string {
 
 /** Keeps stepper, card, and nav on the same horizontal track as the shell. */
 export const WIZARD_MAIN_COLUMN_CLASS = "w-full min-w-0";
+
+/** Aligns sticky footer controls with the wizard column on wide phones. */
+export const WIZARD_STICKY_FOOTER_INNER_CLASS = "mx-auto w-full min-w-0 max-w-3xl";
 
 /** Desktop nav rhythm aligned with wide picker steps (service through checkout). */
 export function getWizardNavClass(step: WizardStep): string | undefined {

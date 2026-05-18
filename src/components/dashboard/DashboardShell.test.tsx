@@ -21,7 +21,7 @@ describe("DashboardShell (7P-1E)", () => {
     expect(html).toContain("hidden items-center gap-2 sm:flex");
     expect(html).toContain("sm:hidden");
     expect(html).toContain("Open menu");
-    expect(html).toContain('class="mx-auto max-w-5xl px-4 py-6 sm:py-8"');
+    expect(html).toContain('class="mx-auto min-w-0 max-w-5xl px-4 py-6 sm:py-8"');
     expect(html).not.toContain('class="mx-auto max-w-5xl px-4 py-8"');
   });
 

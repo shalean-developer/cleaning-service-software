@@ -74,7 +74,7 @@ function ServiceCardMobile({ service, selected, onSelect }: ServiceCardProps) {
       type="button"
       onClick={() => onSelect(service.slug)}
       aria-pressed={selected}
-      className={`relative flex w-full items-center gap-3 rounded-lg border px-3 py-3 pr-10 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 active:scale-[0.99] ${
+      className={`relative flex w-full min-w-0 items-center gap-3 rounded-lg border px-3 py-3 pr-10 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 active:scale-[0.99] ${
         selected
           ? "border-zinc-900 bg-zinc-50 ring-1 ring-zinc-900/10"
           : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50/50"

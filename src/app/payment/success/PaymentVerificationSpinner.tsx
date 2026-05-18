@@ -3,7 +3,7 @@ export function PaymentVerificationSpinner() {
     <div
       className="relative mx-auto flex h-16 w-16 items-center justify-center"
       role="status"
-      aria-label="Confirming payment"
+      aria-label="Confirming your payment"
     >
       <div className="absolute inset-0 rounded-full border-[3px] border-zinc-200" aria-hidden />
       <div

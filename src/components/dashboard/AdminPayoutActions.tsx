@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ADMIN_ACTION_ERROR_CLASS } from "@/lib/app/dashboardEcosystemDisplay";
 
 type Props = {
   bookingId: string;
@@ -62,7 +63,7 @@ export function AdminPayoutActions({ bookingId, status }: Props) {
           {loading === "paid" ? "Updating…" : "Mark paid out"}
         </button>
       ) : null}
-      {error ? <p className="w-full text-sm text-red-600">{error}</p> : null}
+      {error ? <p className={`w-full ${ADMIN_ACTION_ERROR_CLASS}`}>{error}</p> : null}
     </section>
   );
 }

@@ -9,7 +9,7 @@ export function AdminBookingNotificationsSection({ notifications }: Props) {
   return (
     <AdminNotificationOutboxTable
       notifications={notifications}
-      emptyMessage="No notification records for this booking yet."
+      emptyMessage="No notifications for this booking yet."
       showRequeueActions
     />
   );

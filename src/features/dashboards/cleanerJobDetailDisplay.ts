@@ -1,6 +1,7 @@
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { StatusBadgeTone } from "@/features/bookings/server/statusLabels";
 import { toneForCleanerJobStatus } from "@/features/bookings/server/statusLabels";
+import { LIFECYCLE_GUIDANCE_PANEL_TITLE } from "@/lib/app/dashboardEcosystemDisplay";
 
 /** Shared card shell for cleaner job/offer surfaces (presentation only). */
 export const CLEANER_DETAIL_CARD_CLASS =
@@ -74,7 +75,7 @@ export function cleanerJobWhatHappensNext(
   switch (status) {
     case "assigned":
       return {
-        title: "What to do next",
+        title: LIFECYCLE_GUIDANCE_PANEL_TITLE,
         steps: [
           {
             title: "Review the job",
@@ -92,7 +93,7 @@ export function cleanerJobWhatHappensNext(
       };
     case "in_progress":
       return {
-        title: "What to do next",
+        title: LIFECYCLE_GUIDANCE_PANEL_TITLE,
         steps: [
           {
             title: "Finish the clean",
@@ -112,7 +113,7 @@ export function cleanerJobWhatHappensNext(
     case "payout_ready":
     case "paid_out":
       return {
-        title: "What happens next",
+        title: LIFECYCLE_GUIDANCE_PANEL_TITLE,
         steps: [
           {
             title: "Job recorded",

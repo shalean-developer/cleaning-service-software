@@ -102,7 +102,7 @@ export function DashboardShellNav({ nav }: Props) {
 
         <nav
           id={menuId}
-          className={`fixed inset-x-0 top-14 z-50 border-b border-zinc-200 bg-white px-4 py-3 shadow-lg transition-[opacity,transform] duration-200 ${
+          className={`fixed inset-x-0 top-14 z-50 border-b border-zinc-200 bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg transition-[opacity,transform] duration-200 ${
             open
               ? "pointer-events-auto translate-y-0 opacity-100"
               : "pointer-events-none -translate-y-2 opacity-0"

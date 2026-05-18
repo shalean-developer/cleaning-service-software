@@ -43,7 +43,7 @@ export function JobCompletionActions({ bookingId, status }: Props) {
           type="button"
           disabled={loading !== null}
           onClick={() => call(`/api/cleaner/jobs/${bookingId}/start`, "start")}
-          className="w-full rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white shadow-[0_2px_10px_rgba(24,24,27,0.12)] disabled:opacity-50 sm:w-auto"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white shadow-[0_2px_10px_rgba(24,24,27,0.12)] disabled:opacity-50 sm:w-auto"
         >
           {loading === "start" ? "Starting…" : "Start job"}
         </button>
@@ -63,7 +63,7 @@ export function JobCompletionActions({ bookingId, status }: Props) {
           type="button"
           disabled={loading !== null}
           onClick={() => call(`/api/cleaner/jobs/${bookingId}/complete`, "complete")}
-          className="w-full rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white shadow-[0_2px_10px_rgba(24,24,27,0.12)] disabled:opacity-50 sm:w-auto"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white shadow-[0_2px_10px_rgba(24,24,27,0.12)] disabled:opacity-50 sm:w-auto"
         >
           {loading === "complete" ? "Completing…" : "Mark complete"}
         </button>

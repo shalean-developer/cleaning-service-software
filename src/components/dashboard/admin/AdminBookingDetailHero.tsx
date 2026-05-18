@@ -38,8 +38,10 @@ export function AdminBookingDetailHero({
     <section className={`${ADMIN_DETAIL_CARD_CLASS} overflow-hidden`}>
       <header className="border-b border-zinc-100 bg-zinc-50/60 px-4 py-3.5 sm:px-5">
         <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Service</p>
-        <h1 className="mt-0.5 text-lg font-semibold tracking-tight text-zinc-900">{serviceLabel}</h1>
-        <p className="mt-1 font-mono text-[11px] text-zinc-400">{bookingId}</p>
+        <h1 className="mt-0.5 break-words text-lg font-semibold tracking-tight text-zinc-900">
+          {serviceLabel}
+        </h1>
+        <p className="mt-1 break-all font-mono text-[11px] text-zinc-400">{bookingId}</p>
         <section className="mt-3 flex flex-wrap gap-1.5">
           {badges.map((badge) => (
             <StatusBadge key={badge.label} label={badge.label} tone={badge.tone} />
@@ -57,7 +59,7 @@ export function AdminBookingDetailHero({
                 {row.label}
               </dt>
               <dd
-                className={`mt-0.5 font-medium text-zinc-900 ${row.valueClassName ?? ""}`}
+                className={`mt-0.5 break-words font-medium text-zinc-900 ${row.valueClassName ?? ""}`}
               >
                 {row.value}
               </dd>

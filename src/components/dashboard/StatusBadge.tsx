@@ -28,7 +28,7 @@ export function StatusBadge({ label, tone = "neutral", variant = "default" }: Pr
 
   return (
     <span
-      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${palette[tone]} ${ring}`}
+      className={`inline-flex max-w-full rounded-full px-2.5 py-0.5 text-xs font-medium [overflow-wrap:anywhere] ${palette[tone]} ${ring}`}
     >
       {label}
     </span>

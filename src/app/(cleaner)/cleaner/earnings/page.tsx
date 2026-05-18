@@ -12,6 +12,7 @@ import {
   labelForPayoutStatus,
   toneForPayoutStatus,
 } from "@/features/bookings/server/statusLabels";
+import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
 
 export const metadata: Metadata = {
   title: "Earnings | Cleaner",
@@ -31,13 +32,13 @@ export default async function CleanerEarningsPage() {
     >
       {!result.ok ? (
         <DashboardFetchError
-          title="Could not load earnings"
+          title={dashboardFetchErrorTitle("earnings", "cleaner")}
           description={result.message}
         />
       ) : result.earnings.length === 0 ? (
         <EmptyState
           title="No earnings yet"
-          description="Complete assigned jobs to see earnings here."
+          description="Earnings from completed jobs will appear here."
           action={
             <Link
               href="/cleaner/jobs"

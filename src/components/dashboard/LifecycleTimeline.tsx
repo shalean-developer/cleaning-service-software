@@ -1,4 +1,5 @@
 import type { LifecycleEvent } from "@/features/dashboards/server/lifecycleTimeline";
+import { LIFECYCLE_EMPTY_TIMELINE_LABEL } from "@/lib/app/dashboardEcosystemDisplay";
 
 type Props = {
   events: LifecycleEvent[];
@@ -6,7 +7,7 @@ type Props = {
 
 export function LifecycleTimeline({ events }: Props) {
   if (events.length === 0) {
-    return <p className="text-sm text-zinc-500">No timeline events yet.</p>;
+    return <p className="text-sm text-zinc-500">{LIFECYCLE_EMPTY_TIMELINE_LABEL}</p>;
   }
 
   return (

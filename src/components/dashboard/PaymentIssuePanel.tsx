@@ -23,9 +23,9 @@ export function PaymentIssuePanel({
       <h2 className="text-sm font-semibold text-zinc-900">{copy.title}</h2>
       <p className="mt-2 text-sm leading-relaxed text-zinc-600">{copy.body}</p>
       <p className="mt-3 text-sm leading-relaxed text-zinc-600">
-        No cleaner is assigned until payment succeeds. Complete checkout to continue.
+        Complete checkout to confirm your booking and assign a cleaner.
       </p>
-      <section className="mt-4 flex flex-wrap items-center gap-3">
+      <section className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         {canRetryPayment ? (
           <RetryPaymentButton bookingId={bookingId} customerEmail={customerEmail} />
         ) : null}

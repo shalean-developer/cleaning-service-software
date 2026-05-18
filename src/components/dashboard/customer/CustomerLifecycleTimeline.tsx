@@ -1,4 +1,5 @@
 import type { LifecycleEvent } from "@/features/dashboards/server/lifecycleTimeline";
+import { LIFECYCLE_EMPTY_TIMELINE_HINT } from "@/lib/app/dashboardEcosystemDisplay";
 
 type Props = {
   events: LifecycleEvent[];
@@ -28,7 +29,7 @@ export function CustomerLifecycleTimeline({ events }: Props) {
   if (events.length === 0) {
     return (
       <p className="text-sm leading-relaxed text-zinc-500">
-        Activity will appear here after payment or assignment updates.
+        {LIFECYCLE_EMPTY_TIMELINE_HINT}
       </p>
     );
   }
@@ -78,7 +79,7 @@ export function CustomerLifecycleTimeline({ events }: Props) {
               ) : (
                 <>
                   <p
-                    className={`text-sm leading-snug ${
+                    className={`break-words text-sm leading-snug ${
                       isCurrent ? "font-semibold text-zinc-900" : "font-medium text-zinc-600"
                     }`}
                   >

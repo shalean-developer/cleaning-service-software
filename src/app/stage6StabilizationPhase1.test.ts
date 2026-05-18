@@ -17,7 +17,7 @@ describe("Stage 6 stabilization Phase 1 presentation fixes", () => {
 
     expect(source).toContain("DashboardFetchError");
     expect(source).toContain("!result.ok");
-    expect(source).toContain("Could not load your bookings");
+    expect(source).toContain('dashboardFetchErrorTitle("bookings", "customer")');
     expect(source).toContain("allBookings.length === 0");
     expect(source.indexOf("!result.ok")).toBeLessThan(source.indexOf("allBookings.length === 0"));
   });
@@ -26,7 +26,7 @@ describe("Stage 6 stabilization Phase 1 presentation fixes", () => {
     const source = readPage("src/app/(admin)/admin/bookings/page.tsx");
 
     expect(source).toContain("DashboardFetchError");
-    expect(source).toContain("Could not load bookings");
+    expect(source).toContain('dashboardFetchErrorTitle("bookings", "admin")');
     expect(source).not.toContain('className="text-sm text-red-600"');
   });
 
@@ -35,7 +35,7 @@ describe("Stage 6 stabilization Phase 1 presentation fixes", () => {
 
     expect(source).toContain("DashboardFetchError");
     expect(source).toContain('!result.ok');
-    expect(source).toContain("Could not load earnings");
+    expect(source).toContain('dashboardFetchErrorTitle("earnings", "cleaner")');
     expect(source).toContain("No earnings yet");
     expect(source).not.toContain("!result.ok || result.earnings.length === 0");
   });

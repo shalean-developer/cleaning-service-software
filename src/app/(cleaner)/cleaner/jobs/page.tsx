@@ -7,6 +7,7 @@ import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError"
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { CleanerJobListCard } from "@/components/dashboard/cleaner/CleanerJobListCard";
 import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
+import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
 
 export const metadata: Metadata = {
   title: "Jobs | Cleaner",
@@ -26,13 +27,13 @@ export default async function CleanerJobsPage() {
     >
       {!result.ok ? (
         <DashboardFetchError
-          title="Could not load jobs"
+          title={dashboardFetchErrorTitle("jobs", "cleaner")}
           description={result.message}
         />
       ) : result.jobs.length === 0 ? (
         <EmptyState
           title="No jobs yet"
-          description="When you accept an offer, the job will appear here with your schedule and pay."
+          description="Accepted offers appear here with your schedule and pay."
           action={
             <Link
               href="/cleaner/offers"

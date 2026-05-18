@@ -45,10 +45,10 @@ export function WizardContextStrip({
 
   return (
     <div
-      className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-zinc-200/90 bg-zinc-50/90 px-3 py-2 text-sm leading-snug"
+      className="mb-4 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-zinc-200/90 bg-zinc-50/90 px-3 py-2 text-sm leading-snug"
       aria-label="Booking context"
     >
-      <span className="font-medium text-sky-800">{serviceLabel}</span>
+      <span className="break-words font-medium text-sky-800">{serviceLabel}</span>
       {homeDetail ? (
         <>
           <span className="text-zinc-300" aria-hidden>

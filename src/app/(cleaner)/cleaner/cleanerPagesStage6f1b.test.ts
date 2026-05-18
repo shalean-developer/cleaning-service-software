@@ -12,9 +12,9 @@ describe("cleaner pages Stage 6F-1b empty/error wiring", () => {
 
     expect(source).toContain("DashboardFetchError");
     expect(source).toContain('!result.ok');
-    expect(source).toContain("Could not load offers");
+    expect(source).toContain('dashboardFetchErrorTitle("offers", "cleaner")');
     expect(source).toContain("No offers right now");
-    expect(source).toContain("New jobs will appear here when they match your area");
+    expect(source).toContain("Matching jobs in your area will show up here");
     expect(source).not.toContain('result.ok ? result.offers : []');
     expect(source).not.toContain('title="No offers"');
   });
@@ -24,9 +24,9 @@ describe("cleaner pages Stage 6F-1b empty/error wiring", () => {
 
     expect(source).toContain("DashboardFetchError");
     expect(source).toContain('!result.ok');
-    expect(source).toContain("Could not load jobs");
+    expect(source).toContain('dashboardFetchErrorTitle("jobs", "cleaner")');
     expect(source).toContain("No jobs yet");
-    expect(source).toContain("When you accept an offer, the job will appear here");
+    expect(source).toContain("Accepted offers appear here with your schedule and pay");
     expect(source).not.toContain("!result.ok || result.jobs.length === 0");
     expect(source).not.toContain('title="No assigned jobs"');
   });
@@ -37,8 +37,8 @@ describe("cleaner pages Stage 6F-1b empty/error wiring", () => {
     expect(source).toContain("DashboardFetchError");
     expect(source).toContain("offers && !offers.ok");
     expect(source).toContain("jobs && !jobs.ok");
-    expect(source).toContain('title="Could not load offers"');
-    expect(source).toContain('title="Could not load jobs"');
+    expect(source).toContain("dashboardFetchErrorTitle(\"offers\", \"cleaner\")");
+    expect(source).toContain("dashboardFetchErrorTitle(\"jobs\", \"cleaner\")");
     expect(source).toContain('offersOk ? openOffers.length : "—"');
     expect(source).toContain('jobsOk ? activeJobs.length : "—"');
     expect(source).not.toContain('text-xs text-red-700">Could not load offers');

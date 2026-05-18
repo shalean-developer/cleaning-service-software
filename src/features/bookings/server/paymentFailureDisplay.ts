@@ -98,13 +98,13 @@ export function normalizePaymentFailureReasonParam(
 }
 
 export const PAYMENT_FAILED_ASSIGNMENT_NOTE =
-  "No cleaner is assigned until payment succeeds." as const;
+  "Complete checkout to confirm your booking and assign a cleaner." as const;
 
 export const PAYMENT_FAILED_RETRY_GUIDANCE =
-  "Open your booking — when retry is available, use Retry payment to complete checkout." as const;
+  "Open your booking and use Retry payment when it is available." as const;
 
 export const PAYMENT_FAILED_SUPPORT_NOTE =
-  "Not sure if you were charged? Check My bookings first, or contact support with your booking reference." as const;
+  "Not sure if you were charged? Check your bookings first, or contact support with your booking reference." as const;
 
 /** Bookings the customer should treat as scheduled/upcoming work (paid path). */
 export function isUpcomingCustomerBooking(status: BookingStatus): boolean {

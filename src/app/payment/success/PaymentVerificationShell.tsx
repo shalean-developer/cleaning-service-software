@@ -4,6 +4,7 @@ import {
   getWizardShellClass,
   WIZARD_MAIN_COLUMN_CLASS,
 } from "@/features/booking-wizard/wizardLayout";
+import { PAYMENT_VERIFY_STATUS_MESSAGE } from "@/lib/app/dashboardEcosystemDisplay";
 import { PaymentVerifyingPanel } from "./PaymentReturnPanels";
 
 type Props = {
@@ -40,7 +41,7 @@ type PanelProps = {
 export function PaymentVerificationPanel({ children, busy }: PanelProps) {
   return (
     <section
-      className="w-[90%] max-w-lg rounded-2xl border border-zinc-200 bg-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.06)] sm:w-full sm:p-10 md:max-w-[32.5rem]"
+      className="w-full max-w-lg rounded-2xl border border-zinc-200 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] sm:p-10 md:max-w-[32.5rem]"
       aria-busy={busy === true ? true : undefined}
     >
       {children}
@@ -52,7 +53,7 @@ export function PaymentVerificationLoadingFallback() {
   return (
     <PaymentVerificationShell>
       <PaymentVerificationPanel busy>
-        <PaymentVerifyingPanel statusMessage="Confirming payment…" />
+        <PaymentVerifyingPanel statusMessage={PAYMENT_VERIFY_STATUS_MESSAGE} />
       </PaymentVerificationPanel>
     </PaymentVerificationShell>
   );

@@ -47,7 +47,9 @@ export function CustomerBookingStatusHero({
   return (
     <section className={`${CUSTOMER_BOOKING_DETAIL_CARD_CLASS} overflow-hidden`}>
       <div className="border-b border-zinc-100 px-4 py-4 sm:px-5 sm:py-5">
-        <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">{serviceLabel}</p>
+        <p className="break-words text-xs font-semibold uppercase tracking-wide text-sky-800">
+          {serviceLabel}
+        </p>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <StatusBadge
             label={labelForCustomerBookingStatus(status, paymentFailureReason)}
@@ -70,7 +72,9 @@ export function CustomerBookingStatusHero({
           </div>
           <div>
             <dt className="text-xs font-medium text-zinc-500">Where</dt>
-            <dd className="mt-0.5 text-sm font-medium text-zinc-900">{locationSummary}</dd>
+            <dd className="mt-0.5 break-words text-sm font-medium text-zinc-900">
+              {locationSummary}
+            </dd>
           </div>
           <div className="sm:col-span-2">
             <dt className="text-xs font-medium text-zinc-500">{amountLabel}</dt>

@@ -11,7 +11,7 @@ describe("admin payouts page (7P-1C)", () => {
     const source = readPage("src/app/(admin)/admin/payouts/page.tsx");
 
     expect(source).toContain("DashboardFetchError");
-    expect(source).toContain("Could not load payouts");
+    expect(source).toContain('dashboardFetchErrorTitle("payouts", "admin")');
     expect(source).toContain("description={result.message}");
     expect(source).not.toContain('className="text-sm text-red-600"');
   });

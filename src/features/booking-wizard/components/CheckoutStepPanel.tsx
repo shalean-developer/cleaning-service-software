@@ -124,7 +124,7 @@ export function CheckoutStepPanel({
         ) : null}
         {homeDetail ? <p className="mt-1 text-sm text-zinc-600">{homeDetail}</p> : null}
         {locationLabel !== "\u2014" ? (
-          <p className="mt-1 text-sm text-zinc-600">{locationLabel}</p>
+          <p className="mt-1 break-words text-sm text-zinc-600">{locationLabel}</p>
         ) : null}
       </section>
 

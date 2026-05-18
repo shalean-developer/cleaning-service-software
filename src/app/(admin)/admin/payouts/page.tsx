@@ -11,6 +11,7 @@ import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError"
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
+import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
 
 export const metadata: Metadata = {
   title: "Payouts | Admin",
@@ -30,7 +31,7 @@ export default async function AdminPayoutsPage() {
     >
       {!result.ok ? (
         <DashboardFetchError
-          title="Could not load payouts"
+          title={dashboardFetchErrorTitle("payouts", "admin")}
           description={result.message}
         />
       ) : (
@@ -72,7 +73,7 @@ export default async function AdminPayoutsPage() {
               <section className="mt-3">
                 <EmptyState
                   title="No bookings awaiting payout"
-                  description="Completed bookings with earnings appear here."
+                  description="Completed jobs with earnings ready for payout appear here."
                 />
               </section>
             ) : (

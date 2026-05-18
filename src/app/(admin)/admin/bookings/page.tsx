@@ -17,6 +17,7 @@ import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { EmptyState } from "@/components/dashboard/EmptyState";
+import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
 
 export const metadata: Metadata = {
   title: "Bookings | Admin",
@@ -95,7 +96,7 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
 
       {!result.ok ? (
         <DashboardFetchError
-          title="Could not load bookings"
+          title={dashboardFetchErrorTitle("bookings", "admin")}
           description={result.message}
         />
       ) : result.bookings.length === 0 ? (

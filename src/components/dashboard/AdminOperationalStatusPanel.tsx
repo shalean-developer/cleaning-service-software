@@ -20,7 +20,7 @@ export function AdminOperationalStatusPanel({ bookingId, operational }: Props) {
     <section className={`${ADMIN_DETAIL_CARD_CLASS} border-sky-200/80 bg-sky-50/30 p-4 sm:p-5`}>
       <h2 className={`${ADMIN_SECTION_TITLE_CLASS} text-sky-950`}>Ops status</h2>
       <p className={ADMIN_SECTION_MUTED_CLASS}>
-        Guidance and manual actions only — no status override.
+        Guidance and manual actions — statuses are not overridden here.
       </p>
 
       <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 sm:gap-x-5">

@@ -6,6 +6,7 @@ import {
 } from "@/features/bookings/server/paymentFailureDisplay";
 import type { StatusBadgeTone } from "@/features/bookings/server/statusLabels";
 import { toneForBookingStatus } from "@/features/bookings/server/statusLabels";
+import { LIFECYCLE_GUIDANCE_PANEL_TITLE } from "@/lib/app/dashboardEcosystemDisplay";
 
 /** Shared card shell for customer booking detail sections (presentation only). */
 export const CUSTOMER_BOOKING_DETAIL_CARD_CLASS =
@@ -112,7 +113,8 @@ export function customerBookingStatusHero(
   status: BookingStatus,
   paymentFailureReason: PaymentFailureReason,
 ): CustomerBookingStatusHeroPresentation {
-  const tone = toneForBookingStatus(status);
+  const tone =
+    status === "payment_failed" ? "warning" : toneForBookingStatus(status);
   const surfaces = HERO_SURFACE_BY_TONE[tone];
   const copy = heroCopyForStatus(status, paymentFailureReason);
 
@@ -148,7 +150,7 @@ export function customerBookingWhatHappensNext(
   switch (status) {
     case "pending_payment":
       return {
-        title: "What happens next",
+        title: LIFECYCLE_GUIDANCE_PANEL_TITLE,
         steps: [
           {
             title: "Secure checkout",
@@ -167,7 +169,7 @@ export function customerBookingWhatHappensNext(
       };
     case "confirmed":
       return {
-        title: "What happens next",
+        title: LIFECYCLE_GUIDANCE_PANEL_TITLE,
         steps: [
           {
             title: "Payment confirmed",
@@ -186,7 +188,7 @@ export function customerBookingWhatHappensNext(
       };
     case "pending_assignment":
       return {
-        title: "What happens next",
+        title: LIFECYCLE_GUIDANCE_PANEL_TITLE,
         steps: [
           {
             title: "Payment confirmed",
@@ -205,7 +207,7 @@ export function customerBookingWhatHappensNext(
       };
     case "assigned":
       return {
-        title: "What happens next",
+        title: LIFECYCLE_GUIDANCE_PANEL_TITLE,
         steps: [
           {
             title: "Cleaner confirmed",
@@ -224,7 +226,7 @@ export function customerBookingWhatHappensNext(
       };
     case "in_progress":
       return {
-        title: "What happens next",
+        title: LIFECYCLE_GUIDANCE_PANEL_TITLE,
         steps: [
           {
             title: "Clean in progress",

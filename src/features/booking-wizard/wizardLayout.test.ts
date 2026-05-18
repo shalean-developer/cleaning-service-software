@@ -5,6 +5,7 @@ import {
   getWizardShellClass,
   usesWideDesktopShell,
   WIZARD_MAIN_COLUMN_CLASS,
+  WIZARD_STICKY_FOOTER_INNER_CLASS,
 } from "./wizardLayout";
 
 describe("wizardLayout", () => {
@@ -21,6 +22,7 @@ describe("wizardLayout", () => {
       const shell = getWizardShellClass(step);
       expect(shell).toContain("max-w-3xl");
       expect(shell).toContain("w-full");
+      expect(shell).toContain("overflow-x-clip");
       expect(shell).not.toContain("max-w-lg");
       expect(shell).not.toContain("md:max-w-3xl");
     }
@@ -29,6 +31,7 @@ describe("wizardLayout", () => {
   it("keeps card and main column at full shell width", () => {
     expect(getWizardCardClass("datetime")).toContain("w-full");
     expect(WIZARD_MAIN_COLUMN_CLASS).toBe("w-full min-w-0");
+    expect(WIZARD_STICKY_FOOTER_INNER_CLASS).toContain("max-w-3xl");
   });
 
   it("marks service through checkout as wide desktop steps", () => {

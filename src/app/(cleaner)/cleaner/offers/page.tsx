@@ -8,6 +8,7 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
 import { EmptyState } from "@/components/dashboard/EmptyState";
+import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
 
 export const metadata: Metadata = {
   title: "Offers | Cleaner",
@@ -27,13 +28,13 @@ export default async function CleanerOffersPage() {
     >
       {!result.ok ? (
         <DashboardFetchError
-          title="Could not load offers"
+          title={dashboardFetchErrorTitle("offers", "cleaner")}
           description={result.message}
         />
       ) : result.offers.length === 0 ? (
         <EmptyState
           title="No offers right now"
-          description="New jobs will appear here when they match your area and availability."
+          description="Matching jobs in your area will show up here."
         />
       ) : (
         <CleanerOffersList offers={result.offers} />
@@ -57,7 +58,7 @@ function CleanerOffersList({
         </h2>
         {needsResponse.length === 0 ? (
           <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-            You're all caught up — no offers need a response.
+            You&apos;re all caught up — nothing needs a response right now.
           </p>
         ) : (
           <ul className="mt-3 space-y-3">

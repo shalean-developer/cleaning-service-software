@@ -32,7 +32,7 @@ describe("AdminBookingNotificationsSection", () => {
     const html = renderToStaticMarkup(
       <AdminBookingNotificationsSection notifications={[]} />,
     );
-    expect(html).toContain("No notification records for this booking yet.");
+    expect(html).toContain("No notifications for this booking yet.");
     expect(html).not.toContain("<table");
   });
 

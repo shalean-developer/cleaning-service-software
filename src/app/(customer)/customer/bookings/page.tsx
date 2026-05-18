@@ -6,7 +6,11 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { customerBookingListCardLayers } from "@/features/dashboards/customerBookingListCardDisplay";
+import {
+  customerBookingListCardLayers,
+  customerBookingPaymentLineClass,
+} from "@/features/dashboards/customerBookingListCardDisplay";
+import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
 
 export const metadata: Metadata = {
   title: "My bookings | Customer",
@@ -30,13 +34,13 @@ export default async function CustomerBookingsPage() {
     >
       {!result.ok ? (
         <DashboardFetchError
-          title="Could not load your bookings"
+          title={dashboardFetchErrorTitle("bookings", "customer")}
           description={result.message}
         />
       ) : result.bookings.length === 0 ? (
         <EmptyState
           title="No bookings yet"
-          description="When you complete checkout, your bookings will appear here."
+          description="Your bookings appear here after checkout is complete."
           action={
             <Link
               href="/customer/book"
@@ -66,13 +70,7 @@ export default async function CustomerBookingsPage() {
                   <p className="text-sm text-zinc-600">{b.scheduleLabel}</p>
                   <p className="mt-1 text-sm text-zinc-500">{b.display.locationSummary}</p>
                   {layers.paymentStatusLine ? (
-                    <p
-                      className={
-                        layers.paymentStatusLine.tone === "danger"
-                          ? "mt-2 text-sm text-red-700"
-                          : "mt-2 text-sm text-zinc-500"
-                      }
-                    >
+                    <p className={`mt-2 ${customerBookingPaymentLineClass(layers.paymentStatusLine.tone)}`}>
                       {layers.paymentStatusLine.text}
                     </p>
                   ) : null}

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { WIZARD_MOBILE_STICKY_FOOTER_CLASS } from "../wizardLayout";
+import {
+  WIZARD_MOBILE_STICKY_FOOTER_CLASS,
+  WIZARD_STICKY_FOOTER_INNER_CLASS,
+} from "../wizardLayout";
 import { WizardMobileStickyFooter } from "./WizardMobileStickyFooter";
 
 describe("WizardMobileStickyFooter", () => {
@@ -12,6 +15,7 @@ describe("WizardMobileStickyFooter", () => {
     );
 
     expect(html).toContain(WIZARD_MOBILE_STICKY_FOOTER_CLASS);
+    expect(html).toContain(WIZARD_STICKY_FOOTER_INNER_CLASS);
     expect(html).toContain("safe-area-inset-bottom");
     expect(html).toContain("Summary");
     expect(html).toContain("Continue");

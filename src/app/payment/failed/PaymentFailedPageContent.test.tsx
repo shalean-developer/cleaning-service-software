@@ -12,7 +12,7 @@ describe("PaymentFailedPageContent", () => {
       <PaymentFailedPageContent model={buildPaymentFailedPageModel({})} />,
     );
     expect(html).toContain("Payment not completed");
-    expect(html).toContain("No cleaner is assigned");
+    expect(html).toContain("Complete checkout to confirm your booking");
     expect(html).toContain("Go to my bookings");
     expect(html).not.toContain("View booking to retry payment");
   });

@@ -7,7 +7,7 @@ describe("DashboardPageSkeleton", () => {
     const html = renderToStaticMarkup(<DashboardPageSkeleton variant="list" />);
     expect(html).toContain('role="status"');
     expect(html).toContain('aria-busy="true"');
-    expect(html).toContain("Loading dashboard");
+    expect(html).toContain("Loading…");
   });
 
   it("renders detail variant section blocks", () => {

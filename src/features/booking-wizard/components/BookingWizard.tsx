@@ -22,6 +22,7 @@ import {
   getWizardShellClass,
   WIZARD_MAIN_COLUMN_CLASS,
   WIZARD_MOBILE_STICKY_FOOTER_CLASS,
+  WIZARD_STICKY_FOOTER_INNER_CLASS,
 } from "../wizardLayout";
 import { WizardStepper } from "./WizardStepper";
 import { WizardNav } from "./WizardNav";
@@ -325,7 +326,7 @@ export function BookingWizard({ customerEmail }: Props) {
       {apiError ? (
         <div
           role="alert"
-          className={`mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 ${WIZARD_MAIN_COLUMN_CLASS}`}
+          className={`mb-4 break-words rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 ${WIZARD_MAIN_COLUMN_CLASS}`}
         >
           {apiError}
         </div>
@@ -548,7 +549,9 @@ export function BookingWizard({ customerEmail }: Props) {
       </div>
 
       {isServiceStep ? (
-        <div className={WIZARD_MOBILE_STICKY_FOOTER_CLASS}>{wizardNavElement}</div>
+        <div className={WIZARD_MOBILE_STICKY_FOOTER_CLASS}>
+          <div className={WIZARD_STICKY_FOOTER_INNER_CLASS}>{wizardNavElement}</div>
+        </div>
       ) : usesMobileStickyFooter ? (
         <WizardMobileStickyFooter summary={mobileCommerceSummary}>
           {wizardNavElement}

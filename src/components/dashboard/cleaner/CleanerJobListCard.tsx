@@ -29,7 +29,9 @@ export function CleanerJobListCard({
       href={href}
       className={`block ${CLEANER_DETAIL_CARD_CLASS} p-4 transition-colors hover:border-zinc-300 sm:p-5`}
     >
-      <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">{serviceLabel}</p>
+      <p className="break-words text-xs font-semibold uppercase tracking-wide text-sky-800">
+        {serviceLabel}
+      </p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <StatusBadge
           label={labelForCleanerJobStatus(status)}
@@ -45,7 +47,7 @@ export function CleanerJobListCard({
         </div>
         <div className="sm:col-span-1">
           <dt className="text-xs font-medium text-zinc-500">Where</dt>
-          <dd className="mt-0.5 text-sm text-zinc-700">{locationSummary}</dd>
+          <dd className="mt-0.5 break-words text-sm text-zinc-700">{locationSummary}</dd>
         </div>
         <div>
           <dt className="text-xs font-medium text-zinc-500">Pay</dt>

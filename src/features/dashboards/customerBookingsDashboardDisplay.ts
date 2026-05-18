@@ -64,17 +64,17 @@ export function emptyStateForCustomerBookingTab(
     case "upcoming":
       return {
         title: "No upcoming bookings",
-        description: "When you book a clean, your scheduled services will show up here.",
+        description: "Scheduled cleans appear here after checkout.",
       };
     case "completed":
       return {
         title: "No completed bookings",
-        description: "Finished cleans will appear here once your service is done.",
+        description: "Finished cleans appear here after your service is done.",
       };
     case "cancelled":
       return {
         title: "No cancelled bookings",
-        description: "Bookings you cancel will be listed here for your records.",
+        description: "Cancelled bookings are kept here for your records.",
       };
     case "unpaid":
       return {
