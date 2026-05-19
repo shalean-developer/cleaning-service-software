@@ -418,13 +418,15 @@ export function BookingWizard({
                 />
               </Field>
             </div>
-            <Field label="Access notes (optional)">
-              <textarea
-                className={`${inputClass} min-h-[80px]`}
-                value={state.locationNotes}
-                onChange={(e) => patch({ locationNotes: e.target.value })}
-              />
-            </Field>
+            <div className="mt-4">
+              <Field label="Access notes (optional)">
+                <textarea
+                  className={`${inputClass} min-h-[80px]`}
+                  value={state.locationNotes}
+                  onChange={(e) => patch({ locationNotes: e.target.value })}
+                />
+              </Field>
+            </div>
           </>
         ) : null}
 
@@ -457,20 +459,29 @@ export function BookingWizard({
                 </Field>
               </div>
                 {state.serviceSlug === "regular-cleaning" ? (
-                  <div className="mb-4">
-                    <Field label="Extra rooms" error={stepErrors.extraRooms}>
-                      <p className="mb-2 text-xs leading-relaxed text-zinc-500">
-                        Add rooms like a study, laundry room, playroom, or second lounge.
-                      </p>
-                      <input
-                        type="number"
-                        min={0}
-                        max={6}
-                        className={inputClass}
-                        value={state.extraRooms}
-                        onChange={(e) => patch({ extraRooms: Number(e.target.value) })}
-                      />
-                    </Field>
+                  <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3 md:items-end">
+                    <div className="min-w-0 [&>label]:mb-0">
+                      <Field label="Extra rooms" error={stepErrors.extraRooms}>
+                        <input
+                          type="number"
+                          min={0}
+                          max={6}
+                          className={inputClass}
+                          value={state.extraRooms}
+                          onChange={(e) => patch({ extraRooms: Number(e.target.value) })}
+                        />
+                      </Field>
+                    </div>
+                    <EquipmentSupplyStepPanel
+                      value={state.equipmentSupply}
+                      onChange={(equipmentSupply) => patch({ equipmentSupply })}
+                      error={stepErrors.equipmentSupply}
+                    />
+                    <TeamSupportStepPanel
+                      value={state.requestedTeamSize}
+                      onChange={(requestedTeamSize) => patch({ requestedTeamSize })}
+                      error={stepErrors.requestedTeamSize}
+                    />
                   </div>
                 ) : null}
                 {state.serviceSlug === "regular-cleaning" ? (
@@ -478,20 +489,6 @@ export function BookingWizard({
                     value={state.cleaningIntensity}
                     onChange={(cleaningIntensity) => patch({ cleaningIntensity })}
                     error={stepErrors.cleaningIntensity}
-                  />
-                ) : null}
-                {state.serviceSlug === "regular-cleaning" ? (
-                  <EquipmentSupplyStepPanel
-                    value={state.equipmentSupply}
-                    onChange={(equipmentSupply) => patch({ equipmentSupply })}
-                    error={stepErrors.equipmentSupply}
-                  />
-                ) : null}
-                {state.serviceSlug === "regular-cleaning" ? (
-                  <TeamSupportStepPanel
-                    value={state.requestedTeamSize}
-                    onChange={(requestedTeamSize) => patch({ requestedTeamSize })}
-                    error={stepErrors.requestedTeamSize}
                   />
                 ) : null}
               </>

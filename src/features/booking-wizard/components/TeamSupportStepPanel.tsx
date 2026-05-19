@@ -1,9 +1,4 @@
-import { TEAM_SUPPORT_STEP_OPTIONS } from "../constants";
-import {
-  WIZARD_CARD_TRANSITION,
-  WIZARD_FOCUS_RING,
-  wizardCardClass,
-} from "../wizardSelection";
+import { DetailsToggleSwitch, DETAILS_TOGGLE_CONTROL_CARD } from "./DetailsToggleSwitch";
 
 type Props = {
   value: 1 | 2;
@@ -12,49 +7,29 @@ type Props = {
 };
 
 export function TeamSupportStepPanel({ value, onChange, error }: Props) {
+  const teamSupport = value === 2;
+
   return (
-    <div className="mb-4 min-w-0">
-      <span
-        id="team-support-step-label"
-        className="mb-1 block text-sm font-medium text-zinc-800"
-      >
+    <div className="flex min-w-0 flex-col">
+      <span id="team-support-step-label" className="mb-1 block text-sm font-medium text-zinc-800">
         Team support
       </span>
-      <p className="mb-2 text-xs leading-relaxed text-zinc-500">
-        Choose 2 cleaners for larger homes or faster completion. Team availability will be
-        confirmed after payment.
-      </p>
 
       <div
-        className="grid gap-2 sm:grid-cols-2 sm:gap-3"
-        role="radiogroup"
+        className={DETAILS_TOGGLE_CONTROL_CARD}
+        role="group"
         aria-labelledby="team-support-step-label"
       >
-        {TEAM_SUPPORT_STEP_OPTIONS.map((option) => {
-          const selected = value === option.value;
-
-          return (
-            <button
-              key={option.value}
-              type="button"
-              role="radio"
-              aria-checked={selected}
-              onClick={() => onChange(option.value)}
-              className={`flex min-w-0 flex-col rounded-2xl border px-3 py-3 text-left sm:px-3.5 sm:py-3.5 ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${wizardCardClass(selected)}`}
-            >
-              <span className="block text-sm font-semibold leading-snug text-zinc-900">
-                {option.label}
-              </span>
-              <span className="mt-1 block text-xs leading-snug text-zinc-500">
-                {option.description}
-              </span>
-            </button>
-          );
-        })}
+        <span className="text-sm text-zinc-900">{teamSupport ? "Yes" : "No"}</span>
+        <DetailsToggleSwitch
+          checked={teamSupport}
+          label="Request team support"
+          onToggle={() => onChange(teamSupport ? 1 : 2)}
+        />
       </div>
 
       {error ? (
-        <p className="mt-2 text-sm text-red-600" role="alert">
+        <p className="mt-1 text-sm text-red-600" role="alert">
           {error}
         </p>
       ) : null}
