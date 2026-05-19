@@ -1,4 +1,5 @@
-import { WIZARD_JOB_DURATION_MINUTES, WIZARD_TIMEZONE } from "./constants";
+import { WIZARD_JOB_DURATION_MINUTES } from "./constants";
+import { minBookableDateString as minBookableDateStringFromUtils } from "./dateStringUtils";
 
 export type BookingSlot = {
   scheduledStart: string;
@@ -33,13 +34,7 @@ export function isSlotInPast(date: string, time: string, now: Date = new Date())
 }
 
 export function minBookableDateString(now: Date = new Date()): string {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: WIZARD_TIMEZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  return formatter.format(now);
+  return minBookableDateStringFromUtils(now);
 }
 
-export { WIZARD_TIMEZONE };
+export { WIZARD_TIMEZONE } from "./constants";

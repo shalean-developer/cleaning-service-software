@@ -15,7 +15,7 @@ import {
 
 describe("scheduleStepDisplay", () => {
   it("builds exactly 7 weekday-labelled date options from minDate", () => {
-    const options = buildScheduleDateOptions("2026-05-18");
+    const options = buildScheduleDateOptions("2026-05-18", 0, "2026-08-16");
     expect(options).toHaveLength(SCHEDULE_DATE_OPTION_COUNT);
     expect(options[0]).toMatchObject({
       value: "2026-05-18",
@@ -59,8 +59,16 @@ describe("scheduleStepDisplay", () => {
     ).toEqual({ canScrollLeft: true, canScrollRight: false });
   });
 
+  it("disables date cards beyond maxDate in a paginated window", () => {
+    const options = buildScheduleDateOptions("2026-05-18", 84, "2026-08-16");
+    expect(options.some((option) => option.value === "2026-08-16" && !option.disabled)).toBe(
+      true,
+    );
+    expect(options.every((option) => option.value <= "2026-08-16")).toBe(true);
+  });
+
   it("resolves adjacent enabled dates for non-overflow navigation", () => {
-    const options = buildScheduleDateOptions("2026-05-18");
+    const options = buildScheduleDateOptions("2026-05-18", 0, "2026-08-16");
 
     expect(resolveScheduleDateArrowNavigationState(options, "2026-05-18")).toEqual({
       canGoPrevious: false,

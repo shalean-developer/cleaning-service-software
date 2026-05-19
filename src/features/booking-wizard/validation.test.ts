@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { calculateQuote } from "@/features/pricing/server/calculateQuote";
 import { INITIAL_WIZARD_STATE } from "./types";
 import { filledState } from "./testFixtures";
@@ -14,6 +14,10 @@ import {
 } from "./validation";
 
 describe("booking wizard validation", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("requires service on step 1", () => {
     const result = validateServiceStep(INITIAL_WIZARD_STATE);
     expect(result.valid).toBe(false);
@@ -83,6 +87,15 @@ describe("booking wizard validation", () => {
     );
     expect(result.valid).toBe(false);
     expect(result.errors.date).toMatch(/future/i);
+  });
+
+  it("blocks dates beyond the extended booking window", () => {
+    vi.stubEnv("NEXT_PUBLIC_BOOKING_EXTENDED_WINDOW_ENABLED", "true");
+    const result = validateDateTimeStep(
+      filledState({ date: "2099-01-01", time: "08:00" }),
+    );
+    expect(result.valid).toBe(false);
+    expect(result.errors.date).toMatch(/within the next 90 days/i);
   });
 
   it("blocks ineligible selected cleaner", () => {

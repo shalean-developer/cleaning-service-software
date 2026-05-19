@@ -1,3 +1,4 @@
+import { addDaysToDateString, minBookableDateString } from "./dateStringUtils";
 import { INITIAL_WIZARD_STATE, type BookingWizardState } from "./types";
 
 export function filledState(
@@ -6,7 +7,7 @@ export function filledState(
   return {
     ...INITIAL_WIZARD_STATE,
     serviceSlug: "regular-cleaning",
-    date: "2030-06-01",
+    date: addDaysToDateString(minBookableDateString(), 7),
     time: "10:00",
     addressLine1: "12 Main Rd",
     suburb: "Cape Town",

@@ -87,6 +87,7 @@ describe("createBookingPaymentLock", () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
   });
 
   it("returns PROVISIONING_INCOMPLETE when customer row is missing", async () => {
@@ -99,6 +100,23 @@ describe("createBookingPaymentLock", () => {
     if (result.ok) return;
     expect(result.code).toBe("PROVISIONING_INCOMPLETE");
     expect(result.status).toBe(403);
+  });
+
+  it("rejects schedules beyond the advance booking window", async () => {
+    vi.stubEnv("BOOKING_EXTENDED_WINDOW_ENABLED", "true");
+    const { createBookingPaymentLock } = await import("./createBookingPaymentLock");
+    const beyond = new Date("2099-06-01T10:00:00+02:00");
+    const result = await createBookingPaymentLock(
+      user,
+      baseInput({
+        scheduledStart: beyond.toISOString(),
+        scheduledEnd: new Date(beyond.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+      }),
+    );
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe("INVALID_SCHEDULE");
+    expect(result.message).toMatch(/advance booking window/i);
   });
 
   it("rejects client quote mismatch", async () => {

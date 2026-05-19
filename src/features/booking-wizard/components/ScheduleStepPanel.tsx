@@ -9,6 +9,14 @@ import {
   type ReactNode,
 } from "react";
 import {
+  canShiftDateWindowBack,
+  canShiftDateWindowForward,
+  resolveBookingWindowBounds,
+  resolveDateWindowStartOffsetForDate,
+  resolveMaxDateWindowStartOffset,
+  VISIBLE_DATE_OPTION_COUNT,
+} from "../bookingWindowConfig";
+import {
   buildScheduleDateOptions,
   formatTimeSlotLabel,
   isScheduleTimeSlotDisabled,
@@ -76,6 +84,10 @@ type DateScrollRowProps = {
   selectedDate: string;
   dateOptions: ScheduleDateOption[];
   onDateChange: (value: string) => void;
+  minDate: string;
+  maxDate: string;
+  windowStartOffsetDays: number;
+  onWindowStartOffsetChange: (offset: number) => void;
 };
 
 function DateScrollRow({
@@ -83,6 +95,10 @@ function DateScrollRow({
   selectedDate,
   dateOptions,
   onDateChange,
+  minDate,
+  maxDate,
+  windowStartOffsetDays,
+  onWindowStartOffsetChange,
 }: DateScrollRowProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
@@ -163,9 +179,39 @@ function DateScrollRow({
     if (nextValue) onDateChange(nextValue);
   };
 
+  const shiftWindow = (direction: -1 | 1) => {
+    const step = VISIBLE_DATE_OPTION_COUNT;
+    const maxOffset = resolveMaxDateWindowStartOffset(minDate, maxDate);
+    const nextOffset = Math.max(
+      0,
+      Math.min(windowStartOffsetDays + direction * step, maxOffset),
+    );
+    if (nextOffset !== windowStartOffsetDays) {
+      onWindowStartOffsetChange(nextOffset);
+    }
+  };
+
+  const canShiftBack = canShiftDateWindowBack(windowStartOffsetDays);
+  const canShiftForward = canShiftDateWindowForward(
+    minDate,
+    windowStartOffsetDays,
+    maxDate,
+  );
+
   const handlePrevious = () => {
     if (hasOverflow) {
-      scrollByStep(-1);
+      if (canScrollLeft) {
+        scrollByStep(-1);
+        return;
+      }
+      if (canShiftBack) {
+        shiftWindow(-1);
+        return;
+      }
+      return;
+    }
+    if (!dateNavigation.canGoPrevious && canShiftBack) {
+      shiftWindow(-1);
       return;
     }
     selectAdjacentDate(-1);
@@ -173,14 +219,29 @@ function DateScrollRow({
 
   const handleNext = () => {
     if (hasOverflow) {
-      scrollByStep(1);
+      if (canScrollRight) {
+        scrollByStep(1);
+        return;
+      }
+      if (canShiftForward) {
+        shiftWindow(1);
+        return;
+      }
+      return;
+    }
+    if (!dateNavigation.canGoNext && canShiftForward) {
+      shiftWindow(1);
       return;
     }
     selectAdjacentDate(1);
   };
 
-  const previousDisabled = hasOverflow ? !canScrollLeft : !dateNavigation.canGoPrevious;
-  const nextDisabled = hasOverflow ? !canScrollRight : !dateNavigation.canGoNext;
+  const previousDisabled = hasOverflow
+    ? !canScrollLeft && !canShiftBack
+    : !dateNavigation.canGoPrevious && !canShiftBack;
+  const nextDisabled = hasOverflow
+    ? !canScrollRight && !canShiftForward
+    : !dateNavigation.canGoNext && !canShiftForward;
   const previousLabel = hasOverflow ? "Scroll dates backward" : "Previous available date";
   const nextLabel = hasOverflow ? "Scroll dates forward" : "Next available date";
 
@@ -288,7 +349,25 @@ export function ScheduleStepPanel({
   onDateChange,
   onTimeChange,
 }: Props) {
-  const dateOptions = useMemo(() => buildScheduleDateOptions(minDate), [minDate]);
+  const bookingBounds = useMemo(
+    () => resolveBookingWindowBounds(undefined, undefined, { client: true }),
+    [],
+  );
+  const maxDate = bookingBounds.maxDate;
+
+  const [windowStartOffsetDays, setWindowStartOffsetDays] = useState(0);
+
+  useEffect(() => {
+    if (!date) return;
+    setWindowStartOffsetDays(
+      resolveDateWindowStartOffsetForDate(minDate, date, maxDate),
+    );
+  }, [date, minDate, maxDate]);
+
+  const dateOptions = useMemo(
+    () => buildScheduleDateOptions(minDate, windowStartOffsetDays, maxDate),
+    [minDate, maxDate, windowStartOffsetDays],
+  );
   const timeSlots = useMemo(() => resolveScheduleTimeSlots(time), [time]);
 
   const selectedDateInList = dateOptions.some((o) => o.value === date && !o.disabled);
@@ -314,6 +393,10 @@ export function ScheduleStepPanel({
             selectedDate={date}
             dateOptions={dateOptions}
             onDateChange={onDateChange}
+            minDate={minDate}
+            maxDate={maxDate}
+            windowStartOffsetDays={windowStartOffsetDays}
+            onWindowStartOffsetChange={setWindowStartOffsetDays}
           >
             {dateOptions.map((option) => (
               <DateCard
@@ -350,6 +433,7 @@ export function ScheduleStepPanel({
           className="sr-only"
           tabIndex={-1}
           min={minDate}
+          max={maxDate}
           value={date}
           onChange={(e) => onDateChange(e.target.value)}
         />

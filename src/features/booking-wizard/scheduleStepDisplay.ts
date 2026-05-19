@@ -1,5 +1,8 @@
 import { WIZARD_TIMEZONE } from "./constants";
+import { addDaysToDateString } from "./dateStringUtils";
 import { isSlotInPast } from "./slot";
+
+export { addDaysToDateString } from "./dateStringUtils";
 
 /** Display-only preset arrival times (HH:mm) — same format as native `type="time"` value. */
 export const SCHEDULE_TIME_PRESETS = [
@@ -24,21 +27,6 @@ export type ScheduleDateOption = {
 
 export const SCHEDULE_DATE_OPTION_COUNT = 7;
 
-function parseDateString(value: string): { y: number; m: number; d: number } {
-  const [y, m, d] = value.split("-").map(Number);
-  return { y, m, d };
-}
-
-/** Add calendar days to an en-CA date string without timezone drift. */
-export function addDaysToDateString(dateStr: string, days: number): string {
-  const { y, m, d } = parseDateString(dateStr);
-  const utc = new Date(Date.UTC(y, m - 1, d + days));
-  const yy = utc.getUTCFullYear();
-  const mm = String(utc.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(utc.getUTCDate()).padStart(2, "0");
-  return `${yy}-${mm}-${dd}`;
-}
-
 function compareDateStrings(a: string, b: string): number {
   return a.localeCompare(b);
 }
@@ -61,16 +49,21 @@ function formatMonthDay(dateStr: string): string {
   }).format(noon);
 }
 
-/** Build selectable day cards from `minDate` forward (display only). */
+/** Build selectable day cards for a paginated window (display only). */
 export function buildScheduleDateOptions(
   minDate: string,
-  count: number = SCHEDULE_DATE_OPTION_COUNT,
+  windowStartOffsetDays: number = 0,
+  maxDate?: string,
+  visibleCount: number = SCHEDULE_DATE_OPTION_COUNT,
 ): ScheduleDateOption[] {
+  const windowStart = addDaysToDateString(minDate, windowStartOffsetDays);
   const options: ScheduleDateOption[] = [];
 
-  for (let i = 0; i < count; i++) {
-    const value = addDaysToDateString(minDate, i);
-    const disabled = compareDateStrings(value, minDate) < 0;
+  for (let i = 0; i < visibleCount; i++) {
+    const value = addDaysToDateString(windowStart, i);
+    const disabled =
+      compareDateStrings(value, minDate) < 0 ||
+      (maxDate != null && compareDateStrings(value, maxDate) > 0);
 
     options.push({
       value,

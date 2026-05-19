@@ -7,6 +7,7 @@ import { normalizeAreaSlug } from "@/features/cleaners/server/eligibility/normal
 import type { BookingWizardState, StepValidationResult, WizardStep } from "./types";
 import { WIZARD_SERVICE_OPTIONS } from "./constants";
 import { resolveWizardContactPhone } from "./contactPhone";
+import { resolveScheduleDateTimeValidationMessage } from "./bookingWindowConfig";
 import { buildWizardSlot, isSlotInPast } from "./slot";
 
 function result(valid: boolean, errors: Record<string, string> = {}): StepValidationResult {
@@ -31,7 +32,19 @@ export function validateDateTimeStep(state: BookingWizardState): StepValidationR
   if (!state.date.trim()) errors.date = "Date is required.";
   if (!state.time.trim()) errors.time = "Time is required.";
 
-  if (state.date && state.time) {
+  if (state.date) {
+    const windowMessage = resolveScheduleDateTimeValidationMessage(
+      state.date,
+      new Date(),
+      process.env,
+      { client: true },
+    );
+    if (windowMessage) {
+      errors.date = windowMessage;
+    }
+  }
+
+  if (state.date && state.time && !errors.date) {
     const slot = buildWizardSlot(state.date, state.time);
     if (!slot) {
       errors.time = "Enter a valid date and time.";
