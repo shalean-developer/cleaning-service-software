@@ -94,8 +94,18 @@ export const ADDON_CATALOG: Record<
   AddonSlug,
   { slug: AddonSlug; label: string; amountCents: number }
 > = {
+  "inside-cabinets": {
+    slug: "inside-cabinets",
+    label: "Inside cabinets",
+    amountCents: 12_000,
+  },
   "inside-fridge": { slug: "inside-fridge", label: "Inside fridge", amountCents: 15_000 },
   "inside-oven": { slug: "inside-oven", label: "Inside oven", amountCents: 18_000 },
+  "interior-walls": {
+    slug: "interior-walls",
+    label: "Interior walls",
+    amountCents: 10_000,
+  },
   "interior-windows": {
     slug: "interior-windows",
     label: "Interior windows",

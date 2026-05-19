@@ -1,3 +1,5 @@
+"use client";
+
 import { DETAILS_TOGGLE_CONTROL, REQUEST_TWO_CLEANERS_INFO_TEXT } from "../detailsStepUi";
 import { DetailsLabelWithInfo } from "./DetailsFieldInfo";
 import { DetailsToggleSwitch } from "./DetailsToggleSwitch";

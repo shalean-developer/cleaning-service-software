@@ -1,4 +1,6 @@
-﻿import type { CleaningIntensity } from "@/features/pricing/server/types";
+﻿"use client";
+
+import type { CleaningIntensity } from "@/features/pricing/server/types";
 import { CLEANING_INTENSITY_STEP_OPTIONS } from "../constants";
 import {
   DETAILS_STEP_SECTION,

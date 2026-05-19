@@ -1,3 +1,5 @@
+"use client";
+
 import type { PricingFrequency } from "@/features/pricing/server/types";
 import { FREQUENCY_STEP_OPTIONS } from "../constants";
 import {

@@ -25,6 +25,13 @@ describe("reviewDisplay", () => {
     expect(formatSelectedAddons(["laundry", "balcony"])).toBe("Laundry, Balcony");
   });
 
+  it("formats regular-cleaning add-ons with service-specific labels", () => {
+    expect(
+      formatSelectedAddons(["laundry", "inside-oven"], "regular-cleaning"),
+    ).toBe("Inside oven, Ironing & Laundry");
+    expect(formatSelectedAddons(["balcony"], "regular-cleaning")).toBe("Balcony");
+  });
+
   it("formats cleaner preference", () => {
     expect(formatCleanerPreference("best_available", null)).toBe("Best available");
     expect(formatCleanerPreference("selected", "Sam N.")).toBe("Sam N.");

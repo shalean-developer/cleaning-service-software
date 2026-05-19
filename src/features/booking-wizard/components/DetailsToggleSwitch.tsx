@@ -1,3 +1,5 @@
+"use client";
+
 type DetailsToggleSwitchProps = {
   checked: boolean;
   label: string;

@@ -63,8 +63,10 @@ Central, deterministic quote calculation for **Shalean Cleaning Services**. All 
 
 | Slug | Amount |
 |------|--------|
+| `inside-cabinets` | R120 |
 | `inside-fridge` | R150 |
 | `inside-oven` | R180 |
+| `interior-walls` | R100 |
 | `interior-windows` | R200 |
 | `laundry` | R120 |
 | `balcony` | R100 |

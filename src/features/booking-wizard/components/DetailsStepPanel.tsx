@@ -1,3 +1,5 @@
+"use client";
+
 import type {
   AddonSlug,
   CleaningIntensity,
@@ -178,7 +180,11 @@ export function DetailsStepPanel({
 
       <FrequencyStepPanel value={frequency} onChange={onFrequencyChange} error={stepErrors.frequency} />
 
-      <AddonsStepPanel selected={addons} onChange={onAddonsChange} />
+      <AddonsStepPanel
+        serviceSlug={serviceSlug}
+        selected={addons}
+        onChange={onAddonsChange}
+      />
 
       <section className={DETAILS_STEP_SECTION} aria-labelledby="details-special-instructions">
         <DetailsSectionHeading title="Special instructions" id="details-special-instructions" />

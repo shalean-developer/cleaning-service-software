@@ -1,3 +1,5 @@
+"use client";
+
 import type { EquipmentSupply } from "@/features/pricing/server/types";
 import { BRING_EQUIPMENT_INFO_TEXT, DETAILS_TOGGLE_CONTROL } from "../detailsStepUi";
 import { DetailsLabelWithInfo } from "./DetailsFieldInfo";

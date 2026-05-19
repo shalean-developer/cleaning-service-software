@@ -141,7 +141,7 @@ export function parseCustomerBookingServiceDetails(
     equipmentSupplyLabel,
     equipmentSupplyOperationalLabel,
     frequencyLabel: frequency ? getFrequencyLabel(frequency) : null,
-    addonsSummary: addons.length > 0 ? formatSelectedAddons(addons) : null,
+    addonsSummary: addons.length > 0 ? formatSelectedAddons(addons, slug) : null,
     teamSupportLabel,
     teamSupportCleanerNote,
     isTwoCleanerRequest: slug === "regular-cleaning" && requestedTeamSize === 2,

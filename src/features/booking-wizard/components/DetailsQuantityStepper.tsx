@@ -1,3 +1,5 @@
+"use client";
+
 import { DETAILS_INPUT, WIZARD_FOCUS_RING } from "../detailsStepUi";
 
 type Props = {

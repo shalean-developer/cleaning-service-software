@@ -47,19 +47,38 @@ export type FrequencyStepOption = {
 
 /** Step 4 add-on list order — display only; slugs must exist in `ADDON_CATALOG`. */
 export const ADDON_STEP_DISPLAY_ORDER: AddonSlug[] = [
+  "inside-cabinets",
+  "inside-oven",
+  "inside-fridge",
+  "interior-walls",
   "laundry",
   "interior-windows",
-  "inside-fridge",
-  "inside-oven",
   "balcony",
 ];
 
+/** Regular cleaning step 4 add-ons — display order matches product spec. */
+export const REGULAR_CLEANING_ADDON_STEP_DISPLAY_ORDER: AddonSlug[] = [
+  "inside-cabinets",
+  "inside-oven",
+  "inside-fridge",
+  "interior-walls",
+  "laundry",
+  "interior-windows",
+];
+
+/** Regular cleaning step 4 labels — display only; slug IDs unchanged. */
+export const REGULAR_CLEANING_ADDON_STEP_LABELS: Partial<Record<AddonSlug, string>> = {
+  laundry: "Ironing & Laundry",
+};
+
 /** Step 4 add-on subtitles — display only; does not affect pricing. */
 export const ADDON_STEP_DESCRIPTIONS: Record<AddonSlug, string> = {
-  laundry: "Wash, dry, fold — agreed load size on site.",
-  "interior-windows": "Accessible interior glass per window group.",
+  "inside-cabinets": "Cupboard and cabinet interiors wiped down.",
   "inside-fridge": "Shelves and drawers refreshed.",
   "inside-oven": "Racks, glass, interior degrease.",
+  "interior-walls": "Spot-clean marks on accessible interior walls.",
+  "interior-windows": "Accessible interior glass per window group.",
+  laundry: "Wash, dry, fold — agreed load size on site.",
   balcony: "Outdoor balcony sweep and surface tidy.",
 };
 

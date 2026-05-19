@@ -1,4 +1,3 @@
-import { ADDON_CATALOG } from "@/features/pricing/server/catalog";
 import type {
   AddonSlug,
   CleaningIntensity,
@@ -6,8 +5,8 @@ import type {
   PricingFrequency,
   ServiceSlug,
 } from "@/features/pricing/server/types";
+import { getAddonStepDisplayOrder, getAddonStepLabel } from "./addonStepDisplay";
 import {
-  ADDON_STEP_DISPLAY_ORDER,
   CLEANING_INTENSITY_STEP_OPTIONS,
   EQUIPMENT_SUPPLY_STEP_OPTIONS,
   FREQUENCY_STEP_OPTIONS,
@@ -20,11 +19,18 @@ export function getFrequencyLabel(frequency: PricingFrequency): string {
   );
 }
 
-export function formatSelectedAddons(addons: AddonSlug[]): string {
+export function formatSelectedAddons(
+  addons: AddonSlug[],
+  serviceSlug: ServiceSlug | null = null,
+): string {
   if (addons.length === 0) return "None";
 
-  const ordered = ADDON_STEP_DISPLAY_ORDER.filter((slug) => addons.includes(slug));
-  const labels = ordered.map((slug) => ADDON_CATALOG[slug].label);
+  const ordered = getAddonStepDisplayOrder(serviceSlug).filter((slug) => addons.includes(slug));
+  const hidden = addons.filter((slug) => !ordered.includes(slug));
+  const labels = [
+    ...ordered.map((slug) => getAddonStepLabel(slug, serviceSlug)),
+    ...hidden.map((slug) => getAddonStepLabel(slug, serviceSlug)),
+  ];
   return labels.join(", ");
 }
 

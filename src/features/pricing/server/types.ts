@@ -20,8 +20,10 @@ export const PRICING_FREQUENCIES = [
 export type PricingFrequency = (typeof PRICING_FREQUENCIES)[number];
 
 export const ADDON_SLUGS = [
+  "inside-cabinets",
   "inside-fridge",
   "inside-oven",
+  "interior-walls",
   "interior-windows",
   "laundry",
   "balcony",

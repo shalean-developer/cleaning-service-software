@@ -232,7 +232,7 @@ export function ReviewStepPanel({
               hasAddons ? "text-zinc-900" : "text-zinc-500"
             }`}
           >
-            {formatSelectedAddons(addons)}
+            {formatSelectedAddons(addons, serviceSlug)}
           </p>
         </div>
       </SectionCard>

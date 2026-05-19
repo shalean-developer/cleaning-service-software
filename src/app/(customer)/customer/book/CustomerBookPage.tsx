@@ -1,4 +1,4 @@
-import { BookingWizard } from "@/features/booking-wizard";
+import { BookingWizard } from "@/features/booking-wizard/client";
 import type { ServiceSlug } from "@/features/pricing/server/types";
 import { checkCustomerReadiness } from "@/lib/auth/customerReadiness";
 import { requireCustomerReady } from "@/lib/auth/requireCustomerReady";
