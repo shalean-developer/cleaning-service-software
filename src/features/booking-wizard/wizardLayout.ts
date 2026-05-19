@@ -11,6 +11,10 @@ export const WIZARD_SHELL_MAX_DESKTOP = "max-w-3xl";
 export const WIZARD_SHELL_WIDE_CLASS =
   "mx-auto flex min-h-screen w-full max-w-3xl flex-col overflow-x-clip bg-zinc-50 px-4 py-6";
 
+/** Details/cleaner two-column layout — slightly wider for main + summary sidebar. */
+export const WIZARD_SHELL_WIDE_WITH_SIDEBAR_CLASS =
+  "mx-auto flex min-h-screen w-full max-w-5xl flex-col overflow-x-clip bg-zinc-50 px-4 py-6";
+
 /** Fallback narrow column for steps outside the main seven-step flow. */
 export const WIZARD_SHELL_MAX_MOBILE = "max-w-lg";
 
@@ -73,6 +77,8 @@ const WIDE_DESKTOP_STEPS: WizardStep[] = [
 
 const SUMMARY_STICKY_SHELL_STEPS: WizardStep[] = ["review", "checkout"];
 
+const SIDEBAR_LAYOUT_STEPS: WizardStep[] = ["details", "cleaner"];
+
 export function usesWideDesktopShell(step: WizardStep): boolean {
   return WIDE_DESKTOP_STEPS.includes(step);
 }
@@ -98,7 +104,11 @@ function getWizardShellPaddingBottom(
   return WIZARD_SHELL_PB_NAV_STICKY;
 }
 
-/** Service through checkout share the same shell width (`max-w-3xl`). */
+export function usesWizardStepSummarySidebar(step: WizardStep): boolean {
+  return SIDEBAR_LAYOUT_STEPS.includes(step);
+}
+
+/** Service through checkout share shell width; details/cleaner use a wider track for sidebar. */
 function getWidePickerShellClass(
   step:
     | "service"
@@ -109,7 +119,10 @@ function getWidePickerShellClass(
     | "review"
     | "checkout",
 ): string {
-  return `${WIZARD_SHELL_WIDE_CLASS} ${getWizardShellPaddingBottom(step)}`;
+  const shellBase = usesWizardStepSummarySidebar(step)
+    ? WIZARD_SHELL_WIDE_WITH_SIDEBAR_CLASS
+    : WIZARD_SHELL_WIDE_CLASS;
+  return `${shellBase} ${getWizardShellPaddingBottom(step)}`;
 }
 
 export function getWizardShellClass(step: WizardStep): string {
@@ -139,6 +152,15 @@ export const WIZARD_MAIN_COLUMN_CLASS = "w-full min-w-0";
 
 /** Aligns sticky footer controls with the wizard column on wide phones. */
 export const WIZARD_STICKY_FOOTER_INNER_CLASS = "mx-auto w-full min-w-0 max-w-3xl";
+
+export const WIZARD_STICKY_FOOTER_INNER_WITH_SIDEBAR_CLASS =
+  "mx-auto w-full min-w-0 max-w-5xl";
+
+export function getWizardStickyFooterInnerClass(step: WizardStep): string {
+  return usesWizardStepSummarySidebar(step)
+    ? WIZARD_STICKY_FOOTER_INNER_WITH_SIDEBAR_CLASS
+    : WIZARD_STICKY_FOOTER_INNER_CLASS;
+}
 
 /** WizardNav className when paired with the mobile sticky footer. */
 export function getWizardNavStickyClassName(): string {

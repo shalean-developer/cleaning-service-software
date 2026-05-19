@@ -439,6 +439,18 @@ export type CleanerOperationalAuditRow = {
   created_at: string;
 };
 
+export type CustomerOperationalAuditRow = {
+  id: string;
+  customer_id: string;
+  admin_profile_id: string | null;
+  action: string;
+  outcome: string;
+  reason: string | null;
+  metadata: Json;
+  idempotency_key: string | null;
+  created_at: string;
+};
+
 /** Supabase client expects Insert/Update/Relationships on each table definition. */
 export type PublicTable<Row> = {
   Row: Row;
@@ -477,6 +489,7 @@ export type Database = {
       booking_state_audit: PublicTable<BookingStateAuditRow>;
       admin_operational_audit: PublicTable<AdminOperationalAuditRow>;
       cleaner_operational_audit: PublicTable<CleanerOperationalAuditRow>;
+      customer_operational_audit: PublicTable<CustomerOperationalAuditRow>;
     };
     Views: Record<
       string,

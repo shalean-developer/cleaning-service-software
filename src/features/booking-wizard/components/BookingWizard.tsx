@@ -31,12 +31,16 @@ import {
   getWizardNavClass,
   getWizardNavStickyClassName,
   getWizardShellClass,
+  getWizardStickyFooterInnerClass,
   usesWizardMobileStickyFooter,
+  usesWizardStepSummarySidebar,
   WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS,
   WIZARD_MAIN_COLUMN_CLASS,
   WIZARD_PAGE_HEADER_CLASS,
   WIZARD_STICKY_FOOTER_SUMMARY_SLOT_CLASS,
 } from "../wizardLayout";
+import { buildWizardBookingSummarySnapshot } from "../wizardBookingSummaryDisplay";
+import { WizardBookingSummaryLayout } from "./WizardBookingSummaryLayout";
 import { WizardStepper } from "./WizardStepper";
 import { WizardNav } from "./WizardNav";
 import { Field, inputClass } from "./Field";
@@ -347,8 +351,57 @@ export function BookingWizard({
   const serviceLabel =
     WIZARD_SERVICE_OPTIONS.find((s) => s.slug === state.serviceSlug)?.label ?? "\u2014";
 
+  const wizardSummarySnapshot = useMemo(
+    () =>
+      buildWizardBookingSummarySnapshot({
+        serviceLabel,
+        serviceSlug: state.serviceSlug,
+        date: state.date,
+        time: state.time,
+        suburb: state.suburb,
+        city: state.city,
+        bedrooms: state.bedrooms,
+        bathrooms: state.bathrooms,
+        extraRooms: state.extraRooms,
+        propertySizeSqm: state.propertySizeSqm,
+        cleaningIntensity: state.cleaningIntensity,
+        equipmentSupply: state.equipmentSupply,
+        requestedTeamSize: state.requestedTeamSize,
+        frequency: state.frequency,
+        addons: state.addons,
+        cleanerPreferenceMode: state.step === "cleaner" ? state.cleanerPreferenceMode : undefined,
+        selectedCleanerDisplayName:
+          state.step === "cleaner" ? state.selectedCleanerDisplayName : undefined,
+      }),
+    [
+      serviceLabel,
+      state.step,
+      state.serviceSlug,
+      state.date,
+      state.time,
+      state.suburb,
+      state.city,
+      state.bedrooms,
+      state.bathrooms,
+      state.extraRooms,
+      state.propertySizeSqm,
+      state.cleaningIntensity,
+      state.equipmentSupply,
+      state.requestedTeamSize,
+      state.frequency,
+      state.addons,
+      state.cleanerPreferenceMode,
+      state.selectedCleanerDisplayName,
+    ],
+  );
+
   const isServiceStep = state.step === "service";
   const usesMobileStickyFooter = usesWizardMobileStickyFooter(state.step);
+  const showBookingSummarySidebar = usesWizardStepSummarySidebar(state.step);
+  const bookingSummaryFootnote =
+    state.step === "cleaner"
+      ? "Cleaner preference is saved with your booking. Assignment finalizes after payment."
+      : undefined;
   const showWizardFrequency = ["details", "cleaner", "review", "checkout"].includes(
     state.step,
   );
@@ -404,27 +457,8 @@ export function BookingWizard({
     />
   );
 
-  return (
-    <div className={getWizardShellClass(state.step)}>
-      <header className={`${WIZARD_PAGE_HEADER_CLASS} ${WIZARD_MAIN_COLUMN_CLASS}`}>
-        <h1 className="text-xl font-semibold text-zinc-900">Book a clean</h1>
-        <p className="text-sm text-zinc-600">Shalean Cleaning Services</p>
-      </header>
-
-      <div className={WIZARD_MAIN_COLUMN_CLASS}>
-        <WizardStepper current={state.step} />
-      </div>
-
-      {apiError ? (
-        <div
-          role="alert"
-          className={`mb-4 break-words rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 ${WIZARD_MAIN_COLUMN_CLASS}`}
-        >
-          {apiError}
-        </div>
-      ) : null}
-
-      <div className={`${getWizardCardClass(state.step)} ${WIZARD_MAIN_COLUMN_CLASS}`}>
+  const wizardStepCard = (
+    <div className={`${getWizardCardClass(state.step)} ${WIZARD_MAIN_COLUMN_CLASS}`}>
         {state.step === "service" ? (
           <ServiceStepPanel
             options={WIZARD_SERVICE_OPTIONS}
@@ -619,10 +653,45 @@ export function BookingWizard({
             customerEmail={customerEmail}
           />
         ) : null}
+    </div>
+  );
+
+  return (
+    <div className={getWizardShellClass(state.step)}>
+      <header className={`${WIZARD_PAGE_HEADER_CLASS} ${WIZARD_MAIN_COLUMN_CLASS}`}>
+        <h1 className="text-xl font-semibold text-zinc-900">Book a clean</h1>
+        <p className="text-sm text-zinc-600">Shalean Cleaning Services</p>
+      </header>
+
+      <div className={WIZARD_MAIN_COLUMN_CLASS}>
+        <WizardStepper current={state.step} />
       </div>
 
+      {apiError ? (
+        <div
+          role="alert"
+          className={`mb-4 break-words rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 ${WIZARD_MAIN_COLUMN_CLASS}`}
+        >
+          {apiError}
+        </div>
+      ) : null}
+
+      {showBookingSummarySidebar ? (
+        <WizardBookingSummaryLayout
+          snapshot={wizardSummarySnapshot}
+          footnote={bookingSummaryFootnote}
+        >
+          {wizardStepCard}
+        </WizardBookingSummaryLayout>
+      ) : (
+        wizardStepCard
+      )}
+
       {usesMobileStickyFooter ? (
-        <WizardMobileStickyFooter summary={mobileCommerceSummary}>
+        <WizardMobileStickyFooter
+          summary={mobileCommerceSummary}
+          innerClassName={getWizardStickyFooterInnerClass(state.step)}
+        >
           {wizardNavElement}
         </WizardMobileStickyFooter>
       ) : (

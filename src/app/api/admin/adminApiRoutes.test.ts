@@ -4,12 +4,16 @@ import path from "node:path";
 
 /** Intentional admin POST mutation routes. */
 const ALLOWED_ADMIN_POST_ROUTES = new Set([
+  "cleaners/route.ts",
+  "customers/route.ts",
   "bookings/[bookingId]/payout-ready/route.ts",
   "bookings/[bookingId]/mark-paid-out/route.ts",
   "bookings/[bookingId]/recover-assignment/route.ts",
   "bookings/[bookingId]/dispatch-deferred-assignment/route.ts",
   "bookings/[bookingId]/dispatch-offer/route.ts",
+  "bookings/[bookingId]/dispatch-support-offer/route.ts",
   "bookings/[bookingId]/replace-open-offer/route.ts",
+  "cleaners/[cleanerId]/complete-onboarding/route.ts",
   "cleaners/[cleanerId]/deactivate/route.ts",
   "cleaners/[cleanerId]/suspend/route.ts",
   "cleaners/[cleanerId]/reactivate/route.ts",

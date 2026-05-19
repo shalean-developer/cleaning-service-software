@@ -18,8 +18,13 @@
     "e2e:repair:assignments": "node scripts/e2e/repair-orphaned-assignments.mjs",
     "ops:audit:auth-profiles": "node scripts/ops/audit-auth-profiles.mjs",
     "ops:audit:mock-cleaners": "node scripts/ops/audit-mock-cleaners.mjs",
+    "ops:audit:customer-domain": "node scripts/ops/reconcile-customer-domain-rows.mjs",
+    "ops:repair:customer-domain": "node scripts/ops/repair-customer-domain-rows.mjs",
+    "ops:cleanup:customer-domain": "node scripts/ops/cleanup-stray-customer-domain-rows.mjs",
     "ops:delete:mock-cleaners": "node scripts/ops/delete-mock-cleaners.mjs",
     "ops:repair:auth-profiles": "node scripts/ops/repair-auth-profiles.mjs",
+    "ops:provision-admin": "node scripts/ops/provision-admin.mjs",
+    "ops:demote-mock-admins": "node scripts/ops/demote-mock-admins.mjs",
     "ops:recover:assignments": "node scripts/recover-assignment-after-payment.mjs",
     "ops:backfill:notification-metrics": "node scripts/ops/backfill-notification-metrics-hourly.mjs",
     "db:start": "supabase start",
@@ -34,7 +39,8 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "resend": "^6.12.3",
-    "server-only": "^0.0.1"
+    "server-only": "^0.0.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
