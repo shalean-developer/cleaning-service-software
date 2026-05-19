@@ -4,12 +4,14 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, type FormEvent } from "react";
 import { ADMIN_ACTION_ERROR_CLASS } from "@/lib/app/dashboardEcosystemDisplay";
 import { CLEANER_CAPABILITY_OPTIONS } from "@/features/cleaners/admin/cleanerCapabilityOptions";
+import type { CleanerAvailabilityFormValues } from "@/features/cleaners/admin/cleanerAvailability";
 import {
   formatServiceAreaSlugsForInput,
   validateCleanerEditForm,
   type CleanerEditFormErrors,
   type CleanerEditFormField,
 } from "@/features/cleaners/admin/cleanerProfileEditValidation";
+import { CleanerAvailabilityFields } from "@/components/dashboard/admin/CleanerAvailabilityFields";
 import { parseServiceAreasInput } from "@/features/cleaners/admin/cleanerProfileFormValidation";
 import type { ServiceSlug } from "@/features/pricing/server/types";
 import { ADMIN_SECTION_MUTED_CLASS } from "@/features/dashboards/adminDisplay";
@@ -34,6 +36,7 @@ export type AdminCleanerProfileFormProps = {
   initialFullName: string;
   initialCapabilities: ServiceSlug[];
   initialServiceAreaSlugs: string[];
+  initialAvailability: CleanerAvailabilityFormValues;
   readOnlyPhone: string | null;
   readOnlyLoginEmail: string | null;
 };
@@ -43,6 +46,7 @@ export function AdminCleanerProfileForm({
   initialFullName,
   initialCapabilities,
   initialServiceAreaSlugs,
+  initialAvailability,
   readOnlyPhone,
   readOnlyLoginEmail,
 }: AdminCleanerProfileFormProps) {
@@ -51,6 +55,7 @@ export function AdminCleanerProfileForm({
     fullName: initialFullName,
     serviceAreasInput: formatServiceAreaSlugsForInput(initialServiceAreaSlugs),
     capabilities: initialCapabilities,
+    ...initialAvailability,
   });
   const [errors, setErrors] = useState<CleanerEditFormErrors>({});
   const [touched, setTouched] = useState<Partial<Record<CleanerEditFormField, boolean>>>({});
@@ -114,6 +119,10 @@ export function AdminCleanerProfileForm({
           fullName: values.fullName,
           serviceAreasInput: values.serviceAreasInput,
           capabilities: values.capabilities,
+          workingDays: values.workingDays,
+          startTime: values.startTime,
+          endTime: values.endTime,
+          timezone: values.timezone,
         }),
       });
 
@@ -206,6 +215,21 @@ export function AdminCleanerProfileForm({
           ) : null}
         </label>
       </div>
+
+      <CleanerAvailabilityFields
+        values={{
+          workingDays: values.workingDays,
+          startTime: values.startTime,
+          endTime: values.endTime,
+          timezone: values.timezone,
+        }}
+        onChange={(availability) => setValues((prev) => ({ ...prev, ...availability }))}
+        errors={{ ...validation.errors, ...errors }}
+        touched={touched}
+        submitAttempted={submitAttempted}
+        onTouch={touch}
+        disabled={submitting}
+      />
 
       <fieldset className="text-sm">
         <legend className="font-medium text-zinc-800">Service capabilities</legend>

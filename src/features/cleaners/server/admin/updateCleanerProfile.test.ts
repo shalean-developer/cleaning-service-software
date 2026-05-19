@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database/types";
+import { defaultCleanerAvailabilityFormValues } from "@/features/cleaners/admin/cleanerAvailability";
 
 type UpdateProfileMockOptions = {
   /** Simulates DB insert failure after delete (replace-all sync risk). */
   failCapabilityInsert?: boolean;
+  failAvailabilityInsert?: boolean;
 };
 
 function createMockClient(
@@ -13,6 +15,13 @@ function createMockClient(
     profile: { id: string; full_name: string | null };
     capabilities: { cleaner_id: string; service_slug: string }[];
     areas: { cleaner_id: string; area_slug: string }[];
+    availability: {
+      cleaner_id: string;
+      day_of_week: number;
+      start_time: string;
+      end_time: string;
+      timezone: string;
+    }[];
     audits: Record<string, unknown>[];
   },
   options: UpdateProfileMockOptions = {},
@@ -60,6 +69,19 @@ function createMockClient(
               area_slug: row.area_slug as string,
             }));
           }
+          if (table === "cleaner_availability") {
+            if (options.failAvailabilityInsert) {
+              state.availability = [];
+              throw new Error("Availability insert failed after delete");
+            }
+            state.availability = list.map((row) => ({
+              cleaner_id: row.cleaner_id as string,
+              day_of_week: row.day_of_week as number,
+              start_time: row.start_time as string,
+              end_time: row.end_time as string,
+              timezone: row.timezone as string,
+            }));
+          }
           if (table === "cleaner_operational_audit") {
             state.audits.push(list[0] ?? {});
             return {
@@ -72,7 +94,11 @@ function createMockClient(
         },
       };
 
-      if (table === "cleaner_service_capabilities" || table === "cleaner_service_areas") {
+      if (
+        table === "cleaner_service_capabilities" ||
+        table === "cleaner_service_areas" ||
+        table === "cleaner_availability"
+      ) {
         return {
           ...api,
           select: () => ({
@@ -80,7 +106,9 @@ function createMockClient(
               data:
                 table === "cleaner_service_capabilities"
                   ? state.capabilities
-                  : state.areas,
+                  : table === "cleaner_service_areas"
+                    ? state.areas
+                    : state.availability,
               error: null,
             }),
           }),
@@ -92,17 +120,28 @@ function createMockClient(
   } as unknown as SupabaseClient<Database>;
 }
 
+const defaultAvailability = defaultCleanerAvailabilityFormValues();
+
 describe("updateCleanerProfile", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("updates full name, capabilities, areas, and writes profile_updated audit", async () => {
+  it("updates full name, capabilities, areas, availability, and writes profile_updated audit", async () => {
     const state = {
       cleaner: { id: "cleaner-1", profile_id: "profile-1" },
       profile: { id: "profile-1", full_name: "Old Name" },
       capabilities: [{ cleaner_id: "cleaner-1", service_slug: "regular-cleaning" }],
       areas: [{ cleaner_id: "cleaner-1", area_slug: "sea-point" }],
+      availability: [
+        {
+          cleaner_id: "cleaner-1",
+          day_of_week: 1,
+          start_time: "08:00:00",
+          end_time: "17:00:00",
+          timezone: "Africa/Johannesburg",
+        },
+      ],
       audits: [] as Record<string, unknown>[],
     };
     const client = createMockClient(state);
@@ -115,6 +154,10 @@ describe("updateCleanerProfile", () => {
         fullName: "New Name",
         serviceAreasInput: "Cape Town",
         capabilities: ["regular-cleaning", "deep-cleaning"],
+        workingDays: defaultAvailability.workingDays,
+        startTime: defaultAvailability.startTime,
+        endTime: defaultAvailability.endTime,
+        timezone: defaultAvailability.timezone,
       },
       client,
     );
@@ -126,6 +169,7 @@ describe("updateCleanerProfile", () => {
       "regular-cleaning",
     ]);
     expect(state.areas.some((a) => a.area_slug === "cape-town")).toBe(true);
+    expect(state.availability.length).toBe(6);
 
     const audit = state.audits[0] as {
       action?: string;
@@ -147,11 +191,31 @@ describe("updateCleanerProfile", () => {
       fullName: "Ada",
       serviceAreasInput: "",
       capabilities: ["regular-cleaning"],
+      workingDays: [1],
+      startTime: "07:00",
+      endTime: "18:00",
+      timezone: "Africa/Johannesburg",
       active: false,
     });
     expect(parsed.ok).toBe(false);
     if (parsed.ok) return;
     expect(parsed.message).toMatch(/lifecycle/i);
+  });
+
+  it("rejects invalid availability in payload", async () => {
+    const { parseUpdateCleanerProfileBody } = await import("./parseUpdateCleanerProfileBody");
+    const parsed = parseUpdateCleanerProfileBody({
+      fullName: "Ada",
+      serviceAreasInput: "",
+      capabilities: ["regular-cleaning"],
+      workingDays: [1],
+      startTime: "18:00",
+      endTime: "07:00",
+      timezone: "Africa/Johannesburg",
+    });
+    expect(parsed.ok).toBe(false);
+    if (parsed.ok) return;
+    expect(parsed.message).toMatch(/after start/i);
   });
 
   it("rejects phone change in payload", async () => {
@@ -176,12 +240,14 @@ describe("updateCleanerProfile", () => {
         fullName: "Ada",
         serviceAreasInput: "",
         capabilities: ["regular-cleaning"],
+        ...defaultAvailability,
       },
       createMockClient({
         cleaner: null,
         profile: { id: "profile-1", full_name: "Ada" },
         capabilities: [],
         areas: [],
+        availability: [],
         audits: [],
       }),
     );
@@ -195,18 +261,27 @@ describe("updateCleanerProfile", () => {
 
   /**
    * Known product risk (v1): replace-all sync without a transaction.
-   * TODO(phase-4-hardening): wrap profile + capability/area replace in a Postgres RPC
-   * so insert failure after delete cannot leave zero capabilities.
+   * TODO(phase-4-hardening): wrap profile + child row replace in a Postgres RPC
+   * so insert failure after delete cannot leave zero availability rows.
    */
-  it("documents partial state when capability insert fails after delete", async () => {
+  it("documents partial state when availability insert fails after delete", async () => {
     const state = {
       cleaner: { id: "cleaner-1", profile_id: "profile-1" },
       profile: { id: "profile-1", full_name: "Old Name" },
       capabilities: [{ cleaner_id: "cleaner-1", service_slug: "regular-cleaning" }],
       areas: [] as { cleaner_id: string; area_slug: string }[],
+      availability: [
+        {
+          cleaner_id: "cleaner-1",
+          day_of_week: 1,
+          start_time: "07:00:00",
+          end_time: "18:00:00",
+          timezone: "Africa/Johannesburg",
+        },
+      ],
       audits: [] as Record<string, unknown>[],
     };
-    const client = createMockClient(state, { failCapabilityInsert: true });
+    const client = createMockClient(state, { failAvailabilityInsert: true });
 
     const { updateCleanerProfile } = await import("./updateCleanerProfile");
     const result = await updateCleanerProfile(
@@ -216,6 +291,7 @@ describe("updateCleanerProfile", () => {
         fullName: "New Name",
         serviceAreasInput: "",
         capabilities: ["regular-cleaning", "deep-cleaning"],
+        ...defaultAvailability,
       },
       client,
     );
@@ -224,7 +300,8 @@ describe("updateCleanerProfile", () => {
     if (result.ok) return;
     expect(result.code).toBe("PERSISTENCE_ERROR");
     expect(state.profile.full_name).toBe("New Name");
-    expect(state.capabilities).toHaveLength(0);
+    expect(state.capabilities).toHaveLength(2);
+    expect(state.availability).toHaveLength(0);
     expect(state.audits).toHaveLength(0);
   });
 });

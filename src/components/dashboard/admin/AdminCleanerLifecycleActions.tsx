@@ -8,6 +8,7 @@ import type { AdminCleanerSafetyCounts } from "@/features/cleaners/server/admin/
 import { ADMIN_ACTION_ERROR_CLASS } from "@/lib/app/dashboardEcosystemDisplay";
 
 type LifecycleAction =
+  | "completeOnboarding"
   | "deactivate"
   | "suspend"
   | "reactivate"
@@ -21,6 +22,7 @@ type Props = {
 };
 
 const ACTION_ENDPOINTS: Record<LifecycleAction, string> = {
+  completeOnboarding: "complete-onboarding",
   deactivate: "deactivate",
   suspend: "suspend",
   reactivate: "reactivate",
@@ -42,6 +44,7 @@ export function AdminCleanerLifecycleActions({
 
   const isArchived = operationalState === "archived";
   const isSuspended = operationalState === "suspended";
+  const isOnboarding = operationalState === "onboarding";
 
   async function submitAction(action: LifecycleAction) {
     setLoadingAction(action);
@@ -125,6 +128,19 @@ export function AdminCleanerLifecycleActions({
       {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
 
       <div className="flex flex-wrap gap-2">
+        {isOnboarding ? (
+          <button
+            type="button"
+            className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+            disabled={loadingAction !== null || isArchived}
+            onClick={() => void submitAction("completeOnboarding")}
+          >
+            {loadingAction === "completeOnboarding"
+              ? "Completing…"
+              : "Complete onboarding"}
+          </button>
+        ) : null}
+
         <button
           type="button"
           className="rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"

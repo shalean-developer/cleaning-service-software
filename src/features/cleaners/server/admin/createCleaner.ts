@@ -5,6 +5,7 @@ import type { Database } from "@/lib/database/types";
 import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { validateCleanerCreateForm } from "@/features/cleaners/admin/cleanerProfileFormValidation";
 import { parseCreateCleanerBody } from "./parseCreateCleanerBody";
+import { replaceCleanerAvailability } from "./replaceCleanerAvailability";
 import { recordCleanerProfileAudit } from "./recordCleanerProfileAudit";
 import type { CreateCleanerParams, CreateCleanerResult } from "./createCleanerTypes";
 
@@ -53,6 +54,7 @@ async function purgeCleanerChildRows(
   client: SupabaseClient<Database>,
   cleanerId: string,
 ): Promise<void> {
+  await client.from("cleaner_availability").delete().eq("cleaner_id", cleanerId);
   await client.from("cleaner_service_areas").delete().eq("cleaner_id", cleanerId);
   await client
     .from("cleaner_service_capabilities")
@@ -71,6 +73,10 @@ export async function createCleaner(
     confirmPassword: params.confirmPassword,
     serviceAreasInput: params.serviceAreasInput,
     capabilities: params.capabilities,
+    workingDays: params.workingDays,
+    startTime: params.startTime,
+    endTime: params.endTime,
+    timezone: params.timezone,
     idempotencyKey: params.idempotencyKey,
   });
 
@@ -96,6 +102,7 @@ export async function createCleaner(
   }
 
   const serviceAreaSlugs = validation.serviceAreaSlugs;
+  const availabilityWindows = validation.availabilityWindows;
   const fullName = values.fullName.trim();
 
   try {
@@ -178,6 +185,8 @@ export async function createCleaner(
           );
           if (areaError) throw new Error(areaError.message);
         }
+
+        await replaceCleanerAvailability(client, cleanerId, availabilityWindows);
 
         const auditId = await recordCleanerProfileAudit(client, {
           cleanerId,

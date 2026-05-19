@@ -46,6 +46,10 @@ export async function PATCH(request: Request, context: RouteContext) {
     fullName: parsed.values.fullName,
     serviceAreasInput: parsed.values.serviceAreasInput,
     capabilities: parsed.values.capabilities,
+    workingDays: parsed.values.workingDays,
+    startTime: parsed.values.startTime,
+    endTime: parsed.values.endTime,
+    timezone: parsed.values.timezone,
     idempotencyKey: parsed.values.idempotencyKey,
   });
 

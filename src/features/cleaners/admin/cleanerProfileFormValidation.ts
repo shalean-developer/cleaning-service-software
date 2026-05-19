@@ -3,6 +3,12 @@ import { normalizeAreaSlug } from "@/features/cleaners/server/eligibility/normal
 import { isValidZaMobilePhone, normalizeZaMobilePhone } from "@/lib/validation/zaPhone";
 import type { ServiceSlug } from "@/features/pricing/server/types";
 import { SERVICE_SLUGS } from "@/features/pricing/server/types";
+import {
+  type CleanerAvailabilityFormField,
+  type CleanerAvailabilityFormValues,
+  type CleanerAvailabilityWindow,
+  validateCleanerAvailabilityForm,
+} from "./cleanerAvailability";
 
 export const CLEANER_CREATE_MIN_PASSWORD_LENGTH = 8;
 
@@ -13,7 +19,7 @@ export type CleanerCreateFormValues = {
   confirmPassword: string;
   serviceAreasInput: string;
   capabilities: ServiceSlug[];
-};
+} & CleanerAvailabilityFormValues;
 
 export type CleanerCreateFormField =
   | "fullName"
@@ -21,7 +27,8 @@ export type CleanerCreateFormField =
   | "password"
   | "confirmPassword"
   | "serviceAreasInput"
-  | "capabilities";
+  | "capabilities"
+  | CleanerAvailabilityFormField;
 
 export type CleanerCreateFormErrors = Partial<Record<CleanerCreateFormField, string>>;
 
@@ -34,6 +41,7 @@ export type CleanerCreateFormValidationResult = {
   phoneE164: string | null;
   /** Generated login email preview (localPhone@shalean.co.za). */
   generatedAuthEmail: string | null;
+  availabilityWindows: CleanerAvailabilityWindow[];
 };
 
 const FULL_NAME_MIN = 2;
@@ -117,12 +125,22 @@ export function validateCleanerCreateForm(
     errors.capabilities = "Select at least one service capability.";
   }
 
+  const availability = validateCleanerAvailabilityForm({
+    workingDays: values.workingDays,
+    startTime: values.startTime,
+    endTime: values.endTime,
+    timezone: values.timezone,
+  });
+
+  const mergedErrors: CleanerCreateFormErrors = { ...errors, ...availability.errors };
+
   return {
-    valid: Object.keys(errors).length === 0,
-    errors,
+    valid: Object.keys(mergedErrors).length === 0,
+    errors: mergedErrors,
     serviceAreaSlugs,
     phoneE164,
     generatedAuthEmail,
+    availabilityWindows: availability.windows,
   };
 }
 

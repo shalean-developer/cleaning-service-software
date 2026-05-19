@@ -8,6 +8,10 @@ export type CreateCleanerParams = {
   confirmPassword: string;
   serviceAreasInput: string;
   capabilities: ServiceSlug[];
+  workingDays: number[];
+  startTime: string;
+  endTime: string;
+  timezone: string;
   idempotencyKey?: string | null;
 };
 

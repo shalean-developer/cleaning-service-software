@@ -5,6 +5,7 @@ import type { Database } from "@/lib/database/types";
 import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { validateCleanerEditForm } from "@/features/cleaners/admin/cleanerProfileEditValidation";
 import { parseUpdateCleanerProfileBody } from "./parseUpdateCleanerProfileBody";
+import { replaceCleanerAvailability } from "./replaceCleanerAvailability";
 import { recordCleanerProfileAudit } from "./recordCleanerProfileAudit";
 import type {
   UpdateCleanerProfileParams,
@@ -87,6 +88,10 @@ export async function updateCleanerProfile(
     fullName: params.fullName,
     serviceAreasInput: params.serviceAreasInput,
     capabilities: params.capabilities,
+    workingDays: params.workingDays,
+    startTime: params.startTime,
+    endTime: params.endTime,
+    timezone: params.timezone,
     idempotencyKey: params.idempotencyKey,
   });
 
@@ -108,6 +113,7 @@ export async function updateCleanerProfile(
   const fullName = values.fullName.trim();
   const capabilitySlugs = [...values.capabilities].sort();
   const serviceAreaSlugs = [...validation.serviceAreaSlugs].sort();
+  const availabilityWindows = validation.availabilityWindows;
 
   try {
     const { data: cleanerRow, error: cleanerError } = await client
@@ -148,6 +154,7 @@ export async function updateCleanerProfile(
 
     await replaceCapabilities(client, params.cleanerId, capabilitySlugs);
     await replaceServiceAreas(client, params.cleanerId, serviceAreaSlugs);
+    await replaceCleanerAvailability(client, params.cleanerId, availabilityWindows);
 
     const auditId = await recordCleanerProfileAudit(client, {
       cleanerId: params.cleanerId,

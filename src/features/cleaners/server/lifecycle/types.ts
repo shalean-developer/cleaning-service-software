@@ -7,6 +7,7 @@ export const CLEANER_LIFECYCLE_AUDIT_ACTIONS = [
   "unsuspended",
   "archived",
   "open_offers_cancelled",
+  "onboarding_completed",
 ] as const;
 
 export type CleanerLifecycleAuditAction = (typeof CLEANER_LIFECYCLE_AUDIT_ACTIONS)[number];
@@ -94,6 +95,8 @@ export type ArchiveCleanerParams = CleanerLifecycleBaseParams & {
 export type CancelCleanerOpenOffersParams = CleanerLifecycleBaseParams & {
   reason?: string | null;
 };
+
+export type CompleteCleanerOnboardingParams = CleanerLifecycleBaseParams;
 
 export type RecordCleanerOperationalAuditInput = {
   cleanerId: string;

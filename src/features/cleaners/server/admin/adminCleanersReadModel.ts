@@ -21,6 +21,10 @@ import {
   type CleanerOperationalState,
 } from "../lifecycle/operationalState";
 import type { ServiceSlug } from "@/features/pricing/server/types";
+import {
+  availabilityRowsToFormValues,
+  formatCleanerAvailabilitySummary,
+} from "@/features/cleaners/admin/cleanerAvailability";
 import { buildShaleanCleanerAuthEmail } from "@/lib/auth/cleanerAuthIdentity";
 import type {
   AdminCleanerDetail,
@@ -258,7 +262,7 @@ export async function getAdminCleanerDetail(
     return { ok: false, code: "PERSISTENCE_ERROR", message: profileError.message, status: 500 };
   }
 
-  const [safetyCounts, auditResult, openOffers, email, capsResult, areasResult] =
+  const [safetyCounts, auditResult, openOffers, email, capsResult, areasResult, availResult] =
     await Promise.all([
       loadSafetyCounts(client, cleaner.id),
       client
@@ -274,6 +278,10 @@ export async function getAdminCleanerDetail(
         .select("service_slug")
         .eq("cleaner_id", cleaner.id),
       client.from("cleaner_service_areas").select("area_slug").eq("cleaner_id", cleaner.id),
+      client
+        .from("cleaner_availability")
+        .select("day_of_week, start_time, end_time, timezone")
+        .eq("cleaner_id", cleaner.id),
     ]);
 
   if (capsResult.error) {
@@ -282,9 +290,15 @@ export async function getAdminCleanerDetail(
   if (areasResult.error) {
     return { ok: false, code: "PERSISTENCE_ERROR", message: areasResult.error.message, status: 500 };
   }
+  if (availResult.error) {
+    return { ok: false, code: "PERSISTENCE_ERROR", message: availResult.error.message, status: 500 };
+  }
 
   const capabilities = (capsResult.data ?? []).map((row) => row.service_slug as ServiceSlug);
   const serviceAreaSlugs = (areasResult.data ?? []).map((row) => row.area_slug as string);
+  const availabilityRows = availResult.data ?? [];
+  const availability = availabilityRowsToFormValues(availabilityRows);
+  const availabilitySummary = formatCleanerAvailabilitySummary(availabilityRows);
   const loginEmail = cleaner.phone ? buildShaleanCleanerAuthEmail(cleaner.phone) : null;
 
   if (auditResult.error) {
@@ -337,6 +351,8 @@ export async function getAdminCleanerDetail(
       phone: cleaner.phone,
       capabilities,
       serviceAreaSlugs,
+      availability,
+      availabilitySummary,
       operationalState,
       active: cleaner.active,
       suspendedAt: cleaner.suspended_at,

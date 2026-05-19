@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database/types";
+import { defaultCleanerAvailabilityFormValues } from "@/features/cleaners/admin/cleanerAvailability";
 
 const authAdmin = {
   createUser: vi.fn(),
@@ -18,6 +19,13 @@ function createMockClient(
     cleaners: { id: string; profile_id: string; phone: string | null }[];
     capabilities: { cleaner_id: string; service_slug: string }[];
     areas: { cleaner_id: string; area_slug: string }[];
+    availability: {
+      cleaner_id: string;
+      day_of_week: number;
+      start_time: string;
+      end_time: string;
+      timezone: string;
+    }[];
     audits: Record<string, unknown>[];
   },
   options: CreateCleanerMockOptions = {},
@@ -57,6 +65,17 @@ function createMockClient(
               state.areas.push({
                 cleaner_id: row.cleaner_id as string,
                 area_slug: row.area_slug as string,
+              });
+            }
+          }
+          if (table === "cleaner_availability") {
+            for (const row of list) {
+              state.availability.push({
+                cleaner_id: row.cleaner_id as string,
+                day_of_week: row.day_of_week as number,
+                start_time: row.start_time as string,
+                end_time: row.end_time as string,
+                timezone: row.timezone as string,
               });
             }
           }
@@ -104,6 +123,35 @@ function createMockClient(
   } as unknown as SupabaseClient<Database>;
 }
 
+const defaultAvailability = defaultCleanerAvailabilityFormValues();
+
+function baseCreateParams(
+  overrides: Partial<{
+    adminProfileId: string;
+    fullName: string;
+    phone: string;
+    password: string;
+    confirmPassword: string;
+    serviceAreasInput: string;
+    capabilities: string[];
+  }> = {},
+) {
+  return {
+    adminProfileId: "admin-1",
+    fullName: "Ada Cleaner",
+    phone: "0792022648",
+    password: "secure-pass-1",
+    confirmPassword: "secure-pass-1",
+    serviceAreasInput: "",
+    capabilities: ["regular-cleaning"] as const,
+    workingDays: defaultAvailability.workingDays,
+    startTime: defaultAvailability.startTime,
+    endTime: defaultAvailability.endTime,
+    timezone: defaultAvailability.timezone,
+    ...overrides,
+  };
+}
+
 describe("createCleaner", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -121,6 +169,7 @@ describe("createCleaner", () => {
       cleaners: [] as { id: string; profile_id: string; phone: string | null }[],
       capabilities: [] as { cleaner_id: string; service_slug: string }[],
       areas: [] as { cleaner_id: string; area_slug: string }[],
+      availability: [],
       audits: [] as Record<string, unknown>[],
     };
     const client = createMockClient(state);
@@ -128,13 +177,8 @@ describe("createCleaner", () => {
     const { createCleaner } = await import("./createCleaner");
     const result = await createCleaner(
       {
-        adminProfileId: "admin-1",
-        fullName: "Ada Cleaner",
-        phone: "0792022648",
-        password: "secure-pass-1",
-        confirmPassword: "secure-pass-1",
+        ...baseCreateParams(),
         serviceAreasInput: "Sea Point",
-        capabilities: ["regular-cleaning"],
       },
       client,
     );
@@ -144,6 +188,8 @@ describe("createCleaner", () => {
 
     expect(result.cleanerId).toBe("cleaner-new");
     expect(state.cleaners[0]?.phone).toBe("+27792022648");
+    expect(state.availability.length).toBe(6);
+    expect(state.availability[0]?.start_time).toBe("07:00:00");
     expect(authAdmin.createUser).toHaveBeenCalledWith({
       email: "0792022648@shalean.co.za",
       password: "secure-pass-1",
@@ -164,6 +210,7 @@ describe("createCleaner", () => {
       cleaners: [] as { id: string; profile_id: string; phone: string | null }[],
       capabilities: [] as { cleaner_id: string; service_slug: string }[],
       areas: [] as { cleaner_id: string; area_slug: string }[],
+      availability: [],
       audits: [] as Record<string, unknown>[],
     };
     const client = createMockClient(state);
@@ -171,13 +218,10 @@ describe("createCleaner", () => {
     const { createCleaner } = await import("./createCleaner");
     await createCleaner(
       {
-        adminProfileId: "admin-1",
-        fullName: "Ada Cleaner",
-        phone: "0792022648",
-        password: "super-secret-pass",
-        confirmPassword: "super-secret-pass",
-        serviceAreasInput: "",
-        capabilities: ["regular-cleaning"],
+        ...baseCreateParams({
+          password: "super-secret-pass",
+          confirmPassword: "super-secret-pass",
+        }),
       },
       client,
     );
@@ -193,15 +237,7 @@ describe("createCleaner", () => {
   it("returns PHONE_ALREADY_REGISTERED when cleaners.phone already exists", async () => {
     const { createCleaner } = await import("./createCleaner");
     const result = await createCleaner(
-      {
-        adminProfileId: "admin-1",
-        fullName: "Ada Cleaner",
-        phone: "0792022648",
-        password: "secure-pass-1",
-        confirmPassword: "secure-pass-1",
-        serviceAreasInput: "",
-        capabilities: ["regular-cleaning"],
-      },
+      baseCreateParams(),
       createMockClient({
         profiles: [],
         cleaners: [
@@ -213,6 +249,7 @@ describe("createCleaner", () => {
         ],
         capabilities: [],
         areas: [],
+        availability: [],
         audits: [],
       }),
     );
@@ -242,20 +279,13 @@ describe("createCleaner", () => {
       cleaners: [] as { id: string; profile_id: string; phone: string | null }[],
       capabilities: [] as { cleaner_id: string; service_slug: string }[],
       areas: [] as { cleaner_id: string; area_slug: string }[],
+      availability: [],
       audits: [] as Record<string, unknown>[],
     };
 
     const { createCleaner } = await import("./createCleaner");
     const result = await createCleaner(
-      {
-        adminProfileId: "admin-1",
-        fullName: "Ada Cleaner",
-        phone: "0792022648",
-        password: "secure-pass-1",
-        confirmPassword: "secure-pass-1",
-        serviceAreasInput: "",
-        capabilities: ["regular-cleaning"],
-      },
+      baseCreateParams(),
       createMockClient(state, { failProfileUpdate: true }),
     );
 
@@ -275,20 +305,13 @@ describe("createCleaner", () => {
 
     const { createCleaner } = await import("./createCleaner");
     const result = await createCleaner(
-      {
-        adminProfileId: "admin-1",
-        fullName: "Ada Cleaner",
-        phone: "0792022648",
-        password: "secure-pass-1",
-        confirmPassword: "secure-pass-1",
-        serviceAreasInput: "",
-        capabilities: ["regular-cleaning"],
-      },
+      baseCreateParams(),
       createMockClient({
         profiles: [],
         cleaners: [],
         capabilities: [],
         areas: [],
+        availability: [],
         audits: [],
       }),
     );
@@ -305,19 +328,15 @@ describe("createCleaner", () => {
     const { createCleaner } = await import("./createCleaner");
     const result = await createCleaner(
       {
-        adminProfileId: "admin-1",
-        fullName: "Ada Cleaner",
-        phone: "0792022648",
-        password: "secure-pass-1",
+        ...baseCreateParams(),
         confirmPassword: "other-pass-1",
-        serviceAreasInput: "",
-        capabilities: ["regular-cleaning"],
       },
       createMockClient({
         profiles: [],
         cleaners: [],
         capabilities: [],
         areas: [],
+        availability: [],
         audits: [],
       }),
     );

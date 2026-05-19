@@ -2,6 +2,7 @@ import "server-only";
 
 import type { ServiceSlug } from "@/features/pricing/server/types";
 import { SERVICE_SLUGS } from "@/features/pricing/server/types";
+import { readWorkingDaysFromPayload } from "@/features/cleaners/admin/cleanerAvailability";
 import {
   validateCleanerEditForm,
   type CleanerEditFormValues,
@@ -64,6 +65,10 @@ export function parseUpdateCleanerProfileBody(
     fullName: readString(record.fullName),
     serviceAreasInput: readString(record.serviceAreasInput),
     capabilities: readCapabilities(record.capabilities),
+    workingDays: readWorkingDaysFromPayload(record.workingDays),
+    startTime: readString(record.startTime),
+    endTime: readString(record.endTime),
+    timezone: readString(record.timezone),
     idempotencyKey:
       typeof record.idempotencyKey === "string" ? record.idempotencyKey : null,
   };
@@ -74,6 +79,10 @@ export function parseUpdateCleanerProfileBody(
       validation.errors.fullName ??
       validation.errors.capabilities ??
       validation.errors.serviceAreasInput ??
+      validation.errors.workingDays ??
+      validation.errors.startTime ??
+      validation.errors.endTime ??
+      validation.errors.timezone ??
       "Invalid cleaner profile payload.";
     return { ok: false, code: "INVALID_PAYLOAD", message: firstError };
   }

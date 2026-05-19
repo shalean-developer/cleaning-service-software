@@ -71,6 +71,10 @@ describe("AdminCleanerCreateForm validation integration", () => {
         confirmPassword: "password-two",
         serviceAreasInput: "",
         capabilities: ["regular-cleaning"],
+        workingDays: [1, 2, 3, 4, 5, 6],
+        startTime: "07:00",
+        endTime: "18:00",
+        timezone: "Africa/Johannesburg",
       }),
     ).toBe(false);
   });

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { defaultCleanerAvailabilityFormValues } from "./cleanerAvailability";
 import {
   CLEANER_CREATE_MIN_PASSWORD_LENGTH,
   isCleanerCreateFormSubmittable,
@@ -14,6 +15,7 @@ function validValues() {
     confirmPassword: "secure-pass-1",
     serviceAreasInput: "Sea Point, Cape Town",
     capabilities: ["regular-cleaning"] as const,
+    ...defaultCleanerAvailabilityFormValues(),
   };
 }
 

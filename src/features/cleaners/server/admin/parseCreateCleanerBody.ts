@@ -3,6 +3,10 @@ import "server-only";
 import type { ServiceSlug } from "@/features/pricing/server/types";
 import { SERVICE_SLUGS } from "@/features/pricing/server/types";
 import {
+  defaultCleanerAvailabilityFormValues,
+  readWorkingDaysFromPayload,
+} from "@/features/cleaners/admin/cleanerAvailability";
+import {
   validateCleanerCreateForm,
   type CleanerCreateFormValues,
 } from "@/features/cleaners/admin/cleanerProfileFormValidation";
@@ -48,6 +52,7 @@ export function parseCreateCleanerBody(
     };
   }
 
+  const availabilityDefaults = defaultCleanerAvailabilityFormValues();
   const values: ParsedCreateCleanerBody = {
     fullName: readString(record.fullName),
     phone: readString(record.phone),
@@ -55,6 +60,13 @@ export function parseCreateCleanerBody(
     confirmPassword: readString(record.confirmPassword),
     serviceAreasInput: readString(record.serviceAreasInput),
     capabilities: readCapabilities(record.capabilities),
+    workingDays:
+      record.workingDays !== undefined
+        ? readWorkingDaysFromPayload(record.workingDays)
+        : availabilityDefaults.workingDays,
+    startTime: readString(record.startTime) || availabilityDefaults.startTime,
+    endTime: readString(record.endTime) || availabilityDefaults.endTime,
+    timezone: readString(record.timezone) || availabilityDefaults.timezone,
     idempotencyKey:
       typeof record.idempotencyKey === "string" ? record.idempotencyKey : null,
   };
@@ -68,6 +80,10 @@ export function parseCreateCleanerBody(
       validation.errors.confirmPassword ??
       validation.errors.capabilities ??
       validation.errors.serviceAreasInput ??
+      validation.errors.workingDays ??
+      validation.errors.startTime ??
+      validation.errors.endTime ??
+      validation.errors.timezone ??
       "Invalid cleaner profile payload.";
     return { ok: false, code: "INVALID_PAYLOAD", message: firstError };
   }

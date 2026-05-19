@@ -38,6 +38,10 @@ export async function POST(request: Request) {
     confirmPassword: parsed.values.confirmPassword,
     serviceAreasInput: parsed.values.serviceAreasInput,
     capabilities: parsed.values.capabilities,
+    workingDays: parsed.values.workingDays,
+    startTime: parsed.values.startTime,
+    endTime: parsed.values.endTime,
+    timezone: parsed.values.timezone,
     idempotencyKey: parsed.values.idempotencyKey,
   });
 

@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, type FormEvent } from "react";
 import { ADMIN_ACTION_ERROR_CLASS } from "@/lib/app/dashboardEcosystemDisplay";
 import { buildShaleanCleanerAuthEmail } from "@/lib/auth/cleanerAuthIdentity";
+import { defaultCleanerAvailabilityFormValues } from "@/features/cleaners/admin/cleanerAvailability";
 import { CLEANER_CAPABILITY_OPTIONS } from "@/features/cleaners/admin/cleanerCapabilityOptions";
+import { CleanerAvailabilityFields } from "@/components/dashboard/admin/CleanerAvailabilityFields";
 import {
   CLEANER_CREATE_MIN_PASSWORD_LENGTH,
   parseServiceAreasInput,
@@ -39,6 +41,7 @@ const EMPTY_VALUES = {
   confirmPassword: "",
   serviceAreasInput: "",
   capabilities: [] as ServiceSlug[],
+  ...defaultCleanerAvailabilityFormValues(),
 };
 
 export function AdminCleanerCreateForm() {
@@ -109,6 +112,10 @@ export function AdminCleanerCreateForm() {
           confirmPassword: values.confirmPassword,
           serviceAreasInput: values.serviceAreasInput,
           capabilities: values.capabilities,
+          workingDays: values.workingDays,
+          startTime: values.startTime,
+          endTime: values.endTime,
+          timezone: values.timezone,
         }),
       });
 
@@ -288,6 +295,21 @@ export function AdminCleanerCreateForm() {
           ) : null}
         </label>
       </div>
+
+      <CleanerAvailabilityFields
+        values={{
+          workingDays: values.workingDays,
+          startTime: values.startTime,
+          endTime: values.endTime,
+          timezone: values.timezone,
+        }}
+        onChange={(availability) => setValues((prev) => ({ ...prev, ...availability }))}
+        errors={{ ...validation.errors, ...errors }}
+        touched={touched}
+        submitAttempted={submitAttempted}
+        onTouch={touch}
+        disabled={submitting}
+      />
 
       <fieldset className="text-sm">
         <legend className="font-medium text-zinc-800">Service capabilities</legend>

@@ -93,6 +93,7 @@ export default async function AdminCleanerDetailPage({ params }: PageProps) {
             initialFullName={detail.name}
             initialCapabilities={detail.capabilities}
             initialServiceAreaSlugs={detail.serviceAreaSlugs}
+            initialAvailability={detail.availability}
             readOnlyPhone={detail.phone}
             readOnlyLoginEmail={detail.loginEmail}
           />
@@ -115,6 +116,12 @@ export default async function AdminCleanerDetailPage({ params }: PageProps) {
                   ? new Date(detail.onboardingCompletedAt).toLocaleString()
                   : "Not completed"}
               </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                Working hours
+              </dt>
+              <dd className="mt-0.5 text-zinc-900">{detail.availabilitySummary}</dd>
             </div>
             <div>
               <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">Rating</dt>

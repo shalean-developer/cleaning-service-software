@@ -1,14 +1,24 @@
 import type { ServiceSlug } from "@/features/pricing/server/types";
 import { SERVICE_SLUGS } from "@/features/pricing/server/types";
+import {
+  type CleanerAvailabilityFormField,
+  type CleanerAvailabilityFormValues,
+  type CleanerAvailabilityWindow,
+  validateCleanerAvailabilityForm,
+} from "./cleanerAvailability";
 import { parseServiceAreasInput } from "./cleanerProfileFormValidation";
 
 export type CleanerEditFormValues = {
   fullName: string;
   serviceAreasInput: string;
   capabilities: ServiceSlug[];
-};
+} & CleanerAvailabilityFormValues;
 
-export type CleanerEditFormField = "fullName" | "serviceAreasInput" | "capabilities";
+export type CleanerEditFormField =
+  | "fullName"
+  | "serviceAreasInput"
+  | "capabilities"
+  | CleanerAvailabilityFormField;
 
 export type CleanerEditFormErrors = Partial<Record<CleanerEditFormField, string>>;
 
@@ -16,6 +26,7 @@ export type CleanerEditFormValidationResult = {
   valid: boolean;
   errors: CleanerEditFormErrors;
   serviceAreaSlugs: string[];
+  availabilityWindows: CleanerAvailabilityWindow[];
 };
 
 const FULL_NAME_MIN = 2;
@@ -58,9 +69,19 @@ export function validateCleanerEditForm(
     errors.capabilities = "Select at least one service capability.";
   }
 
+  const availability = validateCleanerAvailabilityForm({
+    workingDays: values.workingDays,
+    startTime: values.startTime,
+    endTime: values.endTime,
+    timezone: values.timezone,
+  });
+
+  const mergedErrors: CleanerEditFormErrors = { ...errors, ...availability.errors };
+
   return {
-    valid: Object.keys(errors).length === 0,
-    errors,
+    valid: Object.keys(mergedErrors).length === 0,
+    errors: mergedErrors,
     serviceAreaSlugs,
+    availabilityWindows: availability.windows,
   };
 }
