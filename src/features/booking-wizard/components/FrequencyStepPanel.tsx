@@ -1,10 +1,12 @@
 import type { PricingFrequency } from "@/features/pricing/server/types";
 import { FREQUENCY_STEP_OPTIONS } from "../constants";
 import {
+  DETAILS_STEP_SECTION,
+  detailsCardClass,
   WIZARD_CARD_TRANSITION,
   WIZARD_FOCUS_RING,
-  wizardCardClass,
-} from "../wizardSelection";
+} from "../detailsStepUi";
+import { DetailsSectionHeading } from "./DetailsSectionHeading";
 
 type Props = {
   value: PricingFrequency;
@@ -14,19 +16,10 @@ type Props = {
 
 export function FrequencyStepPanel({ value, onChange, error }: Props) {
   return (
-    <div className="mb-4 min-w-0">
-      <span
-        id="frequency-step-label"
-        className="mb-2 block text-sm font-medium text-zinc-800"
-      >
-        Frequency
-      </span>
+    <section className={DETAILS_STEP_SECTION} aria-labelledby="frequency-step-label">
+      <DetailsSectionHeading title="Frequency" id="frequency-step-label" />
 
-      <div
-        className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3"
-        role="radiogroup"
-        aria-labelledby="frequency-step-label"
-      >
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-2" role="radiogroup">
         {FREQUENCY_STEP_OPTIONS.map((option) => {
           const selected = value === option.value;
 
@@ -37,14 +30,10 @@ export function FrequencyStepPanel({ value, onChange, error }: Props) {
               role="radio"
               aria-checked={selected}
               onClick={() => onChange(option.value)}
-              className={`flex min-w-0 flex-col rounded-2xl border px-3 py-3 text-left sm:px-3.5 sm:py-3.5 ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${wizardCardClass(selected)}`}
+              className={`flex min-h-[2.75rem] min-w-0 items-center justify-center rounded-xl border px-2 py-2 text-center ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${detailsCardClass(selected)}`}
             >
-              <span className="block text-sm font-semibold leading-snug text-zinc-900">
-                {option.label}
-              </span>
-              <span className="mt-1 block text-xs leading-snug text-zinc-500">
-                {option.description}
-              </span>
+              <span className="text-sm font-semibold leading-snug text-zinc-900">{option.label}</span>
+              <span className="sr-only">{option.description}</span>
             </button>
           );
         })}
@@ -55,6 +44,6 @@ export function FrequencyStepPanel({ value, onChange, error }: Props) {
           {error}
         </p>
       ) : null}
-    </div>
+    </section>
   );
 }

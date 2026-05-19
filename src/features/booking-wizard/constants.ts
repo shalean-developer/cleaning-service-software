@@ -113,17 +113,17 @@ export const CLEANING_INTENSITY_STEP_OPTIONS: CleaningIntensityStepOption[] = [
   {
     value: "standard",
     label: "Standard",
-    description: "Normal routine clean — no extra charge",
+    description: "Normal routine clean",
   },
   {
     value: "detailed",
     label: "Detailed",
-    description: "Extra attention where needed — +15%",
+    description: "Extra attention needed (+15%)",
   },
   {
     value: "heavy",
     label: "Heavy",
-    description: "High-use home, deeper attention — +30% (still regular cleaning)",
+    description: "High-use home (+30%)",
   },
 ];
 

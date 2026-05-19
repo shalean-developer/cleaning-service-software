@@ -1,7 +1,10 @@
 import { ADDON_CATALOG } from "@/features/pricing/server/catalog";
 import type { AddonSlug } from "@/features/pricing/server/types";
 import { ADDON_STEP_DESCRIPTIONS, ADDON_STEP_DISPLAY_ORDER } from "../constants";
+import { DETAILS_STEP_SECTION } from "../detailsStepUi";
 import { formatAddonPrice } from "../format";
+import { DetailsSectionHeading } from "./DetailsSectionHeading";
+import { DetailsToggleSwitch } from "./DetailsToggleSwitch";
 
 type Props = {
   selected: AddonSlug[];
@@ -14,54 +17,21 @@ type AddonRowProps = {
   onToggle: (slug: AddonSlug, enabled: boolean) => void;
 };
 
-function AddonToggle({
-  checked,
-  label,
-  onToggle,
-}: {
-  checked: boolean;
-  label: string;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={`${label} add-on`}
-      onClick={onToggle}
-      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 motion-reduce:transition-none ${
-        checked ? "bg-zinc-900" : "bg-zinc-200"
-      }`}
-    >
-      <span
-        className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none ${
-          checked ? "translate-x-5" : "translate-x-0"
-        }`}
-      />
-    </button>
-  );
-}
-
 function AddonRow({ slug, checked, onToggle }: AddonRowProps) {
   const addon = ADDON_CATALOG[slug];
 
   return (
-    <li className="flex items-center gap-3 border-b border-zinc-100 px-4 py-4 last:border-b-0 sm:gap-4 sm:px-5">
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold leading-snug text-zinc-900">{addon.label}</p>
-        <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">
-          {ADDON_STEP_DESCRIPTIONS[slug]}
-        </p>
-      </div>
+    <li className="flex items-center gap-3 border-b border-zinc-100 px-3 py-2.5 last:border-b-0 sm:px-4">
+      <p className="min-w-0 flex-1 text-sm font-medium leading-snug text-zinc-900">{addon.label}</p>
       <span className="shrink-0 text-sm font-medium tabular-nums text-zinc-500">
         {formatAddonPrice(addon.amountCents)}
       </span>
-      <AddonToggle
+      <DetailsToggleSwitch
         checked={checked}
-        label={addon.label}
+        label={`${addon.label} add-on`}
         onToggle={() => onToggle(slug, !checked)}
       />
+      <span className="sr-only">{ADDON_STEP_DESCRIPTIONS[slug]}</span>
     </li>
   );
 }
@@ -78,18 +48,12 @@ export function AddonsStepPanel({ selected, onChange }: Props) {
   };
 
   return (
-    <div className="mb-4 min-w-0">
-      <span
-        id="addons-step-label"
-        className="mb-2 block text-sm font-medium text-zinc-800"
-      >
-        Add-ons
-      </span>
+    <section className={DETAILS_STEP_SECTION} aria-labelledby="addons-step-label">
+      <DetailsSectionHeading title="Add-ons" id="addons-step-label" />
 
       <div
-        className="overflow-hidden rounded-2xl border border-zinc-200 bg-white"
+        className="overflow-hidden rounded-xl border border-zinc-200/90 bg-white shadow-sm"
         role="group"
-        aria-labelledby="addons-step-label"
       >
         <ul className="m-0 list-none p-0">
           {ADDON_STEP_DISPLAY_ORDER.map((slug) => (
@@ -102,6 +66,6 @@ export function AddonsStepPanel({ selected, onChange }: Props) {
           ))}
         </ul>
       </div>
-    </div>
+    </section>
   );
 }

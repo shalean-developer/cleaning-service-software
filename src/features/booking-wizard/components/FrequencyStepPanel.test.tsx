@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { FrequencyStepPanel } from "./FrequencyStepPanel";
 
 describe("FrequencyStepPanel", () => {
-  it("renders four frequency cards in a responsive grid with subtitles", () => {
+  it("renders four compact frequency pills with sr-only descriptions", () => {
     const html = renderToStaticMarkup(
       <FrequencyStepPanel value="weekly" onChange={() => {}} />,
     );
@@ -18,7 +18,6 @@ describe("FrequencyStepPanel", () => {
     expect(html).toContain("Bi-weekly");
     expect(html).toContain("Popular");
     expect(html).toContain("Monthly");
-    expect(html).toContain("Recurring monthly cadence");
     expect(html).toContain('aria-checked="true"');
     expect(html).toContain("border-zinc-900");
     expect(html).toContain("bg-zinc-50");

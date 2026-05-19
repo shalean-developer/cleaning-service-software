@@ -1,10 +1,12 @@
 ﻿import type { CleaningIntensity } from "@/features/pricing/server/types";
 import { CLEANING_INTENSITY_STEP_OPTIONS } from "../constants";
 import {
+  DETAILS_STEP_SECTION,
+  detailsCardClass,
   WIZARD_CARD_TRANSITION,
   WIZARD_FOCUS_RING,
-  wizardCardClass,
-} from "../wizardSelection";
+} from "../detailsStepUi";
+import { DetailsSectionHeading } from "./DetailsSectionHeading";
 
 type Props = {
   value: CleaningIntensity;
@@ -14,19 +16,11 @@ type Props = {
 
 export function CleaningIntensityStepPanel({ value, onChange, error }: Props) {
   return (
-    <div className="mb-4 min-w-0">
-      <span
-        id="cleaning-intensity-step-label"
-        className="mb-1 block text-sm font-medium text-zinc-800"
-      >
-        Cleaning intensity
-      </span>
-      <p className="mb-2 text-xs leading-relaxed text-zinc-500">
-        Choose the condition of your home so we can price the time fairly.
-      </p>
+    <section className={DETAILS_STEP_SECTION} aria-labelledby="cleaning-intensity-step-label">
+      <DetailsSectionHeading title="Cleaning intensity" id="cleaning-intensity-step-label" />
 
       <div
-        className="grid gap-2 sm:grid-cols-3 sm:gap-3"
+        className="grid gap-2 sm:grid-cols-3 sm:gap-2.5"
         role="radiogroup"
         aria-labelledby="cleaning-intensity-step-label"
       >
@@ -40,12 +34,12 @@ export function CleaningIntensityStepPanel({ value, onChange, error }: Props) {
               role="radio"
               aria-checked={selected}
               onClick={() => onChange(option.value)}
-              className={`flex min-w-0 flex-col rounded-2xl border px-3 py-3 text-left sm:px-3.5 sm:py-3.5 ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${wizardCardClass(selected)}`}
+              className={`flex min-w-0 flex-col rounded-xl border px-3 py-2.5 text-left ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${detailsCardClass(selected)}`}
             >
               <span className="block text-sm font-semibold leading-snug text-zinc-900">
                 {option.label}
               </span>
-              <span className="mt-1 block text-xs leading-snug text-zinc-500">
+              <span className="mt-0.5 block text-xs leading-snug text-zinc-500">
                 {option.description}
               </span>
             </button>
@@ -58,7 +52,6 @@ export function CleaningIntensityStepPanel({ value, onChange, error }: Props) {
           {error}
         </p>
       ) : null}
-    </div>
+    </section>
   );
 }
-

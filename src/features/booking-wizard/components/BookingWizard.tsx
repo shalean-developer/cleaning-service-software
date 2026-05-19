@@ -29,13 +29,9 @@ import {
 import { WizardStepper } from "./WizardStepper";
 import { WizardNav } from "./WizardNav";
 import { Field, inputClass } from "./Field";
-import { AddonsStepPanel } from "./AddonsStepPanel";
 import { CheckoutStepPanel } from "./CheckoutStepPanel";
 import { CleanerStepPanel } from "./CleanerStepPanel";
-import { CleaningIntensityStepPanel } from "./CleaningIntensityStepPanel";
-import { EquipmentSupplyStepPanel } from "./EquipmentSupplyStepPanel";
-import { TeamSupportStepPanel } from "./TeamSupportStepPanel";
-import { FrequencyStepPanel } from "./FrequencyStepPanel";
+import { DetailsStepPanel } from "./DetailsStepPanel";
 import { ReviewStepPanel } from "./ReviewStepPanel";
 import { ScheduleStepPanel } from "./ScheduleStepPanel";
 import { ServiceStepPanel } from "./ServiceStepPanel";
@@ -433,95 +429,32 @@ export function BookingWizard({
         {state.step === "details" ? (
           <>
             {wizardContextStrip}
-            <WizardStepHeading title="Your home" />
-            {state.serviceSlug !== "office-cleaning" ? (
-              <>
-              <div className="mb-4 grid grid-cols-2 gap-3 md:gap-4 [&>label]:mb-0">
-                <Field label="Bedrooms" error={stepErrors.bedrooms}>
-                  <input
-                    type="number"
-                    min={0}
-                    max={20}
-                    className={inputClass}
-                    value={state.bedrooms}
-                    onChange={(e) => patch({ bedrooms: Number(e.target.value) })}
-                  />
-                </Field>
-                <Field label="Bathrooms" error={stepErrors.bathrooms}>
-                  <input
-                    type="number"
-                    min={0}
-                    max={20}
-                    className={inputClass}
-                    value={state.bathrooms}
-                    onChange={(e) => patch({ bathrooms: Number(e.target.value) })}
-                  />
-                </Field>
-              </div>
-                {state.serviceSlug === "regular-cleaning" ? (
-                  <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3 md:items-end">
-                    <div className="min-w-0 [&>label]:mb-0">
-                      <Field label="Extra rooms" error={stepErrors.extraRooms}>
-                        <input
-                          type="number"
-                          min={0}
-                          max={6}
-                          className={inputClass}
-                          value={state.extraRooms}
-                          onChange={(e) => patch({ extraRooms: Number(e.target.value) })}
-                        />
-                      </Field>
-                    </div>
-                    <EquipmentSupplyStepPanel
-                      value={state.equipmentSupply}
-                      onChange={(equipmentSupply) => patch({ equipmentSupply })}
-                      error={stepErrors.equipmentSupply}
-                    />
-                    <TeamSupportStepPanel
-                      value={state.requestedTeamSize}
-                      onChange={(requestedTeamSize) => patch({ requestedTeamSize })}
-                      error={stepErrors.requestedTeamSize}
-                    />
-                  </div>
-                ) : null}
-                {state.serviceSlug === "regular-cleaning" ? (
-                  <CleaningIntensityStepPanel
-                    value={state.cleaningIntensity}
-                    onChange={(cleaningIntensity) => patch({ cleaningIntensity })}
-                    error={stepErrors.cleaningIntensity}
-                  />
-                ) : null}
-              </>
-            ) : (
-              <Field label="Property size (sqm)" error={stepErrors.propertySizeSqm}>
-                <input
-                  type="number"
-                  min={1}
-                  className={inputClass}
-                  value={state.propertySizeSqm ?? ""}
-                  onChange={(e) =>
-                    patch({
-                      propertySizeSqm: e.target.value ? Number(e.target.value) : null,
-                    })
-                  }
-                />
-              </Field>
-            )}
-            <FrequencyStepPanel
-              value={state.frequency}
-              onChange={(frequency) => patch({ frequency })}
+            <DetailsStepPanel
+              serviceSlug={state.serviceSlug}
+              bedrooms={state.bedrooms}
+              bathrooms={state.bathrooms}
+              extraRooms={state.extraRooms}
+              propertySizeSqm={state.propertySizeSqm}
+              cleaningIntensity={state.cleaningIntensity}
+              equipmentSupply={state.equipmentSupply}
+              requestedTeamSize={state.requestedTeamSize}
+              frequency={state.frequency}
+              addons={state.addons}
+              specialInstructions={state.specialInstructions}
+              stepErrors={stepErrors}
+              onBedroomsChange={(bedrooms) => patch({ bedrooms })}
+              onBathroomsChange={(bathrooms) => patch({ bathrooms })}
+              onExtraRoomsChange={(extraRooms) => patch({ extraRooms })}
+              onPropertySizeSqmChange={(propertySizeSqm) => patch({ propertySizeSqm })}
+              onCleaningIntensityChange={(cleaningIntensity) => patch({ cleaningIntensity })}
+              onEquipmentSupplyChange={(equipmentSupply) => patch({ equipmentSupply })}
+              onRequestedTeamSizeChange={(requestedTeamSize) => patch({ requestedTeamSize })}
+              onFrequencyChange={(frequency) => patch({ frequency })}
+              onAddonsChange={(addons) => patch({ addons })}
+              onSpecialInstructionsChange={(specialInstructions) =>
+                patch({ specialInstructions })
+              }
             />
-            <AddonsStepPanel
-              selected={state.addons}
-              onChange={(addons) => patch({ addons })}
-            />
-            <Field label="Special instructions">
-              <textarea
-                className={`${inputClass} min-h-[80px]`}
-                value={state.specialInstructions}
-                onChange={(e) => patch({ specialInstructions: e.target.value })}
-              />
-            </Field>
           </>
         ) : null}
 

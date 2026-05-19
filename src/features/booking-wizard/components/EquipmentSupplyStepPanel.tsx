@@ -1,5 +1,7 @@
 import type { EquipmentSupply } from "@/features/pricing/server/types";
-import { DetailsToggleSwitch, DETAILS_TOGGLE_CONTROL_CARD } from "./DetailsToggleSwitch";
+import { BRING_EQUIPMENT_INFO_TEXT, DETAILS_TOGGLE_CONTROL } from "../detailsStepUi";
+import { DetailsLabelWithInfo } from "./DetailsFieldInfo";
+import { DetailsToggleSwitch } from "./DetailsToggleSwitch";
 
 type Props = {
   value: EquipmentSupply;
@@ -12,19 +14,17 @@ export function EquipmentSupplyStepPanel({ value, onChange, error }: Props) {
 
   return (
     <div className="flex min-w-0 flex-col">
-      <span
+      <DetailsLabelWithInfo
         id="equipment-supply-step-label"
-        className="mb-1 block text-sm font-medium text-zinc-800"
-      >
-        Cleaning equipment
-      </span>
+        label="Cleaning equipment"
+        infoText={BRING_EQUIPMENT_INFO_TEXT}
+      />
 
       <div
-        className={DETAILS_TOGGLE_CONTROL_CARD}
+        className={DETAILS_TOGGLE_CONTROL}
         role="group"
         aria-labelledby="equipment-supply-step-label"
       >
-        <span className="text-sm text-zinc-900">{bringEquipment ? "Yes" : "No"}</span>
         <DetailsToggleSwitch
           checked={bringEquipment}
           label="Bring cleaning equipment"

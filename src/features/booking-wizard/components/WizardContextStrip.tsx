@@ -43,28 +43,29 @@ export function WizardContextStrip({
     : null;
   const frequencyLabel = showFrequency ? getFrequencyLabel(frequency) : null;
 
+  const segments = [serviceLabel, homeDetail, frequencyLabel].filter(Boolean) as string[];
+
   return (
     <div
-      className="mb-4 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-zinc-200/90 bg-zinc-50/90 px-3 py-2 text-sm leading-snug"
+      className="mb-4 flex min-w-0 flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full border border-zinc-200/90 bg-zinc-50/80 px-3.5 py-2 text-center text-sm leading-snug sm:justify-start sm:text-left"
       aria-label="Booking context"
     >
-      <span className="break-words font-medium text-sky-800">{serviceLabel}</span>
-      {homeDetail ? (
-        <>
-          <span className="text-zinc-300" aria-hidden>
-            ·
+      {segments.map((segment, index) => (
+        <span key={`${segment}-${index}`} className="inline-flex items-center gap-2">
+          {index > 0 ? (
+            <span className="text-zinc-300" aria-hidden>
+              ·
+            </span>
+          ) : null}
+          <span
+            className={
+              index === 0 ? "font-medium text-sky-800" : "font-normal text-zinc-600"
+            }
+          >
+            {segment}
           </span>
-          <span className="text-zinc-600">{homeDetail}</span>
-        </>
-      ) : null}
-      {frequencyLabel ? (
-        <>
-          <span className="text-zinc-300" aria-hidden>
-            ·
-          </span>
-          <span className="text-zinc-600">{frequencyLabel}</span>
-        </>
-      ) : null}
+        </span>
+      ))}
     </div>
   );
 }

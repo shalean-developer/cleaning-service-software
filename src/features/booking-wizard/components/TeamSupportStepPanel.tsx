@@ -1,4 +1,6 @@
-import { DetailsToggleSwitch, DETAILS_TOGGLE_CONTROL_CARD } from "./DetailsToggleSwitch";
+import { DETAILS_TOGGLE_CONTROL, REQUEST_TWO_CLEANERS_INFO_TEXT } from "../detailsStepUi";
+import { DetailsLabelWithInfo } from "./DetailsFieldInfo";
+import { DetailsToggleSwitch } from "./DetailsToggleSwitch";
 
 type Props = {
   value: 1 | 2;
@@ -11,16 +13,17 @@ export function TeamSupportStepPanel({ value, onChange, error }: Props) {
 
   return (
     <div className="flex min-w-0 flex-col">
-      <span id="team-support-step-label" className="mb-1 block text-sm font-medium text-zinc-800">
-        Team support
-      </span>
+      <DetailsLabelWithInfo
+        id="team-support-step-label"
+        label="Team support"
+        infoText={REQUEST_TWO_CLEANERS_INFO_TEXT}
+      />
 
       <div
-        className={DETAILS_TOGGLE_CONTROL_CARD}
+        className={DETAILS_TOGGLE_CONTROL}
         role="group"
         aria-labelledby="team-support-step-label"
       >
-        <span className="text-sm text-zinc-900">{teamSupport ? "Yes" : "No"}</span>
         <DetailsToggleSwitch
           checked={teamSupport}
           label="Request team support"

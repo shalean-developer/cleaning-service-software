@@ -3,12 +3,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { AddonsStepPanel } from "./AddonsStepPanel";
 
 describe("AddonsStepPanel", () => {
-  it("renders bordered rows with descriptions, prices, and toggle switches", () => {
+  it("renders compact rows with prices and toggle switches", () => {
     const html = renderToStaticMarkup(
       <AddonsStepPanel selected={["laundry"]} onChange={() => {}} />,
     );
 
-    expect(html).toContain("rounded-2xl border border-zinc-200");
+    expect(html).toContain("rounded-xl border border-zinc-200/90");
     expect(html).toContain("Laundry");
     expect(html).toContain("Wash, dry, fold");
     expect(html).toContain("+ R 120");
