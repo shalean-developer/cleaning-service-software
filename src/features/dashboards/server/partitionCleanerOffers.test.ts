@@ -3,24 +3,13 @@ import {
   canRespondToCleanerOffer,
   partitionCleanerOffers,
 } from "./partitionCleanerOffers";
-import type { CleanerOfferListItem } from "./types";
+import { testCleanerOfferListItem } from "@/test/fixtures";
 
 function offer(
-  partial: Partial<CleanerOfferListItem> & Pick<CleanerOfferListItem, "offerId">,
-): CleanerOfferListItem {
-  return {
-    bookingId: "booking-1",
-    status: "offered",
-    expiresAt: "2026-05-20T12:00:00.000Z",
-    offeredAt: "2026-05-18T10:00:00.000Z",
-    scheduleLabel: "Sat 14:00",
-    locationSummary: "Sandton",
-    serviceLabel: "Standard clean",
-    earningsCents: 35000,
-    earningsLabel: "R 350.00",
-    isExpired: false,
-    ...partial,
-  };
+  partial: Partial<ReturnType<typeof testCleanerOfferListItem>> &
+    Pick<ReturnType<typeof testCleanerOfferListItem>, "offerId">,
+) {
+  return testCleanerOfferListItem(partial);
 }
 
 describe("partitionCleanerOffers", () => {

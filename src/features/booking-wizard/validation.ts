@@ -7,7 +7,12 @@ import { normalizeAreaSlug } from "@/features/cleaners/server/eligibility/normal
 import type { BookingWizardState, StepValidationResult, WizardStep } from "./types";
 import { WIZARD_SERVICE_OPTIONS } from "./constants";
 import { resolveWizardContactPhone } from "./contactPhone";
-import { resolveScheduleDateTimeValidationMessage } from "./bookingWindowConfig";
+import {
+  type BookingWindowBounds,
+  resolveBookingWindowBounds,
+  resolveScheduleDateTimeValidationMessage,
+  resolveScheduleDateTimeValidationMessageForBounds,
+} from "./bookingWindowConfig";
 import { buildWizardSlot, isSlotInPast } from "./slot";
 
 function result(valid: boolean, errors: Record<string, string> = {}): StepValidationResult {
@@ -27,17 +32,21 @@ export function validateServiceStep(state: BookingWizardState): StepValidationRe
   return result(true);
 }
 
-export function validateDateTimeStep(state: BookingWizardState): StepValidationResult {
+export function validateDateTimeStep(
+  state: BookingWizardState,
+  bookingWindowBounds?: BookingWindowBounds,
+): StepValidationResult {
   const errors: Record<string, string> = {};
   if (!state.date.trim()) errors.date = "Date is required.";
   if (!state.time.trim()) errors.time = "Time is required.";
 
   if (state.date) {
-    const windowMessage = resolveScheduleDateTimeValidationMessage(
+    const bounds =
+      bookingWindowBounds ??
+      resolveBookingWindowBounds(new Date(), process.env, { client: true });
+    const windowMessage = resolveScheduleDateTimeValidationMessageForBounds(
       state.date,
-      new Date(),
-      process.env,
-      { client: true },
+      bounds,
     );
     if (windowMessage) {
       errors.date = windowMessage;
@@ -182,12 +191,13 @@ export function validateCheckoutStep(state: BookingWizardState): StepValidationR
 export function validateWizardStep(
   step: WizardStep,
   state: BookingWizardState,
+  options?: { bookingWindowBounds?: BookingWindowBounds },
 ): StepValidationResult {
   switch (step) {
     case "service":
       return validateServiceStep(state);
     case "datetime":
-      return validateDateTimeStep(state);
+      return validateDateTimeStep(state, options?.bookingWindowBounds);
     case "location":
       return validateLocationStep(state);
     case "details":
@@ -207,6 +217,7 @@ export function validateWizardStep(
 export function validateStepsThrough(
   target: WizardStep,
   state: BookingWizardState,
+  options?: { bookingWindowBounds?: BookingWindowBounds },
 ): StepValidationResult {
   const order: WizardStep[] = [
     "service",
@@ -220,7 +231,7 @@ export function validateStepsThrough(
   const targetIdx = order.indexOf(target);
   for (let i = 0; i <= targetIdx; i++) {
     const step = order[i]!;
-    const check = validateWizardStep(step, state);
+    const check = validateWizardStep(step, state, options);
     if (!check.valid) return check;
   }
   return result(true);

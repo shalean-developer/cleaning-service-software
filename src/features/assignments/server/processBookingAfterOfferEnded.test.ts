@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AssignmentOfferRow, Database } from "@/lib/database/types";
 import { InMemoryBookingCommandBackend } from "@/features/bookings/server/commands/inMemoryBookingCommandBackend";
+import { testAssignmentOfferRow } from "@/features/bookings/server/commands/testAssignmentOfferRow";
 import { executeBookingCommand } from "@/features/bookings/server/commands/executeBookingCommand";
 import { readAssignmentMetadata } from "./assignmentMetadata";
 import { buildOfferExpiresAt } from "./buildOfferExpiry";
@@ -324,31 +325,36 @@ describe("processBookingAfterOfferEnded — decline", () => {
     const ts = now.toISOString();
     for (let i = 0; i < ASSIGNMENT_MAX_DISPATCH_ATTEMPTS_PER_BOOKING - 1; i++) {
       const id = `declined-offer-${i}`;
-      backend.offers.set(id, {
+      backend.offers.set(
         id,
-        booking_id: bookingId,
-        cleaner_id: i === 0 ? cleanerA : cleanerB,
-        status: "declined",
-        offered_at: ts,
-        expires_at: buildOfferExpiresAt(now),
-        responded_at: ts,
-        created_at: ts,
-        updated_at: ts,
-      });
+        testAssignmentOfferRow({
+          id,
+          booking_id: bookingId,
+          cleaner_id: i === 0 ? cleanerA : cleanerB,
+          status: "declined",
+          offered_at: ts,
+          expires_at: buildOfferExpiresAt(now),
+          responded_at: ts,
+          created_at: ts,
+          updated_at: ts,
+        }),
+      );
     }
 
     const lastId = "offer-last";
-    backend.offers.set(lastId, {
-      id: lastId,
-      booking_id: bookingId,
-      cleaner_id: cleanerC,
-      status: "offered",
-      offered_at: ts,
-      expires_at: buildOfferExpiresAt(now),
-      responded_at: null,
-      created_at: ts,
-      updated_at: ts,
-    });
+    backend.offers.set(
+      lastId,
+      testAssignmentOfferRow({
+        id: lastId,
+        booking_id: bookingId,
+        cleaner_id: cleanerC,
+        status: "offered",
+        offered_at: ts,
+        expires_at: buildOfferExpiresAt(now),
+        created_at: ts,
+        updated_at: ts,
+      }),
+    );
 
     const lastOffer = backend.offers.get(lastId)!;
 
@@ -447,17 +453,19 @@ describe("processBookingAfterOfferEnded — expiry wrapper unchanged", () => {
   it("processBookingAfterOfferExpiry delegates to shared orchestrator for selected", async () => {
     const bookingId = await paidPendingBooking(backend);
     const offerId = crypto.randomUUID();
-    backend.offers.set(offerId, {
-      id: offerId,
-      booking_id: bookingId,
-      cleaner_id: cleanerA,
-      status: "expired",
-      offered_at: "2026-05-16T10:00:00.000Z",
-      expires_at: "2026-05-17T10:00:00.000Z",
-      responded_at: null,
-      created_at: "2026-05-16T10:00:00.000Z",
-      updated_at: "2026-05-16T10:00:00.000Z",
-    });
+    backend.offers.set(
+      offerId,
+      testAssignmentOfferRow({
+        id: offerId,
+        booking_id: bookingId,
+        cleaner_id: cleanerA,
+        status: "expired",
+        offered_at: "2026-05-16T10:00:00.000Z",
+        expires_at: "2026-05-17T10:00:00.000Z",
+        created_at: "2026-05-16T10:00:00.000Z",
+        updated_at: "2026-05-16T10:00:00.000Z",
+      }),
+    );
 
     await executeBookingCommand(
       backend,
@@ -490,17 +498,19 @@ describe("processBookingAfterOfferEnded — expiry wrapper unchanged", () => {
   it("expireStaleAssignmentOffers still auto-redispatches best_available", async () => {
     const bookingId = await paidPendingBooking(backend);
     const offerId = crypto.randomUUID();
-    backend.offers.set(offerId, {
-      id: offerId,
-      booking_id: bookingId,
-      cleaner_id: cleanerA,
-      status: "offered",
-      offered_at: "2026-05-16T10:00:00.000Z",
-      expires_at: "2026-05-17T10:00:00.000Z",
-      responded_at: null,
-      created_at: "2026-05-16T10:00:00.000Z",
-      updated_at: "2026-05-16T10:00:00.000Z",
-    });
+    backend.offers.set(
+      offerId,
+      testAssignmentOfferRow({
+        id: offerId,
+        booking_id: bookingId,
+        cleaner_id: cleanerA,
+        status: "offered",
+        offered_at: "2026-05-16T10:00:00.000Z",
+        expires_at: "2026-05-17T10:00:00.000Z",
+        created_at: "2026-05-16T10:00:00.000Z",
+        updated_at: "2026-05-16T10:00:00.000Z",
+      }),
+    );
 
     await executeBookingCommand(
       backend,

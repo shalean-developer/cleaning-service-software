@@ -9,6 +9,7 @@ import {
   formatZaMobileForDisplay,
   normalizeZaMobilePhone,
 } from "@/lib/validation/zaPhone";
+import { getTeamSupportCustomerDashboardLabel } from "@/features/booking-wizard/reviewDisplay";
 import { parseCustomerBookingServiceDetails } from "../customerBookingServiceDetailsDisplay";
 import {
   readTeamRequestFulfillment,
@@ -146,7 +147,9 @@ export function parseBookingDisplay(metadata: Json | null | undefined): BookingD
     equipmentSupplyOperationalLabel: serviceDetails.equipmentSupplyOperationalLabel,
     frequencyLabel: serviceDetails.frequencyLabel,
     addonsSummary: serviceDetails.addonsSummary,
-    teamSupportLabel: serviceDetails.teamSupportLabel,
+    teamSupportLabel: serviceDetails.isTwoCleanerRequest
+      ? getTeamSupportCustomerDashboardLabel(readTeamRequestFulfillment(metadata))
+      : null,
     teamSupportCleanerNote: serviceDetails.teamSupportCleanerNote,
     isTwoCleanerRequest: serviceDetails.isTwoCleanerRequest,
     teamRequestFulfillmentLabel: teamRequestFulfillmentLabel(

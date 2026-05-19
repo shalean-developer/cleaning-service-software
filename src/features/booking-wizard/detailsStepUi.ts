@@ -38,7 +38,7 @@ export const BRING_EQUIPMENT_INFO_TEXT =
   "Adds R100. Cleaner arrives with Shalean supplies and equipment.";
 
 export const REQUEST_TWO_CLEANERS_INFO_TEXT =
-  "Adds R200. Team availability is confirmed after payment.";
+  "Adds R200. Helps us plan a faster clean when available. We'll confirm team availability after payment.";
 
 export const DETAILS_OPTION_CARD =
   "flex h-full min-h-[4.25rem] min-w-0 flex-col justify-center rounded-xl border px-3 py-2.5 text-left sm:py-3";

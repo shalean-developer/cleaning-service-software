@@ -6,7 +6,8 @@ import { customerBookingListCardLayers } from "./customerBookingListCardDisplay"
 
 const baseDisplay = {
   assignmentCustomerMessage: null as string | null,
-  showCustomerAssignmentWarning: false,
+  isTwoCleanerRequest: false,
+  teamSupportLabel: null as string | null,
 };
 
 describe("customerBookingListCardLayers", () => {
@@ -44,6 +45,25 @@ describe("customerBookingListCardLayers", () => {
     expect(layers.supportingMessage).toBeNull();
   });
 
+  it("shows team support status when requested and no assignment message", () => {
+    const layers = customerBookingListCardLayers({
+      status: "confirmed",
+      paymentStatus: "paid",
+      paymentFailureReason: null,
+      display: {
+        assignmentCustomerMessage: null,
+        isTwoCleanerRequest: true,
+        teamSupportLabel: "Team support requested — awaiting confirmation",
+      },
+      assignedCleanerLabel: null,
+    });
+
+    expect(layers.supportingMessage).toEqual({
+      kind: "assignment",
+      text: "Team support requested — awaiting confirmation",
+    });
+  });
+
   it("prefers assignment message over assignment warning badge and cleaner line", () => {
     const layers = customerBookingListCardLayers({
       status: "pending_assignment",
@@ -51,6 +71,8 @@ describe("customerBookingListCardLayers", () => {
       paymentFailureReason: null,
       display: {
         assignmentCustomerMessage: "We're finding another available cleaner.",
+        isTwoCleanerRequest: false,
+        teamSupportLabel: null,
       },
       assignedCleanerLabel: null,
     });

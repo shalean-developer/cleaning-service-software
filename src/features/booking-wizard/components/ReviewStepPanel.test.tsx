@@ -168,8 +168,9 @@ describe("ReviewStepPanel", () => {
     );
 
     expect(html).toContain("Team support");
-    expect(html).toContain("Request 2 cleaners");
-    expect(html).not.toContain("confirm team availability after payment");
-    expect(html).toContain("2-cleaner request surcharge");
+    expect(html).toContain("Request team support");
+    expect(html).toContain("confirm team availability after payment");
+    expect(html).toContain("faster clean when available");
+    expect(html).toContain("Team support request");
   });
 });

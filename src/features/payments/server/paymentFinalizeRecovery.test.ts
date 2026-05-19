@@ -12,6 +12,14 @@ import {
 } from "./paymentFinalizeRecovery";
 import { processPaystackChargeSuccessWithDeps } from "./upsertBookingFromPaystack";
 import type { PaystackChargeSuccess } from "./paystackTypes";
+
+const dispatchMock = vi.hoisted(() => ({
+  runPostPaymentAssignmentDispatch: vi.fn(),
+}));
+
+vi.mock("./postPaymentAssignmentDispatch", () => ({
+  runPostPaymentAssignmentDispatch: dispatchMock.runPostPaymentAssignmentDispatch,
+}));
 import {
   applyPaystackUnitTestEnv,
   restorePaystackTestEnv,
@@ -20,7 +28,10 @@ import {
 
 const paystackEnvSnapshot = snapshotPaystackTestEnv();
 
-function createPaymentStoreMock(initial: PaymentRow) {
+function createPaymentStoreMock(
+  initial: PaymentRow,
+  backend?: InMemoryBookingCommandBackend,
+) {
   const paymentsById = new Map<string, PaymentRow>([[initial.id, initial]]);
   const paymentsByRef = new Map<string, PaymentRow>();
   if (initial.provider_ref) {
@@ -53,6 +64,18 @@ function createPaymentStoreMock(initial: PaymentRow) {
             eventIds.add(row.provider_event_id);
             return { error: null };
           },
+        };
+      }
+      if (table === "assignment_offers" && backend) {
+        return {
+          select: () => ({
+            eq: (_column: string, bookingId: string) => ({
+              order: async () => ({
+                data: [...backend.offers.values()].filter((o) => o.booking_id === bookingId),
+                error: null,
+              }),
+            }),
+          }),
         };
       }
       throw new Error(`Unexpected table ${table}`);
@@ -121,6 +144,20 @@ class PaymentNotFinalizableBackend extends InMemoryBookingCommandBackend {
 describe("paymentFinalizeRecovery", () => {
   beforeEach(() => {
     applyPaystackUnitTestEnv();
+    dispatchMock.runPostPaymentAssignmentDispatch.mockReset();
+    dispatchMock.runPostPaymentAssignmentDispatch.mockResolvedValue({
+      action: "skipped_immediate",
+      assignmentDispatchAt: new Date().toISOString(),
+      assignmentResult: {
+        ok: true,
+        bookingId: "x",
+        bookingStatus: "pending_assignment",
+        outcome: "offered",
+        offerId: null,
+        cleanerId: null,
+        idempotent: false,
+      },
+    });
   });
 
   afterEach(() => {
@@ -165,7 +202,7 @@ describe("paymentFinalizeRecovery", () => {
     const backend = new InMemoryBookingCommandBackend();
     const customerId = crypto.randomUUID();
     const { bookingId, payment } = await seedPendingBooking(backend, customerId);
-    const { client } = createPaymentStoreMock(payment);
+    const { client } = createPaymentStoreMock(payment, backend);
 
     const charge = sampleCharge(payment.provider_ref!, payment.amount_cents);
     const first = await finalizePaidBookingWithDeps(client, backend, {
@@ -197,7 +234,7 @@ describe("paymentFinalizeRecovery", () => {
     const backend = new InMemoryBookingCommandBackend();
     const customerId = crypto.randomUUID();
     const { bookingId, payment } = await seedPendingBooking(backend, customerId);
-    const { client } = createPaymentStoreMock(payment);
+    const { client } = createPaymentStoreMock(payment, backend);
 
     const recovered = await tryRecoverAlreadyFinalizedPayment(
       client,
@@ -214,7 +251,7 @@ describe("paymentFinalizeRecovery", () => {
     const { bookingId, payment } = await seedPendingBooking(backend, customerId);
     payment.status = "paid";
     backend.payments.set(payment.id, payment);
-    const { client } = createPaymentStoreMock(payment);
+    const { client } = createPaymentStoreMock(payment, backend);
 
     const charge = sampleCharge(payment.provider_ref!, payment.amount_cents);
     const result = await finalizePaidBookingWithDeps(client, backend, {
@@ -235,7 +272,7 @@ describe("paymentFinalizeRecovery", () => {
     const backend = new InMemoryBookingCommandBackend();
     const customerId = crypto.randomUUID();
     const { bookingId, payment, reference } = await seedPendingBooking(backend, customerId);
-    const { client } = createPaymentStoreMock(payment);
+    const { client } = createPaymentStoreMock(payment, backend);
     const charge = sampleCharge(reference, payment.amount_cents);
 
     const webhook = await finalizePaidBookingWithDeps(client, backend, {
@@ -267,7 +304,7 @@ describe("paymentFinalizeRecovery", () => {
     const backend = new InMemoryBookingCommandBackend();
     const customerId = crypto.randomUUID();
     const { bookingId, payment, reference } = await seedPendingBooking(backend, customerId);
-    const { client } = createPaymentStoreMock(payment);
+    const { client } = createPaymentStoreMock(payment, backend);
     const charge = sampleCharge(reference, payment.amount_cents);
 
     const verify = await processPaystackChargeSuccessWithDeps(
@@ -298,7 +335,7 @@ describe("paymentFinalizeRecovery", () => {
     const backend = new InMemoryBookingCommandBackend();
     const customerId = crypto.randomUUID();
     const { bookingId, payment, reference } = await seedPendingBooking(backend, customerId);
-    const { client } = createPaymentStoreMock(payment);
+    const { client } = createPaymentStoreMock(payment, backend);
     const charge = sampleCharge(reference, payment.amount_cents);
 
     await finalizePaidBookingWithDeps(client, backend, {
@@ -324,11 +361,135 @@ describe("paymentFinalizeRecovery", () => {
     }
   });
 
+  it("already-finalized recovery dispatches assignment when none exists", async () => {
+    const backend = new InMemoryBookingCommandBackend();
+    const customerId = crypto.randomUUID();
+    const { bookingId, payment, reference } = await seedPendingBooking(backend, customerId);
+    const { client } = createPaymentStoreMock(payment, backend);
+    const charge = sampleCharge(reference, payment.amount_cents);
+
+    const first = await finalizePaidBookingWithDeps(client, backend, {
+      bookingId,
+      paymentId: payment.id,
+      charge,
+      source: "webhook",
+    });
+    expect(first.ok).toBe(true);
+    expect(dispatchMock.runPostPaymentAssignmentDispatch).toHaveBeenCalledTimes(1);
+
+    backend.audits = [];
+    dispatchMock.runPostPaymentAssignmentDispatch.mockClear();
+
+    const second = await finalizePaidBookingWithDeps(client, backend, {
+      bookingId,
+      paymentId: payment.id,
+      charge,
+      source: "verify",
+    });
+
+    expect(second.ok).toBe(true);
+    if (second.ok) {
+      expect(second.recoveredFromAlreadyFinalized).toBe(true);
+    }
+    expect(dispatchMock.runPostPaymentAssignmentDispatch).toHaveBeenCalledTimes(1);
+  });
+
+  it("already-finalized recovery does not dispatch again when first finalize already dispatched", async () => {
+    const backend = new InMemoryBookingCommandBackend();
+    const customerId = crypto.randomUUID();
+    const { bookingId, payment, reference } = await seedPendingBooking(backend, customerId);
+    const { client } = createPaymentStoreMock(payment, backend);
+    const charge = sampleCharge(reference, payment.amount_cents);
+
+    await finalizePaidBookingWithDeps(client, backend, {
+      bookingId,
+      paymentId: payment.id,
+      charge,
+      source: "webhook",
+    });
+
+    const booking = await backend.getBooking(bookingId);
+    if (!booking) throw new Error("missing booking");
+    backend.bookings.set(bookingId, {
+      ...booking,
+      status: "pending_assignment",
+    });
+    backend.offers.set(
+      "existing-offer",
+      {
+        id: "existing-offer",
+        booking_id: bookingId,
+        cleaner_id: crypto.randomUUID(),
+        status: "offered",
+        offered_at: new Date().toISOString(),
+        responded_at: null,
+        expires_at: new Date(Date.now() + 3_600_000).toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        team_role: "primary",
+        roster_id: null,
+      },
+    );
+
+    backend.audits = [];
+    dispatchMock.runPostPaymentAssignmentDispatch.mockClear();
+
+    const recovered = await finalizePaidBookingWithDeps(client, backend, {
+      bookingId,
+      paymentId: payment.id,
+      charge,
+      source: "verify",
+    });
+
+    expect(recovered.ok).toBe(true);
+    if (recovered.ok) {
+      expect(recovered.recoveredFromAlreadyFinalized).toBe(true);
+    }
+    expect(dispatchMock.runPostPaymentAssignmentDispatch).not.toHaveBeenCalled();
+  });
+
+  it("duplicate recovery race remains idempotent and dispatches at most once per attempt", async () => {
+    const backend = new InMemoryBookingCommandBackend();
+    const customerId = crypto.randomUUID();
+    const { bookingId, payment, reference } = await seedPendingBooking(backend, customerId);
+    const { client } = createPaymentStoreMock(payment, backend);
+    const charge = sampleCharge(reference, payment.amount_cents);
+
+    await finalizePaidBookingWithDeps(client, backend, {
+      bookingId,
+      paymentId: payment.id,
+      charge,
+      source: "webhook",
+    });
+
+    backend.audits = [];
+    dispatchMock.runPostPaymentAssignmentDispatch.mockClear();
+
+    const [second, third] = await Promise.all([
+      finalizePaidBookingWithDeps(client, backend, {
+        bookingId,
+        paymentId: payment.id,
+        charge,
+        source: "verify",
+      }),
+      finalizePaidBookingWithDeps(client, backend, {
+        bookingId,
+        paymentId: payment.id,
+        charge,
+        source: "verify",
+      }),
+    ]);
+
+    expect(second.ok).toBe(true);
+    expect(third.ok).toBe(true);
+    expect(dispatchMock.runPostPaymentAssignmentDispatch.mock.calls.length).toBeLessThanOrEqual(2);
+  });
+
   it("amount mismatch still fails and does not recover", async () => {
     const backend = new InMemoryBookingCommandBackend();
     const customerId = crypto.randomUUID();
     const { bookingId, payment, reference } = await seedPendingBooking(backend, customerId);
-    const { client } = createPaymentStoreMock(payment);
+    const { client } = createPaymentStoreMock(payment, backend);
 
     await finalizePaidBookingWithDeps(client, backend, {
       bookingId,

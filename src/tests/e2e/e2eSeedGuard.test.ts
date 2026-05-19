@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { testProcessEnv } from "@/test/fixtures/processEnv";
 
 /** Mirrors scripts/ops/lib/e2e-seed-guard.mjs */
 function isLocalSupabaseUrl(url: string): boolean {
@@ -46,30 +47,36 @@ afterEach(() => {
 describe("E2E seed production guard", () => {
   it("allows local Supabase without extra confirmation", () => {
     expect(() =>
-      assertE2eSeedAllowed({
-        SUPABASE_URL: "http://127.0.0.1:54321",
-        SUPABASE_SERVICE_ROLE_KEY: "key",
-      }),
+      assertE2eSeedAllowed(
+        testProcessEnv({
+          SUPABASE_URL: "http://127.0.0.1:54321",
+          SUPABASE_SERVICE_ROLE_KEY: "key",
+        }),
+      ),
     ).not.toThrow();
   });
 
   it("blocks remote seed without confirmation", () => {
     expect(() =>
-      assertE2eSeedAllowed({
-        SUPABASE_URL: "https://abc.supabase.co",
-        SUPABASE_SERVICE_ROLE_KEY: "key",
-      }),
+      assertE2eSeedAllowed(
+        testProcessEnv({
+          SUPABASE_URL: "https://abc.supabase.co",
+          SUPABASE_SERVICE_ROLE_KEY: "key",
+        }),
+      ),
     ).toThrow(/CONFIRM_E2E_SEED_REMOTE/);
   });
 
   it("blocks production deploy target unless explicitly confirmed", () => {
     expect(() =>
-      assertE2eSeedAllowed({
-        SUPABASE_URL: "https://abc.supabase.co",
-        SUPABASE_SERVICE_ROLE_KEY: "key",
-        VERCEL_ENV: "production",
-        CONFIRM_E2E_SEED_REMOTE: "yes",
-      }),
+      assertE2eSeedAllowed(
+        testProcessEnv({
+          SUPABASE_URL: "https://abc.supabase.co",
+          SUPABASE_SERVICE_ROLE_KEY: "key",
+          VERCEL_ENV: "production",
+          CONFIRM_E2E_SEED_REMOTE: "yes",
+        }),
+      ),
     ).toThrow(/CONFIRM_E2E_SEED_PRODUCTION/);
   });
 });

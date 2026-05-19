@@ -375,7 +375,7 @@ describe("calculateQuote", () => {
       (i) => i.code === "team_support_request",
     );
     expect(surcharge).toMatchObject({
-      label: "2-cleaner request surcharge",
+      label: "Team support request",
       amountCents: 20_000,
     });
     expect(withTeam.breakdown.cleanerEarnings.teamSize).toBe(1);

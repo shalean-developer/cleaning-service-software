@@ -177,13 +177,10 @@ export function isScheduleWithinBookingWindow(
   return isDateWithinBookingWindow(date, now, env);
 }
 
-export function resolveScheduleDateTimeValidationMessage(
+export function resolveScheduleDateTimeValidationMessageForBounds(
   date: string,
-  now: Date = new Date(),
-  env: Record<string, string | undefined> = process.env,
-  options?: { client?: boolean },
+  bounds: BookingWindowBounds,
 ): string | null {
-  const bounds = resolveBookingWindowBounds(now, env, options);
   if (date < bounds.minDate) {
     return "Choose a future date and time (Africa/Johannesburg).";
   }
@@ -194,6 +191,72 @@ export function resolveScheduleDateTimeValidationMessage(
     return `Choose a date within the next ${bounds.maxAdvanceDays} days. Extended advance booking is not available yet.`;
   }
   return null;
+}
+
+export function resolveScheduleDateTimeValidationMessage(
+  date: string,
+  now: Date = new Date(),
+  env: Record<string, string | undefined> = process.env,
+  options?: { client?: boolean },
+): string | null {
+  const bounds = resolveBookingWindowBounds(now, env, options);
+  return resolveScheduleDateTimeValidationMessageForBounds(date, bounds);
+}
+
+export type BookingWindowEnvStatus = {
+  serverExtendedEnabled: boolean;
+  clientExtendedEnabled: boolean;
+  mismatched: boolean;
+  /** Effective horizon when both sides must agree (uses server flag). */
+  serverMaxAdvanceDays: number;
+  mismatchWarning: string | null;
+};
+
+/**
+ * Launch requires BOOKING_EXTENDED_WINDOW_ENABLED (server) and
+ * NEXT_PUBLIC_BOOKING_EXTENDED_WINDOW_ENABLED (client) to match.
+ */
+export function resolveBookingWindowEnvStatus(
+  env: Record<string, string | undefined> = process.env,
+): BookingWindowEnvStatus {
+  const serverExtendedEnabled = isBookingExtendedWindowEnabled(env);
+  const clientExtendedEnabled = isClientBookingExtendedWindowEnabled();
+  const mismatched = serverExtendedEnabled !== clientExtendedEnabled;
+  const mismatchWarning = mismatched
+    ? serverExtendedEnabled
+      ? "Booking window flags are mismatched: server allows 90 days but the public client flag is off. Set NEXT_PUBLIC_BOOKING_EXTENDED_WINDOW_ENABLED=true and redeploy."
+      : "Booking window flags are mismatched: the public client shows extended dates but the server limit is 14 days. Set BOOKING_EXTENDED_WINDOW_ENABLED=true on the server."
+    : null;
+  return {
+    serverExtendedEnabled,
+    clientExtendedEnabled,
+    mismatched,
+    serverMaxAdvanceDays: serverExtendedEnabled
+      ? BOOKING_MAX_ADVANCE_DAYS
+      : BOOKING_LEGACY_MAX_ADVANCE_DAYS,
+    mismatchWarning,
+  };
+}
+
+/** Server lock rejection copy — matches wizard validation where possible. */
+export function resolveScheduleOutsideWindowMessage(
+  scheduledStart: string,
+  now: Date = new Date(),
+  env: Record<string, string | undefined> = process.env,
+): string {
+  const date = scheduleStartToBookingDate(scheduledStart);
+  if (!date) {
+    return "Booking date is outside the allowed advance booking window.";
+  }
+  const bounds = resolveBookingWindowBounds(now, env);
+  const validationMessage = resolveScheduleDateTimeValidationMessageForBounds(date, bounds);
+  const envStatus = resolveBookingWindowEnvStatus(env);
+  const base =
+    validationMessage ?? "Booking date is outside the allowed advance booking window.";
+  if (envStatus.mismatched) {
+    return `${base} (${envStatus.mismatchWarning})`;
+  }
+  return base;
 }
 
 /** True when assignment would be deferred until closer to service (display hint only). */

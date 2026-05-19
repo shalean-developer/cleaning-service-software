@@ -1,4 +1,5 @@
 import type { ServiceSlug } from "@/features/pricing/server/types";
+import { mergeWithQuoteInvalidation } from "./quoteInvalidation";
 import type { BookingWizardState } from "./types";
 
 /** Same bedroom/bathroom defaults as tapping a service on step 1. */
@@ -29,5 +30,6 @@ export function applyServiceSelectionToWizardState(
   state: BookingWizardState,
   slug: ServiceSlug,
 ): BookingWizardState {
-  return { ...state, ...wizardPatchForServiceSelection(slug) };
+  const partial = wizardPatchForServiceSelection(slug);
+  return { ...state, ...mergeWithQuoteInvalidation(state, partial) };
 }

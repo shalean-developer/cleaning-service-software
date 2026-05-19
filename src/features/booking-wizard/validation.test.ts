@@ -98,6 +98,17 @@ describe("booking wizard validation", () => {
     expect(result.errors.date).toMatch(/within the next 90 days/i);
   });
 
+  it("uses server booking bounds when provided to validation", () => {
+    const result = validateDateTimeStep(filledState({ date: "2026-06-10", time: "08:00" }), {
+      minDate: "2026-05-18",
+      maxDate: "2026-06-01",
+      maxAdvanceDays: 14,
+      extendedWindowEnabled: false,
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors.date).toMatch(/14 days/i);
+  });
+
   it("blocks ineligible selected cleaner", () => {
     const result = validateCleanerStep(
       filledState({

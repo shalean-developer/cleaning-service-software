@@ -94,6 +94,28 @@ describe("parseBookingDisplay", () => {
     expect(display.serviceLabel).toBe("Carpet Cleaning");
   });
 
+  it("shows customer team support dashboard copy from fulfillment metadata", () => {
+    const awaiting = parseBookingDisplay({
+      quote: { input: { serviceSlug: "regular-cleaning", requestedTeamSize: 2 } },
+    });
+    expect(awaiting.isTwoCleanerRequest).toBe(true);
+    expect(awaiting.teamSupportLabel).toBe(
+      "Team support requested — awaiting confirmation",
+    );
+
+    const confirmed = parseBookingDisplay({
+      quote: { input: { serviceSlug: "regular-cleaning", requestedTeamSize: 2 } },
+      adminOps: {
+        teamRequestFulfillment: {
+          fulfilledCleanerCount: 2,
+          recordedAt: "2026-05-18T10:00:00.000Z",
+          recordedByProfileId: "admin-1",
+        },
+      },
+    });
+    expect(confirmed.teamSupportLabel).toBe("Team support confirmed — 2 cleaners");
+  });
+
   it("enriches customer calm copy during decline redispatch", () => {
     const metadata = {
       assignment: {

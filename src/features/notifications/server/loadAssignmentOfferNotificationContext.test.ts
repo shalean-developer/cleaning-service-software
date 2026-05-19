@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database/types";
+import { testBookingDisplayFields } from "@/test/fixtures";
 import {
   formatOfferLocationForEmail,
   isGenericOfferLocationPart,
@@ -11,73 +12,44 @@ import {
 
 describe("loadAssignmentOfferNotificationContext", () => {
   it("uses suburb/city only for location label", () => {
-    const label = formatOfferLocationForEmail({
-      serviceSlug: "standard-cleaning",
-      serviceLabel: "Standard cleaning",
-      suburb: "Sea Point",
-      city: "Cape Town",
-      addressLine: "12 Secret Street",
-      locationSummary: "12 Secret Street, Sea Point, Cape Town",
-      homeSizeSummary: null,
-      frequencyLabel: null,
-      addonsSummary: null,
-      cleanerPreferenceMode: null,
-      preferredCleanerId: null,
-      specialInstructions: "Ring the bell",
-      assignmentAttention: null,
-      assignmentReason: null,
-      assignmentVisibilityKey: null,
-      assignmentCustomerMessage: null,
-      showCustomerAssignmentWarning: false,
-    });
+    const label = formatOfferLocationForEmail(
+      testBookingDisplayFields({
+        serviceSlug: "regular-cleaning",
+        suburb: "Sea Point",
+        city: "Cape Town",
+        addressLine: "12 Secret Street",
+        locationSummary: "12 Secret Street, Sea Point, Cape Town",
+        specialInstructions: "Ring the bell",
+      }),
+    );
     expect(label).toBe("Sea Point, Cape Town");
     expect(label).not.toContain("Secret Street");
   });
 
   it("uses safe fallback for generic Street, Street test placeholders", () => {
-    const label = formatOfferLocationForEmail({
-      serviceSlug: "standard-cleaning",
-      serviceLabel: "Standard cleaning",
-      suburb: "Street",
-      city: "Street",
-      addressLine: "12 Secret Street",
-      locationSummary: "12 Secret Street, Street, Street",
-      homeSizeSummary: null,
-      frequencyLabel: null,
-      addonsSummary: null,
-      cleanerPreferenceMode: null,
-      preferredCleanerId: null,
-      specialInstructions: null,
-      assignmentAttention: null,
-      assignmentReason: null,
-      assignmentVisibilityKey: null,
-      assignmentCustomerMessage: null,
-      showCustomerAssignmentWarning: false,
-    });
+    const label = formatOfferLocationForEmail(
+      testBookingDisplayFields({
+        suburb: "Street",
+        city: "Street",
+        addressLine: "12 Secret Street",
+        locationSummary: "12 Secret Street, Street, Street",
+      }),
+    );
     expect(label).toBe(OFFER_EMAIL_AREA_FALLBACK);
     expect(label).not.toContain("Street, Street");
   });
 
   it("uses safe fallback when suburb and city are missing", () => {
-    const label = formatOfferLocationForEmail({
-      serviceSlug: null,
-      serviceLabel: "Cleaning service",
-      suburb: null,
-      city: null,
-      addressLine: "12 Secret Street",
-      locationSummary: "12 Secret Street",
-      homeSizeSummary: null,
-      frequencyLabel: null,
-      addonsSummary: null,
-      cleanerPreferenceMode: null,
-      preferredCleanerId: null,
-      specialInstructions: null,
-      assignmentAttention: null,
-      assignmentReason: null,
-      assignmentVisibilityKey: null,
-      assignmentCustomerMessage: null,
-      showCustomerAssignmentWarning: false,
-    });
+    const label = formatOfferLocationForEmail(
+      testBookingDisplayFields({
+        serviceSlug: null,
+        serviceLabel: "Cleaning service",
+        suburb: null,
+        city: null,
+        addressLine: "12 Secret Street",
+        locationSummary: "12 Secret Street",
+      }),
+    );
     expect(label).toBe(OFFER_EMAIL_AREA_FALLBACK);
     expect(label).not.toContain("Secret Street");
   });

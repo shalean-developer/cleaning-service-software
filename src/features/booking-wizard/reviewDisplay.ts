@@ -119,13 +119,39 @@ export function getEquipmentSupplyStepLabel(supply: EquipmentSupply): string {
   );
 }
 
+/** Pricing line item label (review/checkout breakdown). */
+export const TEAM_SUPPORT_LINE_ITEM_LABEL = "Team support request";
+
 export function getTeamSupportCustomerLabel(requestedTeamSize: 1 | 2): string {
-  return requestedTeamSize === 2 ? "Request 2 cleaners" : "1 cleaner";
+  return requestedTeamSize === 2 ? "Team support requested" : "1 cleaner";
+}
+
+/** Booking wizard review summary (before payment). */
+export function getTeamSupportReviewSummaryLabel(requestedTeamSize: 1 | 2): string | null {
+  if (requestedTeamSize !== 2) return null;
+  return "Request team support";
+}
+
+export type TeamSupportFulfillmentSnapshot = {
+  fulfilledCleanerCount: 1 | 2;
+};
+
+/** Customer dashboard/detail after payment — reflects admin-recorded fulfillment when present. */
+export function getTeamSupportCustomerDashboardLabel(
+  fulfillment: TeamSupportFulfillmentSnapshot | null,
+): string {
+  if (!fulfillment) {
+    return "Team support requested — awaiting confirmation";
+  }
+  if (fulfillment.fulfilledCleanerCount === 2) {
+    return "Team support confirmed — 2 cleaners";
+  }
+  return "Team support confirmed — 1 cleaner";
 }
 
 export function getTeamSupportExplanation(requestedTeamSize: 1 | 2): string | null {
   if (requestedTeamSize !== 2) return null;
-  return "We'll confirm team availability after payment.";
+  return "We'll confirm team availability after payment. Helps us plan a faster clean when available.";
 }
 
 /** Neutral cleaner-facing note — not a team/dual-assignment label. */

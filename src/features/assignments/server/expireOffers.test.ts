@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AssignmentOfferRow, Database } from "@/lib/database/types";
 import { InMemoryBookingCommandBackend } from "@/features/bookings/server/commands/inMemoryBookingCommandBackend";
+import { testAssignmentOfferRow } from "@/features/bookings/server/commands/testAssignmentOfferRow";
 import { executeBookingCommand } from "@/features/bookings/server/commands/executeBookingCommand";
 import { readAssignmentMetadata } from "./assignmentMetadata";
 import { expireStaleAssignmentOffers } from "./expireOffers";
@@ -153,17 +154,19 @@ describe("expireStaleAssignmentOffers", () => {
   it("marks stale offered rows expired and sets attention_required", async () => {
     const bookingId = await paidPendingBooking(backend);
     const offerId = crypto.randomUUID();
-    backend.offers.set(offerId, {
-      id: offerId,
-      booking_id: bookingId,
-      cleaner_id: cleanerA,
-      status: "offered",
-      offered_at: "2026-05-16T10:00:00.000Z",
-      expires_at: "2026-05-17T10:00:00.000Z",
-      responded_at: null,
-      created_at: "2026-05-16T10:00:00.000Z",
-      updated_at: "2026-05-16T10:00:00.000Z",
-    });
+    backend.offers.set(
+      offerId,
+      testAssignmentOfferRow({
+        id: offerId,
+        booking_id: bookingId,
+        cleaner_id: cleanerA,
+        status: "offered",
+        offered_at: "2026-05-16T10:00:00.000Z",
+        expires_at: "2026-05-17T10:00:00.000Z",
+        created_at: "2026-05-16T10:00:00.000Z",
+        updated_at: "2026-05-16T10:00:00.000Z",
+      }),
+    );
 
     await executeBookingCommand(
       backend,
@@ -205,17 +208,19 @@ describe("expireStaleAssignmentOffers", () => {
   it("is idempotent when run twice", async () => {
     const bookingId = await paidPendingBooking(backend);
     const offerId = crypto.randomUUID();
-    backend.offers.set(offerId, {
-      id: offerId,
-      booking_id: bookingId,
-      cleaner_id: cleanerA,
-      status: "offered",
-      offered_at: "2026-05-16T10:00:00.000Z",
-      expires_at: "2026-05-17T10:00:00.000Z",
-      responded_at: null,
-      created_at: "2026-05-16T10:00:00.000Z",
-      updated_at: "2026-05-16T10:00:00.000Z",
-    });
+    backend.offers.set(
+      offerId,
+      testAssignmentOfferRow({
+        id: offerId,
+        booking_id: bookingId,
+        cleaner_id: cleanerA,
+        status: "offered",
+        offered_at: "2026-05-16T10:00:00.000Z",
+        expires_at: "2026-05-17T10:00:00.000Z",
+        created_at: "2026-05-16T10:00:00.000Z",
+        updated_at: "2026-05-16T10:00:00.000Z",
+      }),
+    );
 
     const client = createOffersClient(backend, now);
     const first = await expireStaleAssignmentOffers(client, backend, now);
@@ -231,17 +236,19 @@ describe("expireStaleAssignmentOffers", () => {
   it("auto-redispatches best_available without duplicating active offers", async () => {
     const bookingId = await paidPendingBooking(backend);
     const offerId = crypto.randomUUID();
-    backend.offers.set(offerId, {
-      id: offerId,
-      booking_id: bookingId,
-      cleaner_id: cleanerA,
-      status: "offered",
-      offered_at: "2026-05-16T10:00:00.000Z",
-      expires_at: "2026-05-17T10:00:00.000Z",
-      responded_at: null,
-      created_at: "2026-05-16T10:00:00.000Z",
-      updated_at: "2026-05-16T10:00:00.000Z",
-    });
+    backend.offers.set(
+      offerId,
+      testAssignmentOfferRow({
+        id: offerId,
+        booking_id: bookingId,
+        cleaner_id: cleanerA,
+        status: "offered",
+        offered_at: "2026-05-16T10:00:00.000Z",
+        expires_at: "2026-05-17T10:00:00.000Z",
+        created_at: "2026-05-16T10:00:00.000Z",
+        updated_at: "2026-05-16T10:00:00.000Z",
+      }),
+    );
 
     await executeBookingCommand(
       backend,

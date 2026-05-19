@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ServiceSlug } from "@/features/pricing/server/types";
 import { syncBookServiceUrlOnSelection } from "../bookServiceRoute";
 import { WIZARD_SERVICE_OPTIONS } from "../constants";
+import type { BookingWindowBounds } from "../bookingWindowConfig";
 import { minBookableDateString } from "../slot";
 import {
   createPaymentLock,
@@ -17,6 +18,11 @@ import { buildLockRequestPayload, shouldReturnToReview } from "../lockPayload";
 import { nextStep, previousStep } from "../navigation";
 import { clearWizardStorage, loadWizardState, saveWizardState } from "../storage";
 import { initialContactPhoneField } from "../contactPhone";
+import {
+  CHECKOUT_QUOTE_REQUIRED_MESSAGE,
+  mergeWithQuoteInvalidation,
+  shouldRedirectCheckoutWithoutQuote,
+} from "../quoteInvalidation";
 import { wizardPatchForServiceSelection } from "../serviceSelection";
 import { INITIAL_WIZARD_STATE, type BookingWizardState } from "../types";
 import { validateWizardStep } from "../validation";
@@ -60,6 +66,12 @@ export function BookingWizard({
   const [stepErrors, setStepErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [bookingWindowBounds, setBookingWindowBounds] = useState<BookingWindowBounds | null>(
+    null,
+  );
+  const [bookingWindowEnvMismatchWarning, setBookingWindowEnvMismatchWarning] = useState<
+    string | null
+  >(null);
   const hydrated = useRef(false);
   const checkoutLock = useRef(false);
   const router = useRouter();
@@ -86,8 +98,53 @@ export function BookingWizard({
     saveWizardState(state);
   }, [state]);
 
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch("/api/booking/window-bounds", {
+          method: "GET",
+          credentials: "same-origin",
+        });
+        const payload: unknown = await response.json().catch(() => ({}));
+        if (cancelled || !response.ok || typeof payload !== "object" || payload == null) {
+          return;
+        }
+        const data = payload as {
+          ok?: boolean;
+          minDate?: string;
+          maxDate?: string;
+          maxAdvanceDays?: number;
+          extendedWindowEnabled?: boolean;
+          envMismatchWarning?: string | null;
+        };
+        if (!data.ok || !data.minDate || !data.maxDate || data.maxAdvanceDays == null) {
+          return;
+        }
+        setBookingWindowBounds({
+          minDate: data.minDate,
+          maxDate: data.maxDate,
+          maxAdvanceDays: data.maxAdvanceDays,
+          extendedWindowEnabled: data.extendedWindowEnabled === true,
+        });
+        setBookingWindowEnvMismatchWarning(data.envMismatchWarning ?? null);
+      } catch {
+        // Fall back to client env bounds in ScheduleStepPanel.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const wizardValidationOptions = useMemo(
+    () =>
+      bookingWindowBounds ? { bookingWindowBounds } : undefined,
+    [bookingWindowBounds],
+  );
+
   const patch = useCallback((partial: Partial<BookingWizardState>) => {
-    setState((prev) => ({ ...prev, ...partial }));
+    setState((prev) => ({ ...prev, ...mergeWithQuoteInvalidation(prev, partial) }));
     setStepErrors({});
     setApiError(null);
   }, []);
@@ -95,7 +152,8 @@ export function BookingWizard({
   const handleSelectService = useCallback(
     (slug: ServiceSlug) => {
       setState((prev) => {
-        const next = { ...prev, ...wizardPatchForServiceSelection(slug) };
+        const partial = wizardPatchForServiceSelection(slug);
+        const next = { ...prev, ...mergeWithQuoteInvalidation(prev, partial) };
         saveWizardState(next);
         return next;
       });
@@ -109,7 +167,7 @@ export function BookingWizard({
   const minDate = useMemo(() => minBookableDateString(), []);
 
   const goNext = useCallback(async () => {
-    const check = validateWizardStep(state.step, state);
+    const check = validateWizardStep(state.step, state, wizardValidationOptions);
     if (!check.valid) {
       setStepErrors(check.errors);
       return;
@@ -146,7 +204,7 @@ export function BookingWizard({
 
     const nxt = nextStep(state.step);
     if (nxt) patch({ step: nxt });
-  }, [state, patch]);
+  }, [state, patch, wizardValidationOptions]);
 
   const goBack = useCallback(() => {
     const prev = previousStep(state.step);
@@ -172,10 +230,17 @@ export function BookingWizard({
     }
   }, [state.step, state.quote, loading, loadQuoteForReview]);
 
+  useEffect(() => {
+    if (!shouldRedirectCheckoutWithoutQuote(state)) return;
+    setStepErrors({});
+    setApiError(CHECKOUT_QUOTE_REQUIRED_MESSAGE);
+    setState((prev) => ({ ...prev, step: "review" }));
+  }, [state.step, state.quote]);
+
   const handleCheckout = useCallback(async () => {
     if (checkoutLock.current || state.checkoutSubmitting) return;
 
-    const check = validateWizardStep("checkout", state);
+    const check = validateWizardStep("checkout", state, wizardValidationOptions);
     if (!check.valid) {
       setStepErrors(check.errors);
       return;
@@ -274,7 +339,7 @@ export function BookingWizard({
 
     clearWizardStorage();
     window.location.href = result.authorization_url;
-  }, [state, customerEmail, patch]);
+  }, [state, customerEmail, patch, wizardValidationOptions]);
 
   const serviceLabel =
     WIZARD_SERVICE_OPTIONS.find((s) => s.slug === state.serviceSlug)?.label ?? "\u2014";
@@ -379,6 +444,8 @@ export function BookingWizard({
             date={state.date}
             time={state.time}
             minDate={minDate}
+            bookingBounds={bookingWindowBounds}
+            envMismatchWarning={bookingWindowEnvMismatchWarning}
             dateError={stepErrors.date}
             timeError={stepErrors.time}
             onDateChange={(date) => patch({ date })}

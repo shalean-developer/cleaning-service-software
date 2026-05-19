@@ -121,7 +121,7 @@ export function AdminTeamSupportOperationsPanel({
       }
       setFulfillment(body.fulfillment);
       setFulfillmentLabel(
-        count === 2 ? "2 cleaners fulfilled (manual)" : "1 cleaner only (manual)",
+        count === 2 ? "2 cleaners recorded (manual)" : "1 cleaner recorded (manual)",
       );
       router.refresh();
     } catch {
@@ -145,7 +145,7 @@ export function AdminTeamSupportOperationsPanel({
       </p>
 
       <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-        <DetailItem label="Requested team size" value="2 cleaners (customer request)" />
+        <DetailItem label="Customer request" value="Team support requested (paid)" />
         <DetailItem
           label="Operational load"
           value={`Score ${operationalLoad.operationalLoadScore}`}
@@ -164,11 +164,11 @@ export function AdminTeamSupportOperationsPanel({
         />
         <DetailItem
           label="Cleaner fulfillment"
-          value={fulfillmentLabel ?? "Fulfillment not recorded"}
+          value={fulfillmentLabel ?? "Admin follow-up required"}
         />
         <DetailItem
           label="Coordination status"
-          value={coordinationLabel ?? "Coordination not recorded"}
+          value={coordinationLabel ?? "Admin follow-up required"}
         />
         {supportingLabel ? (
           <DetailItem
@@ -324,7 +324,7 @@ export function AdminTeamSupportOperationsPanel({
               onClick={() => saveFulfillment(2)}
               className="rounded-lg bg-violet-900 px-3 py-2 text-sm font-medium text-white hover:bg-violet-800 disabled:opacity-60"
             >
-              Mark 2 cleaners fulfilled
+              Record 2-cleaner fulfillment
             </button>
             <button
               type="button"
@@ -332,7 +332,7 @@ export function AdminTeamSupportOperationsPanel({
               onClick={() => saveFulfillment(1)}
               className="rounded-lg border border-violet-300 bg-white px-3 py-2 text-sm font-medium text-violet-950 hover:bg-violet-50 disabled:opacity-60"
             >
-              Mark 1 cleaner only
+              Record 1-cleaner fulfillment
             </button>
           </div>
         </div>

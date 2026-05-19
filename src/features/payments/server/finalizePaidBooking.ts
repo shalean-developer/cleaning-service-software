@@ -11,6 +11,7 @@ import { getPaymentById } from "./paymentRepository";
 import { paystackFinalizeIdempotencyKey } from "./mapPaystackCharge";
 import type { PaystackChargeSuccess } from "./paystackTypes";
 import { recordPaymentEvent } from "./recordPaymentEvent";
+import { tryDispatchAssignmentAfterAlreadyFinalizedRecovery } from "./alreadyFinalizedAssignmentDispatch";
 import {
   isRecoverableFinalizeCommandFailure,
   tryRecoverAlreadyFinalizedPayment,
@@ -130,6 +131,12 @@ export async function finalizePaidBookingWithDeps(
         payment.id,
       );
       if (recovered) {
+        await tryDispatchAssignmentAfterAlreadyFinalizedRecovery(client, backend, {
+          bookingId: input.bookingId,
+          paymentId: payment.id,
+          customerId: (await backend.getBooking(input.bookingId))?.customer_id ?? null,
+          charge: input.charge,
+        });
         return {
           ok: true,
           bookingId: recovered.bookingId,

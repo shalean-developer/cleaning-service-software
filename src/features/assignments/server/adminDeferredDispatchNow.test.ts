@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { testCurrentUser } from "@/test/fixtures";
 import { computeDeferredDispatchNowEligible } from "./deferredDispatchNowEligibility";
 import { runAdminDeferredDispatchNow } from "./adminDeferredDispatchNow";
 
@@ -43,7 +44,7 @@ describe("computeDeferredDispatchNowEligible", () => {
 describe("runAdminDeferredDispatchNow", () => {
   it("rejects when service role is not configured", async () => {
     const result = await runAdminDeferredDispatchNow(
-      { role: "admin", profileId: "admin-1", authUser: { id: "u1", email: "a@test.com" } },
+      testCurrentUser({ profileId: "admin-1", authUser: { email: "a@test.com" } }),
       "booking-1",
       { reason: "Staging test dispatch now" },
     );

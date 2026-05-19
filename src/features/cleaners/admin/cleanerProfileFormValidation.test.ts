@@ -58,6 +58,7 @@ describe("validateCleanerCreateForm", () => {
       confirmPassword: "",
       serviceAreasInput: "",
       capabilities: [],
+      ...defaultCleanerAvailabilityFormValues(),
     });
     expect(result.valid).toBe(false);
     expect(result.errors.fullName).toBeDefined();

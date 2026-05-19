@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database/types";
 import { InMemoryBookingCommandBackend } from "@/features/bookings/server/commands/inMemoryBookingCommandBackend";
+import { testAssignmentOfferRow } from "@/features/bookings/server/commands/testAssignmentOfferRow";
 import { executeBookingCommand } from "@/features/bookings/server/commands/executeBookingCommand";
 
 const cleanerA = "cleaner-a";
@@ -78,17 +79,19 @@ describe("expireStaleAssignmentOffers command fail-soft", () => {
       updated_at: ts,
     });
 
-    backend.offers.set(offerId, {
-      id: offerId,
-      booking_id: bookingId,
-      cleaner_id: cleanerA,
-      status: "offered",
-      offered_at: ts,
-      expires_at: "2026-05-17T10:00:00.000Z",
-      responded_at: null,
-      created_at: ts,
-      updated_at: ts,
-    });
+    backend.offers.set(
+      offerId,
+      testAssignmentOfferRow({
+        id: offerId,
+        booking_id: bookingId,
+        cleaner_id: cleanerA,
+        status: "offered",
+        offered_at: ts,
+        expires_at: "2026-05-17T10:00:00.000Z",
+        created_at: ts,
+        updated_at: ts,
+      }),
+    );
 
     const appendSpy = vi
       .spyOn(backend, "appendAudit")

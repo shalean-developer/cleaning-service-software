@@ -8,11 +8,15 @@ describe("CustomerBookingDetailsCard", () => {
       <CustomerBookingDetailsCard
         serviceLabel="Regular Cleaning"
         homeSizeSummary="2 bedrooms · 1 bathroom"
+        cleaningIntensityLabel="Standard"
+        equipmentSupplyLabel="Customer supplies"
+        teamSupportLabel={null}
         frequencyLabel="Every week"
         addonsSummary="Laundry"
         cleanerPreferenceLabel="Best available"
         assignedCleanerLabel="Cleaner assigned"
         assignmentCustomerMessage={null}
+        contactPhoneDisplay="082 123 4567"
         specialInstructions="Ring the bell"
         priceCents={47700}
         currency="ZAR"

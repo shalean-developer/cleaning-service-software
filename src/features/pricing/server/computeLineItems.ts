@@ -147,7 +147,7 @@ export function buildTeamSupportRequestLineItem(input: PricingInput): PricingLin
 
   return {
     code: "team_support_request",
-    label: "2-cleaner request surcharge",
+    label: "Team support request",
     quantity: 1,
     unitAmountCents: TEAM_SUPPORT_REQUEST_SURCHARGE_CENTS,
     amountCents: TEAM_SUPPORT_REQUEST_SURCHARGE_CENTS,

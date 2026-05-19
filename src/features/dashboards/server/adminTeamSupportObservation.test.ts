@@ -37,7 +37,7 @@ describe("adminTeamSupportObservation", () => {
       operationalLoadScore: 4,
     });
     expect(buildAdminOperationalLoadBadges(signals).map((b) => b.label)).toEqual([
-      "2-cleaner request",
+      "Team support request",
       "Bring equipment",
       "Heavy clean",
       "Operational load",

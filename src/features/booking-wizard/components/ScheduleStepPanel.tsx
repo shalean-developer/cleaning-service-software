@@ -11,9 +11,12 @@ import {
 import {
   canShiftDateWindowBack,
   canShiftDateWindowForward,
+  isOutsideImmediateAssignmentWindow,
   resolveBookingWindowBounds,
   resolveDateWindowStartOffsetForDate,
   resolveMaxDateWindowStartOffset,
+  resolveScheduleStepHelperCopy,
+  type BookingWindowBounds,
   VISIBLE_DATE_OPTION_COUNT,
 } from "../bookingWindowConfig";
 import {
@@ -39,6 +42,9 @@ type Props = {
   date: string;
   time: string;
   minDate: string;
+  /** When set, matches server lock validation (from GET /api/booking/window-bounds). */
+  bookingBounds?: BookingWindowBounds | null;
+  envMismatchWarning?: string | null;
   dateError?: string;
   timeError?: string;
   onDateChange: (value: string) => void;
@@ -344,16 +350,24 @@ export function ScheduleStepPanel({
   date,
   time,
   minDate,
+  bookingBounds: bookingBoundsProp,
+  envMismatchWarning,
   dateError,
   timeError,
   onDateChange,
   onTimeChange,
 }: Props) {
-  const bookingBounds = useMemo(
+  const fallbackBounds = useMemo(
     () => resolveBookingWindowBounds(undefined, undefined, { client: true }),
     [],
   );
+  const bookingBounds = bookingBoundsProp ?? fallbackBounds;
   const maxDate = bookingBounds.maxDate;
+  const scheduleHelperCopy = resolveScheduleStepHelperCopy(bookingBounds.extendedWindowEnabled);
+  const deferredAssignmentHint =
+    date && time && isOutsideImmediateAssignmentWindow(date, time)
+      ? "Cleaner assignment for this date happens closer to your service day."
+      : null;
 
   const [windowStartOffsetDays, setWindowStartOffsetDays] = useState(0);
 
@@ -376,9 +390,19 @@ export function ScheduleStepPanel({
     <div className="w-full min-w-0">
       <WizardStepHeading title="Schedule" />
 
-      <p className="mt-2 text-xs leading-relaxed text-zinc-500">
+      <p className="mt-2 text-xs leading-relaxed text-zinc-500">{scheduleHelperCopy}</p>
+      <p className="mt-1 text-xs leading-relaxed text-zinc-500">
         Times in South Africa (SAST).
       </p>
+
+      {envMismatchWarning ? (
+        <p
+          className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-950"
+          role="status"
+        >
+          {envMismatchWarning}
+        </p>
+      ) : null}
 
       <section className="mt-6 min-w-0" aria-labelledby="schedule-date-heading">
         <h3
@@ -416,6 +440,10 @@ export function ScheduleStepPanel({
               {date}
             </time>
           </p>
+        ) : null}
+
+        {deferredAssignmentHint ? (
+          <p className="mt-2 text-xs leading-relaxed text-zinc-600">{deferredAssignmentHint}</p>
         ) : null}
 
         {dateError ? (

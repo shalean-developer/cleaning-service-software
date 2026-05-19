@@ -110,8 +110,8 @@ export const TEAM_SUPPORT_STEP_OPTIONS: TeamSupportStepOption[] = [
   },
   {
     value: 2,
-    label: "Request 2 cleaners",
-    description: "+R200 request surcharge — team availability confirmed after payment",
+    label: "Request team support",
+    description: "+R200 request surcharge — we'll confirm team availability after payment",
   },
 ];
 

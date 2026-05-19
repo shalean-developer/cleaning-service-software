@@ -88,6 +88,7 @@ describe("createBookingPaymentLock", () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.unstubAllEnvs();
+    vi.useRealTimers();
   });
 
   it("returns PROVISIONING_INCOMPLETE when customer row is missing", async () => {
@@ -102,8 +103,9 @@ describe("createBookingPaymentLock", () => {
     expect(result.status).toBe(403);
   });
 
-  it("rejects schedules beyond the advance booking window", async () => {
+  it("rejects schedules beyond the advance booking window in extended mode", async () => {
     vi.stubEnv("BOOKING_EXTENDED_WINDOW_ENABLED", "true");
+    vi.stubEnv("NEXT_PUBLIC_BOOKING_EXTENDED_WINDOW_ENABLED", "true");
     const { createBookingPaymentLock } = await import("./createBookingPaymentLock");
     const beyond = new Date("2099-06-01T10:00:00+02:00");
     const result = await createBookingPaymentLock(
@@ -116,7 +118,27 @@ describe("createBookingPaymentLock", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.code).toBe("INVALID_SCHEDULE");
-    expect(result.message).toMatch(/advance booking window/i);
+    expect(result.message).toMatch(/90 days/i);
+  });
+
+  it("rejects schedules beyond 14 days when extended window is off", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-18T10:00:00+02:00"));
+    vi.stubEnv("BOOKING_EXTENDED_WINDOW_ENABLED", "false");
+    const { createBookingPaymentLock } = await import("./createBookingPaymentLock");
+    const beyond = new Date("2026-06-10T10:00:00+02:00");
+    const result = await createBookingPaymentLock(
+      user,
+      baseInput({
+        scheduledStart: beyond.toISOString(),
+        scheduledEnd: new Date(beyond.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+      }),
+    );
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe("INVALID_SCHEDULE");
+    expect(result.message).toMatch(/14 days/i);
+    vi.useRealTimers();
   });
 
   it("rejects client quote mismatch", async () => {

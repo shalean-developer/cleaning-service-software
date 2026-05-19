@@ -127,7 +127,7 @@ export function buildAdminOperationalLoadBadges(
 ): AdminOperationalLoadBadge[] {
   const badges: AdminOperationalLoadBadge[] = [];
   if (signals.isTwoCleanerRequest) {
-    badges.push({ label: "2-cleaner request", tone: "info" });
+    badges.push({ label: "Team support request", tone: "info" });
   }
   if (signals.isShaleanEquipment) {
     badges.push({ label: "Bring equipment", tone: "warning" });
@@ -303,7 +303,7 @@ export function teamCoordinationStatusLabel(
   isTwoCleanerRequest: boolean,
 ): string | null {
   if (!isTwoCleanerRequest) return null;
-  if (!record) return "Coordination not recorded";
+  if (!record) return "Admin follow-up required";
   switch (record.status) {
     case "awaiting_coordination":
       return "Awaiting coordination";
@@ -480,10 +480,10 @@ export function teamRequestFulfillmentLabel(
   isTwoCleanerRequest: boolean,
 ): string | null {
   if (!isTwoCleanerRequest) return null;
-  if (!fulfillment) return "Fulfillment not recorded";
+  if (!fulfillment) return "Admin follow-up required";
   return fulfillment.fulfilledCleanerCount === 2
-    ? "2 cleaners fulfilled (manual)"
-    : "1 cleaner only (manual)";
+    ? "2 cleaners recorded (manual)"
+    : "1 cleaner recorded (manual)";
 }
 
 export function formatTeamSupportAnalyticsHomeSize(units: number | null): string {

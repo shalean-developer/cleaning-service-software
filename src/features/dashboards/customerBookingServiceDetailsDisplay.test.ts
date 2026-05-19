@@ -134,7 +134,7 @@ describe("parseCustomerBookingServiceDetails", () => {
       "regular-cleaning",
     );
 
-    expect(details.teamSupportLabel).toBe("Request 2 cleaners");
+    expect(details.teamSupportLabel).toBe("Team support requested");
     expect(details.isTwoCleanerRequest).toBe(true);
     expect(details.teamSupportCleanerNote).toBe(
       "Team support requested. Coordinate arrival with operations if needed.",

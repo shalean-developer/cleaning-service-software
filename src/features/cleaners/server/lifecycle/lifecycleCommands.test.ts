@@ -277,7 +277,7 @@ describe("cleaner lifecycle service commands", () => {
       booking_id: bookingId,
       cleaner_id: "cleaner-1",
       status: "offered",
-      team_role: "lead",
+      team_role: "primary",
       roster_id: null,
       offered_at: new Date().toISOString(),
       responded_at: null,

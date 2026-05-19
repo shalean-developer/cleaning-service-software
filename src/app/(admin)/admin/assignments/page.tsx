@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getDeferredAssignmentConfig } from "@/features/assignments/server/assignmentDispatchConfig";
 import { getDeferredAssignmentDiagnostics } from "@/features/assignments/server/deferredAssignmentDiagnostics";
+import { loadCronHealthReadModel } from "@/features/operations/server/cronHealthReadModel";
+import { AdminCronHealthPanel } from "@/components/dashboard/AdminCronHealthPanel";
 import { listAdminAssignmentQueue } from "@/features/dashboards/server/adminOperationsReadModel";
 import { AdminDeferredAssignmentDiagnosticsPanel } from "@/components/dashboard/AdminDeferredAssignmentDiagnosticsPanel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -34,12 +36,13 @@ export default async function AdminAssignmentsPage() {
   const client = await createSupabaseServerClient();
   const deferredConfig = getDeferredAssignmentConfig();
 
-  const [result, queueCounts, deferredDiagnostics] = await Promise.all([
+  const [result, queueCounts, deferredDiagnostics, cronHealth] = await Promise.all([
     listAdminAssignmentQueue(user),
     getAdminOperationalQueueCounts(user),
     client
       ? getDeferredAssignmentDiagnostics(client, { deferredEnabled: deferredConfig.enabled })
       : null,
+    client ? loadCronHealthReadModel(client) : null,
   ]);
 
   return (
@@ -48,6 +51,14 @@ export default async function AdminAssignmentsPage() {
       subtitle="Dispatch attention and open offers."
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
+      {cronHealth ? (
+        <AdminCronHealthPanel
+          generatedAt={cronHealth.generatedAt}
+          cronSecretConfigured={cronHealth.cronSecretConfigured}
+          jobs={cronHealth.jobs}
+        />
+      ) : null}
+
       {deferredDiagnostics ? (
         <AdminDeferredAssignmentDiagnosticsPanel diagnostics={deferredDiagnostics} />
       ) : null}

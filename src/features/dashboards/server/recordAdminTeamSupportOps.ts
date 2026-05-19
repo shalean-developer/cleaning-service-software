@@ -85,7 +85,7 @@ export async function recordAdminTeamSupportOps(
     return {
       ok: false,
       code: "NOT_TEAM_REQUEST",
-      message: "This booking is not a 2-cleaner request.",
+      message: "This booking does not have a team support request.",
       httpStatus: 400,
     };
   }

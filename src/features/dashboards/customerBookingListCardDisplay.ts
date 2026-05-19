@@ -22,7 +22,10 @@ export type CustomerBookingListCardLayersInput = {
   status: BookingStatus;
   paymentStatus: PaymentStatus | null;
   paymentFailureReason: PaymentFailureReason;
-  display: Pick<BookingDisplayFields, "assignmentCustomerMessage">;
+  display: Pick<
+    BookingDisplayFields,
+    "assignmentCustomerMessage" | "isTwoCleanerRequest" | "teamSupportLabel"
+  >;
   deferredAssignmentMessage?: string | null;
   assignedCleanerLabel: string | null;
 };
@@ -105,6 +108,14 @@ function supportingMessageForBooking(
     input.display.assignmentCustomerMessage
   ) {
     return { kind: "assignment", text: input.display.assignmentCustomerMessage };
+  }
+
+  if (
+    input.status !== "payment_failed" &&
+    input.display.isTwoCleanerRequest &&
+    input.display.teamSupportLabel
+  ) {
+    return { kind: "assignment", text: input.display.teamSupportLabel };
   }
 
   if (input.assignedCleanerLabel) {

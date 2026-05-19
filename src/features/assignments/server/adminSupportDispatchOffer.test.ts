@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { CurrentUser } from "@/lib/auth/types";
+import { testCurrentUser } from "@/test/fixtures";
 
 vi.mock("@/lib/supabase/serviceRole", () => ({
   createServiceRoleClient: vi.fn(),
@@ -33,11 +33,10 @@ import { listOffersForBooking } from "./offerRepository";
 import { createAdminSupportDispatchOffer } from "./createAdminSupportDispatchOffer";
 import { runAdminSupportDispatchOffer } from "./adminSupportDispatchOffer";
 
-const adminUser: CurrentUser = {
+const adminUser = testCurrentUser({
   profileId: "admin-profile",
-  role: "admin",
-  email: "admin@test.com",
-};
+  authUser: { email: "admin@test.com" },
+});
 
 function mockBooking(overrides: Record<string, unknown> = {}) {
   return {

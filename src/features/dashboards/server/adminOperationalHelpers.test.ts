@@ -179,7 +179,7 @@ describe("adminOperationalHelpers", () => {
           teamSupportNotes: null,
           coordinationStatus: null,
         },
-        coordinationStatusLabel: "Coordination not recorded",
+        coordinationStatusLabel: "Admin follow-up required",
       },
     });
     expect(matchesAdminBookingFilter(awaiting, "team_awaiting_coordination")).toBe(true);

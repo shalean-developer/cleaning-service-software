@@ -19,7 +19,10 @@ import { validateCleanerPreferenceForLock } from "./validateCleanerPreference";
 import type { BookingLockInput, BookingPaymentLockResult } from "./types";
 import { syncCustomerPhoneFromLock } from "@/features/bookings/server/syncCustomerPhoneFromLock";
 import { validateBookingContactPhoneMetadata } from "@/features/bookings/server/validateBookingContactPhone";
-import { isScheduleWithinBookingWindow } from "@/features/booking-wizard/bookingWindowConfig";
+import {
+  isScheduleWithinBookingWindow,
+  resolveScheduleOutsideWindowMessage,
+} from "@/features/booking-wizard/bookingWindowConfig";
 import { paymentIdempotencyKeyForLock } from "./constants";
 
 function fail(
@@ -58,7 +61,7 @@ export async function createBookingPaymentLock(
   if (!isScheduleWithinBookingWindow(input.scheduledStart)) {
     return fail(
       "INVALID_SCHEDULE",
-      "Booking date is outside the allowed advance booking window.",
+      resolveScheduleOutsideWindowMessage(input.scheduledStart),
       400,
     );
   }

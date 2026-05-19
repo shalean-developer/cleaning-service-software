@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CurrentUser } from "@/lib/auth/types";
 import { InMemoryBookingCommandBackend } from "@/features/bookings/server/commands/inMemoryBookingCommandBackend";
+import { testAssignmentOfferRow } from "@/features/bookings/server/commands/testAssignmentOfferRow";
 import { executeBookingCommand } from "@/features/bookings/server/commands/executeBookingCommand";
 import { buildOfferExpiresAt } from "./buildOfferExpiry";
 import { createDispatchOffer } from "./createDispatchOffer";
@@ -302,17 +303,20 @@ describe("runAdminReplaceOpenOffer", () => {
     });
     const now = new Date().toISOString();
     for (let i = 0; i < ASSIGNMENT_MAX_DISPATCH_ATTEMPTS_PER_BOOKING - 1; i++) {
-      backend.offers.set(`offer-prior-${i}`, {
-        id: `offer-prior-${i}`,
-        booking_id: bookingId,
-        cleaner_id: `cleaner-prior-${i}`,
-        status: "declined",
-        offered_at: now,
-        responded_at: now,
-        expires_at: null,
-        created_at: now,
-        updated_at: now,
-      });
+      backend.offers.set(
+        `offer-prior-${i}`,
+        testAssignmentOfferRow({
+          id: `offer-prior-${i}`,
+          booking_id: bookingId,
+          cleaner_id: `cleaner-prior-${i}`,
+          status: "declined",
+          offered_at: now,
+          responded_at: now,
+          expires_at: null,
+          created_at: now,
+          updated_at: now,
+        }),
+      );
     }
 
     serviceRoleMock.createServiceRoleClient.mockReturnValue(createReplaceClient(backend));

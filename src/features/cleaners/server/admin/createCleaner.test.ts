@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database/types";
+import type { ServiceSlug } from "@/features/pricing/server/types";
 import { defaultCleanerAvailabilityFormValues } from "@/features/cleaners/admin/cleanerAvailability";
 
 const provisionCleanerIdentityMock = vi.fn();
@@ -104,7 +105,7 @@ function baseCreateParams(
     password: string;
     confirmPassword: string;
     serviceAreasInput: string;
-    capabilities: string[];
+    capabilities: ServiceSlug[];
   }> = {},
 ) {
   return {
@@ -114,7 +115,7 @@ function baseCreateParams(
     password: "secure-pass-1",
     confirmPassword: "secure-pass-1",
     serviceAreasInput: "",
-    capabilities: ["regular-cleaning"] as const,
+    capabilities: ["regular-cleaning"] as ServiceSlug[],
     workingDays: defaultAvailability.workingDays,
     startTime: defaultAvailability.startTime,
     endTime: defaultAvailability.endTime,

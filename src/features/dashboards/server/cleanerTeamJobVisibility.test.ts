@@ -41,8 +41,9 @@ describe("cleanerTeamJobVisibility", () => {
   });
 
   it("offered roster alone does not grant job detail access", () => {
-    const roster: Pick<BookingCleanerRow, "cleaner_id" | "status"> = {
+    const roster: Pick<BookingCleanerRow, "cleaner_id" | "role" | "status"> = {
       cleaner_id: "cleaner-support",
+      role: "support",
       status: "offered",
     };
     expect(
@@ -51,8 +52,9 @@ describe("cleanerTeamJobVisibility", () => {
   });
 
   it("accepted support roster grants job detail access without changing cleaner_id", () => {
-    const roster: Pick<BookingCleanerRow, "cleaner_id" | "status"> = {
+    const roster: Pick<BookingCleanerRow, "cleaner_id" | "role" | "status"> = {
       cleaner_id: "cleaner-support",
+      role: "support",
       status: "accepted",
     };
     expect(

@@ -156,7 +156,7 @@ export function validatePricingInput(raw: PricingInput): PricingQuoteFailure | n
   if (raw.serviceSlug !== "regular-cleaning" && requestedTeamSize !== 1) {
     return fail(
       "INVALID_REQUESTED_TEAM_SIZE",
-      "2-cleaner requests are only available for regular cleaning.",
+      "Team support requests are only available for regular cleaning.",
     );
   }
 

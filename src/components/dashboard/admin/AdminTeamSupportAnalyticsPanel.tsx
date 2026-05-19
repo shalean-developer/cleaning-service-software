@@ -43,7 +43,7 @@ export function AdminTeamSupportAnalyticsPanel({ analytics }: Props) {
           title="Regular cleaning bookings"
           value={String(analytics.regularCleaningTotal)}
         />
-        <MetricCard title="2-cleaner requests" value={String(analytics.teamRequestTotal)} />
+        <MetricCard title="Team support requests" value={String(analytics.teamRequestTotal)} />
         <MetricCard title="Team request share" value={teamPct} />
         <MetricCard
           title="Avg price (team requests)"
@@ -61,22 +61,22 @@ export function AdminTeamSupportAnalyticsPanel({ analytics }: Props) {
         <MetricCard
           title="High operational load"
           value={String(analytics.operationalLoadHighCount)}
-          hint="2-cleaner + equipment + heavy"
+          hint="Team support + equipment + heavy"
         />
       </section>
 
       <section className="rounded-xl border border-violet-200 bg-violet-50/40 p-4">
         <h3 className="text-sm font-semibold text-violet-950">Manual fulfillment (recorded)</h3>
         <ul className="mt-2 space-y-1 text-sm text-violet-900">
-          <li>2 cleaners fulfilled: {analytics.fulfillmentTwoCleaners}</li>
-          <li>1 cleaner only: {analytics.fulfillmentOneCleaner}</li>
+          <li>2 cleaners recorded: {analytics.fulfillmentTwoCleaners}</li>
+          <li>1 cleaner recorded: {analytics.fulfillmentOneCleaner}</li>
           <li>Not yet recorded: {analytics.fulfillmentUnrecorded}</li>
         </ul>
         <Link
           href="/admin/bookings?filter=two_cleaner_request"
           className="mt-3 inline-block text-sm font-medium text-violet-900 hover:underline"
         >
-          View 2-cleaner requests →
+          View team support requests →
         </Link>
       </section>
 

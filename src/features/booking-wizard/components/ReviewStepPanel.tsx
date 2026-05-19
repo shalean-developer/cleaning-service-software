@@ -24,7 +24,8 @@ import {
   getEquipmentSupplyCustomerLabel,
   getFrequencyLabel,
   getSelectedAddonLabels,
-  getTeamSupportCustomerLabel,
+  getTeamSupportExplanation,
+  getTeamSupportReviewSummaryLabel,
 } from "../reviewDisplay";
 import { resolveWizardContactPhone } from "../contactPhone";
 import { formatZaMobileForDisplay } from "@/lib/validation/zaPhone";
@@ -161,8 +162,11 @@ export function ReviewStepPanel({
       : null;
   const teamSupportLabel =
     serviceSlug === "regular-cleaning"
-      ? getTeamSupportCustomerLabel(requestedTeamSize)
+      ? getTeamSupportReviewSummaryLabel(requestedTeamSize) ??
+        (requestedTeamSize === 1 ? "1 cleaner" : null)
       : null;
+  const teamSupportExplanation =
+    serviceSlug === "regular-cleaning" ? getTeamSupportExplanation(requestedTeamSize) : null;
   const recurringScheduleNote = getRecurringScheduleExplanation(frequency);
   const bedBathSummary = formatCompactBedBathSummary(
     serviceSlug,
@@ -251,6 +255,11 @@ export function ReviewStepPanel({
             ) : null}
             {teamSupportLabel ? (
               <SummaryRow label="Team support" value={teamSupportLabel} />
+            ) : null}
+            {teamSupportExplanation ? (
+              <p className="mt-1 text-xs leading-snug text-zinc-500 sm:col-span-2">
+                {teamSupportExplanation}
+              </p>
             ) : null}
           </div>
           <div className="mt-2.5">

@@ -37,6 +37,8 @@ function item(
       cleanerPreferenceMode: null,
       preferredCleanerId: null,
       specialInstructions: null,
+      contactPhone: null,
+      contactPhoneDisplay: null,
       assignmentAttention: null,
       assignmentReason: null,
       assignmentVisibilityKey: null,
@@ -45,6 +47,7 @@ function item(
     },
     scheduleLabel: "Mon 9:00",
     assignedCleanerLabel: null,
+    deferredAssignmentMessage: null,
     updatedAt: "2026-01-01T00:00:00Z",
     ...overrides,
   };

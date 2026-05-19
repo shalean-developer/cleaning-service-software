@@ -3,21 +3,15 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { CleanerOfferCard } from "./CleanerOfferCard";
-import type { CleanerOfferListItem } from "@/features/dashboards/server/types";
+import { testCleanerOfferListItem } from "@/test/fixtures";
 
-const pastOffer: CleanerOfferListItem = {
+const pastOffer = testCleanerOfferListItem({
   offerId: "offer-2",
-  bookingId: "booking-1",
   status: "declined",
-  expiresAt: "2026-05-20T14:00:00.000Z",
-  offeredAt: "2026-05-18T10:00:00.000Z",
   scheduleLabel: "Sat 19 May, 14:00–16:00",
   locationSummary: "Sandton",
   serviceLabel: "Standard clean",
-  earningsCents: 35000,
-  earningsLabel: "R 350.00",
-  isExpired: false,
-};
+});
 
 describe("CleanerOfferCard", () => {
   it("wires expiry chip and mobile earnings hierarchy in source", () => {

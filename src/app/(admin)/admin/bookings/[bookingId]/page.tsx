@@ -119,7 +119,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
             ...(b.display.teamRequestFulfillmentLabel
               ? [
                   {
-                    label: "2-cleaner fulfillment",
+                    label: "Team support fulfillment",
                     value: b.display.teamRequestFulfillmentLabel,
                   },
                 ]

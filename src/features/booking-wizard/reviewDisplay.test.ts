@@ -12,8 +12,11 @@ import {
   getEquipmentSupplyOperationalLabel,
   getFrequencyLabel,
   getTeamSupportCleanerNote,
+  getTeamSupportCustomerDashboardLabel,
   getTeamSupportCustomerLabel,
   getTeamSupportExplanation,
+  getTeamSupportReviewSummaryLabel,
+  TEAM_SUPPORT_LINE_ITEM_LABEL,
 } from "./reviewDisplay";
 
 describe("reviewDisplay", () => {
@@ -75,14 +78,30 @@ describe("reviewDisplay", () => {
   });
 
   it("formats team support labels for customer and cleaner", () => {
+    expect(TEAM_SUPPORT_LINE_ITEM_LABEL).toBe("Team support request");
     expect(getTeamSupportCustomerLabel(1)).toBe("1 cleaner");
-    expect(getTeamSupportCustomerLabel(2)).toBe("Request 2 cleaners");
+    expect(getTeamSupportCustomerLabel(2)).toBe("Team support requested");
+    expect(getTeamSupportReviewSummaryLabel(1)).toBeNull();
+    expect(getTeamSupportReviewSummaryLabel(2)).toBe("Request team support");
     expect(getTeamSupportExplanation(1)).toBeNull();
     expect(getTeamSupportExplanation(2)).toMatch(/confirm team availability/);
+    expect(getTeamSupportExplanation(2)).toMatch(/faster clean when available/);
     expect(getTeamSupportCleanerNote(1)).toBeNull();
     expect(getTeamSupportCleanerNote(2)).toBe(
       "Team support requested. Coordinate arrival with operations if needed.",
     );
+  });
+
+  it("formats customer dashboard team support status from fulfillment", () => {
+    expect(getTeamSupportCustomerDashboardLabel(null)).toBe(
+      "Team support requested — awaiting confirmation",
+    );
+    expect(
+      getTeamSupportCustomerDashboardLabel({ fulfilledCleanerCount: 2 }),
+    ).toBe("Team support confirmed — 2 cleaners");
+    expect(
+      getTeamSupportCustomerDashboardLabel({ fulfilledCleanerCount: 1 }),
+    ).toBe("Team support confirmed — 1 cleaner");
   });
 
   it("formats office property size instead of beds and baths", () => {

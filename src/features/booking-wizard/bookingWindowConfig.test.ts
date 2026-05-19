@@ -15,7 +15,10 @@ import {
   resolveBookingWindowBounds,
   resolveDateWindowStartOffsetForDate,
   resolveMaxDateWindowStartOffset,
+  resolveBookingWindowEnvStatus,
   resolveScheduleDateTimeValidationMessage,
+  resolveScheduleDateTimeValidationMessageForBounds,
+  resolveScheduleOutsideWindowMessage,
   scheduleStartToBookingDate,
 } from "./bookingWindowConfig";
 import { addDaysToDateString, buildScheduleDateOptions } from "./scheduleStepDisplay";
@@ -38,6 +41,31 @@ describe("bookingWindowConfig", () => {
     vi.stubEnv("NEXT_PUBLIC_BOOKING_EXTENDED_WINDOW_ENABLED", "false");
     expect(getEffectiveMaxAdvanceDays()).toBe(BOOKING_LEGACY_MAX_ADVANCE_DAYS);
     expect(maxBookableDateString()).toBe("2026-06-01");
+  });
+
+  it("blocks day 15+ in default 14-day mode", () => {
+    vi.stubEnv("BOOKING_EXTENDED_WINDOW_ENABLED", "false");
+    vi.stubEnv("NEXT_PUBLIC_BOOKING_EXTENDED_WINDOW_ENABLED", "false");
+    const min = minBookableDateString();
+    const day15 = addDaysToDateString(min, 15);
+    expect(isDateWithinBookingWindow(day15, now)).toBe(false);
+    expect(
+      resolveScheduleDateTimeValidationMessage(day15, now, process.env, { client: true }),
+    ).toMatch(/14 days/i);
+    expect(
+      resolveScheduleDateTimeValidationMessage(day15, now, process.env),
+    ).toMatch(/not available yet/i);
+  });
+
+  it("allows day 90 and blocks day 91 in extended mode", () => {
+    vi.stubEnv("BOOKING_EXTENDED_WINDOW_ENABLED", "true");
+    vi.stubEnv("NEXT_PUBLIC_BOOKING_EXTENDED_WINDOW_ENABLED", "true");
+    const min = minBookableDateString();
+    const day90 = addDaysToDateString(min, 90);
+    const day91 = addDaysToDateString(min, 91);
+    expect(isDateWithinBookingWindow(day90, now)).toBe(true);
+    expect(isDateWithinBookingWindow(day91, now)).toBe(false);
+    expect(resolveScheduleDateTimeValidationMessage(day91, now)).toMatch(/90 days/i);
   });
 
   it("uses 90-day horizon when extended window flag is on", () => {
@@ -156,6 +184,40 @@ describe("bookingWindowConfig", () => {
     expect(
       isOutsideImmediateAssignmentWindow("2026-05-20", "10:00", 14, now),
     ).toBe(false);
+  });
+
+  it("detects env mismatch when server and public flags disagree", () => {
+    vi.stubEnv("BOOKING_EXTENDED_WINDOW_ENABLED", "false");
+    vi.stubEnv("NEXT_PUBLIC_BOOKING_EXTENDED_WINDOW_ENABLED", "true");
+    const status = resolveBookingWindowEnvStatus();
+    expect(status.mismatched).toBe(true);
+    expect(status.mismatchWarning).toMatch(/server limit is 14 days/i);
+
+    vi.stubEnv("BOOKING_EXTENDED_WINDOW_ENABLED", "true");
+    vi.stubEnv("NEXT_PUBLIC_BOOKING_EXTENDED_WINDOW_ENABLED", "false");
+    const serverOn = resolveBookingWindowEnvStatus();
+    expect(serverOn.mismatched).toBe(true);
+    expect(serverOn.mismatchWarning).toMatch(/public client flag is off/i);
+  });
+
+  it("builds server lock rejection copy from bounds", () => {
+    vi.stubEnv("BOOKING_EXTENDED_WINDOW_ENABLED", "false");
+    const min = minBookableDateString();
+    const beyond = `${addDaysToDateString(min, 20)}T10:00:00+02:00`;
+    expect(resolveScheduleOutsideWindowMessage(beyond, now)).toMatch(/14 days/i);
+  });
+
+  it("validates with explicit bounds independent of env", () => {
+    const bounds = {
+      minDate: "2026-05-18",
+      maxDate: "2026-06-01",
+      maxAdvanceDays: 14,
+      extendedWindowEnabled: false,
+    };
+    expect(resolveScheduleDateTimeValidationMessageForBounds("2026-06-02", bounds)).toMatch(
+      /14 days/i,
+    );
+    expect(resolveScheduleDateTimeValidationMessageForBounds("2026-05-20", bounds)).toBeNull();
   });
 
   it("uses Africa/Johannesburg calendar date at local midnight boundary", () => {

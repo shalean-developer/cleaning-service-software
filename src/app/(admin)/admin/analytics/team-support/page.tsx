@@ -32,7 +32,7 @@ export default async function AdminTeamSupportAnalyticsPage() {
   return (
     <AdminDashboardShell
       title="Team support observation"
-      subtitle="Measure 2-cleaner requests before NF-7C architecture work. Display-only — no assignment or payout changes."
+      subtitle="Track paid team support requests and admin follow-up. Display-only — no assignment or payout changes."
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
       <AdminTeamSupportAnalyticsPanel analytics={result.analytics} />

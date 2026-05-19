@@ -1,0 +1,46 @@
+import type { CronJobDefinition } from "./cronHealthTypes";
+
+/** Launch-critical and supporting background jobs for Regular Cleaning. */
+export const REGULAR_CLEANING_CRON_JOBS: CronJobDefinition[] = [
+  {
+    id: "expire-pending-payments",
+    name: "Expire pending payments",
+    routePath: "/api/cron/expire-pending-payments",
+    scheduleSource: "ops_configured",
+    scheduleHint: "Hourly (configure Supabase pg_cron + Vault — no migration in repo)",
+    expectedFrequencyMinutes: 60,
+    docPath: "docs/operations/expire-pending-payments-cron.md",
+    launchRequired: true,
+  },
+  {
+    id: "expire-assignment-offers",
+    name: "Expire assignment offers",
+    routePath: "/api/cron/expire-assignment-offers",
+    scheduleSource: "supabase_pg_cron",
+    scheduleHint: "Hourly at :00 UTC (pg_cron job expire-assignment-offers-hourly)",
+    expectedFrequencyMinutes: 60,
+    docPath: "docs/operations/expire-assignment-offers-cron.md",
+    launchRequired: true,
+  },
+  {
+    id: "recover-assignment-after-payment",
+    name: "Recover assignment after payment",
+    routePath: "/api/cron/recover-assignment-after-payment",
+    scheduleSource: "ops_configured",
+    scheduleHint: "Hourly recommended (configure pg_cron/Vault — no migration in repo)",
+    expectedFrequencyMinutes: 60,
+    docPath: "docs/operations/assignment-recovery.md",
+    launchRequired: true,
+  },
+  {
+    id: "dispatch-deferred-assignments",
+    name: "Dispatch deferred assignments",
+    routePath: "/api/cron/dispatch-deferred-assignments",
+    scheduleSource: "feature_gated",
+    scheduleHint: "Hourly when DEFERRED_ASSIGNMENT_ENABLED (pg_cron dispatch-deferred-assignments-hourly)",
+    expectedFrequencyMinutes: 60,
+    docPath: "docs/operations/dispatch-deferred-assignments-cron.md",
+    launchRequired: false,
+    featureFlagEnv: "DEFERRED_ASSIGNMENT_ENABLED",
+  },
+];
