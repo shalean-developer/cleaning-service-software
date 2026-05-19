@@ -30,7 +30,7 @@ export default async function SignInPage({ searchParams }: PageProps) {
       <section>
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Sign in</h1>
         <p className="mt-2 text-sm leading-6 text-zinc-600">
-          Use your email and password. E2E test accounts are documented in{" "}
+          Use your email or mobile number and password. E2E test accounts are documented in{" "}
           <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs">
             docs/testing/live-e2e-smoke-test.md
           </code>

@@ -12,7 +12,7 @@ import { AdminOperationalQueueStrip } from "@/components/dashboard/AdminOperatio
 import { AdminAssignmentQueueGuidance } from "@/components/dashboard/AdminAssignmentQueueGuidance";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { ADMIN_QUEUE_CARD_CLASS } from "@/features/dashboards/adminDisplay";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import {
@@ -43,7 +43,7 @@ export default async function AdminAssignmentsPage() {
   ]);
 
   return (
-    <DashboardShell
+    <AdminDashboardShell
       title="Assignment queue"
       subtitle="Dispatch attention and open offers."
       nav={[...ADMIN_DASHBOARD_NAV]}
@@ -131,6 +131,6 @@ export default async function AdminAssignmentsPage() {
           ))}
         </ul>
       )}
-    </DashboardShell>
+    </AdminDashboardShell>
   );
 }

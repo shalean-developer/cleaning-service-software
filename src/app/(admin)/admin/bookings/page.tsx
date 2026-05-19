@@ -14,7 +14,7 @@ import type { AdminBookingFilter } from "@/features/dashboards/server/adminOpera
 import { adminBookingListBadges } from "@/features/dashboards/adminBookingListBadges";
 import { AdminBookingsFilters } from "@/components/dashboard/AdminBookingsFilters";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
@@ -75,7 +75,7 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
       : null;
 
   return (
-    <DashboardShell
+    <AdminDashboardShell
       title="All bookings"
       subtitle="Lifecycle, payment, and assignment."
       nav={[...ADMIN_DASHBOARD_NAV]}
@@ -140,6 +140,6 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
           ))}
         </ul>
       )}
-    </DashboardShell>
+    </AdminDashboardShell>
   );
 }

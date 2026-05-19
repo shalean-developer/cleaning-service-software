@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { resolveSignInEmail } from "@/lib/auth/cleanerAuthIdentity";
 import { loadProfileRoleForUser } from "@/lib/auth/loadProfileRole";
 import { resolvePostSignInPath } from "@/lib/auth/redirects";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -13,13 +14,18 @@ export async function signInAction(
   _previousState: SignInActionState,
   formData: FormData,
 ): Promise<SignInActionState> {
-  const email = String(formData.get("email") ?? "").trim();
+  const identifier = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const redirectedFromRaw = String(formData.get("redirectedFrom") ?? "").trim();
   const redirectedFrom = redirectedFromRaw || undefined;
 
-  if (!email || !password) {
-    return { error: "Email and password are required." };
+  if (!identifier || !password) {
+    return { error: "Email or mobile number and password are required." };
+  }
+
+  const resolvedEmail = resolveSignInEmail(identifier);
+  if (!resolvedEmail.ok) {
+    return { error: resolvedEmail.error };
   }
 
   const supabase = await createSupabaseServerClient();
@@ -30,7 +36,10 @@ export async function signInAction(
     };
   }
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: resolvedEmail.email,
+    password,
+  });
   if (error) {
     return { error: error.message };
   }

@@ -25,6 +25,17 @@ describe("SignInForm server action", () => {
     expect(source).not.toContain("signInWithPassword");
     expect(source).not.toContain("createSupabaseBrowserClient");
   });
+
+  it("accepts email or mobile number in the identifier field", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "src/app/sign-in/SignInForm.tsx"),
+      "utf8",
+    );
+    expect(source).toContain("Email or mobile number");
+    expect(source).toContain('type="text"');
+    expect(source).toContain('autoComplete="username"');
+    expect(source).not.toContain('type="email"');
+  });
 });
 
 describe("signInAction", () => {
@@ -38,5 +49,14 @@ describe("signInAction", () => {
     expect(source).toContain("signInWithPassword");
     expect(source).toContain("loadProfileRoleForUser");
     expect(source).toContain("redirect(resolvePostSignInPath");
+  });
+
+  it("resolves phone identifiers to shalean auth email before sign-in", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "src/lib/auth/signInAction.ts"),
+      "utf8",
+    );
+    expect(source).toContain("resolveSignInEmail");
+    expect(source).toContain("resolvedEmail.email");
   });
 });

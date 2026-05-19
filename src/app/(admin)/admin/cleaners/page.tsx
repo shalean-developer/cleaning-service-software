@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
@@ -29,11 +30,20 @@ export default async function AdminCleanersPage({ searchParams }: PageProps) {
   const result = await listAdminCleaners(user, filter);
 
   return (
-    <DashboardShell
+    <AdminDashboardShell
       title="Cleaners"
       subtitle="Operational lifecycle, safety counts, and audit history."
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
+      <div className="mt-4">
+        <Link
+          href="/admin/cleaners/new"
+          className="inline-flex min-h-10 items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+        >
+          Create cleaner
+        </Link>
+      </div>
+
       {!result.ok ? (
         <DashboardFetchError
           title={dashboardFetchErrorTitle("bookings", "admin")}
@@ -54,6 +64,6 @@ export default async function AdminCleanersPage({ searchParams }: PageProps) {
           )}
         </>
       )}
-    </DashboardShell>
+    </AdminDashboardShell>
   );
 }

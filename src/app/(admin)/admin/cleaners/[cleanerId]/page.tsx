@@ -8,12 +8,13 @@ import {
   ADMIN_SECTION_MUTED_CLASS,
   ADMIN_SECTION_TITLE_CLASS,
 } from "@/features/dashboards/adminDisplay";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { AdminDetailSection } from "@/components/dashboard/admin/AdminDetailSection";
 import { AdminCleanerAuditLog } from "@/components/dashboard/admin/AdminCleanerAuditLog";
 import { AdminCleanerLifecycleActions } from "@/components/dashboard/admin/AdminCleanerLifecycleActions";
+import { AdminCleanerProfileForm } from "@/components/dashboard/admin/AdminCleanerProfileForm";
 import { getAdminCleanerDetail } from "@/features/cleaners/server/admin/adminCleanersReadModel";
 import {
   labelForCleanerOperationalState,
@@ -40,19 +41,19 @@ export default async function AdminCleanerDetailPage({ params }: PageProps) {
   if (!result.ok) {
     if (result.code === "CLEANER_NOT_FOUND") notFound();
     return (
-      <DashboardShell title="Cleaner" nav={[...ADMIN_DASHBOARD_NAV]}>
+      <AdminDashboardShell title="Cleaner" nav={[...ADMIN_DASHBOARD_NAV]}>
         <DashboardFetchError
           title={dashboardFetchErrorTitle("bookings", "admin")}
           description={result.message}
         />
-      </DashboardShell>
+      </AdminDashboardShell>
     );
   }
 
   const detail = result.detail;
 
   return (
-    <DashboardShell
+    <AdminDashboardShell
       title={detail.name}
       subtitle="Cleaner operational lifecycle"
       nav={[...ADMIN_DASHBOARD_NAV]}
@@ -83,15 +84,27 @@ export default async function AdminCleanerDetailPage({ params }: PageProps) {
           ) : null}
         </AdminDetailSection>
 
-        <AdminDetailSection title="Profile">
+        <AdminDetailSection
+          title="Edit profile"
+          description="Name, capabilities, and service areas. Phone and lifecycle are read-only here."
+        >
+          <AdminCleanerProfileForm
+            cleanerId={detail.id}
+            initialFullName={detail.name}
+            initialCapabilities={detail.capabilities}
+            initialServiceAreaSlugs={detail.serviceAreaSlugs}
+            readOnlyPhone={detail.phone}
+            readOnlyLoginEmail={detail.loginEmail}
+          />
+        </AdminDetailSection>
+
+        <AdminDetailSection title="Profile summary">
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">Email</dt>
-              <dd className="mt-0.5 text-zinc-900">{detail.email ?? "—"}</dd>
-            </div>
-            <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">Phone</dt>
-              <dd className="mt-0.5 text-zinc-900">{detail.phone ?? "—"}</dd>
+              <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                Auth email (resolved)
+              </dt>
+              <dd className="mt-0.5 text-zinc-900">{detail.email ?? detail.loginEmail ?? "—"}</dd>
             </div>
             <div>
               <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
@@ -197,6 +210,6 @@ export default async function AdminCleanerDetailPage({ params }: PageProps) {
           </AdminDetailSection>
         ) : null}
       </div>
-    </DashboardShell>
+    </AdminDashboardShell>
   );
 }

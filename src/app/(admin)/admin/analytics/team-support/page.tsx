@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getAdminTeamSupportAnalytics } from "@/features/dashboards/server/adminOperationsReadModel";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 import { AdminTeamSupportAnalyticsPanel } from "@/components/dashboard/admin/AdminTeamSupportAnalyticsPanel";
 
 export const metadata: Metadata = {
@@ -19,23 +19,23 @@ export default async function AdminTeamSupportAnalyticsPage() {
   if (!result.ok) {
     if (result.status === 403) redirect("/");
     return (
-      <DashboardShell
+      <AdminDashboardShell
         title="Team support observation"
         subtitle="NF-7B.1 operational analytics"
         nav={[...ADMIN_DASHBOARD_NAV]}
       >
         <p className="text-sm text-red-700">{result.message}</p>
-      </DashboardShell>
+      </AdminDashboardShell>
     );
   }
 
   return (
-    <DashboardShell
+    <AdminDashboardShell
       title="Team support observation"
       subtitle="Measure 2-cleaner requests before NF-7C architecture work. Display-only — no assignment or payout changes."
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
       <AdminTeamSupportAnalyticsPanel analytics={result.analytics} />
-    </DashboardShell>
+    </AdminDashboardShell>
   );
 }

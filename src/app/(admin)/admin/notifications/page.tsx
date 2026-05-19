@@ -6,7 +6,7 @@ import {
   getAdminNotificationHealthPage,
   parseNotificationHealthFilters,
 } from "@/features/notifications/server/notificationAdminReadModel";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 import { AdminNotificationAnalyticsPanel } from "@/components/dashboard/AdminNotificationAnalyticsPanel";
 import { AdminNotificationDeliveryBanner } from "@/components/dashboard/AdminNotificationDeliveryBanner";
 import { AdminNotificationTemplateBreakdownTable } from "@/components/dashboard/AdminNotificationTemplateBreakdownTable";
@@ -37,16 +37,16 @@ export default async function AdminNotificationsPage({ searchParams }: PageProps
   if (!result.ok) {
     if (result.status === 403) redirect("/");
     return (
-      <DashboardShell title="Notifications" subtitle="Queue health" nav={[...ADMIN_DASHBOARD_NAV]}>
+      <AdminDashboardShell title="Notifications" subtitle="Queue health" nav={[...ADMIN_DASHBOARD_NAV]}>
         <p className="text-sm text-red-700">{result.message}</p>
-      </DashboardShell>
+      </AdminDashboardShell>
     );
   }
 
   const { page } = result;
 
   return (
-    <DashboardShell
+    <AdminDashboardShell
       title="Notification delivery"
       subtitle="Queue health across all bookings. Requeue eligible failed rows — does not send email immediately."
       nav={[...ADMIN_DASHBOARD_NAV]}
@@ -85,6 +85,6 @@ export default async function AdminNotificationsPage({ searchParams }: PageProps
           SQL for larger exports.
         </p>
       </section>
-    </DashboardShell>
+    </AdminDashboardShell>
   );
 }

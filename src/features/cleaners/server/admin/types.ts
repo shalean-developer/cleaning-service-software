@@ -1,6 +1,7 @@
 import type { CleanerOperationalState } from "../lifecycle/operationalState";
 import type { CleanerOperationalAuditRow } from "@/lib/database/types";
 import type { AssignmentOfferRow } from "@/lib/database/types";
+import type { ServiceSlug } from "@/features/pricing/server/types";
 
 export type AdminCleanerOperationalFilter =
   | "all"
@@ -47,7 +48,10 @@ export type AdminCleanerDetail = {
   profileId: string;
   name: string;
   email: string | null;
+  loginEmail: string | null;
   phone: string | null;
+  capabilities: ServiceSlug[];
+  serviceAreaSlugs: string[];
   operationalState: CleanerOperationalState;
   active: boolean;
   suspendedAt: string | null;

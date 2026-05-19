@@ -8,7 +8,7 @@ import {
   ADMIN_LIST_CARD_CLASS,
 } from "@/features/dashboards/adminDisplay";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
@@ -24,7 +24,7 @@ export default async function AdminPayoutsPage() {
   const result = await getAdminPayoutSummary(user);
 
   return (
-    <DashboardShell
+    <AdminDashboardShell
       title="Payouts"
       subtitle="Earnings ledger and payout readiness."
       nav={[...ADMIN_DASHBOARD_NAV]}
@@ -102,6 +102,6 @@ export default async function AdminPayoutsPage() {
           </p>
         </>
       )}
-    </DashboardShell>
+    </AdminDashboardShell>
   );
 }

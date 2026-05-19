@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getAdminAssignmentAnalyticsPage } from "@/features/assignments/server/assignmentAnalyticsReadModel";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 import { AdminAssignmentAnalyticsPanel } from "@/components/dashboard/AdminAssignmentAnalyticsPanel";
 
 export const metadata: Metadata = {
@@ -19,23 +19,23 @@ export default async function AdminAssignmentAnalyticsPage() {
   if (!result.ok) {
     if (result.status === 403) redirect("/");
     return (
-      <DashboardShell
+      <AdminDashboardShell
         title="Assignment analytics"
         subtitle="Funnel performance"
         nav={[...ADMIN_DASHBOARD_NAV]}
       >
         <p className="text-sm text-red-700">{result.message}</p>
-      </DashboardShell>
+      </AdminDashboardShell>
     );
   }
 
   return (
-    <DashboardShell
+    <AdminDashboardShell
       title="Assignment analytics"
       subtitle="Read-only funnel metrics from offers and audit events. Does not change assignment behavior."
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
       <AdminAssignmentAnalyticsPanel analytics={result.page} />
-    </DashboardShell>
+    </AdminDashboardShell>
   );
 }

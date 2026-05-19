@@ -33,14 +33,18 @@ export function SignInForm({ redirectedFrom }: Props) {
         <input type="hidden" name="redirectedFrom" value={redirectedFrom} />
       ) : null}
       <label className="flex flex-col gap-1.5">
-        <span className="text-sm font-medium text-zinc-800">Email</span>
+        <span className="text-sm font-medium text-zinc-800">Email or mobile number</span>
         <input
-          type="email"
+          type="text"
           name="email"
-          autoComplete="email"
+          autoComplete="username"
+          inputMode="text"
           required
           className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-500"
         />
+        <span className="text-xs text-zinc-500">
+          Cleaners can sign in with a mobile number or their @shalean.co.za email.
+        </span>
       </label>
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-zinc-800">Password</span>

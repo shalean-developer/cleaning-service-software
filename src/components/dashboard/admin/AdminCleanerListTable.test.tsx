@@ -46,11 +46,13 @@ describe("formatCleanerDisplayName", () => {
 });
 
 describe("AdminCleanerListTable", () => {
-  it("uses fixed table layout without horizontal scroll wrapper", () => {
+  it("uses card rows with a fixed grid layout and no horizontal scroll wrapper", () => {
     const html = renderToStaticMarkup(<AdminCleanerListTable items={[sampleItem()]} />);
-    expect(html).toContain("table-fixed");
+    expect(html).toContain("rounded-2xl border");
+    expect(html).toContain("grid-cols-[minmax(0,28fr)_minmax(0,30fr)_minmax(0,18fr)_minmax(0,14fr)_minmax(0,10fr)]");
     expect(html).toContain("overflow-hidden");
     expect(html).not.toContain("overflow-x-auto");
+    expect(html).not.toContain("<table");
   });
 
   it("truncates long contact fields and preserves full values in title", () => {
@@ -91,5 +93,49 @@ describe("AdminCleanerListTable", () => {
       <AdminCleanerListTable items={[sampleItem({ id: "cleaner-abc" })]} />,
     );
     expect(html).toContain('href="/admin/cleaners/cleaner-abc"');
+  });
+
+  it("renders only overview columns in the list header", () => {
+    const html = renderToStaticMarkup(<AdminCleanerListTable items={[sampleItem()]} />);
+
+    expect(html).toContain(">Name<");
+    expect(html).toContain(">Email<");
+    expect(html).toContain(">Phone<");
+    expect(html).toContain(">State<");
+    expect(html).toContain(">Active<");
+
+    expect(html).not.toContain(">Suspended<");
+    expect(html).not.toContain("Open offers");
+    expect(html).not.toContain("Active bookings");
+    expect(html).not.toContain("Pending earnings");
+    expect(html).not.toContain("Last action");
+    expect(html).not.toContain(">Offers<");
+    expect(html).not.toContain(">Bookings<");
+    expect(html).not.toContain(">Earnings<");
+  });
+
+  it("does not render operational count values removed from the list overview", () => {
+    const html = renderToStaticMarkup(
+      <AdminCleanerListTable
+        items={[
+          sampleItem({
+            openOffersCount: 3,
+            activeBookingsCount: 4,
+            pendingEarningsCount: 5,
+            isSuspended: true,
+            lastLifecycleAction: {
+              action: "suspended",
+              outcome: "success",
+              createdAt: "2026-05-17T10:00:00.000Z",
+            },
+          }),
+        ]}
+      />,
+    );
+
+    expect(html).not.toMatch(/>\s*3\s*</);
+    expect(html).not.toMatch(/>\s*4\s*</);
+    expect(html).not.toMatch(/>\s*5\s*</);
+    expect(html).not.toContain("Suspended (success)");
   });
 });

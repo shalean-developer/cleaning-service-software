@@ -29,6 +29,8 @@ export function toneForCleanerOperationalState(state: CleanerOperationalState): 
 
 export function labelForCleanerLifecycleAuditAction(action: string): string {
   const labels: Record<string, string> = {
+    profile_created: "Profile created",
+    profile_updated: "Profile updated",
     deactivated: "Deactivated",
     suspended: "Suspended",
     reactivated: "Reactivated",

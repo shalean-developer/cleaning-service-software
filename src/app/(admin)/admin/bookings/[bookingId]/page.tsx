@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getAdminBookingDetail } from "@/features/dashboards/server/adminOperationsReadModel";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 import { AdminDeferredDispatchPanel } from "@/components/dashboard/AdminDeferredDispatchPanel";
 import { AdminOperationalStatusPanel } from "@/components/dashboard/AdminOperationalStatusPanel";
 import { AdminPayoutActions } from "@/components/dashboard/AdminPayoutActions";
@@ -85,7 +85,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
   ];
 
   return (
-    <DashboardShell
+    <AdminDashboardShell
       title="Booking"
       subtitle={b.serviceLabel}
       nav={[...ADMIN_DASHBOARD_NAV]}
@@ -340,6 +340,6 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           <AdminBookingNotificationsSection notifications={b.notifications} />
         </AdminDetailSection>
       </section>
-    </DashboardShell>
+    </AdminDashboardShell>
   );
 }

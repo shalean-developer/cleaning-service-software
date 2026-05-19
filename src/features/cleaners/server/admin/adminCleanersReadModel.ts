@@ -20,6 +20,8 @@ import {
   type CleanerLifecycleSnapshot,
   type CleanerOperationalState,
 } from "../lifecycle/operationalState";
+import type { ServiceSlug } from "@/features/pricing/server/types";
+import { buildShaleanCleanerAuthEmail } from "@/lib/auth/cleanerAuthIdentity";
 import type {
   AdminCleanerDetail,
   AdminCleanerLastLifecycleAction,
@@ -256,17 +258,34 @@ export async function getAdminCleanerDetail(
     return { ok: false, code: "PERSISTENCE_ERROR", message: profileError.message, status: 500 };
   }
 
-  const [safetyCounts, auditResult, openOffers, email] = await Promise.all([
-    loadSafetyCounts(client, cleaner.id),
-    client
-      .from("cleaner_operational_audit")
-      .select("*")
-      .eq("cleaner_id", cleaner.id)
-      .order("created_at", { ascending: false })
-      .limit(ADMIN_CLEANER_AUDIT_LIMIT),
-    listOffersForCleaner(client, cleaner.id, ["offered"]),
-    resolveCleanerEmailOrNull(cleaner.id),
-  ]);
+  const [safetyCounts, auditResult, openOffers, email, capsResult, areasResult] =
+    await Promise.all([
+      loadSafetyCounts(client, cleaner.id),
+      client
+        .from("cleaner_operational_audit")
+        .select("*")
+        .eq("cleaner_id", cleaner.id)
+        .order("created_at", { ascending: false })
+        .limit(ADMIN_CLEANER_AUDIT_LIMIT),
+      listOffersForCleaner(client, cleaner.id, ["offered"]),
+      resolveCleanerEmailOrNull(cleaner.id),
+      client
+        .from("cleaner_service_capabilities")
+        .select("service_slug")
+        .eq("cleaner_id", cleaner.id),
+      client.from("cleaner_service_areas").select("area_slug").eq("cleaner_id", cleaner.id),
+    ]);
+
+  if (capsResult.error) {
+    return { ok: false, code: "PERSISTENCE_ERROR", message: capsResult.error.message, status: 500 };
+  }
+  if (areasResult.error) {
+    return { ok: false, code: "PERSISTENCE_ERROR", message: areasResult.error.message, status: 500 };
+  }
+
+  const capabilities = (capsResult.data ?? []).map((row) => row.service_slug as ServiceSlug);
+  const serviceAreaSlugs = (areasResult.data ?? []).map((row) => row.area_slug as string);
+  const loginEmail = cleaner.phone ? buildShaleanCleanerAuthEmail(cleaner.phone) : null;
 
   if (auditResult.error) {
     return { ok: false, code: "PERSISTENCE_ERROR", message: auditResult.error.message, status: 500 };
@@ -314,7 +333,10 @@ export async function getAdminCleanerDetail(
       profileId: cleaner.profile_id,
       name: displayName(profile, cleaner.id),
       email,
+      loginEmail,
       phone: cleaner.phone,
+      capabilities,
+      serviceAreaSlugs,
       operationalState,
       active: cleaner.active,
       suspendedAt: cleaner.suspended_at,

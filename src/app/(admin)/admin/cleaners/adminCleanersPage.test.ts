@@ -54,4 +54,22 @@ describe("admin cleaners pages (PR-F)", () => {
     expect(source).toMatch(/isSuspended \? \(/);
     expect(source).toContain('submitAction("unsuspend")');
   });
+
+  it("list page links to create cleaner route", () => {
+    const source = readPage("src/app/(admin)/admin/cleaners/page.tsx");
+
+    expect(source).toContain('href="/admin/cleaners/new"');
+    expect(source).toContain("Create cleaner");
+  });
+
+  it("create page uses profile form only without lifecycle mutations", () => {
+    const source = readPage("src/app/(admin)/admin/cleaners/new/page.tsx");
+
+    expect(source).toContain("AdminCleanerCreateForm");
+    expect(source).toContain('href="/admin/cleaners"');
+    expect(source).not.toContain("AdminCleanerLifecycleActions");
+    expect(source).not.toContain("deactivateCleaner");
+    expect(source).not.toMatch(/\.from\s*\(\s*["']cleaners["']\s*\)/);
+    expect(source).not.toContain("/api/admin/cleaners");
+  });
 });

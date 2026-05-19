@@ -9,7 +9,7 @@ import { AdminOperationalQueueStrip } from "@/components/dashboard/AdminOperatio
 import { AdminBookingListCard } from "@/components/dashboard/admin/AdminBookingListCard";
 import { buildAdminOperationalQueueCards } from "@/features/dashboards/adminOperationalQueues";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 import {
   labelForAssignmentAttention,
   labelForBookingStatus,
@@ -31,7 +31,7 @@ export default async function AdminHomePage() {
   const attentionTotal = queue?.ok ? queue.total : 0;
 
   return (
-    <DashboardShell
+    <AdminDashboardShell
       title="Operations"
       subtitle="Queues, bookings, and assignment oversight."
       nav={[...ADMIN_DASHBOARD_NAV]}
@@ -117,6 +117,6 @@ export default async function AdminHomePage() {
           </ul>
         )}
       </section>
-    </DashboardShell>
+    </AdminDashboardShell>
   );
 }
