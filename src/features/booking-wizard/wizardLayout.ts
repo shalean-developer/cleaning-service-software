@@ -59,8 +59,10 @@ function getWidePickerShellClass(
   const paddingBottom =
     step === "service"
       ? WIZARD_SHELL_PB_SERVICE
-      : step === "review" || step === "checkout"
+      : step === "review"
         ? WIZARD_SHELL_PB_SUMMARY_STICKY
+        : step === "checkout"
+          ? WIZARD_SHELL_PB_DETAILS_STICKY
         : step === "datetime" ||
             step === "location" ||
             step === "details" ||

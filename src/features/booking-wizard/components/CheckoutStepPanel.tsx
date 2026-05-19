@@ -1,8 +1,6 @@
 ﻿"use client";
 
 import type {
-  CleaningIntensity,
-  EquipmentSupply,
   PricingBreakdown,
   PricingFrequency,
   ServiceSlug,
@@ -10,17 +8,9 @@ import type {
 import { formatDateLabel, formatZar } from "../format";
 import {
   getRecurringPaymentExplanation,
-  getRecurringScheduleExplanation,
   isRecurringFrequency,
 } from "../recurringDisplay";
-import {
-  formatBedroomBathroomSummary,
-  formatExtraRoomsSummary,
-  formatSuburbLocation,
-  getCleaningIntensityLabel,
-  getEquipmentSupplyCustomerLabel,
-  getTeamSupportCustomerLabel,
-} from "../reviewDisplay";
+import { formatCompactBedBathSummary, formatSuburbLocation } from "../reviewDisplay";
 import { LockIcon } from "./wizardIcons";
 import { WizardStepHeading } from "./WizardStepHeading";
 
@@ -33,58 +23,60 @@ type Props = {
   city: string;
   bedrooms: number;
   bathrooms: number;
-  extraRooms: number;
-  cleaningIntensity: CleaningIntensity;
-  equipmentSupply: EquipmentSupply;
-  requestedTeamSize: 1 | 2;
   propertySizeSqm: number | null;
   frequency: PricingFrequency;
   quote: PricingBreakdown;
   customerEmail: string;
 };
 
-function buildMiniSummaryDetail(
-  serviceSlug: ServiceSlug | null,
-  bedrooms: number,
-  bathrooms: number,
-  extraRooms: number,
-  cleaningIntensity: CleaningIntensity,
-  propertySizeSqm: number | null,
-): string | null {
-  const { bedroomsLabel, bathroomsLabel } = formatBedroomBathroomSummary(
-    serviceSlug,
-    bedrooms,
-    bathrooms,
-    propertySizeSqm,
+const WHAT_HAPPENS_NEXT = [
+  "Booking confirmation",
+  "Confirmation email",
+  "Cleaner assignment",
+] as const;
+
+const CTA_TRUST_ITEMS = [
+  "Secure payment",
+  "Instant confirmation",
+  "Trusted local cleaners",
+] as const;
+
+function ShieldCheckIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 12 12" fill="none" className={className} aria-hidden>
+      <path
+        d="M6 1 9.5 2.25V5.5c0 2-1.5 3.75-3.5 4.5C3.5 9.25 2 7.5 2 5.5V2.25L6 1Z"
+        stroke="currentColor"
+        strokeWidth="1"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4.25 6 5.5 7.25 8 4.75"
+        stroke="currentColor"
+        strokeWidth="1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
-
-  if (serviceSlug === "office-cleaning") {
-    return bathroomsLabel;
-  }
-
-  if (!bedroomsLabel || !bathroomsLabel) return null;
-
-  const bedShort = bedrooms === 1 ? "1 bed" : `${bedrooms} beds`;
-  const bathShort = bathrooms === 1 ? "1 bath" : `${bathrooms} baths`;
-  const extraLabel = formatExtraRoomsSummary(extraRooms);
-  const parts = [bedShort, bathShort];
-  if (extraLabel) parts.push(extraLabel);
-  if (serviceSlug === "regular-cleaning" && cleaningIntensity !== "standard") {
-    parts.push(getCleaningIntensityLabel(cleaningIntensity));
-  }
-  return parts.join(" \u00b7 ");
 }
 
-const REASSURANCE_ITEMS = [
-  {
-    title: "Secure payment",
-    body: "Paystack encrypts your card on a secure page. When payment succeeds, your booking is confirmed.",
-  },
-  {
-    title: "After payment",
-    body: "We assign an eligible cleaner to your schedule and email you confirmation and next steps.",
-  },
-] as const;
+/** Trust copy shown beside the checkout CTA (mobile sticky footer + desktop). */
+export function CheckoutCtaTrustRow({ className = "" }: { className?: string }) {
+  return (
+    <ul
+      className={`flex flex-wrap items-center justify-center gap-x-3 gap-y-1 ${className}`.trim()}
+      aria-label="Checkout assurances"
+    >
+      {CTA_TRUST_ITEMS.map((item) => (
+        <li key={item} className="inline-flex items-center gap-1 text-[0.6875rem] text-zinc-600">
+          <ShieldCheckIcon className="h-3 w-3 shrink-0 text-emerald-700" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export function CheckoutStepPanel({
   serviceLabel,
@@ -95,133 +87,105 @@ export function CheckoutStepPanel({
   city,
   bedrooms,
   bathrooms,
-  extraRooms,
-  cleaningIntensity,
-  equipmentSupply,
-  requestedTeamSize,
   propertySizeSqm,
   frequency,
   quote,
   customerEmail,
 }: Props) {
-  const scheduleLabel = formatDateLabel(date, time);
+  const scheduleLabel = formatDateLabel(date, time) || "\u2014";
   const locationLabel = formatSuburbLocation(suburb, city);
-  const homeDetail = buildMiniSummaryDetail(
+  const bedBathSummary = formatCompactBedBathSummary(
     serviceSlug,
     bedrooms,
     bathrooms,
-    extraRooms,
-    cleaningIntensity,
     propertySizeSqm,
   );
-  const equipmentSupplyLabel =
-    serviceSlug === "regular-cleaning" && equipmentSupply === "shalean"
-      ? getEquipmentSupplyCustomerLabel(equipmentSupply)
-      : null;
-  const teamSupportLabel =
-    serviceSlug === "regular-cleaning"
-      ? getTeamSupportCustomerLabel(requestedTeamSize)
-      : null;
   const recurringPaymentNote = getRecurringPaymentExplanation(frequency);
-  const recurringScheduleNote = getRecurringScheduleExplanation(frequency);
+  const amountHelper = isRecurringFrequency(frequency)
+    ? recurringPaymentNote
+    : `Paying as ${customerEmail}`;
+
+  const snapshotMeta = [bedBathSummary, locationLabel !== "\u2014" ? locationLabel : null].filter(
+    Boolean,
+  );
 
   return (
-    <div>
-      <WizardStepHeading title="Checkout" />
+    <div className="space-y-2.5">
+      <WizardStepHeading title="Secure payment" />
 
-      <div className="mb-4 flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/80 px-3 py-2.5 text-sm text-emerald-900">
-        <LockIcon className="h-5 w-5 shrink-0 text-emerald-700" />
-        <span className="font-medium">Secured by Paystack</span>
+      <header
+        aria-label="Booking snapshot"
+        className="rounded-lg border border-zinc-200/90 bg-zinc-50/70 px-3 py-2"
+      >
+        <p className="text-sm font-semibold text-zinc-900">{serviceLabel}</p>
+        <p className="mt-0.5 text-sm text-zinc-800">{scheduleLabel}</p>
+        {snapshotMeta.length > 0 ? (
+          <p className="mt-0.5 text-xs leading-snug text-zinc-600">{snapshotMeta.join(" · ")}</p>
+        ) : null}
+      </header>
+
+      <div
+        className="flex items-start gap-2 rounded-lg border border-emerald-100/90 bg-emerald-50/60 px-3 py-2"
+        role="status"
+      >
+        <LockIcon className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-emerald-950">Secure checkout</p>
+          <p className="mt-0.5 text-xs leading-snug text-emerald-900/85">
+            Processed securely by Paystack
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-1" aria-hidden>
+            {["Visa", "Mastercard", "EFT"].map((method) => (
+              <span
+                key={method}
+                className="rounded border border-emerald-200/80 bg-white/80 px-1.5 py-0.5 text-[0.625rem] font-medium uppercase tracking-wide text-emerald-800/90"
+              >
+                {method}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
 
       <section
-        aria-labelledby="checkout-summary-heading"
-        className="mb-4 rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+        aria-labelledby="checkout-amount-heading"
+        className="rounded-lg border border-zinc-300/80 bg-white px-3 py-2.5 ring-1 ring-zinc-900/5"
       >
-        <h3 id="checkout-summary-heading" className="sr-only">
-          Booking summary
-        </h3>
-        <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">
-          {serviceLabel}
+        <p
+          id="checkout-amount-heading"
+          className="text-[0.6875rem] font-semibold uppercase tracking-wide text-zinc-500"
+        >
+          Amount due today
         </p>
-        {scheduleLabel ? (
-          <p className="mt-2 text-sm font-medium text-zinc-900">{scheduleLabel}</p>
-        ) : null}
-        {homeDetail ? <p className="mt-1 text-sm text-zinc-600">{homeDetail}</p> : null}
-        {equipmentSupplyLabel ? (
-          <p className="mt-1 text-sm text-zinc-600">
-            Supplies: {equipmentSupplyLabel}
-          </p>
-        ) : null}
-        {teamSupportLabel ? (
-          <p className="mt-1 text-sm text-zinc-600">Team: {teamSupportLabel}</p>
-        ) : null}
-        {locationLabel !== "\u2014" ? (
-          <p className="mt-1 break-words text-sm text-zinc-600">{locationLabel}</p>
+        <p className="mt-0.5 text-3xl font-semibold tabular-nums tracking-tight text-zinc-900">
+          {formatZar(quote.totalCents)}
+        </p>
+        {amountHelper ? (
+          <p className="mt-1 text-xs leading-snug text-zinc-600">{amountHelper}</p>
         ) : null}
       </section>
 
-      {isRecurringFrequency(frequency) && recurringPaymentNote ? (
-        <section
-          aria-labelledby="checkout-recurring-heading"
-          className="mb-4 rounded-2xl border border-zinc-200 bg-zinc-50/90 p-4"
-        >
-          <h3
-            id="checkout-recurring-heading"
-            className="text-sm font-medium text-zinc-900"
-          >
-            Recurring clean
-          </h3>
-          {recurringScheduleNote ? (
-            <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-              {recurringScheduleNote}
-            </p>
-          ) : null}
-          <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-            {recurringPaymentNote}
-          </p>
-        </section>
-      ) : null}
-
-      <div className="mb-4 hidden md:block">
-        <p className="mb-1 text-sm font-medium text-zinc-700">Amount due today</p>
-        <p className="text-2xl font-semibold tabular-nums text-zinc-900">
-          {formatZar(quote.totalCents)}
-        </p>
-      </div>
-
-      <section
-        aria-labelledby="checkout-next-steps-heading"
-        className="mb-4 rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
-      >
+      <section aria-labelledby="checkout-next-heading">
         <h3
-          id="checkout-next-steps-heading"
-          className="mb-3 text-sm font-medium text-zinc-800"
+          id="checkout-next-heading"
+          className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500"
         >
-          What happens after you pay
+          What happens next
         </h3>
-        <ul className="space-y-3">
-          {REASSURANCE_ITEMS.map((item) => (
-            <li key={item.title} className="flex gap-3 text-sm">
+        <ul className="space-y-1">
+          {WHAT_HAPPENS_NEXT.map((step) => (
+            <li key={step} className="flex items-center gap-2 text-sm text-zinc-800">
               <span
-                className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-400"
+                className="h-1 w-1 shrink-0 rounded-full bg-emerald-600"
                 aria-hidden
               />
-              <div>
-                <p className="font-medium text-zinc-900">{item.title}</p>
-                <p className="mt-0.5 leading-relaxed text-zinc-600">{item.body}</p>
-              </div>
+              {step}
             </li>
           ))}
         </ul>
       </section>
 
-      <p className="text-sm leading-relaxed text-zinc-600">
-        <span className="font-medium text-zinc-900">Pay with Paystack</span> below opens
-        secure payment. Paying as{" "}
-        <span className="font-medium text-zinc-900">{customerEmail}</span>.
-      </p>
+      <CheckoutCtaTrustRow className="hidden pt-0.5 md:flex" />
     </div>
   );
 }
-

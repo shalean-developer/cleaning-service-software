@@ -64,7 +64,7 @@ describe("wizardLayout", () => {
     expect(getWizardShellClass("details")).toContain("7.5rem");
     expect(getWizardShellClass("cleaner")).toContain("7.5rem");
     expect(getWizardShellClass("review")).toContain("10.75rem");
-    expect(getWizardShellClass("checkout")).toContain("10.75rem");
+    expect(getWizardShellClass("checkout")).toContain("7.5rem");
     expect(getWizardShellClass("review")).toContain("safe-area-inset-bottom");
   });
 

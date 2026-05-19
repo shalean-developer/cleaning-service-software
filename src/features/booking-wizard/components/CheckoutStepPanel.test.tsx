@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { calculateQuote } from "@/features/pricing/server/calculateQuote";
-import { CheckoutStepPanel } from "./CheckoutStepPanel";
+import { CheckoutCtaTrustRow, CheckoutStepPanel } from "./CheckoutStepPanel";
 
 describe("CheckoutStepPanel", () => {
-  it("renders reassurance, recurring copy, and desktop-only amount", () => {
+  it("renders payment-focused checkout without review duplication", () => {
     const quote = calculateQuote({
       serviceSlug: "regular-cleaning",
       bedrooms: 2,
@@ -24,10 +24,6 @@ describe("CheckoutStepPanel", () => {
         city="Cape Town"
         bedrooms={2}
         bathrooms={1}
-        extraRooms={0}
-        cleaningIntensity="standard"
-        equipmentSupply="customer"
-        requestedTeamSize={1}
         propertySizeSqm={null}
         frequency="weekly"
         quote={quote.breakdown}
@@ -35,22 +31,23 @@ describe("CheckoutStepPanel", () => {
       />,
     );
 
-    expect(html).toContain("Checkout");
-    expect(html).toContain("Secured by Paystack");
-    expect(html).toContain("What happens after you pay");
     expect(html).toContain("Secure payment");
-    expect(html).toContain("After payment");
-    expect(html).toContain("assign an eligible cleaner");
-    expect(html).toContain("Recurring clean");
-    expect(html).toContain("Today");
-    expect(html).toContain("payment secures this booking only");
+    expect(html).toContain("Booking snapshot");
+    expect(html).toContain("Processed securely by Paystack");
     expect(html).toContain("Amount due today");
-    expect(html).toContain("hidden md:block");
-    expect(html).toContain("Pay with Paystack");
-    expect(html).toContain("guest@example.com");
+    expect(html).toContain("What happens next");
+    expect(html).toContain("Booking confirmation");
+    expect(html).toContain("Confirmation email");
+    expect(html).toContain("Cleaner assignment");
+    expect(html).toContain("payment secures this booking only");
+    expect(html).not.toContain("Booking details");
+    expect(html).not.toContain("Team support");
+    expect(html).not.toContain("Recurring clean");
+    expect(html).not.toContain("Intensity");
+    expect(html).not.toContain("Paystack encrypts");
   });
 
-  it("omits recurring section for once-off bookings", () => {
+  it("shows paying-as email helper for once-off bookings", () => {
     const quote = calculateQuote({
       serviceSlug: "regular-cleaning",
       bedrooms: 2,
@@ -70,10 +67,6 @@ describe("CheckoutStepPanel", () => {
         city="Cape Town"
         bedrooms={2}
         bathrooms={1}
-        extraRooms={0}
-        cleaningIntensity="standard"
-        equipmentSupply="customer"
-        requestedTeamSize={1}
         propertySizeSqm={null}
         frequency="once"
         quote={quote.breakdown}
@@ -81,6 +74,14 @@ describe("CheckoutStepPanel", () => {
       />,
     );
 
+    expect(html).toContain("Paying as guest@example.com");
     expect(html).not.toContain("Recurring clean");
+  });
+
+  it("renders CTA trust row for checkout footer", () => {
+    const html = renderToStaticMarkup(<CheckoutCtaTrustRow />);
+    expect(html).toContain("Secure payment");
+    expect(html).toContain("Instant confirmation");
+    expect(html).toContain("Trusted local cleaners");
   });
 });

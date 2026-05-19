@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   formatBedroomBathroomSummary,
+  formatCompactBedBathSummary,
   formatExtraRoomsSummary,
   formatCleanerPreference,
   formatSelectedAddons,
   formatSuburbLocation,
+  getSelectedAddonLabels,
   getEquipmentSupplyCustomerLabel,
   getEquipmentSupplyExplanation,
   getEquipmentSupplyOperationalLabel,
@@ -23,6 +25,12 @@ describe("reviewDisplay", () => {
   it("formats add-ons in catalog display order", () => {
     expect(formatSelectedAddons([])).toBe("None");
     expect(formatSelectedAddons(["laundry", "balcony"])).toBe("Laundry, Balcony");
+    expect(getSelectedAddonLabels(["laundry", "balcony"])).toEqual(["Laundry", "Balcony"]);
+  });
+
+  it("formats compact bed and bath summary", () => {
+    expect(formatCompactBedBathSummary("regular-cleaning", 2, 1, null)).toBe("2 beds · 1 bath");
+    expect(formatCompactBedBathSummary("office-cleaning", 0, 0, 120)).toBe("120 sqm");
   });
 
   it("formats regular-cleaning add-ons with service-specific labels", () => {

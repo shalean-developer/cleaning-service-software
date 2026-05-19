@@ -3,8 +3,22 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { calculateQuote } from "@/features/pricing/server/calculateQuote";
 import { ReviewStepPanel } from "./ReviewStepPanel";
 
+const baseProps = {
+  date: "2030-06-01",
+  time: "10:00",
+  addressLine1: "12 Main Rd",
+  suburb: "Sea Point",
+  city: "Cape Town",
+  locationNotes: "",
+  contactPhone: "",
+  profilePhone: null as string | null,
+  propertySizeSqm: null as number | null,
+  reviewConfirmed: false,
+  onReviewConfirmedChange: () => {},
+};
+
 describe("ReviewStepPanel", () => {
-  it("renders premium review hierarchy with frequency highlight and edit links", () => {
+  it("renders compact review hierarchy with edit links and add-on bullets", () => {
     const quote = calculateQuote({
       serviceSlug: "regular-cleaning",
       bedrooms: 2,
@@ -17,49 +31,76 @@ describe("ReviewStepPanel", () => {
 
     const html = renderToStaticMarkup(
       <ReviewStepPanel
+        {...baseProps}
         serviceLabel="Regular Cleaning"
         serviceSlug="regular-cleaning"
-        date="2030-06-01"
-        time="10:00"
-        addressLine1="12 Main Rd"
-        suburb="Sea Point"
-        city="Cape Town"
-        contactPhone=""
-        profilePhone={null}
         bedrooms={2}
         bathrooms={1}
         extraRooms={2}
         cleaningIntensity="standard"
         equipmentSupply="customer"
         requestedTeamSize={1}
-        propertySizeSqm={null}
         frequency="weekly"
         addons={["laundry"]}
         cleanerPreferenceMode="best_available"
         selectedCleanerDisplayName={null}
         quote={quote.breakdown}
-        reviewConfirmed={false}
-        onReviewConfirmedChange={() => {}}
         onEditStep={() => {}}
       />,
     );
 
     expect(html).toContain("Review");
     expect(html).not.toContain("Review your booking");
-    expect(html).toContain("Schedule");
-    expect(html).toContain("Date &amp; time");
-    expect(html).toContain("Home &amp; plan");
+    expect(html).toContain("Service &amp; schedule");
+    expect(html).toContain("Property details");
+    expect(html).toContain("Location &amp; contact");
+    expect(html).toContain("Cleaner preference");
     expect(html).toContain("Price breakdown");
+    expect(html).toContain("Beds / baths");
+    expect(html).toContain("2 beds");
     expect(html).toContain("Recurring");
     expect(html).toContain("every week");
-    expect(html).not.toMatch(/Home &amp; plan[\s\S]*Frequency/);
+    expect(html).not.toMatch(/Property details[\s\S]*Frequency/);
     expect(html).toContain("Laundry");
     expect(html).toContain("Extra rooms");
     expect(html).toContain("2 extra rooms");
+    expect(html).toContain("Street address");
     expect(html).toContain("Edit");
-    expect(html).toContain("hidden");
-    expect(html).toContain("md:block");
     expect(html).toContain("ready to continue to secure payment");
+  });
+
+  it("shows no add-ons message and access notes when provided", () => {
+    const quote = calculateQuote({
+      serviceSlug: "regular-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+    });
+    expect(quote.ok).toBe(true);
+    if (!quote.ok) return;
+
+    const html = renderToStaticMarkup(
+      <ReviewStepPanel
+        {...baseProps}
+        serviceLabel="Regular Cleaning"
+        serviceSlug="regular-cleaning"
+        bedrooms={2}
+        bathrooms={1}
+        extraRooms={0}
+        cleaningIntensity="standard"
+        equipmentSupply="customer"
+        requestedTeamSize={1}
+        frequency="once"
+        addons={[]}
+        locationNotes="Gate code 4455"
+        cleanerPreferenceMode="best_available"
+        selectedCleanerDisplayName={null}
+        quote={quote.breakdown}
+      />,
+    );
+
+    expect(html).toContain("No add-ons selected");
+    expect(html).toContain("Access notes");
+    expect(html).toContain("Gate code 4455");
   });
 
   it("shows cleaning supplies and equipment fee for Shalean-provided", () => {
@@ -74,29 +115,20 @@ describe("ReviewStepPanel", () => {
 
     const html = renderToStaticMarkup(
       <ReviewStepPanel
+        {...baseProps}
         serviceLabel="Regular Cleaning"
         serviceSlug="regular-cleaning"
-        date="2030-06-01"
-        time="10:00"
-        addressLine1="12 Main Rd"
-        suburb="Sea Point"
-        city="Cape Town"
-        contactPhone=""
-        profilePhone={null}
         bedrooms={2}
         bathrooms={1}
         extraRooms={0}
         cleaningIntensity="standard"
         equipmentSupply="shalean"
         requestedTeamSize={1}
-        propertySizeSqm={null}
         frequency="once"
         addons={[]}
         cleanerPreferenceMode="best_available"
         selectedCleanerDisplayName={null}
         quote={quote.breakdown}
-        reviewConfirmed={false}
-        onReviewConfirmedChange={() => {}}
       />,
     );
 
@@ -118,29 +150,20 @@ describe("ReviewStepPanel", () => {
 
     const html = renderToStaticMarkup(
       <ReviewStepPanel
+        {...baseProps}
         serviceLabel="Regular Cleaning"
         serviceSlug="regular-cleaning"
-        date="2030-06-01"
-        time="10:00"
-        addressLine1="12 Main Rd"
-        suburb="Sea Point"
-        city="Cape Town"
-        contactPhone=""
-        profilePhone={null}
         bedrooms={2}
         bathrooms={1}
         extraRooms={0}
         cleaningIntensity="standard"
         equipmentSupply="customer"
         requestedTeamSize={2}
-        propertySizeSqm={null}
         frequency="once"
         addons={[]}
         cleanerPreferenceMode="best_available"
         selectedCleanerDisplayName={null}
         quote={quote.breakdown}
-        reviewConfirmed={false}
-        onReviewConfirmedChange={() => {}}
       />,
     );
 

@@ -29,7 +29,8 @@ import {
 import { WizardStepper } from "./WizardStepper";
 import { WizardNav } from "./WizardNav";
 import { Field, inputClass } from "./Field";
-import { CheckoutStepPanel } from "./CheckoutStepPanel";
+import { CheckoutCtaTrustRow, CheckoutStepPanel } from "./CheckoutStepPanel";
+import { formatZar } from "../format";
 import { CleanerStepPanel } from "./CleanerStepPanel";
 import { DetailsStepPanel } from "./DetailsStepPanel";
 import { ReviewStepPanel } from "./ReviewStepPanel";
@@ -37,7 +38,6 @@ import { ScheduleStepPanel } from "./ScheduleStepPanel";
 import { ServiceStepPanel } from "./ServiceStepPanel";
 import { WizardContextStrip } from "./WizardContextStrip";
 import {
-  CheckoutMobileCommerceSummary,
   ReviewMobileCommerceSummary,
 } from "./WizardMobileCommerceSummary";
 import { WizardMobileStickyFooter } from "./WizardMobileStickyFooter";
@@ -281,7 +281,7 @@ export function BookingWizard({
   );
 
   const wizardContextStrip =
-    state.serviceSlug && state.step !== "service" ? (
+    state.serviceSlug && state.step !== "service" && state.step !== "checkout" ? (
       <WizardContextStrip
         serviceLabel={serviceLabel}
         serviceSlug={state.serviceSlug}
@@ -296,8 +296,8 @@ export function BookingWizard({
   const mobileCommerceSummary =
     state.step === "review" && state.quote ? (
       <ReviewMobileCommerceSummary totalCents={state.quote.totalCents} />
-    ) : state.step === "checkout" && state.quote ? (
-      <CheckoutMobileCommerceSummary totalCents={state.quote.totalCents} />
+    ) : state.step === "checkout" ? (
+      <CheckoutCtaTrustRow className="mb-2 md:hidden" />
     ) : null;
 
   const wizardNavElement = (
@@ -317,8 +317,8 @@ export function BookingWizard({
             : goNext
       }
       continueLabel={
-        state.step === "checkout"
-          ? "Pay with Paystack"
+        state.step === "checkout" && state.quote
+          ? `Pay ${formatZar(state.quote.totalCents)} securely`
           : state.step === "review"
             ? "Continue to checkout"
             : "Continue"
@@ -504,6 +504,7 @@ export function BookingWizard({
                   addressLine1={state.addressLine1}
                   suburb={state.suburb}
                   city={state.city}
+                  locationNotes={state.locationNotes}
                   contactPhone={state.contactPhone}
                   profilePhone={state.profilePhone}
                   bedrooms={state.bedrooms}
@@ -529,9 +530,7 @@ export function BookingWizard({
         ) : null}
 
         {state.step === "checkout" && state.quote ? (
-          <>
-            {wizardContextStrip}
-            <CheckoutStepPanel
+          <CheckoutStepPanel
             serviceLabel={serviceLabel}
             serviceSlug={state.serviceSlug}
             date={state.date}
@@ -540,16 +539,11 @@ export function BookingWizard({
             city={state.city}
             bedrooms={state.bedrooms}
             bathrooms={state.bathrooms}
-            extraRooms={state.extraRooms}
-            cleaningIntensity={state.cleaningIntensity}
-            equipmentSupply={state.equipmentSupply}
-            requestedTeamSize={state.requestedTeamSize}
             propertySizeSqm={state.propertySizeSqm}
             frequency={state.frequency}
             quote={state.quote}
             customerEmail={customerEmail}
           />
-          </>
         ) : null}
       </div>
 

@@ -19,19 +19,55 @@ export function getFrequencyLabel(frequency: PricingFrequency): string {
   );
 }
 
+function orderSelectedAddonSlugs(
+  addons: AddonSlug[],
+  serviceSlug: ServiceSlug | null,
+): AddonSlug[] {
+  const ordered = getAddonStepDisplayOrder(serviceSlug).filter((slug) => addons.includes(slug));
+  const hidden = addons.filter((slug) => !ordered.includes(slug));
+  return [...ordered, ...hidden];
+}
+
+export function getSelectedAddonLabels(
+  addons: AddonSlug[],
+  serviceSlug: ServiceSlug | null = null,
+): string[] {
+  return orderSelectedAddonSlugs(addons, serviceSlug).map((slug) =>
+    getAddonStepLabel(slug, serviceSlug),
+  );
+}
+
 export function formatSelectedAddons(
   addons: AddonSlug[],
   serviceSlug: ServiceSlug | null = null,
 ): string {
   if (addons.length === 0) return "None";
 
-  const ordered = getAddonStepDisplayOrder(serviceSlug).filter((slug) => addons.includes(slug));
-  const hidden = addons.filter((slug) => !ordered.includes(slug));
-  const labels = [
-    ...ordered.map((slug) => getAddonStepLabel(slug, serviceSlug)),
-    ...hidden.map((slug) => getAddonStepLabel(slug, serviceSlug)),
-  ];
-  return labels.join(", ");
+  return getSelectedAddonLabels(addons, serviceSlug).join(", ");
+}
+
+export function formatCompactBedBathSummary(
+  serviceSlug: ServiceSlug | null,
+  bedrooms: number,
+  bathrooms: number,
+  propertySizeSqm: number | null,
+): string | null {
+  const { bedroomsLabel, bathroomsLabel } = formatBedroomBathroomSummary(
+    serviceSlug,
+    bedrooms,
+    bathrooms,
+    propertySizeSqm,
+  );
+
+  if (serviceSlug === "office-cleaning") {
+    return bathroomsLabel;
+  }
+
+  if (!bedroomsLabel || !bathroomsLabel) return null;
+
+  const bedShort = bedrooms === 1 ? "1 bed" : `${bedrooms} beds`;
+  const bathShort = bathrooms === 1 ? "1 bath" : `${bathrooms} baths`;
+  return `${bedShort} · ${bathShort}`;
 }
 
 export function formatCleanerPreference(

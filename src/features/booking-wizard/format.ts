@@ -30,3 +30,17 @@ export function formatDateLabel(date: string, time: string): string {
     return `${date} ${time}`.trim();
   }
 }
+
+export function formatTimeLabel(time: string): string {
+  if (!time) return "";
+  try {
+    const d = new Date(`1970-01-01T${time}:00+02:00`);
+    return new Intl.DateTimeFormat("en-ZA", {
+      timeZone: "Africa/Johannesburg",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(d);
+  } catch {
+    return time;
+  }
+}
