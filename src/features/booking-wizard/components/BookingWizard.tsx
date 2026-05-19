@@ -1,7 +1,9 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ServiceSlug } from "@/features/pricing/server/types";
+import { syncBookServiceUrlOnSelection } from "../bookServiceRoute";
 import { WIZARD_SERVICE_OPTIONS } from "../constants";
 import { minBookableDateString } from "../slot";
 import {
@@ -60,6 +62,8 @@ export function BookingWizard({
   const [apiError, setApiError] = useState<string | null>(null);
   const hydrated = useRef(false);
   const checkoutLock = useRef(false);
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const loaded = loadWizardState();
@@ -90,9 +94,16 @@ export function BookingWizard({
 
   const handleSelectService = useCallback(
     (slug: ServiceSlug) => {
-      patch(wizardPatchForServiceSelection(slug));
+      setState((prev) => {
+        const next = { ...prev, ...wizardPatchForServiceSelection(slug) };
+        saveWizardState(next);
+        return next;
+      });
+      setStepErrors({});
+      setApiError(null);
+      syncBookServiceUrlOnSelection(slug, pathname, router.replace);
     },
-    [patch],
+    [pathname, router],
   );
 
   const minDate = useMemo(() => minBookableDateString(), []);

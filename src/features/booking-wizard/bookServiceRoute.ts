@@ -13,3 +13,21 @@ export function resolveBookPageServiceSlug(param: string): ServiceSlug | null {
 export function customerBookServicePath(slug: ServiceSlug): string {
   return `/customer/book/${slug}`;
 }
+
+/** Path for `router.replace` when selecting a service, or null if the URL is already canonical. */
+export function bookServiceReplacePath(
+  currentPathname: string | null | undefined,
+  slug: ServiceSlug,
+): string | null {
+  const target = customerBookServicePath(slug);
+  return currentPathname === target ? null : target;
+}
+
+export function syncBookServiceUrlOnSelection(
+  slug: ServiceSlug,
+  pathname: string | null | undefined,
+  replace: (path: string) => void,
+): void {
+  const path = bookServiceReplacePath(pathname, slug);
+  if (path) replace(path);
+}
