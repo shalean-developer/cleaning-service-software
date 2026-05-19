@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { CustomerBookACleanCta } from "@/components/dashboard/customer/CustomerBookACleanCta";
 import { CustomerBookingListCard } from "@/components/dashboard/customer/CustomerBookingListCard";
 import { CustomerBookingsEmptyState } from "@/components/dashboard/customer/CustomerBookingsEmptyState";
 import { CustomerBookingsFilterTabs } from "@/components/dashboard/customer/CustomerBookingsFilterTabs";
@@ -50,7 +51,11 @@ export function CustomerBookingsDashboard({ bookings }: Props) {
         counts={tabCounts}
       />
       {filteredBookings.length === 0 ? (
-        <CustomerBookingsEmptyState title={tabEmpty.title} description={tabEmpty.description} />
+        <CustomerBookingsEmptyState
+          title={tabEmpty.title}
+          description={tabEmpty.description}
+          action={<CustomerBookACleanCta />}
+        />
       ) : (
         <ul className="space-y-3 sm:space-y-4">
           {filteredBookings.map((booking) => (

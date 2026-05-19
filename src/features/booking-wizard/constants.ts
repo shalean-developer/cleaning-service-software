@@ -136,21 +136,21 @@ export const CLEANING_INTENSITY_STEP_OPTIONS: CleaningIntensityStepOption[] = [
   },
   {
     value: "detailed",
-    label: "Detailed",
-    description: "Extra attention needed (+15%)",
+    label: "Heavy use",
+    description: "+15%",
   },
   {
     value: "heavy",
-    label: "Heavy",
-    description: "High-use home (+30%)",
+    label: "Post-event / extra dirty",
+    description: "+30%",
   },
 ];
 
 export const FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
-  { value: "once", label: "Once-off", description: "Single scheduled visit" },
-  { value: "weekly", label: "Weekly", description: "Best value" },
-  { value: "biweekly", label: "Bi-weekly", description: "Popular" },
-  { value: "monthly", label: "Monthly", description: "Recurring monthly cadence" },
+  { value: "once", label: "Once-off", description: "One visit" },
+  { value: "weekly", label: "Weekly", description: "Best for routine upkeep" },
+  { value: "biweekly", label: "Bi-weekly", description: "Every 2 weeks" },
+  { value: "monthly", label: "Monthly", description: "Light maintenance" },
 ];
 
 export const WIZARD_SERVICE_OPTIONS: WizardServiceOption[] = (

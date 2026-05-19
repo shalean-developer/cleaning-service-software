@@ -41,9 +41,9 @@ export function labelForCustomerBookingStatus(
 ): string {
   if (status === "payment_failed") {
     if (paymentFailureReason === CHECKOUT_EXPIRED_FAILURE_REASON) {
-      return "Checkout expired";
+      return "Checkout not completed";
     }
-    return "Payment failed";
+    return "Payment not completed";
   }
   if (status === "payout_ready" || status === "paid_out") {
     return "Completed";
@@ -71,19 +71,40 @@ export function paymentIssuePanelCopy(
   if (paymentFailureReason === CHECKOUT_EXPIRED_FAILURE_REASON) {
     return {
       title: "Payment not completed",
-      body: "Your checkout session ended before payment finished. You can complete payment again from your booking.",
+      body: "Your checkout timed out before payment finished. Open your booking to complete payment when retry is available.",
     };
   }
   if (paymentFailureReason === PAYSTACK_DECLINED_FAILURE_REASON) {
     return {
       title: "Payment not completed",
-      body: "This payment could not be completed with your card provider. You can try again from your booking when retry is available.",
+      body: "Your bank or card provider did not complete this payment. You can try again from your booking when retry is available.",
     };
   }
   return {
     title: "Payment not completed",
-    body: "We have not received a successful payment for this booking yet.",
+    body: "We could not confirm payment for this booking yet. Open your booking to complete checkout when retry is available.",
   };
+}
+
+/** Primary reassurance shown on payment issue surfaces (detail panel, failed return page). */
+export const PAYMENT_NOT_CHARGED_REASSURANCE =
+  "You were not charged. You can safely try again or contact support if the issue continues." as const;
+
+export const PAYMENT_RETRY_NOT_ELIGIBLE_NEXT_STEP =
+  "Please start a new booking or contact support." as const;
+
+export const PAYMENT_RETRY_NOT_ELIGIBLE_EXPLANATION =
+  "Retry is not available for this booking. Please start a new booking or contact support." as const;
+
+export const PAYMENT_RETRY_FRESH_CHECKOUT_HINT =
+  "Retry payment opens a fresh secure checkout for this booking." as const;
+
+/** Reassurance line for payment issue UI; varies when same-booking retry is unavailable. */
+export function paymentIssuePanelReassurance(canRetryPayment: boolean): string {
+  if (canRetryPayment) {
+    return PAYMENT_NOT_CHARGED_REASSURANCE;
+  }
+  return `You were not charged. ${PAYMENT_RETRY_NOT_ELIGIBLE_NEXT_STEP}`;
 }
 
 /** Maps URL `reason` to a known failure reason; unknown values are ignored (never shown raw). */
@@ -101,10 +122,10 @@ export const PAYMENT_FAILED_ASSIGNMENT_NOTE =
   "Complete checkout to confirm your booking and assign a cleaner." as const;
 
 export const PAYMENT_FAILED_RETRY_GUIDANCE =
-  "Open your booking and use Retry payment when it is available." as const;
+  "Open your booking and use Retry payment for a fresh secure checkout." as const;
 
 export const PAYMENT_FAILED_SUPPORT_NOTE =
-  "Not sure if you were charged? Check your bookings first, or contact support with your booking reference." as const;
+  "You were not charged. Check your booking to retry, or contact support with your booking reference." as const;
 
 /** Bookings the customer should treat as scheduled/upcoming work (paid path). */
 export function isUpcomingCustomerBooking(status: BookingStatus): boolean {

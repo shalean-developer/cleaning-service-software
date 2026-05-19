@@ -28,7 +28,7 @@ export function RetryPaymentButton({ bookingId, customerEmail }: RetryPaymentBut
       }
       window.location.href = result.authorizationUrl;
     } catch {
-      setError("Network error. Please try again or start a new booking.");
+      setError("Connection issue. Please try again or start a new booking.");
     } finally {
       setLoading(false);
     }

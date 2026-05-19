@@ -2,6 +2,15 @@
 import { OfferActions } from "@/components/dashboard/OfferActions";
 import { OfferExpiryChip } from "@/components/dashboard/OfferExpiryChip";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { CleanerPayDisplay } from "@/components/dashboard/cleaner/CleanerPayDisplay";
+import {
+  CLEANER_BADGE_ROW_CLASS,
+  CLEANER_LIST_CARD_PADDING,
+  CLEANER_META_LINE_CLASS,
+  CLEANER_META_LOCATION_CLASS,
+  CLEANER_OFFER_ACTIONS_DIVIDER_CLASS,
+  CLEANER_SERVICE_EYEBROW_CLASS,
+} from "@/features/dashboards/cleanerDashboardDisplay";
 import { CLEANER_DETAIL_CARD_CLASS } from "@/features/dashboards/cleanerJobDetailDisplay";
 import { formatOfferExpiryDisplay } from "@/features/dashboards/server/formatOfferExpiryDisplay";
 import { canRespondToCleanerOffer } from "@/features/dashboards/server/partitionCleanerOffers";
@@ -30,15 +39,23 @@ export function CleanerOfferCard({ offer }: Props) {
 
   return (
     <article
-      className={`${CLEANER_DETAIL_CARD_CLASS} p-4 sm:p-5 ${
+      className={`${CLEANER_DETAIL_CARD_CLASS} ${CLEANER_LIST_CARD_PADDING} ${
         isPast ? "opacity-90" : ""
       }`}
     >
-      <p className="break-words text-xs font-semibold uppercase tracking-wide text-sky-800">
-        {offer.serviceLabel}
-      </p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className={CLEANER_SERVICE_EYEBROW_CLASS}>{offer.serviceLabel}</p>
+          <p className={CLEANER_META_LINE_CLASS}>
+            <span className="font-medium text-zinc-900">{offer.scheduleLabel}</span>
+            <span className="text-zinc-400"> · </span>
+            <span className={CLEANER_META_LOCATION_CLASS}>{offer.locationSummary}</span>
+          </p>
+        </div>
+        <CleanerPayDisplay earningsLabel={offer.earningsLabel} className="shrink-0 text-right" />
+      </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-2">
+      <div className={CLEANER_BADGE_ROW_CLASS}>
         <StatusBadge label={statusLabel} tone={statusTone} variant="soft" />
         {offer.teamRoleLabel ? (
           <StatusBadge label={offer.teamRoleLabel} tone="info" variant="soft" />
@@ -52,29 +69,8 @@ export function CleanerOfferCard({ offer }: Props) {
         ) : null}
       </div>
 
-      <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div>
-          <dt className="text-xs font-medium text-zinc-500">When</dt>
-          <dd className="mt-0.5 text-sm font-medium text-zinc-900">{offer.scheduleLabel}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-medium text-zinc-500">Your pay</dt>
-          <dd className="mt-0.5 text-lg font-semibold tabular-nums text-zinc-900 sm:text-base">
-            {offer.earningsLabel}
-          </dd>
-        </div>
-        <div className="sm:col-span-2">
-          <dt className="text-xs font-medium text-zinc-500">Where</dt>
-          <dd className="mt-0.5 break-words text-sm text-zinc-700">{offer.locationSummary}</dd>
-        </div>
-      </dl>
-
-      {canRespond && expiry.absoluteLabel ? (
-        <p className="mt-3 text-xs text-zinc-500">Respond by {expiry.absoluteLabel}</p>
-      ) : null}
-
       {canRespond ? (
-        <section className="mt-4 border-t border-zinc-100 pt-4">
+        <section className={CLEANER_OFFER_ACTIONS_DIVIDER_CLASS}>
           <OfferActions
             offerId={offer.offerId}
             serviceLabel={offer.serviceLabel}
@@ -85,7 +81,7 @@ export function CleanerOfferCard({ offer }: Props) {
       ) : offer.status === "accepted" ? (
         <Link
           href={`/cleaner/jobs/${offer.bookingId}`}
-          className="mt-4 inline-flex text-sm font-medium text-zinc-700 underline-offset-2 hover:text-zinc-900 hover:underline"
+          className="mt-3 inline-flex text-sm font-medium text-zinc-700 underline-offset-2 hover:text-zinc-900 hover:underline"
         >
           View job
         </Link>
@@ -93,4 +89,3 @@ export function CleanerOfferCard({ offer }: Props) {
     </article>
   );
 }
-

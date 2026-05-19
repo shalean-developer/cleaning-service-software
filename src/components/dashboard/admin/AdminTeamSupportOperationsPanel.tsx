@@ -31,6 +31,8 @@ type Props = {
   teamRequestFulfillmentLabel: string | null;
   initialTeamSupportOps: TeamSupportOps;
   initialCoordinationStatusLabel: string | null;
+  /** When nested inside AdminDetailSection, omit duplicate card chrome. */
+  embedded?: boolean;
 };
 
 export function AdminTeamSupportOperationsPanel({
@@ -45,6 +47,7 @@ export function AdminTeamSupportOperationsPanel({
   teamRequestFulfillmentLabel,
   initialTeamSupportOps,
   initialCoordinationStatusLabel,
+  embedded = false,
 }: Props) {
   const router = useRouter();
   const [teamSupportOps, setTeamSupportOps] = useState(initialTeamSupportOps);
@@ -134,17 +137,26 @@ export function AdminTeamSupportOperationsPanel({
   const loadBadges = buildAdminOperationalLoadBadges(operationalLoad);
   const supportingLabel = supportingCleanerDisplayLabel(teamSupportOps.supportingCleaner);
 
-  return (
-    <section className={`${ADMIN_DETAIL_CARD_CLASS} border-violet-200/80 bg-violet-50/25 p-4 sm:p-5`}>
-      <h2 className={`${ADMIN_SECTION_TITLE_CLASS} text-violet-950`}>
-        Team support operations
-      </h2>
-      <p className={ADMIN_SECTION_MUTED_CLASS}>
-        Operational coordination only — does not change assignment, payouts, lifecycle, or
-        dispatch. One assigned cleaner remains the system assignee.
-      </p>
+  const content = (
+    <>
+      {!embedded ? (
+        <>
+          <h2 className={`${ADMIN_SECTION_TITLE_CLASS} text-violet-950`}>
+            Team support operations
+          </h2>
+          <p className={ADMIN_SECTION_MUTED_CLASS}>
+            Operational coordination only — does not change assignment, payouts, lifecycle, or
+            dispatch. One assigned cleaner remains the system assignee.
+          </p>
+        </>
+      ) : (
+        <p className={ADMIN_SECTION_MUTED_CLASS}>
+          Operational coordination only — does not change assignment, payouts, lifecycle, or
+          dispatch.
+        </p>
+      )}
 
-      <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+      <dl className={`grid gap-2 text-sm sm:grid-cols-2 ${embedded ? "mt-2" : "mt-4"}`}>
         <DetailItem label="Customer request" value="Team support requested (paid)" />
         <DetailItem
           label="Operational load"
@@ -343,6 +355,16 @@ export function AdminTeamSupportOperationsPanel({
           {error}
         </p>
       ) : null}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="text-sm">{content}</div>;
+  }
+
+  return (
+    <section className={`${ADMIN_DETAIL_CARD_CLASS} border-violet-200/80 bg-violet-50/25 p-4 sm:p-5`}>
+      {content}
     </section>
   );
 }

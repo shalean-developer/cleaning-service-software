@@ -65,7 +65,7 @@ describe("customer deferred assignment copy", () => {
     const hero = customerBookingStatusHero("confirmed", null, {
       deferredAssignmentMessage: DEFERRED_ASSIGNMENT_CUSTOMER_MESSAGE,
     });
-    expect(hero.description).toBe(DEFERRED_ASSIGNMENT_CUSTOMER_MESSAGE);
-    expect(hero.description).not.toMatch(/matching a cleaner/i);
+    expect(hero.statusLine).toBe(DEFERRED_ASSIGNMENT_CUSTOMER_MESSAGE);
+    expect(hero.statusLine).not.toMatch(/matching a cleaner/i);
   });
 });

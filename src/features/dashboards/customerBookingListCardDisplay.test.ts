@@ -21,11 +21,11 @@ describe("customerBookingListCardLayers", () => {
     });
 
     expect(layers.dominantBadge).toEqual({
-      label: "Payment failed",
+      label: "Payment not completed",
       tone: "danger",
     });
     expect(layers.paymentStatusLine).toEqual({
-      text: "Payment incomplete — complete checkout to assign a cleaner.",
+      text: "Payment not completed — open booking to pay",
       tone: "attention",
     });
     expect(layers.supportingMessage).toBeNull();
@@ -40,7 +40,7 @@ describe("customerBookingListCardLayers", () => {
       assignedCleanerLabel: null,
     });
 
-    expect(layers.dominantBadge.label).toBe("Checkout expired");
+    expect(layers.dominantBadge.label).toBe("Checkout not completed");
     expect(layers.paymentStatusLine?.tone).toBe("attention");
     expect(layers.supportingMessage).toBeNull();
   });

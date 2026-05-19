@@ -38,7 +38,7 @@ export default async function CleanerJobDetailPage({ params }: PageProps) {
   return (
     <DashboardShell
       title="Your job"
-      subtitle="Schedule, location, pay, and what to do next."
+      subtitle="Schedule, location, pay, and next steps."
       nav={[...CLEANER_NAV_ITEMS]}
     >
       <Link
@@ -68,7 +68,7 @@ export default async function CleanerJobDetailPage({ params }: PageProps) {
 
         {job.team.viewerRole === "support" ? (
           <>
-            <CleanerSupportJobNotice message="The lead cleaner starts and completes this job. Confirm below when you have helped on site — this records your support participation only and does not complete the booking." />
+            <CleanerSupportJobNotice message="Lead cleaner starts and completes this job. Confirm below after helping on site — records support participation only." />
             <SupportParticipationActions
               bookingId={job.bookingId}
               canMarkParticipation={job.team.supportParticipation.canMarkParticipation}
@@ -89,12 +89,9 @@ export default async function CleanerJobDetailPage({ params }: PageProps) {
           showPayEstimateNote={job.team.viewerRole !== "support"}
         />
 
-        <section className={`${CLEANER_DETAIL_CARD_CLASS} p-4 sm:p-5`}>
+        <section className={`${CLEANER_DETAIL_CARD_CLASS} p-3.5 sm:p-4`}>
           <h2 className="text-sm font-medium text-zinc-800">Activity</h2>
-          <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">
-            Job progress from assignment through completion.
-          </p>
-          <section className="mt-3">
+          <section className="mt-2.5">
             <CleanerLifecycleTimeline events={job.timeline} />
           </section>
         </section>

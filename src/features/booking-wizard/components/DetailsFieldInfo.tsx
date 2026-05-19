@@ -62,6 +62,7 @@ type DetailsLabelWithInfoProps = {
   id?: string;
   label: string;
   infoText: string;
+  visibleHint?: string;
   className?: string;
 };
 
@@ -69,14 +70,20 @@ export function DetailsLabelWithInfo({
   id,
   label,
   infoText,
-  className = "mb-1.5 flex items-center gap-1.5",
+  visibleHint,
+  className = "mb-1.5",
 }: DetailsLabelWithInfoProps) {
   return (
     <div className={className}>
-      <span id={id} className="text-sm font-medium text-zinc-800">
-        {label}
-      </span>
-      <DetailsFieldInfo text={infoText} />
+      <div className="flex min-w-0 items-center gap-1.5">
+        <span id={id} className="min-w-0 break-words text-sm font-medium text-zinc-800">
+          {label}
+        </span>
+        <DetailsFieldInfo text={infoText} />
+      </div>
+      {visibleHint ? (
+        <p className="mt-0.5 text-[11px] leading-snug text-zinc-500 sm:text-xs">{visibleHint}</p>
+      ) : null}
     </div>
   );
 }

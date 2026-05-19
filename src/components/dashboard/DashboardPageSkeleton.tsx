@@ -1,4 +1,10 @@
 import { DASHBOARD_LOADING_SR_LABEL } from "@/lib/app/dashboardEcosystemDisplay";
+import {
+  UI_LIST_STACK_CLASS,
+  UI_PAGE_SECTION_GAP_CLASS,
+  UI_SKELETON_LIST_CARD_CLASS,
+  UI_SKELETON_PULSE_CLASS,
+} from "@/lib/ui/productUiTokens";
 
 type Variant = "list" | "detail";
 
@@ -9,17 +15,17 @@ type Props = {
 };
 
 function PulseBlock({ className }: { className: string }) {
-  return <span className={`block animate-pulse rounded-lg bg-zinc-200 ${className}`} aria-hidden />;
+  return <span className={`${UI_SKELETON_PULSE_CLASS} ${className}`} aria-hidden />;
 }
 
 function ListSkeletonBody() {
   return (
     <>
       <PulseBlock className="h-10 w-full max-w-2xl" />
-      <ul className="mt-6 space-y-3">
+      <ul className={`${UI_PAGE_SECTION_GAP_CLASS} ${UI_LIST_STACK_CLASS}`}>
         {Array.from({ length: 5 }, (_, i) => (
           <li key={i}>
-            <section className="rounded-xl border border-zinc-200 bg-white p-4">
+            <section className={UI_SKELETON_LIST_CARD_CLASS}>
               <section className="flex gap-2">
                 <PulseBlock className="h-5 w-20" />
                 <PulseBlock className="h-5 w-16" />
@@ -38,29 +44,29 @@ function DetailSkeletonBody() {
   return (
     <>
       <PulseBlock className="h-4 w-28" />
-      <section className="mt-4 space-y-4">
-        <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
-          <section className="border-b border-zinc-100 p-5">
+      <section className={`${UI_PAGE_SECTION_GAP_CLASS} space-y-3 sm:space-y-4`}>
+        <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+          <section className="border-b border-zinc-100 p-3.5 sm:p-4">
             <PulseBlock className="h-7 w-2/3 max-w-sm" />
             <PulseBlock className="mt-2 h-4 w-1/2 max-w-xs" />
           </section>
-          <section className="mx-5 mb-5 rounded-2xl bg-zinc-100 p-5">
+          <section className="mx-3.5 mb-3.5 rounded-xl border border-zinc-200 bg-zinc-50/80 p-3.5 sm:mx-4 sm:mb-4 sm:p-4">
             <PulseBlock className="h-5 w-32" />
             <PulseBlock className="mt-2 h-4 w-full" />
           </section>
         </section>
-        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <section className={UI_SKELETON_LIST_CARD_CLASS}>
           <PulseBlock className="h-4 w-28" />
-          <section className="mt-4 grid gap-4 sm:grid-cols-2">
+          <section className="mt-3 grid gap-3 sm:grid-cols-2">
             <PulseBlock className="h-12 w-full" />
             <PulseBlock className="h-12 w-full" />
             <PulseBlock className="h-12 w-full" />
             <PulseBlock className="h-12 w-full" />
           </section>
         </section>
-        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <section className={UI_SKELETON_LIST_CARD_CLASS}>
           <PulseBlock className="h-4 w-24" />
-          <PulseBlock className="mt-4 h-24 w-full" />
+          <PulseBlock className="mt-3 h-24 w-full" />
         </section>
       </section>
     </>
@@ -95,7 +101,7 @@ export function DashboardPageSkeleton({ variant = "list", showShell = true }: Pr
           </section>
         </section>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-8">{body}</main>
+      <main className="mx-auto max-w-5xl px-4 py-6 sm:py-8">{body}</main>
     </section>
   );
 }

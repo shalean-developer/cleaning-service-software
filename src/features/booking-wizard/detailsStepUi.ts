@@ -7,7 +7,11 @@ import {
 
 export { WIZARD_CARD_TRANSITION, WIZARD_FOCUS_RING };
 
-export const DETAILS_STEP_SECTION = "mb-5 min-w-0";
+export const DETAILS_STEP_SECTION = "mb-4 min-w-0 last:mb-0";
+
+export const DETAILS_STEP_TITLE = "text-base font-semibold tracking-tight text-zinc-900 sm:text-lg";
+
+export const DETAILS_STEP_INTRO = "mt-1 text-sm leading-snug text-zinc-600";
 
 /** Extra rooms + equipment + team support row on the details step. */
 export const DETAILS_OPTION_ROW_GRID =
@@ -28,7 +32,7 @@ export const DETAILS_OPTION_DESC = "mt-0.5 block text-[11px] leading-snug text-z
 
 /** Step 4 section headings — presentation only. */
 export const DETAILS_SECTION_HEADING =
-  "mb-3 border-b border-zinc-200/90 pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500";
+  "mb-2.5 text-xs font-semibold uppercase tracking-wide text-zinc-500";
 
 /** Step 4 option-row info tooltips — presentation only. */
 export const EXTRA_ROOMS_INFO_TEXT =
@@ -46,9 +50,9 @@ export const DETAILS_OPTION_CARD =
 export const DETAILS_INPUT =
   "w-full min-h-[2.75rem] rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200";
 
-/** Toggle card body — matches `DETAILS_INPUT` height in the option row. */
+/** Compact toggle row — label/hint above, switch in this row. */
 export const DETAILS_TOGGLE_CONTROL =
-  "flex min-h-[2.75rem] w-full items-center justify-end rounded-xl border border-zinc-300 bg-white px-3";
+  "flex w-full items-center justify-end rounded-lg border border-zinc-200/90 bg-zinc-50/50 px-2.5 py-2";
 
 export const DETAILS_CARD_SELECTED =
   "border-zinc-900 bg-zinc-50 ring-1 ring-inset ring-zinc-900/[0.08] shadow-sm";

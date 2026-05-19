@@ -3,24 +3,27 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { FrequencyStepPanel } from "./FrequencyStepPanel";
 
 describe("FrequencyStepPanel", () => {
-  it("renders four compact frequency pills with sr-only descriptions", () => {
+  it("renders four frequency pills with visible short hints", () => {
     const html = renderToStaticMarkup(
       <FrequencyStepPanel value="weekly" onChange={() => {}} />,
     );
 
+    expect(html).toContain("Visit frequency");
     expect(html).toContain('role="radiogroup"');
     expect(html).toContain("grid grid-cols-2");
     expect(html).toContain("sm:grid-cols-4");
     expect(html).toContain("Once-off");
-    expect(html).toContain("Single scheduled visit");
+    expect(html).toContain("One visit");
     expect(html).toContain("Weekly");
-    expect(html).toContain("Best value");
+    expect(html).toContain("Best for routine upkeep");
     expect(html).toContain("Bi-weekly");
-    expect(html).toContain("Popular");
+    expect(html).toContain("Every 2 weeks");
     expect(html).toContain("Monthly");
+    expect(html).toContain("Light maintenance");
     expect(html).toContain('aria-checked="true"');
     expect(html).toContain("border-zinc-900");
     expect(html).toContain("bg-zinc-50");
+    expect(html).not.toContain("sr-only");
     expect(html).not.toContain("border-blue-500");
   });
 

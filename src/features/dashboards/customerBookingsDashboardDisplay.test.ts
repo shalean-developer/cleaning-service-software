@@ -83,5 +83,8 @@ describe("customerBookingsDashboardDisplay", () => {
   it("provides tab-specific empty copy", () => {
     expect(emptyStateForCustomerBookingTab("unpaid").title).toBe("No unpaid bookings");
     expect(emptyStateForCustomerBookingTab("unpaid").description).toContain("caught up");
+    expect(emptyStateForCustomerBookingTab("upcoming").title).toBe("No upcoming bookings");
+    expect(emptyStateForCustomerBookingTab("completed").title).toBe("No completed bookings");
+    expect(emptyStateForCustomerBookingTab("cancelled").title).toBe("No cancelled bookings");
   });
 });

@@ -4,7 +4,7 @@ import { ADDON_CATALOG } from "@/features/pricing/server/catalog";
 import type { AddonSlug, ServiceSlug } from "@/features/pricing/server/types";
 import { getAddonStepDisplayOrder, getAddonStepLabel } from "../addonStepDisplay";
 import { ADDON_STEP_DESCRIPTIONS } from "../constants";
-import { DETAILS_STEP_SECTION } from "../detailsStepUi";
+import { DETAILS_OPTION_DESC, DETAILS_STEP_SECTION } from "../detailsStepUi";
 import { formatAddonPrice } from "../format";
 import { DetailsSectionHeading } from "./DetailsSectionHeading";
 import { DetailsToggleSwitch } from "./DetailsToggleSwitch";
@@ -24,11 +24,17 @@ type AddonRowProps = {
 
 function AddonRow({ slug, label, checked, onToggle }: AddonRowProps) {
   const addon = ADDON_CATALOG[slug];
+  const rowClass = checked ? "bg-zinc-50/80" : "bg-white";
 
   return (
-    <li className="flex items-center gap-3 border-b border-zinc-100 px-3 py-2.5 last:border-b-0 sm:px-4">
-      <p className="min-w-0 flex-1 text-sm font-medium leading-snug text-zinc-900">{label}</p>
-      <span className="shrink-0 text-sm font-medium tabular-nums text-zinc-500">
+    <li
+      className={`flex min-w-0 items-center gap-2 border-b border-zinc-100 px-2.5 py-2 last:border-b-0 sm:gap-2.5 sm:px-3 ${rowClass}`}
+    >
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium leading-snug text-zinc-900">{label}</p>
+        <p className={`${DETAILS_OPTION_DESC} line-clamp-2`}>{ADDON_STEP_DESCRIPTIONS[slug]}</p>
+      </div>
+      <span className="shrink-0 text-[11px] font-medium tabular-nums text-zinc-500 sm:text-xs">
         {formatAddonPrice(addon.amountCents)}
       </span>
       <DetailsToggleSwitch
@@ -36,7 +42,6 @@ function AddonRow({ slug, label, checked, onToggle }: AddonRowProps) {
         label={`${label} add-on`}
         onToggle={() => onToggle(slug, !checked)}
       />
-      <span className="sr-only">{ADDON_STEP_DESCRIPTIONS[slug]}</span>
     </li>
   );
 }
@@ -61,8 +66,9 @@ export function AddonsStepPanel({ serviceSlug, selected, onChange }: Props) {
       <div
         className="overflow-hidden rounded-xl border border-zinc-200/90 bg-white shadow-sm"
         role="group"
+        aria-labelledby="addons-step-label"
       >
-        <ul className="m-0 list-none p-0">
+        <ul className="m-0 grid list-none grid-cols-1 p-0 sm:grid-cols-2">
           {displayOrder.map((slug) => (
             <AddonRow
               key={slug}

@@ -8,6 +8,8 @@ import {
 
 type Props = {
   card: AdminOperationalQueueCard;
+  /** Omit outer margin when nested in operational guide details. */
+  embedded?: boolean;
 };
 
 function toneBorderClasses(tone: AdminOperationalQueueCard["tone"]): string {
@@ -24,11 +26,11 @@ function toneBorderClasses(tone: AdminOperationalQueueCard["tone"]): string {
 }
 
 /** Compact active-filter guidance on /admin/bookings (7A-2b). */
-export function AdminOperationalQueueContextCard({ card }: Props) {
+export function AdminOperationalQueueContextCard({ card, embedded = false }: Props) {
   return (
     <section
       aria-label={`${card.label} queue context`}
-      className={`mb-4 rounded-xl border px-4 py-3 ${toneBorderClasses(card.tone)}`}
+      className={`${embedded ? "mb-0 border-0 bg-transparent px-3.5 py-3 sm:px-4" : "mb-4 rounded-xl border px-4 py-3"} ${embedded ? "" : toneBorderClasses(card.tone)}`}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">

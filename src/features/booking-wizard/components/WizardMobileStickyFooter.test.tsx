@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   WIZARD_MOBILE_STICKY_FOOTER_CLASS,
+  WIZARD_NAV_IN_STICKY_FOOTER_CLASS,
   WIZARD_STICKY_FOOTER_INNER_CLASS,
 } from "../wizardLayout";
 import { WizardMobileStickyFooter } from "./WizardMobileStickyFooter";
@@ -20,5 +21,6 @@ describe("WizardMobileStickyFooter", () => {
     expect(html).toContain("Summary");
     expect(html).toContain("Continue");
     expect(html).toContain("md:static");
+    expect(html).toContain(WIZARD_NAV_IN_STICKY_FOOTER_CLASS);
   });
 });

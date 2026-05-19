@@ -1,5 +1,13 @@
 ﻿import Link from "next/link";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { CleanerPayDisplay } from "@/components/dashboard/cleaner/CleanerPayDisplay";
+import {
+  CLEANER_BADGE_ROW_CLASS,
+  CLEANER_LIST_CARD_PADDING,
+  CLEANER_META_LINE_CLASS,
+  CLEANER_META_LOCATION_CLASS,
+  CLEANER_SERVICE_EYEBROW_CLASS,
+} from "@/features/dashboards/cleanerDashboardDisplay";
 import { CLEANER_DETAIL_CARD_CLASS } from "@/features/dashboards/cleanerJobDetailDisplay";
 import {
   labelForCleanerJobStatus,
@@ -29,12 +37,20 @@ export function CleanerJobListCard({
   return (
     <Link
       href={href}
-      className={`block ${CLEANER_DETAIL_CARD_CLASS} p-4 transition-colors hover:border-zinc-300 sm:p-5`}
+      className={`block ${CLEANER_DETAIL_CARD_CLASS} ${CLEANER_LIST_CARD_PADDING} transition-colors hover:border-zinc-300`}
     >
-      <p className="break-words text-xs font-semibold uppercase tracking-wide text-sky-800">
-        {serviceLabel}
-      </p>
-      <div className="mt-2 flex flex-wrap items-center gap-2">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className={CLEANER_SERVICE_EYEBROW_CLASS}>{serviceLabel}</p>
+          <p className={CLEANER_META_LINE_CLASS}>
+            <span className="font-medium text-zinc-900">{scheduleLabel}</span>
+            <span className="text-zinc-400"> · </span>
+            <span className={CLEANER_META_LOCATION_CLASS}>{locationSummary}</span>
+          </p>
+        </div>
+        <CleanerPayDisplay earningsLabel={earningsLabel} className="shrink-0 text-right" />
+      </div>
+      <div className={CLEANER_BADGE_ROW_CLASS}>
         <StatusBadge
           label={labelForCleanerJobStatus(status)}
           tone={toneForCleanerJobStatus(status)}
@@ -44,22 +60,6 @@ export function CleanerJobListCard({
           <StatusBadge label={teamRoleLabel} tone="info" variant="soft" />
         ) : null}
       </div>
-
-      <dl className="mt-3 grid gap-2 sm:grid-cols-3">
-        <div>
-          <dt className="text-xs font-medium text-zinc-500">When</dt>
-          <dd className="mt-0.5 text-sm font-medium text-zinc-900">{scheduleLabel}</dd>
-        </div>
-        <div className="sm:col-span-1">
-          <dt className="text-xs font-medium text-zinc-500">Where</dt>
-          <dd className="mt-0.5 break-words text-sm text-zinc-700">{locationSummary}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-medium text-zinc-500">Pay</dt>
-          <dd className="mt-0.5 text-sm font-semibold tabular-nums text-zinc-900">{earningsLabel}</dd>
-        </div>
-      </dl>
     </Link>
   );
 }
-

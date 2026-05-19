@@ -71,7 +71,7 @@ export function OfferActions({
 
   return (
     <>
-      <section className="flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
+      <section className="flex w-full flex-col gap-2.5 sm:flex-row sm:items-stretch">
         <button
           type="button"
           disabled={disabled || loading !== null}

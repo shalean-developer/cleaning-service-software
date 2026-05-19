@@ -1,35 +1,44 @@
 ﻿import {
   CUSTOMER_BOOKING_DETAIL_CARD_CLASS,
-  CUSTOMER_BOOKING_DETAIL_INSET_CLASS,
-  customerBookingWhatHappensNext,
+  customerBookingCompactGuidance,
 } from "@/features/dashboards/customerBookingDetailDisplay";
 import type { BookingStatus } from "@/features/bookings/server/types";
 
 type Props = {
   status: BookingStatus;
+  deferredAssignmentMessage?: string | null;
 };
 
-export function CustomerBookingWhatHappensNext({ status }: Props) {
-  const content = customerBookingWhatHappensNext(status);
-  if (!content) return null;
+export function CustomerBookingWhatHappensNext({
+  status,
+  deferredAssignmentMessage,
+}: Props) {
+  const guidance = customerBookingCompactGuidance(status, { deferredAssignmentMessage });
+  if (!guidance) return null;
+
+  const hasDetails = (guidance.detailSteps?.length ?? 0) > 0;
 
   return (
-    <section className={`${CUSTOMER_BOOKING_DETAIL_CARD_CLASS} p-4 sm:p-5`}>
-      <h2 className="text-sm font-medium text-zinc-800">{content.title}</h2>
-      <ul className={`mt-3 space-y-3 ${CUSTOMER_BOOKING_DETAIL_INSET_CLASS} p-4`}>
-        {content.steps.map((step) => (
-          <li key={step.title} className="flex gap-3 text-sm">
-            <span
-              className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-400"
-              aria-hidden
-            />
-            <div>
-              <p className="font-medium text-zinc-900">{step.title}</p>
-              <p className="mt-0.5 leading-relaxed text-zinc-600">{step.body}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
+    <section className={`${CUSTOMER_BOOKING_DETAIL_CARD_CLASS} px-4 py-3 sm:px-5 sm:py-3.5`}>
+      <p className="text-sm leading-snug text-zinc-700">{guidance.primary}</p>
+      {guidance.secondary ? (
+        <p className="mt-1 text-xs leading-relaxed text-zinc-500">{guidance.secondary}</p>
+      ) : null}
+      {hasDetails ? (
+        <details className="mt-2 text-sm">
+          <summary className="cursor-pointer font-medium text-zinc-600 hover:text-zinc-900">
+            More about your booking
+          </summary>
+          <ul className="mt-2 space-y-2 border-l border-zinc-200 pl-3">
+            {guidance.detailSteps?.map((step) => (
+              <li key={step.title}>
+                <p className="font-medium text-zinc-800">{step.title}</p>
+                <p className="text-xs leading-relaxed text-zinc-600">{step.body}</p>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
     </section>
   );
 }

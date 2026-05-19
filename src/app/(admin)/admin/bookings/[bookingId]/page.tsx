@@ -15,10 +15,19 @@ import {
   AdminBookingDetailHero,
   AdminPaymentFailureInset,
 } from "@/components/dashboard/admin/AdminBookingDetailHero";
+import { AdminBookingEarningsAttentionBanner } from "@/components/dashboard/admin/AdminBookingEarningsAttentionBanner";
+import { AdminBookingOperationalSummary } from "@/components/dashboard/admin/AdminBookingOperationalSummary";
 import { AdminDetailSection } from "@/components/dashboard/admin/AdminDetailSection";
 import { AdminTeamSupportOperationsPanel } from "@/components/dashboard/admin/AdminTeamSupportOperationsPanel";
 import { AdminTeamRosterFoundationPanel } from "@/components/dashboard/admin/AdminTeamRosterFoundationPanel";
 import { buildAdminOperationalLoadBadges } from "@/features/dashboards/server/adminTeamSupportObservation";
+import {
+  adminDeferredDispatchNeedsAttention,
+  adminEarningsNeedsAttention,
+  adminTeamSupportNeedsFollowUp,
+  buildAdminBookingHeroContextRows,
+  buildAdminBookingHeroEssentialRows,
+} from "@/features/dashboards/adminBookingDetailDisplay";
 import { LifecycleTimeline } from "@/components/dashboard/LifecycleTimeline";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
@@ -52,6 +61,14 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
   if (!result.ok) notFound();
 
   const b = result.booking;
+  const paymentFailed = b.status === "payment_failed";
+  const teamSupportFollowUp = adminTeamSupportNeedsFollowUp({
+    isTwoCleanerRequest: b.observation.isTwoCleanerRequest,
+    teamRequestFulfillment: b.observation.teamRequestFulfillment,
+    teamSupportOps: b.observation.teamSupportOps,
+  });
+  const earningsAttention = adminEarningsNeedsAttention(b.teamEarningsReconciliation);
+  const deferredAttention = adminDeferredDispatchNeedsAttention(b.deferredDispatch);
 
   const heroBadges = [
     { label: labelForBookingStatus(b.status), tone: toneForBookingStatus(b.status) },
@@ -59,12 +76,17 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
       label: badge.label,
       tone: badge.tone,
     })),
-    ...(b.status !== "payment_failed"
-      ? [{ label: labelForPaymentStatus(b.paymentStatus), tone: toneForPaymentStatus(b.paymentStatus) }]
-      : [
+    ...(paymentFailed
+      ? [
           {
             label: labelForAdminPaymentFailureAttention(b.paymentFailureReason),
             tone: "warning" as const,
+          },
+        ]
+      : [
+          {
+            label: labelForPaymentStatus(b.paymentStatus),
+            tone: toneForPaymentStatus(b.paymentStatus),
           },
         ]),
     ...(b.assignmentVisibilityKey ?? b.assignmentAttention
@@ -84,6 +106,28 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
       : []),
   ];
 
+  const essentialRows = buildAdminBookingHeroEssentialRows({
+    scheduleLabel: b.scheduleLabel,
+    locationSummary: b.display.locationSummary,
+    customerLabel: b.customerLabel,
+    cleanerLabel: b.cleanerLabel,
+    priceLabel: b.priceLabel,
+  });
+
+  const contextRows = buildAdminBookingHeroContextRows({
+    customerPhone: b.customerPhone,
+    homeSizeSummary: b.display.homeSizeSummary,
+    cleaningIntensityLabel: b.display.cleaningIntensityLabel,
+    equipmentSupplyLabel: b.display.equipmentSupplyLabel,
+    teamSupportLabel: b.observation.isTwoCleanerRequest ? null : b.display.teamSupportLabel,
+    teamRequestFulfillmentLabel: b.observation.isTwoCleanerRequest
+      ? null
+      : b.observation.teamRequestFulfillmentLabel,
+    coordinationStatusLabel: b.observation.isTwoCleanerRequest
+      ? null
+      : b.observation.coordinationStatusLabel,
+  });
+
   return (
     <AdminDashboardShell
       title="Booking"
@@ -102,64 +146,10 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           serviceLabel={b.serviceLabel}
           bookingId={b.id}
           badges={heroBadges}
-          rows={[
-            { label: "When", value: b.scheduleLabel },
-            ...(b.display.homeSizeSummary
-              ? [{ label: "Home size", value: b.display.homeSizeSummary }]
-              : []),
-            ...(b.display.cleaningIntensityLabel
-              ? [{ label: "Cleaning intensity", value: b.display.cleaningIntensityLabel }]
-              : []),
-            ...(b.display.equipmentSupplyLabel
-              ? [{ label: "Cleaning supplies", value: b.display.equipmentSupplyLabel }]
-              : []),
-            ...(b.display.teamSupportLabel
-              ? [{ label: "Team support", value: b.display.teamSupportLabel }]
-              : []),
-            ...(b.display.teamRequestFulfillmentLabel
-              ? [
-                  {
-                    label: "Team support fulfillment",
-                    value: b.display.teamRequestFulfillmentLabel,
-                  },
-                ]
-              : []),
-            ...(b.observation.coordinationStatusLabel
-              ? [
-                  {
-                    label: "Team coordination",
-                    value: b.observation.coordinationStatusLabel,
-                  },
-                ]
-              : []),
-            { label: "Where", value: b.display.locationSummary },
-            { label: "Customer", value: b.customerLabel },
-            {
-              label: "Customer phone",
-              value: b.customerPhone ?? "Not provided",
-              valueClassName: b.customerPhone ? undefined : "text-zinc-500",
-            },
-            {
-              label: "Cleaner",
-              value: b.cleanerLabel ?? "Unassigned",
-              valueClassName: b.cleanerLabel ? undefined : "text-zinc-500",
-            },
-            { label: "Total", value: b.priceLabel },
-            {
-              label: "Assignment",
-              value: b.assignmentVisibilityKey
-                ? labelForAssignmentAttention(b.assignmentVisibilityKey)
-                : b.assignmentAttention
-                  ? labelForAssignmentAttention(b.assignmentAttention)
-                  : "No attention flag",
-              valueClassName:
-                b.assignmentVisibilityKey || b.assignmentAttention
-                  ? undefined
-                  : "text-zinc-500",
-            },
-          ]}
+          essentialRows={essentialRows}
+          contextRows={contextRows}
           paymentAlert={
-            b.status === "payment_failed" ? (
+            paymentFailed ? (
               <AdminPaymentFailureInset>
                 Payment did not complete
                 {b.paymentFailureReason === "checkout_expired"
@@ -172,29 +162,70 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           footer={<AdminPayoutActions bookingId={b.id} status={b.status} />}
         />
 
-        <AdminTeamSupportOperationsPanel
-          bookingId={b.id}
-          isTwoCleanerRequest={b.observation.isTwoCleanerRequest}
-          assignedCleanerLabel={b.cleanerLabel}
-          homeSizeSummary={b.display.homeSizeSummary}
-          cleaningIntensityLabel={b.display.cleaningIntensityLabel}
-          equipmentSupplyLabel={b.display.equipmentSupplyLabel}
-          operationalLoad={b.observation.operationalLoad}
-          teamRequestFulfillment={b.observation.teamRequestFulfillment}
-          teamRequestFulfillmentLabel={b.observation.teamRequestFulfillmentLabel}
-          initialTeamSupportOps={b.observation.teamSupportOps}
-          initialCoordinationStatusLabel={b.observation.coordinationStatusLabel}
+        <AdminBookingOperationalSummary
+          operational={b.operational}
+          attentionFlags={{
+            paymentFailed,
+            deferredAttention,
+            teamSupportFollowUp,
+            earningsAttention,
+          }}
         />
 
-        <AdminTeamRosterFoundationPanel rows={b.teamRosterFoundation} />
+        {earningsAttention ? (
+          <AdminBookingEarningsAttentionBanner reconciliation={b.teamEarningsReconciliation} />
+        ) : null}
 
-        {b.deferredDispatch ? (
+        {b.deferredDispatch && deferredAttention ? (
           <AdminDeferredDispatchPanel deferredDispatch={b.deferredDispatch} />
         ) : null}
 
         <AdminOperationalStatusPanel bookingId={b.id} operational={b.operational} />
 
-        <AdminDetailSection title="Assignment offers">
+        {b.observation.isTwoCleanerRequest && teamSupportFollowUp ? (
+          <AdminTeamSupportOperationsPanel
+            bookingId={b.id}
+            isTwoCleanerRequest={b.observation.isTwoCleanerRequest}
+            assignedCleanerLabel={b.cleanerLabel}
+            homeSizeSummary={b.display.homeSizeSummary}
+            cleaningIntensityLabel={b.display.cleaningIntensityLabel}
+            equipmentSupplyLabel={b.display.equipmentSupplyLabel}
+            operationalLoad={b.observation.operationalLoad}
+            teamRequestFulfillment={b.observation.teamRequestFulfillment}
+            teamRequestFulfillmentLabel={b.observation.teamRequestFulfillmentLabel}
+            initialTeamSupportOps={b.observation.teamSupportOps}
+            initialCoordinationStatusLabel={b.observation.coordinationStatusLabel}
+          />
+        ) : null}
+
+        {b.deferredDispatch && !deferredAttention ? (
+          <AdminDetailSection title="Deferred assignment" collapsible>
+            <AdminDeferredDispatchPanel deferredDispatch={b.deferredDispatch} embedded />
+          </AdminDetailSection>
+        ) : null}
+
+        {b.observation.isTwoCleanerRequest && !teamSupportFollowUp ? (
+          <AdminDetailSection title="Team support operations" collapsible tone="ops">
+            <AdminTeamSupportOperationsPanel
+              bookingId={b.id}
+              isTwoCleanerRequest={b.observation.isTwoCleanerRequest}
+              assignedCleanerLabel={b.cleanerLabel}
+              homeSizeSummary={b.display.homeSizeSummary}
+              cleaningIntensityLabel={b.display.cleaningIntensityLabel}
+              equipmentSupplyLabel={b.display.equipmentSupplyLabel}
+              operationalLoad={b.observation.operationalLoad}
+              teamRequestFulfillment={b.observation.teamRequestFulfillment}
+              teamRequestFulfillmentLabel={b.observation.teamRequestFulfillmentLabel}
+              initialTeamSupportOps={b.observation.teamSupportOps}
+              initialCoordinationStatusLabel={b.observation.coordinationStatusLabel}
+              embedded
+            />
+          </AdminDetailSection>
+        ) : null}
+
+        <AdminTeamRosterFoundationPanel rows={b.teamRosterFoundation} />
+
+        <AdminDetailSection title="Assignment offers" collapsible>
           {b.offers.length === 0 ? (
             <p className="text-sm text-zinc-600">No offers recorded.</p>
           ) : (
@@ -202,13 +233,15 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
               {b.offers.map((o) => (
                 <li
                   key={o.id}
-                  className="flex flex-wrap items-center gap-2 border-b border-zinc-100 py-2 last:border-0"
+                  className="flex min-w-0 flex-wrap items-center gap-2 border-b border-zinc-100 py-2 last:border-0"
                 >
                   <StatusBadge
                     label={labelForOfferStatus(o.status)}
                     tone={toneForOfferStatus(o.status)}
                   />
-                  <span>{o.cleanerName ?? o.cleanerId.slice(0, 8)}</span>
+                  <span className="min-w-0 break-words">
+                    {o.cleanerName ?? o.cleanerId.slice(0, 8)}
+                  </span>
                   <span className="text-xs text-zinc-500">
                     {new Date(o.offeredAt).toLocaleString("en-ZA")}
                   </span>
@@ -218,7 +251,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           )}
         </AdminDetailSection>
 
-        <AdminDetailSection title="Earnings & payments">
+        <AdminDetailSection title="Earnings & payments" collapsible>
           <section className="space-y-4">
             <section>
               <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
@@ -254,12 +287,22 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
               ) : (
                 <ul className="mt-1.5 space-y-1.5 text-sm">
                   {b.payments.map((p) => (
-                    <li key={p.id} className="flex justify-between gap-4">
-                      <span>
+                    <li key={p.id} className="flex min-w-0 justify-between gap-4">
+                      <span className="min-w-0 break-words text-zinc-800">
                         {labelForPaymentStatus(p.status)}
-                        {p.providerRef ? ` · ${p.providerRef}` : ""}
+                        {p.providerRef ? (
+                          <>
+                            {" · "}
+                            <span
+                              className="font-mono text-xs text-zinc-600 [overflow-wrap:anywhere]"
+                              title={p.providerRef}
+                            >
+                              {p.providerRef}
+                            </span>
+                          </>
+                        ) : null}
                       </span>
-                      <span className="tabular-nums">{formatZar(p.amountCents, p.currency)}</span>
+                      <span className="shrink-0 tabular-nums">{formatZar(p.amountCents, p.currency)}</span>
                     </li>
                   ))}
                 </ul>
@@ -271,6 +314,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
         <AdminDetailSection
           title="Lifecycle"
           description="Customer-visible progress from payment through completion."
+          collapsible
         >
           <LifecycleTimeline events={b.timeline} />
         </AdminDetailSection>
@@ -324,7 +368,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
         </AdminDetailSection>
 
         <AdminDetailSection
-          title="Admin operations"
+          title="Admin operations log"
           description="Recovery, dispatch, and replace actions (internal)."
           tone="ops"
           collapsible

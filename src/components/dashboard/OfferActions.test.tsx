@@ -25,7 +25,7 @@ describe("OfferActions", () => {
     );
 
     expect(source).toContain("flex-col");
-    expect(source).toContain("gap-3");
+    expect(source).toContain("gap-2.5");
     expect(source).toContain("min-h-11");
     expect(source).toContain("w-full");
     expect(source).toContain("sm:flex-row");

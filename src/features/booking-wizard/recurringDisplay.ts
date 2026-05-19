@@ -18,6 +18,20 @@ export function getRecurringScheduleExplanation(frequency: PricingFrequency): st
   }
 }
 
+/** Shorter review-step note — frequency label already appears in the summary strip. */
+export function getRecurringScheduleReviewNote(frequency: PricingFrequency): string | null {
+  switch (frequency) {
+    case "weekly":
+      return "Repeats weekly on this day and time.";
+    case "biweekly":
+      return "Repeats every 2 weeks on this day and time.";
+    case "monthly":
+      return "Repeats monthly on this day and time.";
+    default:
+      return null;
+  }
+}
+
 /** Display-only — clarifies today's charge vs future visits. */
 export function getRecurringPaymentExplanation(frequency: PricingFrequency): string | null {
   if (!isRecurringFrequency(frequency)) return null;

@@ -43,10 +43,10 @@ describe("AdminOperationalStatusPanel", () => {
       <AdminOperationalStatusPanel bookingId={bookingId} operational={operational} />,
     );
 
-    expect(html).toContain("Ops status");
-    expect(html).toContain("statuses are not overridden");
+    expect(html).toContain("Actions");
+    expect(html).toContain("Manual ops");
+    expect(html).toContain("Status breakdown");
     expect(html).toContain(operational.paymentState);
-    expect(html).toContain(operational.nextSuggestedAction);
   });
 
   it("shows recover action only when recovery eligibility is eligible", () => {

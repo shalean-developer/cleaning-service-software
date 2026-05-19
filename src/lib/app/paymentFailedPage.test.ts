@@ -16,6 +16,7 @@ describe("paymentFailedPage", () => {
     const model = buildPaymentFailedPageModel({});
     expect(model.copy.title).toBe("Payment not completed");
     expect(model.copy.body).toContain("could not confirm payment");
+    expect(model.reassurance).toContain("You were not charged");
     expect(model.bookingDetailHref).toBeNull();
   });
 
@@ -23,7 +24,7 @@ describe("paymentFailedPage", () => {
     const model = buildPaymentFailedPageModel({
       reason: CHECKOUT_EXPIRED_FAILURE_REASON,
     });
-    expect(model.copy.body).toContain("checkout link expired");
+    expect(model.copy.body).toContain("checkout timed out");
     expect(model.paymentFailureReason).toBe(CHECKOUT_EXPIRED_FAILURE_REASON);
   });
 
@@ -31,7 +32,7 @@ describe("paymentFailedPage", () => {
     const model = buildPaymentFailedPageModel({
       reason: PAYSTACK_DECLINED_FAILURE_REASON,
     });
-    expect(model.copy.body).toContain("declined");
+    expect(model.copy.body).toContain("card provider");
     expect(model.paymentFailureReason).toBe(PAYSTACK_DECLINED_FAILURE_REASON);
   });
 

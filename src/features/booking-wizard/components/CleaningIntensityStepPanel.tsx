@@ -22,7 +22,7 @@ export function CleaningIntensityStepPanel({ value, onChange, error }: Props) {
       <DetailsSectionHeading title="Cleaning intensity" id="cleaning-intensity-step-label" />
 
       <div
-        className="grid gap-2 sm:grid-cols-3 sm:gap-2.5"
+        className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-3"
         role="radiogroup"
         aria-labelledby="cleaning-intensity-step-label"
       >
@@ -36,12 +36,12 @@ export function CleaningIntensityStepPanel({ value, onChange, error }: Props) {
               role="radio"
               aria-checked={selected}
               onClick={() => onChange(option.value)}
-              className={`flex min-w-0 flex-col rounded-xl border px-3 py-2.5 text-left ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${detailsCardClass(selected)}`}
+              className={`flex min-w-0 flex-col rounded-lg border px-2.5 py-2 text-left ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${detailsCardClass(selected)}`}
             >
               <span className="block text-sm font-semibold leading-snug text-zinc-900">
                 {option.label}
               </span>
-              <span className="mt-0.5 block text-xs leading-snug text-zinc-500">
+              <span className="mt-0.5 block text-[11px] font-medium tabular-nums leading-snug text-zinc-500 sm:text-xs">
                 {option.description}
               </span>
             </button>

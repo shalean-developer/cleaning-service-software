@@ -22,7 +22,7 @@ export default async function CleanerJobsPage() {
   return (
     <DashboardShell
       title="My jobs"
-      subtitle="When, where, and pay for each assigned clean."
+      subtitle="Schedule, location, and pay per job."
       nav={[...CLEANER_NAV_ITEMS]}
     >
       {!result.ok ? (

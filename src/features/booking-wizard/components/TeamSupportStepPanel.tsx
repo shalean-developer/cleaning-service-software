@@ -1,5 +1,6 @@
 "use client";
 
+import { teamSupportVisibleHint } from "../detailsStepHints";
 import { DETAILS_TOGGLE_CONTROL, REQUEST_TWO_CLEANERS_INFO_TEXT } from "../detailsStepUi";
 import { DetailsLabelWithInfo } from "./DetailsFieldInfo";
 import { DetailsToggleSwitch } from "./DetailsToggleSwitch";
@@ -19,6 +20,7 @@ export function TeamSupportStepPanel({ value, onChange, error }: Props) {
         id="team-support-step-label"
         label="Team support"
         infoText={REQUEST_TWO_CLEANERS_INFO_TEXT}
+        visibleHint={teamSupportVisibleHint(value)}
       />
 
       <div

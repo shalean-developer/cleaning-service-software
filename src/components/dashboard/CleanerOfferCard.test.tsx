@@ -22,8 +22,9 @@ describe("CleanerOfferCard", () => {
 
     expect(source).toContain("OfferExpiryChip");
     expect(source).toContain("formatOfferExpiryDisplay");
-    expect(source).toContain("text-sky-800");
-    expect(source).toContain("Your pay");
+    expect(source).toContain("CLEANER_SERVICE_EYEBROW_CLASS");
+    expect(source).toContain("CleanerPayDisplay");
+    expect(source).toContain("CLEANER_META_LINE_CLASS");
     expect(source).toContain("OfferActions");
     expect(source).toContain("serviceLabel={offer.serviceLabel}");
     expect(source).toContain("scheduleLabel={offer.scheduleLabel}");

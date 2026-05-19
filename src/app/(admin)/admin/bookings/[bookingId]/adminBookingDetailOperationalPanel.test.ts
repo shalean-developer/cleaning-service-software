@@ -15,6 +15,7 @@ describe("admin booking detail operational panel wiring", () => {
     const source = readFileSync(pagePath, "utf8");
 
     expect(source).toContain("AdminOperationalStatusPanel");
+    expect(source).toContain("AdminBookingOperationalSummary");
     expect(source).toContain("operational={b.operational}");
     expect(source).toContain("bookingId={b.id}");
   });

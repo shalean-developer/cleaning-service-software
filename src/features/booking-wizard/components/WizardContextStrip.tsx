@@ -47,7 +47,7 @@ export function WizardContextStrip({
 
   return (
     <div
-      className="mb-4 flex min-w-0 flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full border border-zinc-200/90 bg-zinc-50/80 px-3.5 py-2 text-center text-sm leading-snug sm:justify-start sm:text-left"
+      className="mb-3 flex min-w-0 flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full border border-zinc-200/90 bg-zinc-50/80 px-3.5 py-2 text-center text-sm leading-snug md:mb-4 sm:justify-start sm:text-left"
       aria-label="Booking context"
     >
       {segments.map((segment, index) => (

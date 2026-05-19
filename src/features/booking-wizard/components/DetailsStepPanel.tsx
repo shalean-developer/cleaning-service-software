@@ -7,6 +7,7 @@ import type {
   PricingFrequency,
   ServiceSlug,
 } from "@/features/pricing/server/types";
+import { EXTRA_ROOMS_VISIBLE_HINT } from "../detailsStepHints";
 import {
   DETAILS_OPTION_ROW_CELL,
   DETAILS_OPTION_ROW_GRID,
@@ -15,11 +16,13 @@ import {
   EXTRA_ROOMS_INFO_TEXT,
 } from "../detailsStepUi";
 import { inputClass } from "./Field";
+import { WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS } from "../wizardLayout";
 import { AddonsStepPanel } from "./AddonsStepPanel";
 import { CleaningIntensityStepPanel } from "./CleaningIntensityStepPanel";
 import { DetailsLabelWithInfo } from "./DetailsFieldInfo";
 import { DetailsQuantityStepper } from "./DetailsQuantityStepper";
 import { DetailsSectionHeading } from "./DetailsSectionHeading";
+import { DetailsStepIntro } from "./DetailsStepIntro";
 import { EquipmentSupplyStepPanel } from "./EquipmentSupplyStepPanel";
 import { FrequencyStepPanel } from "./FrequencyStepPanel";
 import { TeamSupportStepPanel } from "./TeamSupportStepPanel";
@@ -87,71 +90,40 @@ export function DetailsStepPanel({
 
   return (
     <div className="min-w-0">
-      <section className={DETAILS_STEP_SECTION} aria-labelledby="details-your-home">
-        <DetailsSectionHeading title="Your home" id="details-your-home" />
+      <DetailsStepIntro />
+
+      <FrequencyStepPanel value={frequency} onChange={onFrequencyChange} error={stepErrors.frequency} />
+
+      <section className={DETAILS_STEP_SECTION} aria-labelledby="details-home-size">
+        <DetailsSectionHeading title="Home size" id="details-home-size" />
 
         {!isOffice ? (
-          <>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="min-w-0">
-                <span className={DETAILS_STEP_LABEL}>Bedrooms</span>
-                <DetailsQuantityStepper
-                  value={bedrooms}
-                  min={0}
-                  max={20}
-                  ariaLabel="bedrooms"
-                  onChange={onBedroomsChange}
-                />
-                <FieldError message={stepErrors.bedrooms} />
-              </div>
-              <div className="min-w-0">
-                <span className={DETAILS_STEP_LABEL}>Bathrooms</span>
-                <DetailsQuantityStepper
-                  value={bathrooms}
-                  min={0}
-                  max={20}
-                  ariaLabel="bathrooms"
-                  onChange={onBathroomsChange}
-                />
-                <FieldError message={stepErrors.bathrooms} />
-              </div>
+          <div className="grid grid-cols-2 gap-3 sm:max-w-md">
+            <div className="min-w-0">
+              <span className={DETAILS_STEP_LABEL}>Bedrooms</span>
+              <DetailsQuantityStepper
+                value={bedrooms}
+                min={0}
+                max={20}
+                ariaLabel="bedrooms"
+                onChange={onBedroomsChange}
+              />
+              <FieldError message={stepErrors.bedrooms} />
             </div>
-
-            {isRegular ? (
-              <div className={`mt-3 ${DETAILS_OPTION_ROW_GRID}`}>
-                <div className={DETAILS_OPTION_ROW_CELL}>
-                  <DetailsLabelWithInfo
-                    label="Extra rooms"
-                    infoText={EXTRA_ROOMS_INFO_TEXT}
-                  />
-                  <DetailsQuantityStepper
-                    value={extraRooms}
-                    min={0}
-                    max={6}
-                    ariaLabel="extra rooms"
-                    onChange={onExtraRoomsChange}
-                  />
-                  <FieldError message={stepErrors.extraRooms} />
-                </div>
-                <div className={DETAILS_OPTION_ROW_CELL}>
-                  <EquipmentSupplyStepPanel
-                    value={equipmentSupply}
-                    onChange={onEquipmentSupplyChange}
-                    error={stepErrors.equipmentSupply}
-                  />
-                </div>
-                <div className={DETAILS_OPTION_ROW_CELL}>
-                  <TeamSupportStepPanel
-                    value={requestedTeamSize}
-                    onChange={onRequestedTeamSizeChange}
-                    error={stepErrors.requestedTeamSize}
-                  />
-                </div>
-              </div>
-            ) : null}
-          </>
+            <div className="min-w-0">
+              <span className={DETAILS_STEP_LABEL}>Bathrooms</span>
+              <DetailsQuantityStepper
+                value={bathrooms}
+                min={0}
+                max={20}
+                ariaLabel="bathrooms"
+                onChange={onBathroomsChange}
+              />
+              <FieldError message={stepErrors.bathrooms} />
+            </div>
+          </div>
         ) : (
-          <div className="min-w-0">
+          <div className="min-w-0 sm:max-w-xs">
             <label htmlFor="details-property-sqm" className={DETAILS_STEP_LABEL}>
               Property size (sqm)
             </label>
@@ -178,22 +150,53 @@ export function DetailsStepPanel({
         />
       ) : null}
 
-      <FrequencyStepPanel value={frequency} onChange={onFrequencyChange} error={stepErrors.frequency} />
+      <AddonsStepPanel serviceSlug={serviceSlug} selected={addons} onChange={onAddonsChange} />
 
-      <AddonsStepPanel
-        serviceSlug={serviceSlug}
-        selected={addons}
-        onChange={onAddonsChange}
-      />
+      {isRegular ? (
+        <section className={DETAILS_STEP_SECTION} aria-labelledby="details-supplies-support">
+          <DetailsSectionHeading title="Supplies & support" id="details-supplies-support" />
+          <div className={DETAILS_OPTION_ROW_GRID}>
+            <div className={DETAILS_OPTION_ROW_CELL}>
+              <DetailsLabelWithInfo
+                label="Extra rooms"
+                infoText={EXTRA_ROOMS_INFO_TEXT}
+                visibleHint={EXTRA_ROOMS_VISIBLE_HINT}
+              />
+              <DetailsQuantityStepper
+                value={extraRooms}
+                min={0}
+                max={6}
+                ariaLabel="extra rooms"
+                onChange={onExtraRoomsChange}
+              />
+              <FieldError message={stepErrors.extraRooms} />
+            </div>
+            <div className={DETAILS_OPTION_ROW_CELL}>
+              <EquipmentSupplyStepPanel
+                value={equipmentSupply}
+                onChange={onEquipmentSupplyChange}
+                error={stepErrors.equipmentSupply}
+              />
+            </div>
+            <div className={DETAILS_OPTION_ROW_CELL}>
+              <TeamSupportStepPanel
+                value={requestedTeamSize}
+                onChange={onRequestedTeamSizeChange}
+                error={stepErrors.requestedTeamSize}
+              />
+            </div>
+          </div>
+        </section>
+      ) : null}
 
-      <section className={DETAILS_STEP_SECTION} aria-labelledby="details-special-instructions">
-        <DetailsSectionHeading title="Special instructions" id="details-special-instructions" />
+      <section className={DETAILS_STEP_SECTION} aria-labelledby="details-notes">
+        <DetailsSectionHeading title="Notes" id="details-notes" />
         <textarea
           id="details-special-instructions-input"
-          className={`${inputClass} min-h-[88px] resize-y`}
+          className={`${inputClass} min-h-[4.5rem] resize-y ${WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS}`}
           value={specialInstructions}
           onChange={(e) => onSpecialInstructionsChange(e.target.value)}
-          placeholder="Gate code, pets, focus areas, or anything else we should know."
+          placeholder="Gate code, pets, focus areas, or access instructions."
         />
       </section>
     </div>

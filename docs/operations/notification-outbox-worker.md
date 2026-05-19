@@ -180,7 +180,18 @@ Response (no email addresses):
 
 ### Schedule recommendation
 
-- **Production:** every **2–5 minutes** via Supabase `pg_cron` + `pg_net` (mirror [expire-pending-payments-cron.md](./expire-pending-payments-cron.md))
+- **Production:** every **3 minutes** via Supabase `pg_cron` + `pg_net` (migration `20260619171500_launch_critical_pg_cron_jobs`, job `process-notification-outbox-every-3min`)
+
+Vault (one-time, after migration):
+
+```sql
+select vault.create_secret(
+  'https://YOUR_PRODUCTION_DOMAIN/api/cron/process-notification-outbox',
+  'process_notification_outbox_cron_url',
+  'URL for notification outbox worker HTTP cron'
+);
+-- cron_secret: shared with other crons (must match Vercel CRON_SECRET)
+```
 - **Staging:** manual invoke or same schedule with Resend sandbox domain
 
 ### Manual trigger (local/staging)

@@ -3,6 +3,7 @@ import {
   PAYMENT_FAILED_ASSIGNMENT_NOTE,
   PAYMENT_FAILED_RETRY_GUIDANCE,
   PAYMENT_FAILED_SUPPORT_NOTE,
+  PAYMENT_NOT_CHARGED_REASSURANCE,
   paymentIssuePanelCopy,
   type PaymentFailureReason,
 } from "@/features/bookings/server/paymentFailureDisplay";
@@ -20,6 +21,7 @@ export type PaymentFailedSearchParams = {
 
 export type PaymentFailedPageModel = {
   copy: ReturnType<typeof paymentIssuePanelCopy>;
+  reassurance: string;
   paymentFailureReason: PaymentFailureReason;
   assignmentNote: string;
   retryGuidance: string;
@@ -54,6 +56,7 @@ export function buildPaymentFailedPageModel(
 
   return {
     copy: paymentIssuePanelCopy(paymentFailureReason),
+    reassurance: PAYMENT_NOT_CHARGED_REASSURANCE,
     paymentFailureReason,
     assignmentNote: PAYMENT_FAILED_ASSIGNMENT_NOTE,
     retryGuidance: PAYMENT_FAILED_RETRY_GUIDANCE,

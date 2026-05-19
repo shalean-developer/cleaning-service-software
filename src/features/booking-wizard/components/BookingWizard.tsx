@@ -29,10 +29,13 @@ import { validateWizardStep } from "../validation";
 import {
   getWizardCardClass,
   getWizardNavClass,
+  getWizardNavStickyClassName,
   getWizardShellClass,
+  usesWizardMobileStickyFooter,
+  WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS,
   WIZARD_MAIN_COLUMN_CLASS,
-  WIZARD_MOBILE_STICKY_FOOTER_CLASS,
-  WIZARD_STICKY_FOOTER_INNER_CLASS,
+  WIZARD_PAGE_HEADER_CLASS,
+  WIZARD_STICKY_FOOTER_SUMMARY_SLOT_CLASS,
 } from "../wizardLayout";
 import { WizardStepper } from "./WizardStepper";
 import { WizardNav } from "./WizardNav";
@@ -345,13 +348,7 @@ export function BookingWizard({
     WIZARD_SERVICE_OPTIONS.find((s) => s.slug === state.serviceSlug)?.label ?? "\u2014";
 
   const isServiceStep = state.step === "service";
-  const usesMobileStickyFooter =
-    state.step === "datetime" ||
-    state.step === "location" ||
-    state.step === "details" ||
-    state.step === "cleaner" ||
-    state.step === "review" ||
-    state.step === "checkout";
+  const usesMobileStickyFooter = usesWizardMobileStickyFooter(state.step);
   const showWizardFrequency = ["details", "cleaner", "review", "checkout"].includes(
     state.step,
   );
@@ -373,14 +370,14 @@ export function BookingWizard({
     state.step === "review" && state.quote ? (
       <ReviewMobileCommerceSummary totalCents={state.quote.totalCents} />
     ) : state.step === "checkout" ? (
-      <CheckoutCtaTrustRow className="mb-2 md:hidden" />
+      <CheckoutCtaTrustRow className={WIZARD_STICKY_FOOTER_SUMMARY_SLOT_CLASS} />
     ) : null;
 
   const wizardNavElement = (
     <WizardNav
       className={
-        isServiceStep || usesMobileStickyFooter
-          ? `${WIZARD_MAIN_COLUMN_CLASS} mt-0 md:mt-6`
+        usesMobileStickyFooter
+          ? getWizardNavStickyClassName()
           : [WIZARD_MAIN_COLUMN_CLASS, getWizardNavClass(state.step)].filter(Boolean).join(" ")
       }
       showBack={!isServiceStep}
@@ -409,7 +406,7 @@ export function BookingWizard({
 
   return (
     <div className={getWizardShellClass(state.step)}>
-      <header className={`mb-4 ${WIZARD_MAIN_COLUMN_CLASS}`}>
+      <header className={`${WIZARD_PAGE_HEADER_CLASS} ${WIZARD_MAIN_COLUMN_CLASS}`}>
         <h1 className="text-xl font-semibold text-zinc-900">Book a clean</h1>
         <p className="text-sm text-zinc-600">Shalean Cleaning Services</p>
       </header>
@@ -461,7 +458,7 @@ export function BookingWizard({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 [&>label]:mb-0">
               <Field label="Street address" error={stepErrors.addressLine1}>
                 <input
-                  className={inputClass}
+                  className={`${inputClass} ${WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS}`}
                   value={state.addressLine1}
                   onChange={(e) => patch({ addressLine1: e.target.value })}
                   autoComplete="street-address"
@@ -469,21 +466,21 @@ export function BookingWizard({
               </Field>
               <Field label="Suburb" error={stepErrors.suburb}>
                 <input
-                  className={inputClass}
+                  className={`${inputClass} ${WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS}`}
                   value={state.suburb}
                   onChange={(e) => patch({ suburb: e.target.value })}
                 />
               </Field>
               <Field label="City" error={stepErrors.city}>
                 <input
-                  className={inputClass}
+                  className={`${inputClass} ${WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS}`}
                   value={state.city}
                   onChange={(e) => patch({ city: e.target.value })}
                 />
               </Field>
               <Field label="Mobile number" error={stepErrors.contactPhone}>
                 <input
-                  className={inputClass}
+                  className={`${inputClass} ${WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS}`}
                   type="tel"
                   inputMode="tel"
                   autoComplete="tel"
@@ -495,7 +492,7 @@ export function BookingWizard({
             <div className="mt-4">
               <Field label="Access notes (optional)">
                 <textarea
-                  className={`${inputClass} min-h-[80px]`}
+                  className={`${inputClass} min-h-[80px] ${WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS}`}
                   value={state.locationNotes}
                   onChange={(e) => patch({ locationNotes: e.target.value })}
                 />
@@ -573,7 +570,6 @@ export function BookingWizard({
               </>
             ) : state.quote ? (
               <>
-                {wizardContextStrip}
                 <ReviewStepPanel
                   serviceLabel={serviceLabel}
                   serviceSlug={state.serviceSlug}
@@ -625,11 +621,7 @@ export function BookingWizard({
         ) : null}
       </div>
 
-      {isServiceStep ? (
-        <div className={WIZARD_MOBILE_STICKY_FOOTER_CLASS}>
-          <div className={WIZARD_STICKY_FOOTER_INNER_CLASS}>{wizardNavElement}</div>
-        </div>
-      ) : usesMobileStickyFooter ? (
+      {usesMobileStickyFooter ? (
         <WizardMobileStickyFooter summary={mobileCommerceSummary}>
           {wizardNavElement}
         </WizardMobileStickyFooter>

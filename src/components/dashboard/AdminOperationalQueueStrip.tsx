@@ -6,6 +6,8 @@ type Props = {
   queues: AdminOperationalQueueCountItem[];
   /** Highlights the chip matching the active bookings filter, when present. */
   activeFilter?: AdminBookingFilter;
+  /** Compact mode for assignments page — hides guide copy. */
+  compact?: boolean;
 };
 
 function toneClasses(tone: AdminOperationalQueueCountItem["tone"], active: boolean): string {
@@ -29,14 +31,28 @@ function filterFromHref(href: string): string | null {
   return match?.[1] ?? null;
 }
 
-export function AdminOperationalQueueStrip({ queues, activeFilter }: Props) {
+export function AdminOperationalQueueStrip({
+  queues,
+  activeFilter,
+  compact = false,
+}: Props) {
   return (
-    <section aria-label="Operational queues" className="mb-5">
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Queues</p>
-      <p className="mt-0.5 text-xs text-zinc-500">
-        Exact counts · open a queue to review
-      </p>
-      <div className="-mx-4 mt-2.5 flex gap-2 overflow-x-auto scroll-px-4 px-4 pb-0.5 sm:mx-0 sm:px-0">
+    <section aria-label="Operational queues" className={compact ? "mb-0" : "mb-5"}>
+      {!compact ? (
+        <>
+          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Queues</p>
+          <p className="mt-0.5 text-xs text-zinc-500">
+            Exact counts · open a queue to review
+          </p>
+        </>
+      ) : null}
+      <div
+        className={
+          compact
+            ? "flex flex-wrap gap-2"
+            : "-mx-4 mt-2.5 flex gap-2 overflow-x-auto scroll-px-4 px-4 pb-0.5 sm:mx-0 sm:px-0"
+        }
+      >
         {queues.map((queue) => {
           const queueFilter = filterFromHref(queue.href);
           const active = Boolean(activeFilter && queueFilter === activeFilter);
@@ -45,12 +61,18 @@ export function AdminOperationalQueueStrip({ queues, activeFilter }: Props) {
               key={queue.key}
               href={queue.href}
               aria-current={active ? "true" : undefined}
-              className={`flex min-w-[8.5rem] shrink-0 flex-col rounded-xl border px-2.5 py-2 transition-colors ${toneClasses(queue.tone, active)}`}
+              className={`flex shrink-0 flex-col rounded-lg border px-2 py-1.5 transition-colors ${
+                compact ? "min-w-[7.25rem]" : "min-w-[8.5rem]"
+              } ${toneClasses(queue.tone, active)}`}
             >
-              <span className="text-[11px] font-medium leading-tight [overflow-wrap:anywhere]">
+              <span className="text-[10px] font-medium leading-tight [overflow-wrap:anywhere]">
                 {queue.label}
               </span>
-              <span className="mt-0.5 text-lg font-semibold tabular-nums">{queue.count}</span>
+              <span
+                className={`mt-0.5 font-semibold tabular-nums ${compact ? "text-base" : "text-lg"}`}
+              >
+                {queue.count}
+              </span>
             </Link>
           );
         })}

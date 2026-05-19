@@ -1,5 +1,12 @@
 ﻿import type { ReactNode } from "react";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { CleanerPayDisplay } from "@/components/dashboard/cleaner/CleanerPayDisplay";
+import {
+  CLEANER_BADGE_ROW_CLASS,
+  CLEANER_LIST_CARD_PADDING,
+  CLEANER_META_LINE_CLASS,
+  CLEANER_SERVICE_EYEBROW_CLASS,
+} from "@/features/dashboards/cleanerDashboardDisplay";
 import {
   CLEANER_DETAIL_CARD_CLASS,
   CLEANER_DETAIL_INSET_CLASS,
@@ -29,45 +36,46 @@ export function CleanerJobStatusHero({
 
   return (
     <section className={`${CLEANER_DETAIL_CARD_CLASS} overflow-hidden`}>
-      <div className="border-b border-zinc-100 px-4 py-4 sm:px-5 sm:py-5">
-        <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">{serviceLabel}</p>
-        <div className="mt-2">
+      <div className={`border-b border-zinc-100 ${CLEANER_LIST_CARD_PADDING}`}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className={CLEANER_SERVICE_EYEBROW_CLASS}>{serviceLabel}</p>
+            <p className={CLEANER_META_LINE_CLASS}>
+              <span className="font-medium text-zinc-900">{scheduleLabel}</span>
+              <span className="text-zinc-400"> · </span>
+              <span>{locationSummary}</span>
+            </p>
+          </div>
+          <CleanerPayDisplay
+            earningsLabel={earningsLabel}
+            includeCalculatingHelper
+            className="shrink-0 text-right"
+          />
+        </div>
+        <div className={CLEANER_BADGE_ROW_CLASS}>
           <StatusBadge
             label={labelForCleanerJobStatus(status)}
             tone={hero.tone}
             variant="soft"
           />
         </div>
-
-        <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div>
-            <dt className="text-xs font-medium text-zinc-500">When</dt>
-            <dd className="mt-0.5 text-sm font-medium text-zinc-900">{scheduleLabel}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium text-zinc-500">Where</dt>
-            <dd className="mt-0.5 text-sm font-medium text-zinc-900">{locationSummary}</dd>
-          </div>
-          <div className="sm:col-span-2">
-            <dt className="text-xs font-medium text-zinc-500">Your pay</dt>
-            <dd className="mt-0.5 text-lg font-semibold tabular-nums text-zinc-900">{earningsLabel}</dd>
-          </div>
-        </dl>
       </div>
 
-      <div className={`mx-4 mb-4 px-4 py-3.5 sm:mx-5 sm:mb-5 ${CLEANER_DETAIL_INSET_CLASS}`}>
-        <p className="text-sm leading-relaxed text-zinc-700">{hero.description}</p>
-        {hero.expectedUpdate ? (
-          <p className="mt-2 text-xs text-zinc-500">
-            <span className="font-medium text-zinc-600">Next:</span> {hero.expectedUpdate}
-          </p>
-        ) : null}
-      </div>
+      {hero.expectedUpdate ? (
+        <p
+          className={`mx-3.5 mb-3.5 text-xs text-zinc-600 sm:mx-4 sm:mb-4 ${CLEANER_DETAIL_INSET_CLASS} px-3 py-2`}
+        >
+          <span className="font-medium text-zinc-700">Next:</span> {hero.expectedUpdate}
+        </p>
+      ) : (
+        <p className="mx-3.5 mb-3.5 px-1 text-xs leading-snug text-zinc-600 sm:mx-4 sm:mb-4">
+          {hero.description}
+        </p>
+      )}
 
       {actionSlot ? (
-        <div className="border-t border-zinc-100 px-4 py-4 sm:px-5">{actionSlot}</div>
+        <div className="border-t border-zinc-100 px-3.5 py-3 sm:px-4">{actionSlot}</div>
       ) : null}
     </section>
   );
 }
-

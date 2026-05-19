@@ -6,22 +6,30 @@ import {
 } from "@/features/bookings/server/paymentFailureDisplay";
 import type { StatusBadgeTone } from "@/features/bookings/server/statusLabels";
 import { toneForBookingStatus } from "@/features/bookings/server/statusLabels";
-import { LIFECYCLE_GUIDANCE_PANEL_TITLE } from "@/lib/app/dashboardEcosystemDisplay";
+
+import {
+  UI_CARD_SHELL_CLASS,
+  UI_DETAILS_DISCLOSURE_CLASS,
+  UI_DETAILS_SUMMARY_CLASS,
+} from "@/lib/ui/productUiTokens";
 
 /** Shared card shell for customer booking detail sections (presentation only). */
-export const CUSTOMER_BOOKING_DETAIL_CARD_CLASS =
-  "rounded-2xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]";
+export const CUSTOMER_BOOKING_DETAIL_CARD_CLASS = UI_CARD_SHELL_CLASS;
 
-export const CUSTOMER_BOOKING_DETAIL_INSET_CLASS =
-  "rounded-xl border border-zinc-200 bg-zinc-50/80";
+export const CUSTOMER_BOOKING_DETAIL_DISCLOSURE_CLASS = UI_DETAILS_DISCLOSURE_CLASS;
+
+export const CUSTOMER_BOOKING_DETAIL_DISCLOSURE_SUMMARY_CLASS = UI_DETAILS_SUMMARY_CLASS;
 
 export type CustomerBookingStatusHeroPresentation = {
   statusLabel: string;
-  description: string;
-  expectedUpdate: string | null;
+  /** One short status line; empty when payment panel owns the narrative. */
+  statusLine: string;
+  /** Optional timing hint (e.g. deferred dispatch window). */
+  timingHint: string | null;
   tone: StatusBadgeTone;
   surfaceClass: string;
   ringClass: string;
+  showStatusNarrative: boolean;
 };
 
 const HERO_SURFACE_BY_TONE: Record<StatusBadgeTone, { surface: string; ring: string }> = {
@@ -47,63 +55,64 @@ const HERO_SURFACE_BY_TONE: Record<StatusBadgeTone, { surface: string; ring: str
   },
 };
 
-function heroCopyForStatus(
+function heroNarrativeForStatus(
   status: BookingStatus,
   paymentFailureReason: PaymentFailureReason,
-): Pick<CustomerBookingStatusHeroPresentation, "description" | "expectedUpdate"> {
+): Pick<CustomerBookingStatusHeroPresentation, "statusLine" | "timingHint" | "showStatusNarrative"> {
+  if (status === "payment_failed") {
+    return { statusLine: "", timingHint: null, showStatusNarrative: false };
+  }
+
   switch (status) {
     case "pending_payment":
       return {
-        description: "Complete checkout to confirm your booking and secure your time slot.",
-        expectedUpdate: "As soon as payment is received",
+        statusLine: "Complete checkout to confirm your slot.",
+        timingHint: "As soon as payment is received",
+        showStatusNarrative: true,
       };
     case "confirmed":
       return {
-        description: "Payment is confirmed. We're matching a cleaner to your booking.",
-        expectedUpdate: "Usually within a few minutes",
+        statusLine: "Matching a cleaner to your booking.",
+        timingHint: "Usually within a few minutes",
+        showStatusNarrative: true,
       };
     case "pending_assignment":
       return {
-        description: "We're finding the best available cleaner for your schedule.",
-        expectedUpdate: "Within 15–60 minutes",
+        statusLine: "Finding a cleaner for your schedule.",
+        timingHint: "Within 15–60 minutes",
+        showStatusNarrative: true,
       };
     case "assigned":
       return {
-        description: "Your cleaner is confirmed. Details will appear here when available.",
-        expectedUpdate: "Before your scheduled clean",
+        statusLine: "Your cleaner is confirmed.",
+        timingHint: "Before your scheduled clean",
+        showStatusNarrative: true,
       };
     case "in_progress":
       return {
-        description: "Your clean is in progress. This page updates as milestones complete.",
-        expectedUpdate: "During your scheduled window",
+        statusLine: "Your clean is in progress.",
+        timingHint: "During your scheduled window",
+        showStatusNarrative: true,
       };
     case "completed":
     case "payout_ready":
     case "paid_out":
       return {
-        description: "This booking is complete. Thank you for choosing us.",
-        expectedUpdate: null,
-      };
-    case "payment_failed":
-      if (paymentFailureReason === "checkout_expired") {
-        return {
-          description: "Your checkout session expired before payment was completed.",
-          expectedUpdate: "Retry payment when available",
-        };
-      }
-      return {
-        description: "Payment has not been confirmed for this booking yet.",
-        expectedUpdate: "Retry payment when available",
+        statusLine: "Booking complete. Thank you for choosing us.",
+        timingHint: null,
+        showStatusNarrative: true,
       };
     case "cancelled":
       return {
-        description: "This booking was cancelled and is no longer active.",
-        expectedUpdate: null,
+        statusLine: "This booking was cancelled.",
+        timingHint: null,
+        showStatusNarrative: true,
       };
     default:
       return {
-        description: "We're tracking your booking and will update this page as things progress.",
-        expectedUpdate: null,
+        statusLine: "We'll update this page as your booking progresses.",
+        timingHint: null,
+        showStatusNarrative: true,
       };
   }
 }
@@ -117,16 +126,17 @@ export function customerBookingStatusHero(
   const tone =
     status === "payment_failed" ? "warning" : toneForBookingStatus(status);
   const surfaces = HERO_SURFACE_BY_TONE[tone];
-  const copy = heroCopyForStatus(status, paymentFailureReason);
+  const narrative = heroNarrativeForStatus(status, paymentFailureReason);
   const deferredMessage = options?.deferredAssignmentMessage?.trim();
 
   return {
     statusLabel: labelForCustomerBookingStatus(status, paymentFailureReason),
-    description: deferredMessage ?? copy.description,
-    expectedUpdate: deferredMessage ? "Closer to your service date" : copy.expectedUpdate,
+    statusLine: deferredMessage ?? narrative.statusLine,
+    timingHint: deferredMessage ? "Closer to your service date" : narrative.timingHint,
     tone,
     surfaceClass: surfaces.surface,
     ringClass: surfaces.ring,
+    showStatusNarrative: narrative.showStatusNarrative || Boolean(deferredMessage),
   };
 }
 
@@ -135,9 +145,11 @@ export type CustomerBookingNextStep = {
   body: string;
 };
 
-export type CustomerBookingWhatHappensNextPresentation = {
-  title: string;
-  steps: readonly CustomerBookingNextStep[];
+/** Compact, status-aware guidance (1–2 lines + optional collapsible detail). */
+export type CustomerBookingCompactGuidance = {
+  primary: string;
+  secondary?: string | null;
+  detailSteps?: readonly CustomerBookingNextStep[];
 };
 
 const EMAIL_UPDATES_STEP: CustomerBookingNextStep = {
@@ -145,109 +157,87 @@ const EMAIL_UPDATES_STEP: CustomerBookingNextStep = {
   body: "We'll email you confirmation and any changes to your booking.",
 };
 
-/** Static reassurance steps keyed by booking status (informational UI only). */
-export function customerBookingWhatHappensNext(
+/** Returns null when hero or payment panel already owns the explanation. */
+export function customerBookingCompactGuidance(
   status: BookingStatus,
-): CustomerBookingWhatHappensNextPresentation | null {
+  options?: { deferredAssignmentMessage?: string | null },
+): CustomerBookingCompactGuidance | null {
+  if (status === "payment_failed" || status === "cancelled") return null;
+  if (
+    options?.deferredAssignmentMessage?.trim() &&
+    (status === "confirmed" ||
+      status === "pending_assignment" ||
+      status === "assigned")
+  ) {
+    return null;
+  }
+
   switch (status) {
     case "pending_payment":
       return {
-        title: LIFECYCLE_GUIDANCE_PANEL_TITLE,
-        steps: [
-          {
-            title: "Secure checkout",
-            body: "Complete payment on Paystack to confirm your booking.",
-          },
-          {
-            title: "Payment confirmed",
-            body: "We record your booking as soon as payment succeeds.",
-          },
-          {
-            title: "Cleaner assignment",
-            body: "We match an eligible cleaner to your schedule.",
-          },
-          EMAIL_UPDATES_STEP,
-        ],
+        primary: "Pay via secure checkout to confirm your booking.",
+        secondary: "We assign a cleaner after payment succeeds.",
       };
     case "confirmed":
       return {
-        title: LIFECYCLE_GUIDANCE_PANEL_TITLE,
-        steps: [
-          {
-            title: "Payment confirmed",
-            body: "Your payment is on file and your booking is active.",
-          },
-          {
-            title: "Cleaner assignment",
-            body: "We're notifying available cleaners in your area.",
-          },
-          {
-            title: "Updates on this page",
-            body: "You'll see assignment progress and details here.",
-          },
-          EMAIL_UPDATES_STEP,
-        ],
+        primary: "We'll match a cleaner and email you when assigned.",
+        detailSteps: [EMAIL_UPDATES_STEP],
       };
     case "pending_assignment":
       return {
-        title: LIFECYCLE_GUIDANCE_PANEL_TITLE,
-        steps: [
-          {
-            title: "Payment confirmed",
-            body: "Your booking is paid and ready for assignment.",
-          },
-          {
-            title: "Cleaner assignment",
-            body: "We're matching a cleaner to your schedule and preferences.",
-          },
-          {
-            title: "Updates on this page",
-            body: "Status changes appear in your timeline below.",
-          },
-          EMAIL_UPDATES_STEP,
-        ],
+        primary: "We're matching a cleaner to your schedule and preferences.",
+        secondary: "Status updates appear in Activity below.",
+        detailSteps: [EMAIL_UPDATES_STEP],
       };
     case "assigned":
       return {
-        title: LIFECYCLE_GUIDANCE_PANEL_TITLE,
-        steps: [
-          {
-            title: "Cleaner confirmed",
-            body: "Your cleaner is assigned for this booking.",
-          },
-          {
-            title: "Updates on this page",
-            body: "Check here on the day of your clean for any changes.",
-          },
-          {
-            title: "Scheduled service",
-            body: "Cleaning starts at your booked date and time.",
-          },
-          EMAIL_UPDATES_STEP,
-        ],
+        primary: "Check this page on the day of your clean for any changes.",
+        detailSteps: [EMAIL_UPDATES_STEP],
       };
     case "in_progress":
       return {
-        title: LIFECYCLE_GUIDANCE_PANEL_TITLE,
-        steps: [
-          {
-            title: "Clean in progress",
-            body: "Your cleaner is working during your scheduled window.",
-          },
-          {
-            title: "Updates on this page",
-            body: "We'll mark milestones in your timeline as they complete.",
-          },
-          {
-            title: "Completion",
-            body: "You'll see the final status here when the clean is done.",
-          },
-          EMAIL_UPDATES_STEP,
-        ],
+        primary: "We'll mark milestones in Activity as your clean progresses.",
+        detailSteps: [EMAIL_UPDATES_STEP],
       };
     default:
       return null;
   }
+}
+
+/** @deprecated Use {@link customerBookingCompactGuidance}; kept for tests migrating from 4-step panels. */
+export type CustomerBookingWhatHappensNextPresentation = CustomerBookingCompactGuidance & {
+  title: string;
+  steps: readonly CustomerBookingNextStep[];
+};
+
+/** @deprecated Use {@link customerBookingCompactGuidance}. */
+export function customerBookingWhatHappensNext(
+  status: BookingStatus,
+  options?: { deferredAssignmentMessage?: string | null },
+): CustomerBookingWhatHappensNextPresentation | null {
+  const compact = customerBookingCompactGuidance(status, options);
+  if (!compact) return null;
+  const steps = compact.detailSteps ?? [];
+  if (steps.length === 0 && !compact.secondary) return null;
+  return {
+    ...compact,
+    title: "More about your booking",
+    steps: compact.secondary
+      ? [{ title: "Next", body: compact.secondary }, ...steps]
+      : steps,
+  };
+}
+
+/** Avoid repeating assignment callouts already shown in the hero. */
+export function shouldSuppressAssignmentCalloutInDetails(input: {
+  deferredAssignmentMessage?: string | null;
+  assignmentCustomerMessage?: string | null;
+}): boolean {
+  const deferred = input.deferredAssignmentMessage?.trim();
+  if (deferred) return true;
+  const assignment = input.assignmentCustomerMessage?.trim();
+  if (!assignment) return false;
+  return false;
 }
 
 export function customerBookingAmountLabel(
@@ -267,5 +257,14 @@ export function shouldShowPaymentStatusChip(
   status: BookingStatus,
   paymentStatus: PaymentStatus | null,
 ): boolean {
-  return status !== "payment_failed" && paymentStatus !== null;
+  if (status === "payment_failed" || !paymentStatus) return false;
+  if (paymentStatus !== "paid") return true;
+  return (
+    status !== "confirmed" &&
+    status !== "assigned" &&
+    status !== "in_progress" &&
+    status !== "completed" &&
+    status !== "payout_ready" &&
+    status !== "paid_out"
+  );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import type { EquipmentSupply } from "@/features/pricing/server/types";
+import { equipmentSupplyVisibleHint } from "../detailsStepHints";
 import { BRING_EQUIPMENT_INFO_TEXT, DETAILS_TOGGLE_CONTROL } from "../detailsStepUi";
 import { DetailsLabelWithInfo } from "./DetailsFieldInfo";
 import { DetailsToggleSwitch } from "./DetailsToggleSwitch";
@@ -20,6 +21,7 @@ export function EquipmentSupplyStepPanel({ value, onChange, error }: Props) {
         id="equipment-supply-step-label"
         label="Cleaning equipment"
         infoText={BRING_EQUIPMENT_INFO_TEXT}
+        visibleHint={equipmentSupplyVisibleHint(value)}
       />
 
       <div

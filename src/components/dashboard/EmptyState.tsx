@@ -1,3 +1,10 @@
+import {
+  UI_EMPTY_STATE_ACTIONS_CLASS,
+  UI_EMPTY_STATE_DESCRIPTION_CLASS,
+  UI_EMPTY_STATE_SHELL_CLASS,
+  UI_EMPTY_STATE_TITLE_CLASS,
+} from "@/lib/ui/productUiTokens";
+
 type Props = {
   title: string;
   description?: string;
@@ -6,12 +13,10 @@ type Props = {
 
 export function EmptyState({ title, description, action }: Props) {
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white px-6 py-10 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-      <h2 className="text-base font-medium text-zinc-900">{title}</h2>
-      {description ? (
-        <p className="mt-2 text-sm leading-relaxed text-zinc-600">{description}</p>
-      ) : null}
-      {action ? <section className="mt-6 flex justify-center">{action}</section> : null}
+    <section className={UI_EMPTY_STATE_SHELL_CLASS}>
+      <h2 className={UI_EMPTY_STATE_TITLE_CLASS}>{title}</h2>
+      {description ? <p className={UI_EMPTY_STATE_DESCRIPTION_CLASS}>{description}</p> : null}
+      {action ? <section className={UI_EMPTY_STATE_ACTIONS_CLASS}>{action}</section> : null}
     </section>
   );
 }

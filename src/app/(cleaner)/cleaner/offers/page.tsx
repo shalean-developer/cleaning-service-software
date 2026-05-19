@@ -23,7 +23,7 @@ export default async function CleanerOffersPage() {
   return (
     <DashboardShell
       title="Job offers"
-      subtitle="Review when, where, and pay — then accept or decline."
+      subtitle="When, where, pay — accept or decline."
       nav={[...CLEANER_NAV_ITEMS]}
     >
       {!result.ok ? (

@@ -115,7 +115,7 @@ Batch recovery (cron/script) remains the right tool for many bookings at once.
 
 - Does not change decline/expiry redispatch policy (`attention_required` without offer still blocks engine retry).
 - Batch cap 50 per run; large backlogs need repeated cron/script runs.
-- No pg_cron migration bundled — schedule HTTP cron in Supabase/Vercel when ready (same pattern as [expire-assignment-offers-cron.md](./expire-assignment-offers-cron.md)).
+- **pg_cron:** migration `20260619171500_launch_critical_pg_cron_jobs` registers `recover-assignment-after-payment-quarter-hourly` (`*/15 * * * *`). Vault secret: `recover_assignment_after_payment_cron_url` (full HTTPS URL) + shared `cron_secret`.
 - E2E orphan repair (`repairOrphanedAssignments`) remains separate (pending_assignment without offers, E2E customers only).
 
 ## Related

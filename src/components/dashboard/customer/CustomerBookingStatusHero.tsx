@@ -4,7 +4,6 @@ import {
   customerBookingAmountLabel,
   customerBookingStatusHero,
   CUSTOMER_BOOKING_DETAIL_CARD_CLASS,
-  CUSTOMER_BOOKING_DETAIL_INSET_CLASS,
   shouldShowPaymentStatusChip,
 } from "@/features/dashboards/customerBookingDetailDisplay";
 import {
@@ -28,6 +27,8 @@ type Props = {
   paymentStatus: PaymentStatus | null;
   paymentFailureReason: PaymentFailureReason;
   deferredAssignmentMessage?: string | null;
+  assignedCleanerLabel?: string | null;
+  teamSupportLabel?: string | null;
 };
 
 export function CustomerBookingStatusHero({
@@ -40,6 +41,8 @@ export function CustomerBookingStatusHero({
   paymentStatus,
   paymentFailureReason,
   deferredAssignmentMessage,
+  assignedCleanerLabel,
+  teamSupportLabel,
 }: Props) {
   const hero = customerBookingStatusHero(status, paymentFailureReason, {
     deferredAssignmentMessage,
@@ -49,56 +52,53 @@ export function CustomerBookingStatusHero({
   const amountFormatted = formatZar(priceCents, currency);
 
   return (
-    <section className={`${CUSTOMER_BOOKING_DETAIL_CARD_CLASS} overflow-hidden`}>
-      <div className="border-b border-zinc-100 px-4 py-4 sm:px-5 sm:py-5">
-        <p className="break-words text-xs font-semibold uppercase tracking-wide text-sky-800">
-          {serviceLabel}
-        </p>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+    <section className={`${CUSTOMER_BOOKING_DETAIL_CARD_CLASS} px-4 py-3.5 sm:px-5 sm:py-4`}>
+      <h1 className="break-words text-lg font-semibold tracking-tight text-zinc-900 sm:text-xl">
+        {serviceLabel}
+      </h1>
+
+      <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
+        <StatusBadge
+          label={labelForCustomerBookingStatus(status, paymentFailureReason)}
+          tone={hero.tone}
+          variant="soft"
+        />
+        {showPaymentChip ? (
           <StatusBadge
-            label={labelForCustomerBookingStatus(status, paymentFailureReason)}
-            tone={hero.tone}
+            label={labelForPaymentStatus(paymentStatus)}
+            tone={toneForPaymentStatus(paymentStatus)}
             variant="soft"
           />
-          {showPaymentChip ? (
-            <StatusBadge
-              label={labelForPaymentStatus(paymentStatus)}
-              tone={toneForPaymentStatus(paymentStatus)}
-              variant="soft"
-            />
-          ) : null}
-        </div>
-
-        <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div>
-            <dt className="text-xs font-medium text-zinc-500">When</dt>
-            <dd className="mt-0.5 text-sm font-medium text-zinc-900">{scheduleLabel}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium text-zinc-500">Where</dt>
-            <dd className="mt-0.5 break-words text-sm font-medium text-zinc-900">
-              {locationSummary}
-            </dd>
-          </div>
-          <div className="sm:col-span-2">
-            <dt className="text-xs font-medium text-zinc-500">{amountLabel}</dt>
-            <dd className="mt-0.5 text-lg font-semibold tabular-nums text-zinc-900">
-              {amountFormatted}
-            </dd>
-          </div>
-        </dl>
-      </div>
-
-      <div className={`mx-4 mb-4 px-4 py-3.5 sm:mx-5 sm:mb-5 sm:px-4 ${CUSTOMER_BOOKING_DETAIL_INSET_CLASS}`}>
-        <p className="text-sm leading-relaxed text-zinc-700">{hero.description}</p>
-        {hero.expectedUpdate ? (
-          <p className="mt-2 text-xs text-zinc-500">
-            <span className="font-medium text-zinc-600">Expected update:</span>{" "}
-            {hero.expectedUpdate}
-          </p>
         ) : null}
+        <span className="ml-auto text-sm font-semibold tabular-nums text-zinc-900 sm:ml-0 sm:w-full sm:text-right">
+          <span className="sr-only">{amountLabel}</span>
+          {amountFormatted}
+        </span>
       </div>
+
+      <p className="mt-2 text-sm text-zinc-600">
+        <span className="font-medium text-zinc-800">{scheduleLabel}</span>
+        <span className="mx-1.5 text-zinc-300" aria-hidden>
+          ·
+        </span>
+        <span className="break-words">{locationSummary}</span>
+      </p>
+
+      {assignedCleanerLabel ? (
+        <p className="mt-1.5 text-sm font-medium text-emerald-800">{assignedCleanerLabel}</p>
+      ) : null}
+
+      {teamSupportLabel ? (
+        <p className="mt-1 text-sm text-sky-900/90">{teamSupportLabel}</p>
+      ) : null}
+
+      {hero.showStatusNarrative && hero.statusLine ? (
+        <p className="mt-2 text-sm leading-snug text-zinc-700">{hero.statusLine}</p>
+      ) : null}
+
+      {hero.showStatusNarrative && hero.timingHint ? (
+        <p className="mt-1 text-xs text-zinc-500">{hero.timingHint}</p>
+      ) : null}
     </section>
   );
 }
-

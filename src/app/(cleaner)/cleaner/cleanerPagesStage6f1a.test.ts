@@ -35,9 +35,9 @@ describe("cleaner pages Stage 6F-1a wiring", () => {
     );
   });
 
-  it("keeps payout-specific labels on earnings page", () => {
+  it("keeps payout-specific presentation on earnings page", () => {
     const earnings = readPage("src/app/(cleaner)/cleaner/earnings/page.tsx");
-    expect(earnings).toContain("labelForPayoutStatus");
+    expect(earnings).toContain("CleanerEarningsListCard");
     expect(earnings).not.toContain("labelForCleanerJobStatus");
   });
 });

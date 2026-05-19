@@ -8,6 +8,8 @@ import {
   normalizePaymentFailureReasonParam,
   PAYSTACK_DECLINED_FAILURE_REASON,
   paymentIssuePanelCopy,
+  paymentIssuePanelReassurance,
+  PAYMENT_NOT_CHARGED_REASSURANCE,
   resolvePaymentFailureReason,
   showsPrePaymentAssignmentExpectation,
 } from "./paymentFailureDisplay";
@@ -26,8 +28,13 @@ describe("paymentFailureDisplay", () => {
   });
 
   it("uses generic payment_failed label without failure_reason", () => {
-    expect(labelForCustomerBookingStatus("payment_failed", null)).toBe("Payment failed");
-    expect(paymentIssuePanelCopy(null).body).toContain("have not received");
+    expect(labelForCustomerBookingStatus("payment_failed", null)).toBe("Payment not completed");
+    expect(paymentIssuePanelCopy(null).body).toContain("could not confirm payment");
+  });
+
+  it("provides reassurance copy for retry-eligible and ineligible paths", () => {
+    expect(paymentIssuePanelReassurance(true)).toBe(PAYMENT_NOT_CHARGED_REASSURANCE);
+    expect(paymentIssuePanelReassurance(false)).toContain("Please start a new booking or contact support");
   });
 
   it("uses paystack_declined copy in payment issue panel", () => {
@@ -49,10 +56,10 @@ describe("paymentFailureDisplay", () => {
   it("uses checkout expired copy when metadata has failure_reason", () => {
     expect(
       labelForCustomerBookingStatus("payment_failed", CHECKOUT_EXPIRED_FAILURE_REASON),
-    ).toBe("Checkout expired");
+    ).toBe("Checkout not completed");
     expect(
       paymentIssuePanelCopy(CHECKOUT_EXPIRED_FAILURE_REASON).body,
-    ).toContain("checkout session ended");
+    ).toContain("checkout timed out");
     expect(labelForAdminPaymentFailureAttention(CHECKOUT_EXPIRED_FAILURE_REASON)).toBe(
       "Checkout expired",
     );

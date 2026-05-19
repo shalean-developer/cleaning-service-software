@@ -26,6 +26,7 @@ export function PaymentFailedPageContent({ model }: Props) {
               {model.copy.title}
             </h1>
             <p className="text-sm leading-relaxed text-zinc-600">{model.copy.body}</p>
+            <p className="text-sm leading-relaxed text-zinc-700">{model.reassurance}</p>
           </div>
 
           <section
@@ -57,7 +58,7 @@ export function PaymentFailedPageContent({ model }: Props) {
                   href={model.bookingDetailHref}
                   className="rounded-xl bg-zinc-900 px-4 py-3.5 text-center text-sm font-semibold text-white shadow-[0_2px_10px_rgba(24,24,27,0.18)] hover:bg-zinc-800"
                 >
-                  View booking to retry payment
+                  Open booking to complete payment
                 </Link>
                 <Link
                   href="/customer/bookings"

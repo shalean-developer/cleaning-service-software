@@ -6,7 +6,6 @@ describe("CustomerBookingDetailsCard", () => {
   it("renders service details and payment summary", () => {
     const html = renderToStaticMarkup(
       <CustomerBookingDetailsCard
-        serviceLabel="Regular Cleaning"
         homeSizeSummary="2 bedrooms · 1 bathroom"
         cleaningIntensityLabel="Standard"
         equipmentSupplyLabel="Customer supplies"
@@ -33,10 +32,9 @@ describe("CustomerBookingDetailsCard", () => {
       />,
     );
 
-    expect(html).toContain("Booking details");
-    expect(html).toContain("Regular Cleaning");
     expect(html).toContain("Every week");
     expect(html).toContain("Payment summary");
     expect(html).toContain("Ring the bell");
+    expect(html).not.toContain("Booking details");
   });
 });

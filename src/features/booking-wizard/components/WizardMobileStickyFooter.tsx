@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import {
   WIZARD_MAIN_COLUMN_CLASS,
   WIZARD_MOBILE_STICKY_FOOTER_CLASS,
+  WIZARD_NAV_IN_STICKY_FOOTER_CLASS,
   WIZARD_STICKY_FOOTER_INNER_CLASS,
 } from "../wizardLayout";
 
@@ -17,7 +18,7 @@ export function WizardMobileStickyFooter({ summary, children }: Props) {
       <div className={WIZARD_STICKY_FOOTER_INNER_CLASS}>
         <div className={WIZARD_MAIN_COLUMN_CLASS}>
           {summary}
-          <div className="mt-0 md:mt-6">{children}</div>
+          <div className={WIZARD_NAV_IN_STICKY_FOOTER_CLASS}>{children}</div>
         </div>
       </div>
     </div>

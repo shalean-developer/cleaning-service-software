@@ -51,22 +51,25 @@ describe("ReviewStepPanel", () => {
 
     expect(html).toContain("Review");
     expect(html).not.toContain("Review your booking");
-    expect(html).toContain("Service &amp; schedule");
+    expect(html).toContain("Booking details");
+    expect(html).toContain("Service options");
     expect(html).toContain("Property details");
     expect(html).toContain("Location &amp; contact");
     expect(html).toContain("Cleaner preference");
     expect(html).toContain("Price breakdown");
-    expect(html).toContain("Beds / baths");
     expect(html).toContain("2 beds");
     expect(html).toContain("Recurring");
-    expect(html).toContain("every week");
+    expect(html).toContain("Repeats weekly");
+    expect(html).toContain("secure Paystack checkout");
     expect(html).not.toMatch(/Property details[\s\S]*Frequency/);
     expect(html).toContain("Laundry");
     expect(html).toContain("Extra rooms");
     expect(html).toContain("2 extra rooms");
     expect(html).toContain("Street address");
     expect(html).toContain("Edit");
-    expect(html).toContain("ready to continue to secure payment");
+    expect(html).toContain("ready for secure payment");
+    expect(html).toContain("break-words");
+    expect(html).toContain("min-h-11");
   });
 
   it("shows no add-ons message and access notes when provided", () => {
@@ -169,8 +172,7 @@ describe("ReviewStepPanel", () => {
 
     expect(html).toContain("Team support");
     expect(html).toContain("Request team support");
-    expect(html).toContain("confirm team availability after payment");
-    expect(html).toContain("faster clean when available");
     expect(html).toContain("Team support request");
+    expect(html).not.toContain("confirm team availability after payment");
   });
 });

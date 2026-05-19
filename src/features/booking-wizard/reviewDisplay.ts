@@ -154,6 +154,11 @@ export function getTeamSupportExplanation(requestedTeamSize: 1 | 2): string | nu
   return "We'll confirm team availability after payment. Helps us plan a faster clean when available.";
 }
 
+/** One-line review reassurance before checkout (display only). */
+export function getReviewNextStepsNote(): string {
+  return "Next: secure Paystack checkout, then we assign a cleaner to your booking.";
+}
+
 /** Neutral cleaner-facing note — not a team/dual-assignment label. */
 export function getTeamSupportCleanerNote(requestedTeamSize: 1 | 2): string | null {
   if (requestedTeamSize !== 2) return null;

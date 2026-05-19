@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+import { WIZARD_STICKY_FOOTER_SUMMARY_SLOT_CLASS } from "../wizardLayout";
 import {
   CheckoutMobileCommerceSummary,
   ReviewMobileCommerceSummary,
@@ -11,8 +12,8 @@ describe("WizardMobileCommerceSummary", () => {
       <ReviewMobileCommerceSummary totalCents={53_100} />,
     );
 
-    expect(html).toContain("Review your booking");
-    expect(html).toContain("md:hidden");
+    expect(html).toContain("Total");
+    expect(html).toContain(WIZARD_STICKY_FOOTER_SUMMARY_SLOT_CLASS);
     expect(html).toMatch(/R[\s\u00a0]531[,.]00/);
   });
 
@@ -22,6 +23,6 @@ describe("WizardMobileCommerceSummary", () => {
     );
 
     expect(html).toContain("Amount due today");
-    expect(html).toContain("md:hidden");
+    expect(html).toContain(WIZARD_STICKY_FOOTER_SUMMARY_SLOT_CLASS);
   });
 });

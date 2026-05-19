@@ -7,14 +7,20 @@ import {
 
 type Props = {
   diagnostics: DeferredAssignmentDiagnostics;
+  embedded?: boolean;
 };
 
-export function AdminDeferredAssignmentDiagnosticsPanel({ diagnostics }: Props) {
+export function AdminDeferredAssignmentDiagnosticsPanel({
+  diagnostics,
+  embedded = false,
+}: Props) {
   const last = diagnostics.lastCronRun;
 
-  return (
-    <section className={`${ADMIN_DETAIL_CARD_CLASS} p-4 sm:p-5`}>
-      <h2 className={ADMIN_SECTION_TITLE_CLASS}>Deferred assignment diagnostics</h2>
+  const body = (
+    <>
+      {!embedded ? (
+        <h2 className={ADMIN_SECTION_TITLE_CLASS}>Deferred assignment diagnostics</h2>
+      ) : null}
       <p className={ADMIN_SECTION_MUTED_CLASS}>
         Feature flag: {diagnostics.deferredAssignmentEnabled ? "enabled" : "disabled"} (env{" "}
         <code className="text-xs">DEFERRED_ASSIGNMENT_ENABLED</code>)
@@ -74,6 +80,12 @@ export function AdminDeferredAssignmentDiagnosticsPanel({ diagnostics }: Props) 
       ) : (
         <p className="mt-3 text-xs text-zinc-500">No deferred dispatch cron runs recorded yet.</p>
       )}
-    </section>
+    </>
   );
+
+  if (embedded) {
+    return <div>{body}</div>;
+  }
+
+  return <section className={`${ADMIN_DETAIL_CARD_CLASS} p-4 sm:p-5`}>{body}</section>;
 }

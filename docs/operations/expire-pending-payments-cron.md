@@ -17,6 +17,26 @@ Bookings stuck in `pending_payment` after an abandoned Paystack checkout are mov
 
 Vault secrets for Supabase-scheduled HTTP calls should mirror assignment offer cron: a full HTTPS URL and a `cron_secret` matching `CRON_SECRET`.
 
+## One-time Vault setup (after migration `20260619171500_launch_critical_pg_cron_jobs`)
+
+```sql
+select vault.create_secret(
+  'https://YOUR_PRODUCTION_DOMAIN/api/cron/expire-pending-payments',
+  'expire_pending_payments_cron_url',
+  'URL for hourly expire pending payments HTTP cron'
+);
+-- cron_secret: reuse existing Vault secret (must match Vercel CRON_SECRET)
+```
+
+**pg_cron job:** `expire-pending-payments-hourly` at `0 * * * *` (hourly UTC).
+
+Verify:
+
+```sql
+select jobid, jobname, schedule, active from cron.job where jobname = 'expire-pending-payments-hourly';
+select public.invoke_expire_pending_payments_http();
+```
+
 ## Expiry rules
 
 | Case | Stale when |

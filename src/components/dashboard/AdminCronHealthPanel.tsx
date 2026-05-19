@@ -9,7 +9,28 @@ type Props = {
   generatedAt: string;
   cronSecretConfigured: boolean;
   jobs: CronJobHealthSnapshot[];
+  /** Omit outer card when nested in AdminDetailSection. */
+  embedded?: boolean;
 };
+
+export function AdminCronHealthCriticalBanner({ jobs }: { jobs: CronJobHealthSnapshot[] }) {
+  if (jobs.length === 0) return null;
+  return (
+    <section
+      className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-950"
+      role="alert"
+    >
+      <p className="font-semibold">Critical cron jobs need attention</p>
+      <ul className="mt-1.5 space-y-0.5 text-xs">
+        {jobs.map((job) => (
+          <li key={job.id}>
+            <span className="font-medium">{job.name}</span> — {job.statusMessage}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
 
 function statusBadgeClass(level: CronHealthLevel): string {
   switch (level) {
@@ -37,10 +58,17 @@ function statusLabel(level: CronHealthLevel): string {
   }
 }
 
-export function AdminCronHealthPanel({ generatedAt, cronSecretConfigured, jobs }: Props) {
-  return (
-    <section className={`${ADMIN_DETAIL_CARD_CLASS} p-4 sm:p-5`}>
-      <h2 className={ADMIN_SECTION_TITLE_CLASS}>Background job health</h2>
+export function AdminCronHealthPanel({
+  generatedAt,
+  cronSecretConfigured,
+  jobs,
+  embedded = false,
+}: Props) {
+  const body = (
+    <>
+      {!embedded ? (
+        <h2 className={ADMIN_SECTION_TITLE_CLASS}>Background job health</h2>
+      ) : null}
       <p className={ADMIN_SECTION_MUTED_CLASS}>
         Launch-critical cron visibility (read-only). Generated{" "}
         {new Date(generatedAt).toLocaleString("en-ZA")}. CRON_SECRET on app:{" "}
@@ -115,6 +143,12 @@ export function AdminCronHealthPanel({ generatedAt, cronSecretConfigured, jobs }
           </li>
         ))}
       </ul>
-    </section>
+    </>
   );
+
+  if (embedded) {
+    return <div>{body}</div>;
+  }
+
+  return <section className={`${ADMIN_DETAIL_CARD_CLASS} p-4 sm:p-5`}>{body}</section>;
 }

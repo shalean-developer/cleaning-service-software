@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getRecurringPaymentExplanation,
   getRecurringScheduleExplanation,
+  getRecurringScheduleReviewNote,
   isRecurringFrequency,
 } from "./recurringDisplay";
 
@@ -14,6 +15,11 @@ describe("recurringDisplay", () => {
   it("returns schedule explanations for recurring plans", () => {
     expect(getRecurringScheduleExplanation("weekly")).toContain("every week");
     expect(getRecurringScheduleExplanation("once")).toBeNull();
+  });
+
+  it("returns shorter review-step schedule notes", () => {
+    expect(getRecurringScheduleReviewNote("weekly")).toBe("Repeats weekly on this day and time.");
+    expect(getRecurringScheduleReviewNote("once")).toBeNull();
   });
 
   it("returns payment explanation only for recurring plans", () => {

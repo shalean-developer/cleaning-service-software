@@ -8,28 +8,28 @@ type Props = {
 export function CleanerTeamJobSection({ team }: Props) {
   if (!team.isTeamJob && !team.viewerRoleLabel) return null;
 
+  const rosterParts = [
+    team.viewerRoleLabel ? `Your role: ${team.viewerRoleLabel}` : null,
+    team.leadCleanerName ? `Lead: ${team.leadCleanerName}` : null,
+    team.supportCleanerNames.length > 0
+      ? `Support: ${team.supportCleanerNames.join(", ")}`
+      : null,
+  ].filter(Boolean);
+
   return (
-    <section className={`${CLEANER_DETAIL_INSET_CLASS} p-4`}>
+    <section className={`${CLEANER_DETAIL_INSET_CLASS} px-3.5 py-3 sm:px-4`}>
       <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">Team job</h3>
-      {team.viewerRoleLabel ? (
-        <p className="mt-2 text-sm font-medium text-zinc-900">Your role: {team.viewerRoleLabel}</p>
-      ) : null}
-      {team.leadCleanerName ? (
-        <p className="mt-1.5 text-sm text-zinc-700">Lead: {team.leadCleanerName}</p>
-      ) : null}
-      {team.supportCleanerNames.length > 0 ? (
-        <p className="mt-1 text-sm text-zinc-700">
-          Support: {team.supportCleanerNames.join(", ")}
-        </p>
+      {rosterParts.length > 0 ? (
+        <p className="mt-1.5 text-sm leading-snug text-zinc-800">{rosterParts.join(" · ")}</p>
       ) : null}
       {team.fasterCompletionRequested ? (
-        <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-          Customer requested faster completion with an additional cleaner.
+        <p className="mt-1.5 text-xs leading-snug text-zinc-600">
+          Customer requested faster completion with an extra cleaner.
         </p>
       ) : null}
       {team.viewerRole === "support" && !team.canCompleteJob ? (
-        <p className="mt-2 text-sm leading-relaxed text-zinc-500">
-          The lead cleaner marks this job complete. You can review details here until then.
+        <p className="mt-1.5 text-xs leading-snug text-zinc-500">
+          Lead cleaner marks this job complete.
         </p>
       ) : null}
     </section>

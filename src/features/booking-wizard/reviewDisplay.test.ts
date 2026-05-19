@@ -14,12 +14,18 @@ import {
   getTeamSupportCleanerNote,
   getTeamSupportCustomerDashboardLabel,
   getTeamSupportCustomerLabel,
+  getReviewNextStepsNote,
   getTeamSupportExplanation,
   getTeamSupportReviewSummaryLabel,
   TEAM_SUPPORT_LINE_ITEM_LABEL,
 } from "./reviewDisplay";
 
 describe("reviewDisplay", () => {
+  it("formats review next-steps reassurance", () => {
+    expect(getReviewNextStepsNote()).toMatch(/Paystack/);
+    expect(getReviewNextStepsNote()).toMatch(/assign a cleaner/);
+  });
+
   it("formats frequency labels from step options", () => {
     expect(getFrequencyLabel("weekly")).toBe("Weekly");
     expect(getFrequencyLabel("once")).toBe("Once-off");

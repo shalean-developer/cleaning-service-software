@@ -1,11 +1,27 @@
 import Link from "next/link";
+import { OfferExpiryChip } from "@/components/dashboard/OfferExpiryChip";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { CleanerPayDisplay } from "@/components/dashboard/cleaner/CleanerPayDisplay";
+import {
+  CLEANER_BADGE_ROW_CLASS,
+  CLEANER_LIST_CARD_PADDING,
+  CLEANER_META_LINE_CLASS,
+  CLEANER_META_LOCATION_CLASS,
+  CLEANER_SERVICE_EYEBROW_CLASS,
+} from "@/features/dashboards/cleanerDashboardDisplay";
 import { CLEANER_DETAIL_CARD_CLASS } from "@/features/dashboards/cleanerJobDetailDisplay";
+import type { OfferExpiryUrgency } from "@/features/dashboards/server/formatOfferExpiryDisplay";
 import {
   labelForOfferStatus,
   toneForOfferStatus,
 } from "@/features/bookings/server/statusLabels";
 import type { AssignmentOfferStatus } from "@/lib/database/types";
+
+type ExpiryPresentation = {
+  relativeLabel: string;
+  ariaLabel: string;
+  urgency: OfferExpiryUrgency;
+};
 
 type Props = {
   href: string;
@@ -15,6 +31,7 @@ type Props = {
   earningsLabel: string;
   status: AssignmentOfferStatus;
   isExpired: boolean;
+  expiry?: ExpiryPresentation | null;
 };
 
 export function CleanerOfferListCard({
@@ -25,33 +42,38 @@ export function CleanerOfferListCard({
   earningsLabel,
   status,
   isExpired,
+  expiry,
 }: Props) {
   const statusLabel = isExpired && status === "offered" ? "Expired" : labelForOfferStatus(status);
   const statusTone = isExpired && status === "offered" ? "warning" : toneForOfferStatus(status);
+  const showExpiry = status === "offered" && !isExpired && expiry?.relativeLabel;
 
   return (
     <Link
       href={href}
-      className={`block ${CLEANER_DETAIL_CARD_CLASS} p-4 transition-colors hover:border-zinc-300 sm:p-5`}
+      className={`block ${CLEANER_DETAIL_CARD_CLASS} ${CLEANER_LIST_CARD_PADDING} transition-colors hover:border-zinc-300`}
     >
-      <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">{serviceLabel}</p>
-      <div className="mt-2">
-        <StatusBadge label={statusLabel} tone={statusTone} variant="soft" />
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className={CLEANER_SERVICE_EYEBROW_CLASS}>{serviceLabel}</p>
+          <p className={CLEANER_META_LINE_CLASS}>
+            <span className="font-medium text-zinc-900">{scheduleLabel}</span>
+            <span className="text-zinc-400"> · </span>
+            <span className={CLEANER_META_LOCATION_CLASS}>{locationSummary}</span>
+          </p>
+        </div>
+        <CleanerPayDisplay earningsLabel={earningsLabel} className="shrink-0 text-right" />
       </div>
-      <dl className="mt-3 grid gap-2 sm:grid-cols-3">
-        <div>
-          <dt className="text-xs font-medium text-zinc-500">When</dt>
-          <dd className="mt-0.5 text-sm font-medium text-zinc-900">{scheduleLabel}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-medium text-zinc-500">Where</dt>
-          <dd className="mt-0.5 text-sm text-zinc-700">{locationSummary}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-medium text-zinc-500">Pay</dt>
-          <dd className="mt-0.5 text-sm font-semibold tabular-nums text-zinc-900">{earningsLabel}</dd>
-        </div>
-      </dl>
+      <div className={CLEANER_BADGE_ROW_CLASS}>
+        <StatusBadge label={statusLabel} tone={statusTone} variant="soft" />
+        {showExpiry ? (
+          <OfferExpiryChip
+            relativeLabel={expiry.relativeLabel}
+            ariaLabel={expiry.ariaLabel}
+            urgency={expiry.urgency}
+          />
+        ) : null}
+      </div>
     </Link>
   );
 }

@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { signInAction, type SignInActionState } from "@/lib/auth/signInAction";
+import { UI_BUTTON_PRIMARY_CLASS } from "@/lib/ui/productUiTokens";
 
 type Props = {
   redirectedFrom: string | null;
@@ -14,7 +15,7 @@ function SignInSubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60"
+      className={`${UI_BUTTON_PRIMARY_CLASS} disabled:opacity-60`}
     >
       {pending ? "Signing in…" : "Sign in"}
     </button>

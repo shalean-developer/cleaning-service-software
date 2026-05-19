@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { AddonsStepPanel } from "./AddonsStepPanel";
 
 describe("AddonsStepPanel", () => {
-  it("renders compact rows with prices and toggle switches", () => {
+  it("renders compact rows with visible descriptions, prices, and toggle switches", () => {
     const html = renderToStaticMarkup(
       <AddonsStepPanel
         serviceSlug="deep-cleaning"
@@ -13,6 +13,7 @@ describe("AddonsStepPanel", () => {
     );
 
     expect(html).toContain("rounded-xl border border-zinc-200/90");
+    expect(html).toContain("sm:grid-cols-2");
     expect(html).toContain("Laundry");
     expect(html).toContain("Wash, dry, fold");
     expect(html).toContain("+ R 120");

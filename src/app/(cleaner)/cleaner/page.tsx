@@ -10,6 +10,8 @@ import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError"
 import { CleanerJobListCard } from "@/components/dashboard/cleaner/CleanerJobListCard";
 import { CleanerOfferListCard } from "@/components/dashboard/cleaner/CleanerOfferListCard";
 import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
+import { CLEANER_LIST_CARD_PADDING } from "@/features/dashboards/cleanerDashboardDisplay";
+import { formatOfferExpiryDisplay } from "@/features/dashboards/server/formatOfferExpiryDisplay";
 import { CLEANER_DETAIL_CARD_CLASS } from "@/features/dashboards/cleanerJobDetailDisplay";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
 
@@ -34,11 +36,11 @@ export default async function CleanerHomePage() {
   return (
     <DashboardShell
       title="Cleaner home"
-      subtitle="Offers waiting for you and jobs on your schedule."
+      subtitle="Open offers, active jobs, and your schedule."
       nav={[...CLEANER_NAV_ITEMS]}
     >
       <section className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-        <section className={`${CLEANER_DETAIL_CARD_CLASS} p-4 sm:p-5`}>
+        <section className={`${CLEANER_DETAIL_CARD_CLASS} ${CLEANER_LIST_CARD_PADDING}`}>
           <h2 className="text-sm font-medium text-zinc-800">Open offers</h2>
           <p className="mt-1 text-2xl font-semibold tabular-nums text-zinc-900">
             {offersOk ? openOffers.length : "—"}
@@ -50,7 +52,7 @@ export default async function CleanerHomePage() {
             View all offers
           </Link>
         </section>
-        <section className={`${CLEANER_DETAIL_CARD_CLASS} p-4 sm:p-5`}>
+        <section className={`${CLEANER_DETAIL_CARD_CLASS} ${CLEANER_LIST_CARD_PADDING}`}>
           <h2 className="text-sm font-medium text-zinc-800">Active jobs</h2>
           <p className="mt-1 text-2xl font-semibold tabular-nums text-zinc-900">
             {jobsOk ? activeJobs.length : "—"}
@@ -75,19 +77,34 @@ export default async function CleanerHomePage() {
         <section className="mt-6 sm:mt-8">
           <h2 className="text-sm font-medium text-zinc-800">Needs your response</h2>
           <ul className="mt-3 space-y-3">
-            {openOffers.slice(0, 3).map((o) => (
-              <li key={o.offerId}>
-                <CleanerOfferListCard
-                  href="/cleaner/offers"
-                  serviceLabel={o.serviceLabel}
-                  scheduleLabel={o.scheduleLabel}
-                  locationSummary={o.locationSummary}
-                  earningsLabel={o.earningsLabel}
-                  status={o.status}
-                  isExpired={o.isExpired}
-                />
-              </li>
-            ))}
+            {openOffers.slice(0, 3).map((o) => {
+              const expiry = formatOfferExpiryDisplay({
+                expiresAt: o.expiresAt,
+                isExpired: o.isExpired,
+              });
+              return (
+                <li key={o.offerId}>
+                  <CleanerOfferListCard
+                    href="/cleaner/offers"
+                    serviceLabel={o.serviceLabel}
+                    scheduleLabel={o.scheduleLabel}
+                    locationSummary={o.locationSummary}
+                    earningsLabel={o.earningsLabel}
+                    status={o.status}
+                    isExpired={o.isExpired}
+                    expiry={
+                      expiry.relativeLabel
+                        ? {
+                            relativeLabel: expiry.relativeLabel,
+                            ariaLabel: expiry.ariaLabel ?? expiry.relativeLabel,
+                            urgency: expiry.urgency,
+                          }
+                        : null
+                    }
+                  />
+                </li>
+              );
+            })}
           </ul>
         </section>
       ) : null}

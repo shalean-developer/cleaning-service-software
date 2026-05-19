@@ -3,12 +3,12 @@ import type { StatusBadgeTone } from "@/features/bookings/server/statusLabels";
 import { toneForCleanerJobStatus } from "@/features/bookings/server/statusLabels";
 import { LIFECYCLE_GUIDANCE_PANEL_TITLE } from "@/lib/app/dashboardEcosystemDisplay";
 
-/** Shared card shell for cleaner job/offer surfaces (presentation only). */
-export const CLEANER_DETAIL_CARD_CLASS =
-  "rounded-2xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]";
+import { UI_CARD_SHELL_CLASS, UI_INSET_PANEL_CLASS } from "@/lib/ui/productUiTokens";
 
-export const CLEANER_DETAIL_INSET_CLASS =
-  "rounded-xl border border-zinc-200 bg-zinc-50/80";
+/** Shared card shell for cleaner job/offer surfaces (presentation only). */
+export const CLEANER_DETAIL_CARD_CLASS = UI_CARD_SHELL_CLASS;
+
+export const CLEANER_DETAIL_INSET_CLASS = UI_INSET_PANEL_CLASS;
 
 export type CleanerJobHeroPresentation = {
   description: string;
@@ -22,29 +22,29 @@ function heroCopyForCleanerJob(
   switch (status) {
     case "assigned":
       return {
-        description: "You're scheduled for this clean. Review the details below before you arrive.",
+        description: "You're scheduled for this clean.",
         expectedUpdate: "Start the job when you begin on site",
       };
     case "in_progress":
       return {
-        description: "This job is in progress. Mark it complete when the clean is finished.",
-        expectedUpdate: "During your scheduled window",
+        description: "Job in progress — mark complete when finished.",
+        expectedUpdate: "Mark complete during your scheduled window",
       };
     case "completed":
     case "payout_ready":
     case "paid_out":
       return {
-        description: "This job is complete. Payout details appear below when available.",
+        description: "Job complete. Payout status is below.",
         expectedUpdate: null,
       };
     case "pending_assignment":
       return {
-        description: "This booking is still being confirmed. Check back for updates.",
+        description: "Awaiting confirmation.",
         expectedUpdate: null,
       };
     default:
       return {
-        description: "Job details and updates are shown below.",
+        description: "Details below.",
         expectedUpdate: null,
       };
   }
@@ -78,16 +78,16 @@ export function cleanerJobWhatHappensNext(
         title: LIFECYCLE_GUIDANCE_PANEL_TITLE,
         steps: [
           {
-            title: "Review the job",
-            body: "Check the schedule, location, and any customer notes before you travel.",
+            title: "Review details",
+            body: "Check schedule, location, and customer notes.",
           },
           {
             title: "Start on site",
-            body: "Tap Start job when you begin the clean at the property.",
+            body: "Tap Start job when you begin.",
           },
           {
             title: "Mark complete",
-            body: "Tap Mark complete when the work is finished.",
+            body: "Tap Mark complete when finished.",
           },
         ],
       };
@@ -97,15 +97,15 @@ export function cleanerJobWhatHappensNext(
         steps: [
           {
             title: "Finish the clean",
-            body: "Complete the service during your scheduled window.",
+            body: "Complete during your scheduled window.",
           },
           {
             title: "Mark complete",
-            body: "Tap Mark complete so we can confirm the job and process your pay.",
+            body: "Tap Mark complete to confirm the job.",
           },
           {
             title: "Payout",
-            body: "Your earnings appear below once the job is confirmed.",
+            body: "Earnings update below after confirmation.",
           },
         ],
       };
@@ -117,11 +117,11 @@ export function cleanerJobWhatHappensNext(
         steps: [
           {
             title: "Job recorded",
-            body: "This clean is logged as complete in your history.",
+            body: "Logged as complete in your history.",
           },
           {
             title: "Payout processing",
-            body: "Pay status updates below as your earnings move through payout.",
+            body: "Pay status updates below.",
           },
         ],
       };

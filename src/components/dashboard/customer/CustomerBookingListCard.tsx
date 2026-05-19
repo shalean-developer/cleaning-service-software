@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { UI_INTERACTIVE_LIST_CARD_CLASS, UI_LIST_STACK_CLASS } from "@/lib/ui/productUiTokens";
 import {
   customerBookingListCardLayers,
   customerBookingPaymentLineClass,
@@ -21,10 +22,10 @@ export function CustomerBookingListCard({ booking }: Props) {
   return (
     <Link
       href={`/customer/bookings/${booking.id}`}
-      className="group block rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm transition-[border-color,box-shadow] hover:border-zinc-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 sm:p-5"
+      className={`group ${UI_INTERACTIVE_LIST_CARD_CLASS}`}
     >
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <section className="min-w-0 flex-1 space-y-3">
+      <section className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <section className={`min-w-0 flex-1 ${UI_LIST_STACK_CLASS}`}>
           <h2 className="break-words text-base font-semibold tracking-tight text-zinc-900 sm:text-lg">
             {booking.display.serviceLabel}
           </h2>

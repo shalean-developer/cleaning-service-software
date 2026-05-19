@@ -7,7 +7,7 @@ import {
 describe("lifecycleTimelinePresentation", () => {
   it("maps known commands to human titles for customer", () => {
     expect(humanAuditCommandTitle("MARK_PAYMENT_FAILED", "payment_failed", "customer", null)).toBe(
-      "Payment failed",
+      "Payment not completed",
     );
     expect(humanAuditCommandTitle("MARK_COMPLETED", "completed", "customer", null)).toBe(
       "Booking completed",

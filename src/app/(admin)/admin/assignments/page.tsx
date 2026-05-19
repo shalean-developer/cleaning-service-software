@@ -1,29 +1,28 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getDeferredAssignmentConfig } from "@/features/assignments/server/assignmentDispatchConfig";
 import { getDeferredAssignmentDiagnostics } from "@/features/assignments/server/deferredAssignmentDiagnostics";
 import { loadCronHealthReadModel } from "@/features/operations/server/cronHealthReadModel";
-import { AdminCronHealthPanel } from "@/components/dashboard/AdminCronHealthPanel";
+import {
+  AdminCronHealthCriticalBanner,
+  AdminCronHealthPanel,
+} from "@/components/dashboard/AdminCronHealthPanel";
 import { listAdminAssignmentQueue } from "@/features/dashboards/server/adminOperationsReadModel";
 import { AdminDeferredAssignmentDiagnosticsPanel } from "@/components/dashboard/AdminDeferredAssignmentDiagnosticsPanel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAdminOperationalQueueCounts } from "@/features/dashboards/server/adminOperationalQueueCounts";
-import { AdminAssignmentQueueStripFootnote } from "@/components/dashboard/AdminAssignmentQueueStripFootnote";
+import { ADMIN_ASSIGNMENT_QUEUE_STRIP_FOOTNOTE_COPY } from "@/components/dashboard/AdminAssignmentQueueStripFootnote";
 import { AdminOperationalQueueStrip } from "@/components/dashboard/AdminOperationalQueueStrip";
-import { AdminAssignmentQueueGuidance } from "@/components/dashboard/AdminAssignmentQueueGuidance";
-import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
-import { ADMIN_QUEUE_CARD_CLASS } from "@/features/dashboards/adminDisplay";
-import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
-import { EmptyState } from "@/components/dashboard/EmptyState";
-import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { AdminAssignmentsOperationsHeader } from "@/components/dashboard/admin/AdminAssignmentsOperationsHeader";
+import { AdminAssignmentsQueueWorkbench } from "@/components/dashboard/admin/AdminAssignmentsQueueWorkbench";
+import { AdminDetailSection } from "@/components/dashboard/admin/AdminDetailSection";
 import {
-  labelForAssignmentAttention,
-  labelForBookingStatus,
-  labelForOfferStatus,
-  toneForBookingStatus,
-  toneForOfferStatus,
-} from "@/features/bookings/server/statusLabels";
+  deferredDiagnosticsNeedsAttention,
+  summarizeCronHealth,
+} from "@/features/dashboards/adminAssignmentsPageDisplay";
+import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
+import { ADMIN_DETAIL_STACK_CLASS } from "@/features/dashboards/adminDisplay";
+import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 
 export const metadata: Metadata = {
   title: "Assignments | Admin",
@@ -45,103 +44,85 @@ export default async function AdminAssignmentsPage() {
     client ? loadCronHealthReadModel(client) : null,
   ]);
 
+  const cronSummary = cronHealth ? summarizeCronHealth(cronHealth.jobs) : null;
+  const diagnosticsOpen =
+    cronSummary?.worstLevel === "critical" ||
+    (deferredDiagnostics != null && deferredDiagnosticsNeedsAttention(deferredDiagnostics));
+
   return (
     <AdminDashboardShell
       title="Assignment queue"
       subtitle="Dispatch attention and open offers."
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
-      {cronHealth ? (
-        <AdminCronHealthPanel
-          generatedAt={cronHealth.generatedAt}
-          cronSecretConfigured={cronHealth.cronSecretConfigured}
-          jobs={cronHealth.jobs}
-        />
-      ) : null}
+      <section className={ADMIN_DETAIL_STACK_CLASS}>
+        {queueCounts.ok ? (
+          <AdminAssignmentsOperationsHeader
+            workQueueCount={result.ok ? result.items.length : 0}
+            workQueueTotal={result.ok ? result.total : 0}
+            queues={queueCounts.queues}
+            cronSummary={cronSummary}
+            deferredDiagnostics={deferredDiagnostics}
+          />
+        ) : null}
 
-      {deferredDiagnostics ? (
-        <AdminDeferredAssignmentDiagnosticsPanel diagnostics={deferredDiagnostics} />
-      ) : null}
+        {cronSummary?.criticalJobs.length ? (
+          <AdminCronHealthCriticalBanner jobs={cronSummary.criticalJobs} />
+        ) : null}
 
-      {queueCounts.ok ? <AdminOperationalQueueStrip queues={queueCounts.queues} /> : null}
+        {result.ok ? (
+          <AdminAssignmentsQueueWorkbench
+            items={result.items}
+            total={result.total}
+            limit={result.limit}
+          />
+        ) : (
+          <p className="text-sm text-zinc-600">Could not load assignment queue.</p>
+        )}
 
-      {queueCounts.ok ? <AdminAssignmentQueueStripFootnote /> : null}
-
-      {result.ok && result.total > 0 ? (
-        <p className="mb-3 text-xs text-zinc-500">
-          Showing {result.items.length} of {result.total}
-          {result.total >= result.limit ? ` (limit ${result.limit})` : ""}
-        </p>
-      ) : null}
-
-      {!result.ok || result.items.length === 0 ? (
-        <EmptyState
-          title="Queue is clear"
-          description="No bookings need assignment attention right now."
-        />
-      ) : (
-        <ul className="space-y-2.5">
-          {result.items.map((item) => (
-            <li key={item.bookingId} className={ADMIN_QUEUE_CARD_CLASS}>
-              <section className="flex flex-wrap items-center gap-1.5">
-                <StatusBadge
-                  label={labelForAssignmentAttention(
-                    item.assignmentAttention,
-                    item.assignmentReason,
-                  )}
-                  tone="warning"
+        <details
+          className="rounded-2xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+          open={diagnosticsOpen || undefined}
+        >
+          <summary className="cursor-pointer list-none px-4 py-3.5 text-sm font-medium text-zinc-800 marker:content-none [&::-webkit-details-marker]:hidden sm:px-5">
+            Diagnostics &amp; queue reference
+          </summary>
+          <div className="space-y-2.5 border-t border-zinc-100 px-4 pb-4 pt-3 sm:px-5">
+            {cronHealth ? (
+              <AdminDetailSection title="Background job health" collapsible defaultOpen={cronSummary?.worstLevel === "critical"}>
+                <AdminCronHealthPanel
+                  generatedAt={cronHealth.generatedAt}
+                  cronSecretConfigured={cronHealth.cronSecretConfigured}
+                  jobs={cronHealth.jobs}
+                  embedded
                 />
-                <StatusBadge
-                  label={labelForBookingStatus(item.status)}
-                  tone={toneForBookingStatus(item.status)}
-                />
-              </section>
-              <p className="mt-2 text-sm font-semibold text-zinc-900">{item.serviceLabel}</p>
-              <p className="mt-0.5 text-sm text-zinc-600">
-                {item.customerLabel} · {item.scheduleLabel}
-              </p>
-              {item.assignmentReason ? (
-                <p className="mt-1.5 text-xs text-amber-900/90">{item.assignmentReason}</p>
-              ) : null}
+              </AdminDetailSection>
+            ) : null}
 
-              <AdminAssignmentQueueGuidance item={item} />
-
-              {item.openOffers.length > 0 ? (
-                <section className="mt-3 border-t border-zinc-100 pt-3">
-                  <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-                    Open offers
-                  </h3>
-                  <ul className="mt-1.5 space-y-1.5 text-sm">
-                    {item.openOffers.map((o) => (
-                      <li key={o.id} className="flex flex-wrap items-center gap-2">
-                        <StatusBadge
-                          label={labelForOfferStatus(o.status)}
-                          tone={toneForOfferStatus(o.status)}
-                        />
-                        <span>{o.cleanerName ?? o.cleanerId.slice(0, 8)}</span>
-                        {o.expiresAt ? (
-                          <span className="text-xs text-zinc-500">
-                            expires {new Date(o.expiresAt).toLocaleString("en-ZA")}
-                          </span>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ) : (
-                <p className="mt-2 text-xs text-zinc-500">No open offers</p>
-              )}
-
-              <Link
-                href={`/admin/bookings/${item.bookingId}`}
-                className="mt-3 inline-block text-sm font-medium text-zinc-700 hover:text-zinc-900"
+            {deferredDiagnostics ? (
+              <AdminDetailSection
+                title="Deferred assignment diagnostics"
+                collapsible
+                defaultOpen={deferredDiagnosticsNeedsAttention(deferredDiagnostics)}
               >
-                Open booking →
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+                <AdminDeferredAssignmentDiagnosticsPanel
+                  diagnostics={deferredDiagnostics}
+                  embedded
+                />
+              </AdminDetailSection>
+            ) : null}
+
+            {queueCounts.ok ? (
+              <AdminDetailSection title="All operational queues" collapsible>
+                <AdminOperationalQueueStrip queues={queueCounts.queues} compact />
+                <p className="mt-3 text-xs leading-relaxed text-zinc-600">
+                  {ADMIN_ASSIGNMENT_QUEUE_STRIP_FOOTNOTE_COPY}
+                </p>
+              </AdminDetailSection>
+            ) : null}
+          </div>
+        </details>
+      </section>
     </AdminDashboardShell>
   );
 }

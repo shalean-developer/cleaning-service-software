@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { ADMIN_LIST_CARD_CLASS } from "@/features/dashboards/adminDisplay";
+import { UI_LIST_META_CLASS, UI_LIST_TITLE_CLASS } from "@/lib/ui/productUiTokens";
 
 export type AdminBookingListCardBadge = {
   label: string;
@@ -32,9 +33,9 @@ export function AdminBookingListCard({
           <StatusBadge key={badge.label} label={badge.label} tone={badge.tone} />
         ))}
       </section>
-      <p className="mt-2 text-sm font-semibold text-zinc-900">{title}</p>
-      <p className="mt-0.5 text-sm text-zinc-600">{meta}</p>
-      {secondary ? <p className="mt-0.5 text-xs text-zinc-500">{secondary}</p> : null}
+      <p className={`mt-2 ${UI_LIST_TITLE_CLASS}`}>{title}</p>
+      <p className={`mt-0.5 ${UI_LIST_META_CLASS}`}>{meta}</p>
+      {secondary ? <p className={`mt-0.5 text-xs ${UI_LIST_META_CLASS} text-zinc-500`}>{secondary}</p> : null}
       {footnote ? (
         <p className="mt-1 font-mono text-[11px] text-zinc-400">{footnote}</p>
       ) : null}
@@ -62,8 +63,8 @@ export function AdminBookingListCardShell({
           <StatusBadge key={badge.label} label={badge.label} tone={badge.tone} />
         ))}
       </section>
-      <p className="mt-2 text-sm font-semibold text-zinc-900">{title}</p>
-      <p className="mt-0.5 text-sm text-zinc-600">{meta}</p>
+      <p className={`mt-2 ${UI_LIST_TITLE_CLASS}`}>{title}</p>
+      <p className={`mt-0.5 ${UI_LIST_META_CLASS}`}>{meta}</p>
       {children}
     </Link>
   );

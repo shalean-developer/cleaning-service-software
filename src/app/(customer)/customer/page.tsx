@@ -3,8 +3,7 @@ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listCustomerBookings } from "@/features/dashboards/server/customerBookingReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
-import { CustomerBookingsDashboard } from "@/components/dashboard/customer/CustomerBookingsDashboard";
-import { CustomerBookingsEmptyState } from "@/components/dashboard/customer/CustomerBookingsEmptyState";
+import { CustomerBookingsListContent } from "@/components/dashboard/customer/CustomerBookingsListContent";
 import { CustomerBookingsPageHeader } from "@/components/dashboard/customer/CustomerBookingsPageHeader";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
 
@@ -33,14 +32,7 @@ export default async function CustomerHomePage() {
       ) : result?.ok ? (
         <section className="space-y-6 sm:space-y-8">
           <CustomerBookingsPageHeader />
-          {allBookings.length === 0 ? (
-            <CustomerBookingsEmptyState
-              title="No bookings yet"
-              description="Book a clean and it will show here once checkout is complete."
-            />
-          ) : (
-            <CustomerBookingsDashboard bookings={allBookings} />
-          )}
+          <CustomerBookingsListContent bookings={allBookings} />
         </section>
       ) : null}
     </DashboardShell>

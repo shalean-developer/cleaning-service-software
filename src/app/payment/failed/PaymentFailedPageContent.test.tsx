@@ -23,7 +23,8 @@ describe("PaymentFailedPageContent", () => {
         model={buildPaymentFailedPageModel({ reason: CHECKOUT_EXPIRED_FAILURE_REASON })}
       />,
     );
-    expect(html).toContain("checkout session ended");
+    expect(html).toContain("checkout timed out");
+    expect(html).toContain("You were not charged");
     expect(html).toContain("What happens next");
     expect(html).toContain("Book a clean");
   });
@@ -34,7 +35,7 @@ describe("PaymentFailedPageContent", () => {
         model={buildPaymentFailedPageModel({ bookingId })}
       />,
     );
-    expect(html).toContain("View booking to retry payment");
+    expect(html).toContain("Open booking to complete payment");
     expect(html).toContain(`/customer/bookings/${bookingId}`);
     expect(html).toContain("A1B2C3D4");
   });

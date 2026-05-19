@@ -12,6 +12,7 @@ import {
   SIGN_UP_CHECK_EMAIL_PATH,
 } from "@/lib/auth/customerSignup";
 import { SIGN_IN_PATH } from "@/lib/auth/redirects";
+import { UI_BUTTON_PRIMARY_CLASS } from "@/lib/ui/productUiTokens";
 import {
   createSupabaseBrowserClient,
   SupabaseBrowserConfigError,
@@ -173,7 +174,7 @@ function SignUpFormFields() {
       <button
         type="submit"
         disabled={loading}
-        className="rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60"
+        className={`${UI_BUTTON_PRIMARY_CLASS} disabled:opacity-60`}
       >
         {loading ? "Creating account…" : "Create account"}
       </button>

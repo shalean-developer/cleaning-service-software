@@ -13,7 +13,7 @@ export function WizardStepper({ current }: Props) {
   const totalSteps = WIZARD_STEPS.length;
 
   return (
-    <nav aria-label="Booking progress" className="mb-3 md:mb-6">
+    <nav aria-label="Booking progress" className="mb-2.5 md:mb-6">
       <div className="md:hidden">
         <p className="text-xs font-medium text-zinc-500">
           Step {stepNumber} of {totalSteps}

@@ -65,7 +65,7 @@ function ShieldCheckIcon({ className }: { className?: string }) {
 export function CheckoutCtaTrustRow({ className = "" }: { className?: string }) {
   return (
     <ul
-      className={`flex flex-wrap items-center justify-center gap-x-3 gap-y-1 ${className}`.trim()}
+      className={`flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 ${className}`.trim()}
       aria-label="Checkout assurances"
     >
       {CTA_TRUST_ITEMS.map((item) => (

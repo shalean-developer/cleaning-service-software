@@ -19,7 +19,7 @@ export function humanPaymentEventTitle(
     case "paid":
       return "Payment confirmed";
     case "failed":
-      return "Payment failed";
+      return "Payment not completed";
     case "pending":
       return "Payment pending";
     case "refunded":

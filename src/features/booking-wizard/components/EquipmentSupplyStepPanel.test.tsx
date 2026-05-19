@@ -3,12 +3,13 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { EquipmentSupplyStepPanel } from "./EquipmentSupplyStepPanel";
 
 describe("EquipmentSupplyStepPanel", () => {
-  it("renders label, info control, and a switch", () => {
+  it("renders label, visible hint, info control, and a switch", () => {
     const html = renderToStaticMarkup(
       <EquipmentSupplyStepPanel value="customer" onChange={() => {}} />,
     );
 
     expect(html).toContain("Cleaning equipment");
+    expect(html).toContain("You provide supplies");
     expect(html).toContain("More information");
     expect(html).toContain('role="switch"');
     expect(html).toContain('aria-checked="false"');
@@ -23,5 +24,7 @@ describe("EquipmentSupplyStepPanel", () => {
 
     expect(html).toContain('aria-checked="true"');
     expect(html).toContain("bg-zinc-900");
+    expect(html).toContain("Shalean supplies equipment");
+    expect(html).toContain("+ R 100");
   });
 });

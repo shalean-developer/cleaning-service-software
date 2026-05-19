@@ -22,7 +22,7 @@ describe("payment failed page (static safety)", () => {
     }
 
     expect(pageSource).toContain("buildPaymentFailedPageModel");
-    expect(contentSource).toContain("View booking to retry payment");
+    expect(contentSource).toContain("Open booking to complete payment");
     expect(contentSource).toContain("Go to my bookings");
   });
 });

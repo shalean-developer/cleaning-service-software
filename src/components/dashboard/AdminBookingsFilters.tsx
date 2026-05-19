@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { AdminBookingsFilterPresets } from "@/components/dashboard/admin/AdminBookingsFilterPresets";
+import { buildAdminBookingsHref } from "@/features/dashboards/adminBookingsFilterUrl";
 import type { AdminBookingFilter } from "@/features/dashboards/server/adminOperationalHelpers";
 import { isAdminBookingSearchIgnored } from "@/features/dashboards/server/adminBookingsListQuery";
 import { buildAdminBookingsExportHref } from "@/features/dashboards/server/parseAdminBookingsQueryParams";
+import { ADMIN_DETAIL_CARD_CLASS } from "@/features/dashboards/adminDisplay";
 
-const FILTER_OPTIONS: { value: AdminBookingFilter | ""; label: string }[] = [
+const ADVANCED_FILTER_OPTIONS: { value: AdminBookingFilter | ""; label: string }[] = [
   { value: "", label: "All bookings" },
   { value: "payment_failed", label: "Payment failed" },
   { value: "pending_assignment", label: "Pending assignment" },
@@ -24,7 +27,7 @@ const FILTER_OPTIONS: { value: AdminBookingFilter | ""; label: string }[] = [
 ];
 
 type Props = {
-  filter?: string;
+  filter?: AdminBookingFilter;
   search?: string;
   scheduledFrom?: string;
   scheduledTo?: string;
@@ -75,26 +78,12 @@ export function AdminBookingsFilters({
   subsetFiltered,
 }: Props) {
   const router = useRouter();
-
-  function buildQueryParams(overrides: Record<string, string | undefined> = {}) {
-    const params = new URLSearchParams();
-    const next = {
-      filter: filter || undefined,
-      q: search || undefined,
-      from: scheduledFrom || undefined,
-      to: scheduledTo || undefined,
-      ...overrides,
-    };
-    for (const [k, v] of Object.entries(next)) {
-      if (v) params.set(k, v);
-    }
-    return params;
-  }
-
-  function buildHref(overrides: Record<string, string | undefined> = {}) {
-    const qs = buildQueryParams(overrides).toString();
-    return qs ? `/admin/bookings?${qs}` : "/admin/bookings";
-  }
+  const current = {
+    filter,
+    q: search,
+    from: scheduledFrom,
+    to: scheduledTo,
+  };
 
   const exportHref = buildAdminBookingsExportHref({
     filter: filter || undefined,
@@ -103,37 +92,29 @@ export function AdminBookingsFilters({
     scheduledTo: scheduledTo || undefined,
   });
 
+  const hasActiveFilters = Boolean(filter || search || scheduledFrom || scheduledTo);
+
   return (
-    <section className="mb-6 space-y-4 rounded-xl border border-zinc-200 bg-white p-4">
+    <section className={`mb-4 space-y-3 ${ADMIN_DETAIL_CARD_CLASS} p-3.5 sm:p-4`}>
+      <AdminBookingsFilterPresets
+        filter={filter}
+        search={search}
+        scheduledFrom={scheduledFrom}
+        scheduledTo={scheduledTo}
+      />
+
       <form
-        className="flex flex-wrap items-end gap-3"
+        className="flex flex-wrap items-end gap-2"
         onSubmit={(e) => {
           e.preventDefault();
           const fd = new FormData(e.currentTarget);
           router.push(
-            buildHref({
-              filter: (fd.get("filter") as string) || undefined,
+            buildAdminBookingsHref(current, {
               q: (fd.get("q") as string) || undefined,
-              from: (fd.get("from") as string) || undefined,
-              to: (fd.get("to") as string) || undefined,
             }),
           );
         }}
       >
-        <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600">
-          Filter
-          <select
-            name="filter"
-            defaultValue={filter ?? ""}
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900"
-          >
-            {FILTER_OPTIONS.map((o) => (
-              <option key={o.value || "all"} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
         <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs font-medium text-zinc-600">
           Search
           <input
@@ -144,47 +125,90 @@ export function AdminBookingsFilters({
             className="rounded-lg border border-zinc-300 px-3 py-2 text-sm"
           />
           {isAdminBookingSearchIgnored(search) ? (
-            <span className="font-normal text-zinc-500">
-              Search uses 3 or more characters.
-            </span>
+            <span className="font-normal text-zinc-500">Search uses 3 or more characters.</span>
           ) : null}
-        </label>
-        <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600">
-          Schedule from
-          <input
-            name="from"
-            type="date"
-            defaultValue={scheduledFrom?.slice(0, 10) ?? ""}
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600">
-          Schedule to
-          <input
-            name="to"
-            type="date"
-            defaultValue={scheduledTo?.slice(0, 10) ?? ""}
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-          />
         </label>
         <button
           type="submit"
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+          className="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-medium text-white"
         >
-          Apply
+          Search
         </button>
         <a
           href={exportHref}
-          className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
+          className="rounded-lg border border-zinc-300 bg-white px-3.5 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
         >
           Export CSV
         </a>
-        {(filter || search || scheduledFrom || scheduledTo) && (
-          <Link href="/admin/bookings" className="py-2 text-sm text-zinc-600 hover:text-zinc-900">
-            Clear
+        {hasActiveFilters ? (
+          <Link
+            href="/admin/bookings"
+            className="py-2 text-sm text-zinc-600 hover:text-zinc-900"
+          >
+            Clear all
           </Link>
-        )}
+        ) : null}
       </form>
+
+      <details>
+        <summary className="cursor-pointer text-xs font-semibold text-zinc-700 outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
+          Advanced filters
+        </summary>
+        <form
+          className="mt-3 flex flex-wrap items-end gap-2 border-t border-zinc-100 pt-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const fd = new FormData(e.currentTarget);
+            router.push(
+              buildAdminBookingsHref(current, {
+                filter: (fd.get("filter") as string) || undefined,
+                from: (fd.get("from") as string) || undefined,
+                to: (fd.get("to") as string) || undefined,
+              }),
+            );
+          }}
+        >
+          <label className="flex min-w-[10rem] flex-col gap-1 text-xs font-medium text-zinc-600">
+            Filter
+            <select
+              name="filter"
+              defaultValue={filter ?? ""}
+              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900"
+            >
+              {ADVANCED_FILTER_OPTIONS.map((o) => (
+                <option key={o.value || "all"} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600">
+            Schedule from
+            <input
+              name="from"
+              type="date"
+              defaultValue={scheduledFrom?.slice(0, 10) ?? ""}
+              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600">
+            Schedule to
+            <input
+              name="to"
+              type="date"
+              defaultValue={scheduledTo?.slice(0, 10) ?? ""}
+              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <button
+            type="submit"
+            className="rounded-lg border border-zinc-300 bg-white px-3.5 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
+          >
+            Apply advanced
+          </button>
+        </form>
+      </details>
+
       <p className="text-xs text-zinc-500">
         {adminBookingsFooterCopy({
           matchTotal,
@@ -192,7 +216,7 @@ export function AdminBookingsFilters({
           limit,
           capped,
           subsetFiltered,
-          hasActiveFilters: Boolean(filter || search || scheduledFrom || scheduledTo),
+          hasActiveFilters,
         })}{" "}
         Export includes up to 500 matching rows (newest by last update).
       </p>

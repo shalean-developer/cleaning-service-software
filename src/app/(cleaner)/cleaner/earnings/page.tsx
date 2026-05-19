@@ -6,12 +6,12 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
 import { EmptyState } from "@/components/dashboard/EmptyState";
-import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
+import { CleanerEarningsListCard } from "@/components/dashboard/cleaner/CleanerEarningsListCard";
 import {
-  labelForPayoutStatus,
-  toneForPayoutStatus,
-} from "@/features/bookings/server/statusLabels";
+  CLEANER_EARNINGS_EMPTY,
+  CLEANER_EARNINGS_PAGE_TRUST_LINE,
+} from "@/features/dashboards/cleanerEarningsPresentation";
+import { UI_BUTTON_PRIMARY_CLASS, UI_BUTTON_SECONDARY_CLASS } from "@/lib/ui/productUiTokens";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
 
 export const metadata: Metadata = {
@@ -27,7 +27,7 @@ export default async function CleanerEarningsPage() {
   return (
     <DashboardShell
       title="Earnings"
-      subtitle="Payout amounts from completed jobs."
+      subtitle="Pay from completed jobs and payout status."
       nav={[...CLEANER_NAV_ITEMS]}
     >
       {!result.ok ? (
@@ -37,44 +37,39 @@ export default async function CleanerEarningsPage() {
         />
       ) : result.earnings.length === 0 ? (
         <EmptyState
-          title="No earnings yet"
-          description="Earnings from completed jobs will appear here."
+          title={CLEANER_EARNINGS_EMPTY.title}
+          description={CLEANER_EARNINGS_EMPTY.description}
           action={
-            <Link
-              href="/cleaner/jobs"
-              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
-            >
-              View jobs
-            </Link>
+            <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:justify-center">
+              <Link href="/cleaner/jobs" className={UI_BUTTON_PRIMARY_CLASS}>
+                View jobs
+              </Link>
+              <Link href="/cleaner/offers" className={UI_BUTTON_SECONDARY_CLASS}>
+                Check offers
+              </Link>
+            </div>
           }
         />
       ) : (
-        <ul className="space-y-3">
-          {result.earnings.map((e) => (
-            <li
-              key={e.id}
-              className="rounded-xl border border-zinc-200 bg-white p-4"
-            >
-              <StatusBadge
-                label={labelForPayoutStatus(e.payoutStatus)}
-                tone={toneForPayoutStatus(e.payoutStatus)}
-              />
-              <p className="mt-2 font-medium text-zinc-900">{e.serviceLabel}</p>
-              <p className="text-sm text-zinc-600">{e.scheduleLabel}</p>
-              <p className="mt-2 text-lg font-semibold text-zinc-900">
-                {formatZar(e.payoutAmountCents)}
-              </p>
-              {e.bookingId ? (
-                <Link
-                  href={`/cleaner/jobs/${e.bookingId}`}
-                  className="mt-2 inline-block text-sm text-zinc-600 hover:text-zinc-900"
-                >
-                  View job →
-                </Link>
-              ) : null}
-            </li>
-          ))}
-        </ul>
+        <>
+          <p className="mb-4 text-xs leading-snug text-zinc-600">{CLEANER_EARNINGS_PAGE_TRUST_LINE}</p>
+          <ul className="space-y-3">
+            {result.earnings.map((e) => (
+              <li key={e.id}>
+                <CleanerEarningsListCard
+                  item={{
+                    id: e.id,
+                    serviceLabel: e.serviceLabel,
+                    scheduleLabel: e.scheduleLabel,
+                    payoutAmountCents: e.payoutAmountCents,
+                    payoutStatus: e.payoutStatus,
+                    bookingId: e.bookingId,
+                  }}
+                />
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </DashboardShell>
   );

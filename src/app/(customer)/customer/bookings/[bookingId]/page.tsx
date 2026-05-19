@@ -9,7 +9,11 @@ import { CustomerBookingDetailsCard } from "@/components/dashboard/customer/Cust
 import { CustomerBookingStatusHero } from "@/components/dashboard/customer/CustomerBookingStatusHero";
 import { CustomerBookingWhatHappensNext } from "@/components/dashboard/customer/CustomerBookingWhatHappensNext";
 import { CustomerLifecycleTimeline } from "@/components/dashboard/customer/CustomerLifecycleTimeline";
-import { CUSTOMER_BOOKING_DETAIL_CARD_CLASS } from "@/features/dashboards/customerBookingDetailDisplay";
+import {
+  CUSTOMER_BOOKING_DETAIL_DISCLOSURE_CLASS,
+  CUSTOMER_BOOKING_DETAIL_DISCLOSURE_SUMMARY_CLASS,
+  shouldSuppressAssignmentCalloutInDetails,
+} from "@/features/dashboards/customerBookingDetailDisplay";
 
 type PageProps = { params: Promise<{ bookingId: string }> };
 
@@ -28,11 +32,15 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
 
   const b = result.booking;
   const customerEmail = user.authUser.email?.trim() ?? "";
+  const suppressAssignmentCallout = shouldSuppressAssignmentCalloutInDetails({
+    deferredAssignmentMessage: b.deferredAssignmentMessage,
+    assignmentCustomerMessage: b.display.assignmentCustomerMessage,
+  });
 
   return (
     <DashboardShell
       title="Your booking"
-      subtitle="Track payment, assignment, and service details in one place."
+      subtitle="Status, payment, and service details"
       nav={[
         { href: "/customer", label: "Home" },
         { href: "/customer/bookings", label: "Bookings" },
@@ -46,7 +54,7 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
         ← Back to bookings
       </Link>
 
-      <section className="mt-4 space-y-3 sm:mt-5 sm:space-y-4">
+      <section className="mt-3 space-y-2.5 sm:mt-4">
         <CustomerBookingStatusHero
           serviceLabel={b.display.serviceLabel}
           scheduleLabel={b.scheduleLabel}
@@ -57,6 +65,8 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
           paymentStatus={b.paymentStatus}
           paymentFailureReason={b.paymentFailureReason}
           deferredAssignmentMessage={b.deferredAssignmentMessage}
+          assignedCleanerLabel={b.assignedCleanerLabel}
+          teamSupportLabel={b.display.teamSupportLabel}
         />
 
         {b.status === "payment_failed" ? (
@@ -67,36 +77,57 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
             canRetryPayment={b.canRetryPayment}
           />
         ) : (
-          <CustomerBookingWhatHappensNext status={b.status} />
+          <CustomerBookingWhatHappensNext
+            status={b.status}
+            deferredAssignmentMessage={b.deferredAssignmentMessage}
+          />
         )}
 
-        <CustomerBookingDetailsCard
-          serviceLabel={b.display.serviceLabel}
-          homeSizeSummary={b.display.homeSizeSummary}
-          cleaningIntensityLabel={b.display.cleaningIntensityLabel}
-          equipmentSupplyLabel={b.display.equipmentSupplyLabel}
-          frequencyLabel={b.display.frequencyLabel}
-          addonsSummary={b.display.addonsSummary}
-          teamSupportLabel={b.display.teamSupportLabel}
-          cleanerPreferenceLabel={b.cleanerPreferenceLabel}
-          assignedCleanerLabel={b.assignedCleanerLabel}
-          assignmentCustomerMessage={b.display.assignmentCustomerMessage}
-          specialInstructions={b.display.specialInstructions}
-          contactPhoneDisplay={b.display.contactPhoneDisplay}
-          priceCents={b.priceCents}
-          currency={b.currency}
-          payments={b.payments}
-        />
+        <details className={CUSTOMER_BOOKING_DETAIL_DISCLOSURE_CLASS}>
+          <summary className={CUSTOMER_BOOKING_DETAIL_DISCLOSURE_SUMMARY_CLASS}>
+            <span>Booking details</span>
+            <span
+              className="text-xs font-normal text-zinc-500 transition-transform group-open:rotate-180"
+              aria-hidden
+            >
+              ▾
+            </span>
+          </summary>
+          <CustomerBookingDetailsCard
+            homeSizeSummary={b.display.homeSizeSummary}
+            cleaningIntensityLabel={b.display.cleaningIntensityLabel}
+            equipmentSupplyLabel={b.display.equipmentSupplyLabel}
+            frequencyLabel={b.display.frequencyLabel}
+            addonsSummary={b.display.addonsSummary}
+            teamSupportLabel={b.display.teamSupportLabel}
+            teamSupportShownInHero={Boolean(b.display.teamSupportLabel)}
+            cleanerPreferenceLabel={b.cleanerPreferenceLabel}
+            assignedCleanerLabel={b.assignedCleanerLabel}
+            assignedCleanerShownInHero={Boolean(b.assignedCleanerLabel)}
+            assignmentCustomerMessage={b.display.assignmentCustomerMessage}
+            suppressAssignmentCallout={suppressAssignmentCallout}
+            specialInstructions={b.display.specialInstructions}
+            contactPhoneDisplay={b.display.contactPhoneDisplay}
+            priceCents={b.priceCents}
+            currency={b.currency}
+            payments={b.payments}
+          />
+        </details>
 
-        <section className={`${CUSTOMER_BOOKING_DETAIL_CARD_CLASS} p-4 sm:p-5`}>
-          <h2 className="text-sm font-medium text-zinc-800">Activity</h2>
-          <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">
-            Progress from payment through completion.
-          </p>
-          <section className="mt-3">
+        <details className={CUSTOMER_BOOKING_DETAIL_DISCLOSURE_CLASS} open>
+          <summary className={CUSTOMER_BOOKING_DETAIL_DISCLOSURE_SUMMARY_CLASS}>
+            <span>Activity</span>
+            <span
+              className="text-xs font-normal text-zinc-500 transition-transform group-open:rotate-180"
+              aria-hidden
+            >
+              ▾
+            </span>
+          </summary>
+          <div className="border-t border-zinc-100 px-4 pb-4 pt-1 sm:px-5 sm:pb-5">
             <CustomerLifecycleTimeline events={b.timeline} />
-          </section>
-        </section>
+          </div>
+        </details>
       </section>
     </DashboardShell>
   );

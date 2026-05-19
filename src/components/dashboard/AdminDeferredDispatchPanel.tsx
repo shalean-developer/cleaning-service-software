@@ -7,9 +7,11 @@ import {
 
 type Props = {
   deferredDispatch: DeferredDispatchStatus;
+  /** When nested inside AdminDetailSection, omit duplicate card chrome. */
+  embedded?: boolean;
 };
 
-export function AdminDeferredDispatchPanel({ deferredDispatch }: Props) {
+export function AdminDeferredDispatchPanel({ deferredDispatch, embedded = false }: Props) {
   if (deferredDispatch.phase === "not_applicable") return null;
 
   const toneClass =
@@ -19,14 +21,22 @@ export function AdminDeferredDispatchPanel({ deferredDispatch }: Props) {
         ? "border-sky-300/80 bg-sky-50/30"
         : "border-zinc-200/80 bg-zinc-50/50";
 
-  return (
-    <section className={`${ADMIN_DETAIL_CARD_CLASS} ${toneClass} p-4 sm:p-5`}>
-      <h2 className={ADMIN_SECTION_TITLE_CLASS}>Deferred assignment</h2>
-      <p className={ADMIN_SECTION_MUTED_CLASS}>
-        {deferredDispatch.adminOperationalCopy ?? deferredDispatch.adminLabel}
-      </p>
+  const body = (
+    <>
+      {!embedded ? (
+        <>
+          <h2 className={ADMIN_SECTION_TITLE_CLASS}>Deferred assignment</h2>
+          <p className={ADMIN_SECTION_MUTED_CLASS}>
+            {deferredDispatch.adminOperationalCopy ?? deferredDispatch.adminLabel}
+          </p>
+        </>
+      ) : (
+        <p className={`${ADMIN_SECTION_MUTED_CLASS} text-sm`}>
+          {deferredDispatch.adminOperationalCopy ?? deferredDispatch.adminLabel}
+        </p>
+      )}
 
-      <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+      <dl className={`grid gap-3 text-sm sm:grid-cols-2 ${embedded ? "mt-2" : "mt-3"}`}>
         <div>
           <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">Phase</dt>
           <dd className="mt-0.5 font-medium text-zinc-900">{deferredDispatch.adminLabel}</dd>
@@ -83,6 +93,14 @@ export function AdminDeferredDispatchPanel({ deferredDispatch }: Props) {
           </dd>
         </div>
       </dl>
-    </section>
+    </>
+  );
+
+  if (embedded) {
+    return <div className="text-sm">{body}</div>;
+  }
+
+  return (
+    <section className={`${ADMIN_DETAIL_CARD_CLASS} ${toneClass} p-4 sm:p-5`}>{body}</section>
   );
 }

@@ -80,5 +80,7 @@ describe("adminBookingsFooterCopy", () => {
     expect(source).toContain("Search uses 3 or more characters.");
     expect(source).toContain("isAdminBookingSearchIgnored");
     expect(source).toContain('defaultValue={search ?? ""}');
+    expect(source).toContain("Advanced filters");
+    expect(source).toContain("AdminBookingsFilterPresets");
   });
 });
