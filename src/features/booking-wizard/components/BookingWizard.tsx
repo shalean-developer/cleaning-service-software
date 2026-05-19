@@ -384,47 +384,45 @@ export function BookingWizard({
           <>
             {wizardContextStrip}
             <WizardStepHeading title="Location" />
-            <Field label="Street address" error={stepErrors.addressLine1}>
-              <input
-                className={inputClass}
-                value={state.addressLine1}
-                onChange={(e) => patch({ addressLine1: e.target.value })}
-                autoComplete="street-address"
-              />
-            </Field>
-            <Field label="Suburb" error={stepErrors.suburb}>
-              <input
-                className={inputClass}
-                value={state.suburb}
-                onChange={(e) => patch({ suburb: e.target.value })}
-              />
-            </Field>
-            <Field label="City" error={stepErrors.city}>
-              <input
-                className={inputClass}
-                value={state.city}
-                onChange={(e) => patch({ city: e.target.value })}
-              />
-            </Field>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 [&>label]:mb-0">
+              <Field label="Street address" error={stepErrors.addressLine1}>
+                <input
+                  className={inputClass}
+                  value={state.addressLine1}
+                  onChange={(e) => patch({ addressLine1: e.target.value })}
+                  autoComplete="street-address"
+                />
+              </Field>
+              <Field label="Suburb" error={stepErrors.suburb}>
+                <input
+                  className={inputClass}
+                  value={state.suburb}
+                  onChange={(e) => patch({ suburb: e.target.value })}
+                />
+              </Field>
+              <Field label="City" error={stepErrors.city}>
+                <input
+                  className={inputClass}
+                  value={state.city}
+                  onChange={(e) => patch({ city: e.target.value })}
+                />
+              </Field>
+              <Field label="Mobile number" error={stepErrors.contactPhone}>
+                <input
+                  className={inputClass}
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={state.contactPhone}
+                  onChange={(e) => patch({ contactPhone: e.target.value })}
+                />
+              </Field>
+            </div>
             <Field label="Access notes (optional)">
               <textarea
                 className={`${inputClass} min-h-[80px]`}
                 value={state.locationNotes}
                 onChange={(e) => patch({ locationNotes: e.target.value })}
-              />
-            </Field>
-            <Field
-              label="Mobile number"
-              error={stepErrors.contactPhone}
-              hint="South African mobile for booking updates (e.g. 082 123 4567)."
-            >
-              <input
-                className={inputClass}
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                value={state.contactPhone}
-                onChange={(e) => patch({ contactPhone: e.target.value })}
               />
             </Field>
           </>

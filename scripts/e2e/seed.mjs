@@ -18,8 +18,10 @@ import {
 } from "./lib/constants.mjs";
 import { ensureE2eCleaner, ensureE2eCustomer, ensureE2eUser } from "./lib/auth.mjs";
 import { loadEnvFiles, requireServiceRoleClient, upsertEnvLocal } from "./lib/env.mjs";
+import { assertE2eSeedAllowed } from "../ops/lib/e2e-seed-guard.mjs";
 
 loadEnvFiles();
+assertE2eSeedAllowed();
 const client = requireServiceRoleClient(createClient);
 const E2E_EMAILS = resolveE2eEmails();
 
@@ -153,6 +155,30 @@ async function main() {
     console.warn(
       "\n⚠ Add NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local (Supabase dashboard → API → anon key) for /sign-in and dashboards.",
     );
+  }
+
+  // Verify auth.users.id === profiles.id for each seeded account (prevents stale .env hints).
+  for (const [label, profileId, email] of [
+    ["customer", customerProfileId, E2E_EMAILS.customer],
+    ["cleaner", cleanerProfileId, E2E_EMAILS.cleaner],
+    ["admin", adminProfileId, E2E_EMAILS.admin],
+  ]) {
+    const { data: authUser, error: authErr } = await client.auth.admin.getUserById(profileId);
+    if (authErr) throw authErr;
+    if (!authUser.user || authUser.user.email !== email) {
+      throw new Error(
+        `${label} auth/profile mismatch for ${email} (profile id ${profileId}). Re-run seed.`,
+      );
+    }
+    const { data: profile, error: profileErr } = await client
+      .from("profiles")
+      .select("role")
+      .eq("id", profileId)
+      .maybeSingle();
+    if (profileErr) throw profileErr;
+    if (!profile?.role) {
+      throw new Error(`${label} profile missing for ${email} after seed.`);
+    }
   }
 
   upsertEnvLocal({

@@ -49,6 +49,13 @@ export async function signInAction(
     return { error: "Sign-in succeeded but no user was returned." };
   }
 
+  // Attach the new session JWT before the RLS-scoped profiles read.
+  const { error: sessionError } = await supabase.auth.getUser();
+  if (sessionError) {
+    await supabase.auth.signOut();
+    return { error: sessionError.message };
+  }
+
   const profileResult = await loadProfileRoleForUser(supabase, user.id);
   if (!profileResult.ok) {
     await supabase.auth.signOut();

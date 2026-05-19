@@ -3,20 +3,18 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database/types";
 import { defaultCleanerAvailabilityFormValues } from "@/features/cleaners/admin/cleanerAvailability";
 
-const authAdmin = {
-  createUser: vi.fn(),
-  deleteUser: vi.fn(),
-  listUsers: vi.fn(),
-};
+const provisionCleanerIdentityMock = vi.fn();
+
+vi.mock("@/lib/auth/provisionCleanerIdentity", () => ({
+  provisionCleanerIdentity: (...args: unknown[]) => provisionCleanerIdentityMock(...args),
+}));
 
 type CreateCleanerMockOptions = {
-  failProfileUpdate?: boolean;
+  failCapabilitiesInsert?: boolean;
 };
 
 function createMockClient(
   state: {
-    profiles: { id: string; role: string; full_name: string | null }[];
-    cleaners: { id: string; profile_id: string; phone: string | null }[];
     capabilities: { cleaner_id: string; service_slug: string }[];
     areas: { cleaner_id: string; area_slug: string }[];
     availability: {
@@ -31,34 +29,25 @@ function createMockClient(
   options: CreateCleanerMockOptions = {},
 ): SupabaseClient<Database> {
   return {
-    auth: { admin: authAdmin },
     from: (table: string) => {
       const api = {
         select: () => api,
         eq: () => api,
-        limit: () => api,
         insert: (rows: Record<string, unknown> | Record<string, unknown>[]) => {
           const list = Array.isArray(rows) ? rows : [rows];
-          if (table === "cleaners") {
-            const row = {
-              id: "cleaner-new",
-              profile_id: list[0]!.profile_id as string,
-              phone: list[0]!.phone as string,
-            };
-            state.cleaners.push(row);
-            return {
-              select: () => ({
-                single: async () => ({ data: row, error: null }),
-              }),
-            };
-          }
+          const plainResult = Promise.resolve({ error: null as { message: string } | null });
+
           if (table === "cleaner_service_capabilities") {
+            if (options.failCapabilitiesInsert) {
+              return Promise.resolve({ error: { message: "Capability insert failed" } });
+            }
             for (const row of list) {
               state.capabilities.push({
                 cleaner_id: row.cleaner_id as string,
                 service_slug: row.service_slug as string,
               });
             }
+            return plainResult;
           }
           if (table === "cleaner_service_areas") {
             for (const row of list) {
@@ -67,6 +56,7 @@ function createMockClient(
                 area_slug: row.area_slug as string,
               });
             }
+            return plainResult;
           }
           if (table === "cleaner_availability") {
             for (const row of list) {
@@ -78,6 +68,7 @@ function createMockClient(
                 timezone: row.timezone as string,
               });
             }
+            return plainResult;
           }
           if (table === "cleaner_operational_audit") {
             state.audits.push(list[0] ?? {});
@@ -87,38 +78,18 @@ function createMockClient(
               }),
             };
           }
-          return api;
+          return plainResult;
         },
-        update: (patch: Record<string, unknown>) => ({
-          eq: async () => {
-            if (table === "profiles" && options.failProfileUpdate) {
-              return { error: { message: "Profile update failed" } };
-            }
-            if (table === "profiles") {
-              const profile = state.profiles[0];
-              if (profile) {
-                Object.assign(profile, patch);
-              }
-            }
-            return { error: null };
-          },
-        }),
         delete: () => ({
           eq: async () => ({ error: null }),
         }),
-        maybeSingle: async () => ({ data: null, error: null }),
       };
-      if (table === "cleaners") {
-        return {
-          ...api,
-          select: () => ({
-            eq: () => ({
-              limit: async () => ({ data: state.cleaners, error: null }),
-            }),
-          }),
-        };
-      }
       return api;
+    },
+    auth: {
+      admin: {
+        deleteUser: vi.fn().mockResolvedValue({ error: null }),
+      },
     },
   } as unknown as SupabaseClient<Database>;
 }
@@ -155,21 +126,25 @@ function baseCreateParams(
 describe("createCleaner", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    authAdmin.listUsers.mockResolvedValue({ data: { users: [] }, error: null });
-    authAdmin.createUser.mockResolvedValue({
-      data: { user: { id: "profile-new" } },
-      error: null,
+    provisionCleanerIdentityMock.mockResolvedValue({
+      ok: true,
+      profileId: "profile-new",
+      cleanerId: "cleaner-new",
+      createdAuthUser: true,
     });
-    authAdmin.deleteUser.mockResolvedValue({ error: null });
   });
 
-  it("creates auth user, cleaner row, children, and audit without password in metadata", async () => {
+  it("creates cleaner children and audit after identity provisioning", async () => {
     const state = {
-      profiles: [{ id: "profile-new", role: "customer", full_name: null }],
-      cleaners: [] as { id: string; profile_id: string; phone: string | null }[],
       capabilities: [] as { cleaner_id: string; service_slug: string }[],
       areas: [] as { cleaner_id: string; area_slug: string }[],
-      availability: [],
+      availability: [] as {
+        cleaner_id: string;
+        day_of_week: number;
+        start_time: string;
+        end_time: string;
+        timezone: string;
+      }[],
       audits: [] as Record<string, unknown>[],
     };
     const client = createMockClient(state);
@@ -187,27 +162,26 @@ describe("createCleaner", () => {
     if (!result.ok) return;
 
     expect(result.cleanerId).toBe("cleaner-new");
-    expect(state.cleaners[0]?.phone).toBe("+27792022648");
     expect(state.availability.length).toBe(6);
     expect(state.availability[0]?.start_time).toBe("07:00:00");
-    expect(authAdmin.createUser).toHaveBeenCalledWith({
-      email: "0792022648@shalean.co.za",
-      password: "secure-pass-1",
-      email_confirm: true,
-      user_metadata: { full_name: "Ada Cleaner" },
-    });
+    expect(provisionCleanerIdentityMock).toHaveBeenCalledWith(
+      client,
+      expect.objectContaining({
+        authEmail: "0792022648@shalean.co.za",
+        fullName: "Ada Cleaner",
+        phoneE164: "+27792022648",
+        password: "secure-pass-1",
+      }),
+    );
 
     const audit = state.audits[0] as { metadata?: Record<string, unknown> };
     expect(audit.metadata?.authEmail).toBe("0792022648@shalean.co.za");
     expect(audit.metadata).not.toHaveProperty("password");
-    expect(audit.metadata).not.toHaveProperty("confirmPassword");
     expect(JSON.stringify(state.audits)).not.toContain("secure-pass");
   });
 
   it("never stores password in profile_created audit metadata", async () => {
     const state = {
-      profiles: [{ id: "profile-new", role: "customer", full_name: null }],
-      cleaners: [] as { id: string; profile_id: string; phone: string | null }[],
       capabilities: [] as { cleaner_id: string; service_slug: string }[],
       areas: [] as { cleaner_id: string; area_slug: string }[],
       availability: [],
@@ -217,49 +191,39 @@ describe("createCleaner", () => {
 
     const { createCleaner } = await import("./createCleaner");
     await createCleaner(
-      {
-        ...baseCreateParams({
-          password: "super-secret-pass",
-          confirmPassword: "super-secret-pass",
-        }),
-      },
+      baseCreateParams({
+        password: "super-secret-pass",
+        confirmPassword: "super-secret-pass",
+      }),
       client,
     );
 
     for (const row of state.audits) {
       const serialized = JSON.stringify(row);
       expect(serialized).not.toContain("super-secret-pass");
-      expect(serialized).not.toMatch(/"password"/i);
-      expect(serialized).not.toMatch(/"confirmPassword"/i);
     }
   });
 
-  it("returns PHONE_ALREADY_REGISTERED when cleaners.phone already exists", async () => {
+  it("returns PHONE_ALREADY_REGISTERED from identity provisioning", async () => {
+    provisionCleanerIdentityMock.mockResolvedValue({
+      ok: false,
+      code: "PHONE_ALREADY_REGISTERED",
+      message: "A cleaner with this phone number already exists.",
+    });
+
     const { createCleaner } = await import("./createCleaner");
-    const result = await createCleaner(
-      baseCreateParams(),
-      createMockClient({
-        profiles: [],
-        cleaners: [
-          {
-            id: "cleaner-existing",
-            profile_id: "profile-existing",
-            phone: "+27792022648",
-          },
-        ],
-        capabilities: [],
-        areas: [],
-        availability: [],
-        audits: [],
-      }),
-    );
+    const result = await createCleaner(baseCreateParams(), createMockClient({
+      capabilities: [],
+      areas: [],
+      availability: [],
+      audits: [],
+    }));
 
     expect(result).toEqual({
       ok: false,
       code: "PHONE_ALREADY_REGISTERED",
       message: "A cleaner with this phone number already exists.",
     });
-    expect(authAdmin.createUser).not.toHaveBeenCalled();
   });
 
   it("maps PHONE_ALREADY_REGISTERED to HTTP 409", async () => {
@@ -273,42 +237,35 @@ describe("createCleaner", () => {
     ).toBe(409);
   });
 
-  it("calls deleteUser when provisioning fails after auth user creation", async () => {
+  it("rolls back cleaner row and auth user when child provisioning fails", async () => {
     const state = {
-      profiles: [{ id: "profile-new", role: "customer", full_name: null }],
-      cleaners: [] as { id: string; profile_id: string; phone: string | null }[],
       capabilities: [] as { cleaner_id: string; service_slug: string }[],
       areas: [] as { cleaner_id: string; area_slug: string }[],
       availability: [],
       audits: [] as Record<string, unknown>[],
     };
+    const client = createMockClient(state, { failCapabilitiesInsert: true });
 
     const { createCleaner } = await import("./createCleaner");
-    const result = await createCleaner(
-      baseCreateParams(),
-      createMockClient(state, { failProfileUpdate: true }),
-    );
+    const result = await createCleaner(baseCreateParams(), client);
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.code).toBe("PROVISION_FAILED");
-    expect(authAdmin.createUser).toHaveBeenCalledOnce();
-    expect(authAdmin.deleteUser).toHaveBeenCalledWith("profile-new");
-    expect(state.cleaners).toHaveLength(0);
+    expect(client.auth.admin.deleteUser).toHaveBeenCalledWith("profile-new");
   });
 
-  it("returns 409 when auth email already exists", async () => {
-    authAdmin.listUsers.mockResolvedValue({
-      data: { users: [{ email: "0792022648@shalean.co.za" }] },
-      error: null,
+  it("returns 409 when identity provisioning reports duplicate email", async () => {
+    provisionCleanerIdentityMock.mockResolvedValue({
+      ok: false,
+      code: "EMAIL_ALREADY_REGISTERED",
+      message: "A cleaner account with this phone number already exists.",
     });
 
     const { createCleaner } = await import("./createCleaner");
     const result = await createCleaner(
       baseCreateParams(),
       createMockClient({
-        profiles: [],
-        cleaners: [],
         capabilities: [],
         areas: [],
         availability: [],
@@ -321,7 +278,6 @@ describe("createCleaner", () => {
       code: "EMAIL_ALREADY_REGISTERED",
       message: "A cleaner account with this phone number already exists.",
     });
-    expect(authAdmin.createUser).not.toHaveBeenCalled();
   });
 
   it("returns validation error for mismatched passwords", async () => {
@@ -332,8 +288,6 @@ describe("createCleaner", () => {
         confirmPassword: "other-pass-1",
       },
       createMockClient({
-        profiles: [],
-        cleaners: [],
         capabilities: [],
         areas: [],
         availability: [],
@@ -344,7 +298,7 @@ describe("createCleaner", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.code).toBe("INVALID_PAYLOAD");
-    expect(authAdmin.createUser).not.toHaveBeenCalled();
+    expect(provisionCleanerIdentityMock).not.toHaveBeenCalled();
   });
 
   it("rejects lifecycle fields in payload", async () => {

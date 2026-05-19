@@ -2,53 +2,13 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database/types";
+import { provisionCleanerIdentity } from "@/lib/auth/provisionCleanerIdentity";
 import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { validateCleanerCreateForm } from "@/features/cleaners/admin/cleanerProfileFormValidation";
 import { parseCreateCleanerBody } from "./parseCreateCleanerBody";
 import { replaceCleanerAvailability } from "./replaceCleanerAvailability";
 import { recordCleanerProfileAudit } from "./recordCleanerProfileAudit";
 import type { CreateCleanerParams, CreateCleanerResult } from "./createCleanerTypes";
-
-function isDuplicateAuthError(message: string): boolean {
-  const lower = message.toLowerCase();
-  return (
-    lower.includes("already been registered") ||
-    lower.includes("already registered") ||
-    lower.includes("duplicate") ||
-    lower.includes("user already exists")
-  );
-}
-
-async function authEmailExists(
-  client: SupabaseClient<Database>,
-  email: string,
-): Promise<boolean> {
-  const { data, error } = await client.auth.admin.listUsers({ page: 1, perPage: 200 });
-  if (error) throw new Error(error.message);
-  const target = email.toLowerCase();
-  return (data.users ?? []).some((u) => u.email?.toLowerCase() === target);
-}
-
-async function cleanerPhoneExists(
-  client: SupabaseClient<Database>,
-  phoneE164: string,
-): Promise<boolean> {
-  const { data, error } = await client
-    .from("cleaners")
-    .select("id")
-    .eq("phone", phoneE164)
-    .limit(1);
-  if (error) throw new Error(error.message);
-  return (data ?? []).length > 0;
-}
-
-async function deleteAuthUser(
-  client: SupabaseClient<Database>,
-  profileId: string,
-): Promise<void> {
-  const { error } = await client.auth.admin.deleteUser(profileId);
-  if (error) throw new Error(error.message);
-}
 
 async function purgeCleanerChildRows(
   client: SupabaseClient<Database>,
@@ -105,127 +65,79 @@ export async function createCleaner(
   const availabilityWindows = validation.availabilityWindows;
   const fullName = values.fullName.trim();
 
+  const identity = await provisionCleanerIdentity(client, {
+    authEmail,
+    fullName,
+    phoneE164,
+    password: params.password,
+  });
+
+  if (!identity.ok) {
+    return { ok: false, code: identity.code, message: identity.message };
+  }
+
+  const { profileId, cleanerId, createdAuthUser } = identity;
+
   try {
-    if (await authEmailExists(client, authEmail)) {
-      return {
-        ok: false,
-        code: "EMAIL_ALREADY_REGISTERED",
-        message: "A cleaner account with this phone number already exists.",
-      };
+    if (values.capabilities.length > 0) {
+      const { error: capError } = await client.from("cleaner_service_capabilities").insert(
+        values.capabilities.map((service_slug) => ({
+          cleaner_id: cleanerId,
+          service_slug,
+        })),
+      );
+      if (capError) throw new Error(capError.message);
     }
 
-    if (await cleanerPhoneExists(client, phoneE164)) {
-      return {
-        ok: false,
-        code: "PHONE_ALREADY_REGISTERED",
-        message: "A cleaner with this phone number already exists.",
-      };
+    if (serviceAreaSlugs.length > 0) {
+      const { error: areaError } = await client.from("cleaner_service_areas").insert(
+        serviceAreaSlugs.map((area_slug) => ({
+          cleaner_id: cleanerId,
+          area_slug,
+        })),
+      );
+      if (areaError) throw new Error(areaError.message);
     }
 
-    const created = await client.auth.admin.createUser({
-      email: authEmail,
-      password: params.password,
-      email_confirm: true,
-      user_metadata: { full_name: fullName },
+    await replaceCleanerAvailability(client, cleanerId, availabilityWindows);
+
+    const auditId = await recordCleanerProfileAudit(client, {
+      cleanerId,
+      adminProfileId: params.adminProfileId,
+      action: "profile_created",
+      outcome: "success",
+      reason: null,
+      metadata: {
+        fullName,
+        phoneE164,
+        authEmail,
+        profileId,
+        capabilitySlugs: values.capabilities,
+        serviceAreaSlugs,
+      },
+      idempotencyKey: params.idempotencyKey,
     });
 
-    if (created.error || !created.data.user) {
-      const message = created.error?.message ?? "Failed to create auth user.";
-      if (isDuplicateAuthError(message)) {
-        return {
-          ok: false,
-          code: "EMAIL_ALREADY_REGISTERED",
-          message: "A cleaner account with this phone number already exists.",
-        };
+    return {
+      ok: true,
+      cleanerId,
+      auditId,
+      message: "Cleaner account created.",
+    };
+  } catch (childError) {
+    await purgeCleanerChildRows(client, cleanerId);
+    await client.from("cleaners").delete().eq("id", cleanerId);
+    if (createdAuthUser) {
+      const { error: deleteAuthError } = await client.auth.admin.deleteUser(profileId);
+      if (deleteAuthError) {
+        console.error(
+          `[createCleaner] Failed to delete auth user ${profileId} after child row error:`,
+          deleteAuthError.message,
+        );
       }
-      return { ok: false, code: "AUTH_CREATE_FAILED", message };
     }
-
-    const profileId = created.data.user.id;
-
-    try {
-      const { error: profileError } = await client
-        .from("profiles")
-        .update({ role: "cleaner", full_name: fullName })
-        .eq("id", profileId);
-
-      if (profileError) {
-        throw new Error(profileError.message);
-      }
-
-      const { data: cleanerRow, error: cleanerError } = await client
-        .from("cleaners")
-        .insert({ profile_id: profileId, phone: phoneE164 })
-        .select("id")
-        .single();
-
-      if (cleanerError || !cleanerRow) {
-        throw new Error(cleanerError?.message ?? "Failed to create cleaner row.");
-      }
-
-      const cleanerId = cleanerRow.id;
-
-      try {
-        if (values.capabilities.length > 0) {
-          const { error: capError } = await client.from("cleaner_service_capabilities").insert(
-            values.capabilities.map((service_slug) => ({
-              cleaner_id: cleanerId,
-              service_slug,
-            })),
-          );
-          if (capError) throw new Error(capError.message);
-        }
-
-        if (serviceAreaSlugs.length > 0) {
-          const { error: areaError } = await client.from("cleaner_service_areas").insert(
-            serviceAreaSlugs.map((area_slug) => ({
-              cleaner_id: cleanerId,
-              area_slug,
-            })),
-          );
-          if (areaError) throw new Error(areaError.message);
-        }
-
-        await replaceCleanerAvailability(client, cleanerId, availabilityWindows);
-
-        const auditId = await recordCleanerProfileAudit(client, {
-          cleanerId,
-          adminProfileId: params.adminProfileId,
-          action: "profile_created",
-          outcome: "success",
-          reason: null,
-          metadata: {
-            fullName,
-            phoneE164,
-            authEmail,
-            profileId,
-            capabilitySlugs: values.capabilities,
-            serviceAreaSlugs,
-          },
-          idempotencyKey: params.idempotencyKey,
-        });
-
-        return {
-          ok: true,
-          cleanerId,
-          auditId,
-          message: "Cleaner account created.",
-        };
-      } catch (childError) {
-        await purgeCleanerChildRows(client, cleanerId);
-        await client.from("cleaners").delete().eq("id", cleanerId);
-        throw childError;
-      }
-    } catch (provisionError) {
-      await deleteAuthUser(client, profileId);
-      const message =
-        provisionError instanceof Error
-          ? provisionError.message
-          : "Failed to provision cleaner profile.";
-      return { ok: false, code: "PROVISION_FAILED", message };
-    }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to create cleaner.";
-    return { ok: false, code: "PERSISTENCE_ERROR", message };
+    const message =
+      childError instanceof Error ? childError.message : "Failed to provision cleaner profile.";
+    return { ok: false, code: "PROVISION_FAILED", message };
   }
 }

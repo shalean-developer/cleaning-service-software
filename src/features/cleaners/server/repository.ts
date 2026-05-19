@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, BookingRow } from "@/lib/database/types";
+import { isMockCleanerIdentity } from "@/lib/ops/mockCleanerPatterns";
 import type { CleanerCandidateRecord } from "./types";
 import { BOOKING_CONFLICT_STATUSES } from "./eligibility/evaluate";
 
@@ -10,7 +11,7 @@ export async function loadCleanerCandidates(
 ): Promise<CleanerCandidateRecord[]> {
   const { data: cleaners, error } = await client
     .from("cleaners")
-    .select("id, profile_id, phone, active, suspended_at, average_rating, created_at");
+    .select("id, profile_id, phone, active, suspended_at, average_rating, created_at, deleted_at");
 
   if (error) throw new Error(error.message);
   if (!cleaners?.length) return [];
@@ -52,7 +53,16 @@ export async function loadCleanerCandidates(
   const availByCleaner = groupBy(availRes.data ?? [], "cleaner_id");
   const offByCleaner = groupBy(offRes.data ?? [], "cleaner_id");
 
-  return cleaners.map((row) => ({
+  const candidates = cleaners
+    .filter((row) => row.deleted_at == null)
+    .filter(
+      (row) =>
+        !isMockCleanerIdentity({
+          fullName: displayNameByProfile.get(row.profile_id) ?? null,
+          phone: row.phone,
+        }),
+    )
+    .map((row) => ({
     cleanerId: row.id,
     profileId: row.profile_id,
     phone: row.phone,
@@ -74,6 +84,8 @@ export async function loadCleanerCandidates(
       endAt: t.end_at as string,
     })),
   }));
+
+  return candidates;
 }
 
 export async function loadConflictingCleanerIds(

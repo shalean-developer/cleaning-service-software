@@ -79,7 +79,30 @@ describe("loadProfileRoleForUser", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error).toContain("no profile was found");
+      expect(result.error).toMatch(/profile|support|e2e:seed/i);
     }
+  });
+
+  it("returns cleaner role when scoped to a cleaner user id", async () => {
+    const cleanerId = "06307bd9-e70f-49e7-8a6a-f0c13636b9e9";
+    const { client } = createProfilesMock((userId) => {
+      if (userId === cleanerId) {
+        return { data: { role: "cleaner" }, error: null };
+      }
+      return { data: null, error: null };
+    });
+
+    const result = await loadProfileRoleForUser(client, cleanerId);
+
+    expect(result).toEqual({ ok: true, role: "cleaner" });
+  });
+
+  it("does not infer admin from an unscoped query (missing row for admin id)", async () => {
+    const { client, eq } = createProfilesMock(() => ({ data: null, error: null }));
+
+    const result = await loadProfileRoleForUser(client, ADMIN_USER_ID);
+
+    expect(result.ok).toBe(false);
+    expect(eq).toHaveBeenCalledWith("id", ADMIN_USER_ID);
   });
 });

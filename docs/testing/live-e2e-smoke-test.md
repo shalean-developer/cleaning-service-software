@@ -69,6 +69,15 @@ See [Paystack test cards](https://paystack.com/docs/payments/test-payments/).
 npm run e2e:seed
 ```
 
+If sign-in shows “no profile was found”, re-run the seed or audit orphans:
+
+```bash
+npm run ops:audit:auth-profiles
+npm run ops:repair:auth-profiles -- --e2e
+```
+
+Production accounts (e.g. `admin@shalean.com`) without a `profiles` row must be provisioned via admin service-role flows — never auto-promoted to admin.
+
 Creates (idempotent, `test_e2e_*` prefix only):
 
 | Entity | Email / marker |
@@ -287,6 +296,26 @@ npm run e2e:seed
 ```
 
 Preserves `services` catalog rows.
+
+### Mock cleaner ops (production-safe)
+
+Audit mock vs real cleaners (dry-run table, no writes):
+
+```bash
+npm run ops:audit:mock-cleaners
+```
+
+Remove mock/test cleaners only (`test_e2e`, `test_phase`, mock/demo markers). Real cleaners and all booking/payment/audit rows are kept; bookings are unassigned from mock cleaners (not deleted).
+
+```bash
+CONFIRM_MOCK_CLEANER_DELETE=yes npm run ops:delete:mock-cleaners
+```
+
+E2E seed guards:
+
+- Local Supabase (`127.0.0.1` / `localhost`): always allowed
+- Remote staging: `CONFIRM_E2E_SEED_REMOTE=yes npm run e2e:seed`
+- Production: `CONFIRM_E2E_SEED_PRODUCTION=yes npm run e2e:seed` (use only when intentional)
 
 ---
 

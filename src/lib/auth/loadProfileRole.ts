@@ -1,12 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, UserRole } from "@/lib/database/types";
+import { missingProfileMessage } from "@/lib/auth/profileErrors";
 
 export type ProfileRoleLookupResult =
   | { ok: true; role: UserRole }
   | { ok: false; error: string };
-
-const NO_PROFILE_MESSAGE =
-  "Signed in but no profile was found. Contact support or re-run E2E seed.";
 
 /**
  * Loads the signed-in user's profile role. Must filter by `userId` so admin RLS
@@ -26,7 +24,7 @@ export async function loadProfileRoleForUser(
     return { ok: false, error: error.message };
   }
   if (!profile?.role) {
-    return { ok: false, error: NO_PROFILE_MESSAGE };
+    return { ok: false, error: missingProfileMessage() };
   }
   return { ok: true, role: profile.role as UserRole };
 }

@@ -8,6 +8,7 @@ import type {
   CleanerRow,
   ProfileRow,
 } from "@/lib/database/types";
+import { isMockCleanerIdentity } from "@/lib/ops/mockCleanerPatterns";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isCleanerSuspended } from "../eligibility/evaluate";
 import {
@@ -206,11 +207,22 @@ export async function listAdminCleaners(
     }),
   );
 
+  const visibleItems = items.filter((item) => {
+    const profile = profileById.get(
+      rows.find((r) => r.id === item.id)?.profile_id ?? "",
+    );
+    return !isMockCleanerIdentity({
+      email: item.email,
+      fullName: profile?.full_name ?? null,
+      phone: item.phone,
+    });
+  });
+
   return {
     ok: true,
-    items,
+    items: visibleItems,
     filter,
-    totalCount: items.length,
+    totalCount: visibleItems.length,
   };
 }
 
