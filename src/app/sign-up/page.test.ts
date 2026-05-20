@@ -5,6 +5,10 @@ import { isCustomerSignupEnabled } from "@/lib/auth/customerSignupFlag";
 
 const pageSource = readFileSync(resolve(process.cwd(), "src/app/sign-up/page.tsx"), "utf8");
 const signInPageSource = readFileSync(resolve(process.cwd(), "src/app/sign-in/page.tsx"), "utf8");
+const signInContentSource = readFileSync(
+  resolve(process.cwd(), "src/app/sign-in/SignInPageContent.tsx"),
+  "utf8",
+);
 const checkEmailSource = readFileSync(
   resolve(process.cwd(), "src/app/sign-up/check-email/page.tsx"),
   "utf8",
@@ -43,12 +47,12 @@ describe("Sign-up page feature flag", () => {
     delete process.env.ENABLE_CUSTOMER_SIGNUP;
     expect(isCustomerSignupEnabled()).toBe(false);
     expect(signInPageSource).toContain("signupEnabled");
-    expect(signInPageSource).toMatch(/\{signupEnabled \?/);
+    expect(signInPageSource).toContain("SignInPageContent");
   });
 
   it("shows signup link on sign-in only when flag is enabled", () => {
-    expect(signInPageSource).toContain('href={SIGN_UP_PATH}');
-    expect(signInPageSource).toContain("Create one");
+    expect(signInContentSource).toContain('href={SIGN_UP_PATH}');
+    expect(signInContentSource).toContain("Create one");
   });
 
   it("blocks check-email page when flag is disabled", () => {

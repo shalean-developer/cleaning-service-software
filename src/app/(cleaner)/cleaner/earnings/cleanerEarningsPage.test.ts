@@ -11,6 +11,8 @@ describe("cleaner earnings page", () => {
     const source = readPage("src/app/(cleaner)/cleaner/earnings/page.tsx");
 
     expect(source).toContain("CleanerEarningsListCard");
+    expect(source).toContain("CleanerEarningsSummaryCards");
+    expect(source).toContain("summarizeCleanerEarningsForDisplay");
     expect(source).toContain("CLEANER_EARNINGS_PAGE_TRUST_LINE");
     expect(source).toContain("CLEANER_EARNINGS_EMPTY");
     expect(source).not.toContain("labelForPayoutStatus");

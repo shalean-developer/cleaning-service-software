@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getCleanerJobDetail } from "@/features/dashboards/server/cleanerJobReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { CleanerDashboardHeaderEndLoader } from "@/components/dashboard/cleaner/CleanerDashboardHeaderEndLoader";
 import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
 import { JobCompletionActions } from "@/components/dashboard/JobCompletionActions";
 import { CleanerJobMobileActionBar } from "@/components/dashboard/cleaner/CleanerJobMobileActionBar";
@@ -74,6 +75,7 @@ export default async function CleanerJobDetailPage({ params }: PageProps) {
       title="Your job"
       subtitle={opsJob?.shellSubtitle ?? "Schedule, location, pay, and next steps."}
       nav={[...CLEANER_NAV_ITEMS]}
+      headerEnd={<CleanerDashboardHeaderEndLoader />}
     >
       <Link
         href="/cleaner/jobs"

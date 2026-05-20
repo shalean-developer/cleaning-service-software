@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listCleanerJobs } from "@/features/dashboards/server/cleanerJobReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { CleanerDashboardHeaderEndLoader } from "@/components/dashboard/cleaner/CleanerDashboardHeaderEndLoader";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { CleanerJobListCard } from "@/components/dashboard/cleaner/CleanerJobListCard";
@@ -24,6 +25,7 @@ export default async function CleanerJobsPage() {
       title="My jobs"
       subtitle="Schedule, location, and pay per job."
       nav={[...CLEANER_NAV_ITEMS]}
+      headerEnd={<CleanerDashboardHeaderEndLoader />}
     >
       {!result.ok ? (
         <DashboardFetchError

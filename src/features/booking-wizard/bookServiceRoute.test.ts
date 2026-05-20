@@ -71,7 +71,9 @@ describe("syncBookServiceUrlOnSelection", () => {
     const replace = vi.fn();
     syncBookServiceUrlOnSelection("moving-cleaning", "/customer/book", replace);
     expect(replace).toHaveBeenCalledOnce();
-    expect(replace).toHaveBeenCalledWith("/customer/book/moving-cleaning");
+    expect(replace).toHaveBeenCalledWith("/customer/book/moving-cleaning", {
+      scroll: false,
+    });
   });
 
   it("does not call replace when the URL is already canonical", () => {

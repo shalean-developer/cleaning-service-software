@@ -23,11 +23,16 @@ export function bookServiceReplacePath(
   return currentPathname === target ? null : target;
 }
 
+export type BookServiceUrlReplace = (
+  path: string,
+  options?: { scroll?: boolean },
+) => void;
+
 export function syncBookServiceUrlOnSelection(
   slug: ServiceSlug,
   pathname: string | null | undefined,
-  replace: (path: string) => void,
+  replace: BookServiceUrlReplace,
 ): void {
   const path = bookServiceReplacePath(pathname, slug);
-  if (path) replace(path);
+  if (path) replace(path, { scroll: false });
 }

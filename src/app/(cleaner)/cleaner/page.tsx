@@ -6,6 +6,7 @@ import {
   listCleanerOffersForDashboard,
 } from "@/features/dashboards/server/cleanerJobReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { CleanerDashboardHeaderEndLoader } from "@/components/dashboard/cleaner/CleanerDashboardHeaderEndLoader";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { CleanerJobListCard } from "@/components/dashboard/cleaner/CleanerJobListCard";
 import { CleanerOfferListCard } from "@/components/dashboard/cleaner/CleanerOfferListCard";
@@ -38,6 +39,7 @@ export default async function CleanerHomePage() {
       title="Cleaner home"
       subtitle="Open offers, active jobs, and your schedule."
       nav={[...CLEANER_NAV_ITEMS]}
+      headerEnd={<CleanerDashboardHeaderEndLoader />}
     >
       <section className="grid gap-3 sm:grid-cols-2 sm:gap-4">
         <section className={`${CLEANER_DETAIL_CARD_CLASS} ${CLEANER_LIST_CARD_PADDING}`}>

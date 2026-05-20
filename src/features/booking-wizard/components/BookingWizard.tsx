@@ -20,6 +20,10 @@ import { nextStep, previousStep } from "../navigation";
 import { clearWizardStorage, loadWizardState, saveWizardState } from "../storage";
 import { initialContactPhoneField } from "../contactPhone";
 import {
+  mergeLoadedWizardAddressDefaults,
+  type LatestBookingAddressDefaults,
+} from "../latestBookingAddressDefaults";
+import {
   CHECKOUT_QUOTE_REQUIRED_MESSAGE,
   mergeWithQuoteInvalidation,
   shouldRedirectCheckoutWithoutQuote,
@@ -37,7 +41,6 @@ import {
   usesWizardStepSummarySidebar,
   WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS,
   WIZARD_MAIN_COLUMN_CLASS,
-  WIZARD_PAGE_HEADER_CLASS,
   WIZARD_STEP_CONTENT_TRANSITION_CLASS,
   WIZARD_STICKY_FOOTER_SUMMARY_SLOT_CLASS,
 } from "../wizardLayout";
@@ -62,17 +65,25 @@ import {
 } from "./WizardMobileCommerceSummary";
 import { WizardMobileStickyFooter } from "./WizardMobileStickyFooter";
 import { WizardStepHeading } from "./WizardStepHeading";
+import {
+  BookingWizardPageHeader,
+} from "./BookingWizardPageHeader";
+import type { CustomerProfileMenuProps } from "@/components/dashboard/customer/CustomerProfileMenu";
 
 type Props = {
   customerEmail: string;
+  profileMenu: CustomerProfileMenuProps;
   initialServiceSlug?: ServiceSlug;
   initialCustomerPhone?: string | null;
+  initialAddressDefaults?: LatestBookingAddressDefaults | null;
 };
 
 export function BookingWizard({
   customerEmail,
+  profileMenu,
   initialServiceSlug,
   initialCustomerPhone = null,
+  initialAddressDefaults = null,
 }: Props) {
   const [state, setState] = useState<BookingWizardState>(INITIAL_WIZARD_STATE);
   const [stepErrors, setStepErrors] = useState<Record<string, string>>({});
@@ -89,11 +100,17 @@ export function BookingWizard({
   const router = useRouter();
   const pathname = usePathname();
 
+  const initialAddressDefaultsKey = useMemo(
+    () => JSON.stringify(initialAddressDefaults ?? {}),
+    [initialAddressDefaults],
+  );
+
   useEffect(() => {
     const loaded = loadWizardState();
     const profilePhone = initialCustomerPhone?.trim() || null;
+    const merged = mergeLoadedWizardAddressDefaults(loaded, initialAddressDefaults);
     const withPhone = {
-      ...loaded,
+      ...merged,
       profilePhone,
       contactPhone: initialContactPhoneField(loaded.contactPhone, profilePhone),
     };
@@ -103,7 +120,7 @@ export function BookingWizard({
       setState(withPhone);
     }
     hydrated.current = true;
-  }, [initialServiceSlug, initialCustomerPhone]);
+  }, [initialServiceSlug, initialCustomerPhone, initialAddressDefaultsKey]);
 
   useEffect(() => {
     if (!hydrated.current) return;
@@ -163,6 +180,7 @@ export function BookingWizard({
 
   const handleSelectService = useCallback(
     (slug: ServiceSlug) => {
+      syncBookServiceUrlOnSelection(slug, pathname, router.replace);
       setState((prev) => {
         const partial = wizardPatchForServiceSelection(slug);
         const next = { ...prev, ...mergeWithQuoteInvalidation(prev, partial) };
@@ -171,7 +189,6 @@ export function BookingWizard({
       });
       setStepErrors({});
       setApiError(null);
-      syncBookServiceUrlOnSelection(slug, pathname, router.replace);
     },
     [pathname, router],
   );
@@ -413,13 +430,14 @@ export function BookingWizard({
       : undefined;
   const showWizardFrequency =
     showFrequencyForService(state.serviceSlug) &&
-    ["datetime", "details", "cleaner", "review", "checkout"].includes(state.step);
+    ["datetime", "cleaner", "review", "checkout"].includes(state.step);
 
   const wizardContextStrip =
     state.serviceSlug &&
     showWizardContextStripForService(state.serviceSlug) &&
     state.step !== "service" &&
     state.step !== "location" &&
+    state.step !== "details" &&
     state.step !== "checkout" ? (
       <WizardContextStrip
         serviceLabel={serviceLabel}
@@ -566,7 +584,6 @@ export function BookingWizard({
 
         {state.step === "details" ? (
           <>
-            {wizardContextStrip}
             <DetailsStepPanel
               serviceSlug={state.serviceSlug}
               bedrooms={state.bedrooms}
@@ -736,10 +753,7 @@ export function BookingWizard({
 
   return (
     <div className={getWizardShellClass(state.step)}>
-      <header className={`${WIZARD_PAGE_HEADER_CLASS} ${WIZARD_MAIN_COLUMN_CLASS}`}>
-        <h1 className="text-xl font-semibold text-zinc-900">Book a clean</h1>
-        <p className="text-sm text-zinc-600">Shalean Cleaning Services</p>
-      </header>
+      <BookingWizardPageHeader profileMenu={profileMenu} />
 
       <div className={WIZARD_MAIN_COLUMN_CLASS}>
         <WizardStepper current={state.step} />

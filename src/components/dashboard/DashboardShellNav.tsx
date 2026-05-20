@@ -1,19 +1,36 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import type { NavItem } from "@/components/dashboard/DashboardShell";
 
 type Props = {
   nav: NavItem[];
+  /** When false, sign out is only available elsewhere (e.g. profile menu). */
+  showSignOut?: boolean;
 };
 
 const navLinkClass =
   "inline-flex min-h-10 w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2";
 
-const desktopNavLinkClass =
-  "inline-flex min-h-10 shrink-0 items-center rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2";
+const desktopNavLinkBaseClass =
+  "inline-flex min-h-10 shrink-0 items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2";
+
+function isNavItemActive(pathname: string | null, href: string): boolean {
+  if (!pathname) return false;
+  if (href === "/customer" || href === "/cleaner") {
+    return pathname === href;
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function desktopNavLinkClass(active: boolean): string {
+  return active
+    ? `${desktopNavLinkBaseClass} bg-zinc-100 font-semibold text-zinc-900 ring-1 ring-inset ring-zinc-200/90`
+    : `${desktopNavLinkBaseClass} text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900`;
+}
 
 function MenuIcon({ className }: { className?: string }) {
   return (
@@ -47,7 +64,8 @@ function CloseIcon({ className }: { className?: string }) {
   );
 }
 
-export function DashboardShellNav({ nav }: Props) {
+export function DashboardShellNav({ nav, showSignOut = true }: Props) {
+  const pathname = usePathname();
   const menuId = useId();
   const [open, setOpen] = useState(false);
 
@@ -70,13 +88,18 @@ export function DashboardShellNav({ nav }: Props) {
 
   return (
     <>
-      <nav className="hidden items-center gap-2 sm:flex sm:flex-wrap" aria-label="Dashboard">
+      <nav className="hidden items-center gap-1.5 sm:flex sm:flex-wrap sm:gap-2" aria-label="Dashboard">
         {nav.map((item) => (
-          <Link key={item.href} href={item.href} className={desktopNavLinkClass}>
+          <Link
+            key={item.href}
+            href={item.href}
+            className={desktopNavLinkClass(isNavItemActive(pathname, item.href))}
+            aria-current={isNavItemActive(pathname, item.href) ? "page" : undefined}
+          >
             {item.label}
           </Link>
         ))}
-        <SignOutButton className={desktopNavLinkClass} />
+        {showSignOut ? <SignOutButton className={desktopNavLinkClass(false)} /> : null}
       </nav>
 
       <section className="relative sm:hidden">
@@ -111,16 +134,30 @@ export function DashboardShellNav({ nav }: Props) {
           aria-hidden={!open}
         >
           <ul className="mx-auto flex max-w-5xl flex-col gap-1">
-            {nav.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className={navLinkClass} onClick={() => setOpen(false)}>
-                  {item.label}
-                </Link>
+            {nav.map((item) => {
+              const active = isNavItemActive(pathname, item.href);
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={
+                      active
+                        ? `${navLinkClass} bg-zinc-100 font-semibold text-zinc-900`
+                        : navLinkClass
+                    }
+                    aria-current={active ? "page" : undefined}
+                    onClick={() => setOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+            {showSignOut ? (
+              <li>
+                <SignOutButton className={`${navLinkClass} justify-start`} />
               </li>
-            ))}
-            <li>
-              <SignOutButton className={`${navLinkClass} justify-start`} />
-            </li>
+            ) : null}
           </ul>
         </nav>
       </section>

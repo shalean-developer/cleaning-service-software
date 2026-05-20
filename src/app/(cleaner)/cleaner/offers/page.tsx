@@ -5,6 +5,7 @@ import { partitionCleanerOffers } from "@/features/dashboards/server/partitionCl
 import type { CleanerOfferListItem } from "@/features/dashboards/server/types";
 import { CleanerOfferCard } from "@/components/dashboard/CleanerOfferCard";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { CleanerDashboardHeaderEndLoader } from "@/components/dashboard/cleaner/CleanerDashboardHeaderEndLoader";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
 import { EmptyState } from "@/components/dashboard/EmptyState";
@@ -26,6 +27,7 @@ export default async function CleanerOffersPage() {
       title="Job offers"
       subtitle="When, where, pay — accept or decline."
       nav={[...CLEANER_NAV_ITEMS]}
+      headerEnd={<CleanerDashboardHeaderEndLoader />}
     >
       {!result.ok ? (
         <DashboardFetchError

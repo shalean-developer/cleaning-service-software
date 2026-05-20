@@ -1,26 +1,50 @@
-import Link from "next/link";
-import { CustomerBookACleanCta } from "@/components/dashboard/customer/CustomerBookACleanCta";
-import { UI_BUTTON_SECONDARY_CLASS } from "@/lib/ui/productUiTokens";
+import { CustomerHomeHero } from "@/components/dashboard/customer/CustomerHomeHero";
+import { CustomerHomeLifecycleProgress } from "@/components/dashboard/customer/CustomerHomeLifecycleProgress";
+import { CustomerHomeQuickActions } from "@/components/dashboard/customer/CustomerHomeQuickActions";
+import { CustomerHomeRecentActivity } from "@/components/dashboard/customer/CustomerHomeRecentActivity";
+import { CustomerHomeRecurringCta } from "@/components/dashboard/customer/CustomerHomeRecurringCta";
+import { CustomerHomeSummaryCards } from "@/components/dashboard/customer/CustomerHomeSummaryCards";
+import { CustomerHomeUpcomingCard } from "@/components/dashboard/customer/CustomerHomeUpcomingCard";
+import {
+  customerHomeDisplayName,
+  customerHomeHeroCopy,
+  customerHomeRecentActivity,
+  customerHomeShowsRecurringCta,
+  customerHomeSummaryStats,
+  pickFeaturedUpcomingBooking,
+} from "@/features/dashboards/customerHomeDisplay";
+import type { LifecycleEvent } from "@/features/dashboards/server/lifecycleTimeline";
+import type { CustomerBookingListItem } from "@/features/dashboards/server/types";
 
-export function CustomerHomeContent() {
+type Props = {
+  bookings: CustomerBookingListItem[];
+  profileFullName: string | null;
+  customerEmail: string;
+  featuredTimeline: LifecycleEvent[] | null;
+};
+
+export function CustomerHomeContent({
+  bookings,
+  profileFullName,
+  customerEmail,
+  featuredTimeline,
+}: Props) {
+  const featured = pickFeaturedUpcomingBooking(bookings);
+  const displayName = customerHomeDisplayName(profileFullName, customerEmail);
+  const heroCopy = customerHomeHeroCopy({ displayName, featured });
+  const stats = customerHomeSummaryStats(bookings);
+  const activity = customerHomeRecentActivity(bookings, featuredTimeline);
+  const showRecurringCta = customerHomeShowsRecurringCta(bookings);
+
   return (
-    <section className="space-y-6 sm:space-y-8">
-      <header className="max-w-xl">
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
-          Welcome back
-        </h1>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-600 sm:text-[0.9375rem]">
-          Book a clean, track payments, and see when your cleaner is assigned — all from
-          your bookings page.
-        </p>
-      </header>
-
-      <section className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <CustomerBookACleanCta />
-        <Link href="/customer/bookings" className={UI_BUTTON_SECONDARY_CLASS}>
-          My bookings
-        </Link>
-      </section>
-    </section>
+    <div className="space-y-4 sm:space-y-5">
+      <CustomerHomeHero copy={heroCopy} />
+      <CustomerHomeSummaryCards stats={stats} />
+      <CustomerHomeUpcomingCard featured={featured} />
+      {featured ? <CustomerHomeLifecycleProgress status={featured.status} /> : null}
+      <CustomerHomeQuickActions />
+      <CustomerHomeRecentActivity items={activity} />
+      {showRecurringCta ? <CustomerHomeRecurringCta /> : null}
+    </div>
   );
 }

@@ -1,6 +1,39 @@
+import type { CleanerEarningListItem } from "@/features/earnings/server/types";
 import type { EarningPayoutStatus } from "@/lib/database/types";
 import type { StatusBadgeTone } from "@/features/bookings/server/statusLabels";
 import { toneForPayoutStatus } from "@/features/bookings/server/statusLabels";
+
+/** Helper under the completed-jobs summary on the earnings page. */
+export const CLEANER_EARNINGS_SUMMARY_COMPLETED_JOBS_HELPER =
+  "Completed cleaning services";
+
+/** Helper under the total-earnings summary on the earnings page. */
+export const CLEANER_EARNINGS_SUMMARY_TOTAL_EARNINGS_HELPER = "Across completed payouts";
+
+export type CleanerEarningsPageSummary = {
+  completedJobCount: number;
+  totalEarningsCents: number;
+};
+
+/**
+ * Display-only rollup from the same earning lines shown in the list (no payout math changes).
+ */
+export function summarizeCleanerEarningsForDisplay(
+  earnings: CleanerEarningListItem[],
+): CleanerEarningsPageSummary {
+  const completedJobKeys = new Set<string>();
+  let totalEarningsCents = 0;
+
+  for (const line of earnings) {
+    totalEarningsCents += line.payoutAmountCents;
+    completedJobKeys.add(line.bookingId ?? line.id);
+  }
+
+  return {
+    completedJobCount: completedJobKeys.size,
+    totalEarningsCents,
+  };
+}
 
 /**
  * Fallback label from resolveCleanerEarningsDisplay when no safe amount exists.

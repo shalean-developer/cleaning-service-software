@@ -19,6 +19,8 @@ describe("cleaner pages Stage 6F-1a wiring", () => {
     const source = readPage(pagePath);
     expect(source).toContain("CLEANER_NAV_ITEMS");
     expect(source).toContain("nav={[...CLEANER_NAV_ITEMS]}");
+    expect(source).toContain("CleanerDashboardHeaderEndLoader");
+    expect(source).toContain("headerEnd={<CleanerDashboardHeaderEndLoader />}");
     expect(source).not.toMatch(/nav=\{\[\s*\{ href: "\/cleaner"/);
   });
 

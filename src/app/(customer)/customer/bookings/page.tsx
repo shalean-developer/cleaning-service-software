@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { listCustomerBookings } from "@/features/dashboards/server/customerBookingReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { CustomerDashboardHeaderEndLoader } from "@/components/dashboard/customer/CustomerDashboardHeaderEndLoader";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { CustomerBookingsListContent } from "@/components/dashboard/customer/CustomerBookingsListContent";
 import { CustomerBookingsPageHeader } from "@/components/dashboard/customer/CustomerBookingsPageHeader";
@@ -22,6 +23,7 @@ export default async function CustomerBookingsPage() {
       title="My bookings"
       subtitle="Your cleans, payments, and cleaner assignment status."
       nav={[...CUSTOMER_DASHBOARD_NAV]}
+      headerEnd={<CustomerDashboardHeaderEndLoader />}
     >
       {result && !result.ok ? (
         <DashboardFetchError

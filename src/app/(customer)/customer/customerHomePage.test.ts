@@ -3,14 +3,15 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("CustomerHomePage", () => {
-  it("uses hub content instead of duplicating the bookings list", () => {
+  it("uses hub content instead of duplicating the bookings list UI", () => {
     const source = readFileSync(
       resolve(process.cwd(), "src/app/(customer)/customer/page.tsx"),
       "utf8",
     );
     expect(source).toContain("CustomerHomeContent");
     expect(source).not.toContain("CustomerBookingsListContent");
-    expect(source).not.toContain("listCustomerBookings");
+    expect(source).not.toContain("CustomerBookingsDashboard");
+    expect(source).toContain("listCustomerBookings");
   });
 
   it("keeps full bookings list on the bookings route", () => {

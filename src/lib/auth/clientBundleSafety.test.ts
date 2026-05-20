@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 const CLIENT_ROOTS = [
   "src/app/sign-in",
   "src/app/sign-up",
+  "src/app/reset-password",
   "src/components/auth",
   "src/lib/supabase/browser.ts",
 ];

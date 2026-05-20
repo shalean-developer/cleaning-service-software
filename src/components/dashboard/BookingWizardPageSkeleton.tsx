@@ -19,9 +19,13 @@ export function BookingWizardPageSkeleton() {
       aria-live="polite"
     >
       <span className="sr-only">{DASHBOARD_LOADING_SR_LABEL}</span>
-      <PulseBlock className="mb-3 h-4 w-32" />
-      <PulseBlock className="mb-2 h-3 w-24 md:hidden" />
-      <PulseBlock className="mb-1 h-5 w-40 md:hidden" />
+      <div className="mb-2.5 flex items-start justify-between gap-3 md:mb-3.5">
+        <div className="min-w-0 flex-1">
+          <PulseBlock className="h-7 w-36" />
+          <PulseBlock className="mt-1.5 h-4 w-48" />
+        </div>
+        <PulseBlock className="h-9 w-9 shrink-0 rounded-full sm:h-10 sm:w-10" />
+      </div>
       <div className="mb-4 hidden gap-1 md:flex">
         {Array.from({ length: 7 }, (_, i) => (
           <PulseBlock key={i} className="h-8 flex-1" />

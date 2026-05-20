@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { CustomerDashboardHeaderEndLoader } from "@/components/dashboard/customer/CustomerDashboardHeaderEndLoader";
 import {
   checkCustomerReadiness,
   homePathForRole,
@@ -38,6 +39,7 @@ export default async function CustomerSetupPage({ searchParams }: PageProps) {
         { href: "/customer/bookings", label: "Bookings" },
         { href: "/customer/book", label: "Book a clean" },
       ]}
+      headerEnd={<CustomerDashboardHeaderEndLoader />}
     >
       <section className="max-w-lg rounded-xl border border-zinc-200 bg-white p-6">
         <p className="text-sm text-zinc-700">

@@ -100,3 +100,22 @@ export const UI_LIST_META_CLASS =
 
 /** Secondary location segment in schedule · location rows. */
 export const UI_META_LOCATION_CLASS = "break-words [overflow-wrap:anywhere]";
+
+/** Auth surfaces (sign-in / sign-up) — presentation only. */
+export const UI_AUTH_PAGE_CLASS =
+  "relative flex min-h-screen flex-col items-center justify-center bg-zinc-50 px-4 py-8 sm:py-10";
+
+export const UI_AUTH_PAGE_BACKDROP_CLASS =
+  "pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(24,24,27,0.06),transparent)]";
+
+export const UI_AUTH_CARD_CLASS = `${UI_CARD_SHELL_CLASS} w-full max-w-md px-5 py-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] sm:px-7 sm:py-8`;
+
+export const UI_AUTH_INPUT_CLASS =
+  "min-h-11 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none transition-[border-color,box-shadow] placeholder:text-zinc-400 focus:border-zinc-300 focus:ring-2 focus:ring-zinc-900/10 disabled:cursor-not-allowed disabled:opacity-60 [&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_#fff] [&:-webkit-autofill]:[-webkit-text-fill-color:#18181b]";
+
+export const UI_AUTH_LABEL_CLASS = "text-sm font-medium text-zinc-800";
+
+export const UI_AUTH_BUTTON_PRIMARY_CLASS = `${UI_BUTTON_PRIMARY_CLASS} w-full disabled:opacity-60`;
+
+export const UI_AUTH_LINK_CLASS =
+  "text-sm font-medium text-zinc-600 underline-offset-2 transition-colors hover:text-zinc-900 hover:underline";

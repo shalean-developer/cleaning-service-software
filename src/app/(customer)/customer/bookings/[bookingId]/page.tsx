@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getCustomerBookingDetail } from "@/features/dashboards/server/customerBookingReadModel";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { CustomerDashboardHeaderEndLoader } from "@/components/dashboard/customer/CustomerDashboardHeaderEndLoader";
 import { PaymentIssuePanel } from "@/components/dashboard/PaymentIssuePanel";
 import { CustomerBookingDetailsCard } from "@/components/dashboard/customer/CustomerBookingDetailsCard";
 import { CustomerBookingStatusHero } from "@/components/dashboard/customer/CustomerBookingStatusHero";
@@ -72,6 +73,7 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
       title="Your booking"
       subtitle={serviceDetail?.shellSubtitle ?? "Status, payment, and service details"}
       nav={[...CUSTOMER_DASHBOARD_NAV]}
+      headerEnd={<CustomerDashboardHeaderEndLoader />}
     >
       <Link
         href="/customer/bookings"

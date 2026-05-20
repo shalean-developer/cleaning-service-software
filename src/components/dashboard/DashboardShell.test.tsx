@@ -18,14 +18,14 @@ describe("DashboardShell (7P-1E)", () => {
       </DashboardShell>,
     );
 
-    expect(html).toContain("hidden items-center gap-2 sm:flex");
+    expect(html).toContain("hidden items-center gap-1.5 sm:flex");
     expect(html).toContain("sm:hidden");
     expect(html).toContain("Open menu");
     expect(html).toContain('class="mx-auto min-w-0 max-w-5xl px-4 py-6 sm:py-8"');
     expect(html).not.toContain('class="mx-auto max-w-5xl px-4 py-8"');
   });
 
-  it("renders all nav destinations and sign out", () => {
+  it("renders nav destinations and sign out when no profile header slot", () => {
     const html = renderToStaticMarkup(
       <DashboardShell
         title="Cleaner dashboard"
@@ -41,5 +41,43 @@ describe("DashboardShell (7P-1E)", () => {
     expect(html).toContain('href="/cleaner"');
     expect(html).toContain('href="/cleaner/offers"');
     expect(html).toContain("Sign out");
+  });
+
+  it("hides cleaner nav sign out when headerEnd provides account actions", () => {
+    const html = renderToStaticMarkup(
+      <DashboardShell
+        nav={[
+          { href: "/cleaner", label: "Home" },
+          { href: "/cleaner/offers", label: "Offers" },
+        ]}
+        headerEnd={<span data-testid="cleaner-profile-slot">Profile</span>}
+      >
+        <p>Content</p>
+      </DashboardShell>,
+    );
+
+    expect(html).toContain('data-testid="cleaner-profile-slot"');
+    const desktopNav = html.match(
+      /hidden items-center gap-1\.5 sm:flex[\s\S]*?<\/nav>/,
+    )?.[0];
+    expect(desktopNav).toBeDefined();
+    expect(desktopNav).not.toContain("Sign out");
+  });
+
+  it("hides nav sign out when headerEnd provides account actions", () => {
+    const html = renderToStaticMarkup(
+      <DashboardShell
+        nav={[
+          { href: "/customer", label: "Home" },
+          { href: "/customer/bookings", label: "Bookings" },
+        ]}
+        headerEnd={<span data-testid="profile-slot">Profile</span>}
+      >
+        <p>Content</p>
+      </DashboardShell>,
+    );
+
+    expect(html).toContain('data-testid="profile-slot"');
+    expect(html).not.toContain("Sign out");
   });
 });
