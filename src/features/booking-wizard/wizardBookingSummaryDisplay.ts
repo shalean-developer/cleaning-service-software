@@ -13,6 +13,10 @@ import {
   getWizardSummaryLocationLabel,
   isAirbnbCleaningSlug,
 } from "./airbnbCleaningDisplay";
+import { isDeepCleaningSlug } from "./deepCleaningDisplay";
+import { isCarpetCleaningSlug } from "./carpetCleaningDisplay";
+import { isMovingCleaningSlug } from "./movingCleaningDisplay";
+import { isOfficeCleaningSlug } from "./officeCleaningDisplay";
 import { formatDateLabel } from "./format";
 import { formatSuburbLocation } from "./reviewDisplay";
 import {
@@ -71,20 +75,30 @@ function isResidentialSummarySlug(serviceSlug: ServiceSlug | null): boolean {
     serviceSlug === "regular-cleaning" ||
     serviceSlug === "airbnb-cleaning" ||
     serviceSlug === "deep-cleaning" ||
-    serviceSlug === "moving-cleaning"
+    serviceSlug === "moving-cleaning" ||
+    isCarpetCleaningSlug(serviceSlug)
   );
+}
+
+function showWorkspaceSummarySecondaryRows(serviceSlug: ServiceSlug | null): boolean {
+  return isOfficeCleaningSlug(serviceSlug);
 }
 
 function buildSecondaryRows(input: WizardBookingSummaryInput): WizardSummaryRow[] {
   const rows: WizardSummaryRow[] = [];
-  const isAirbnb = isAirbnbCleaningSlug(input.serviceSlug);
+  const showPropertyLocation =
+    isAirbnbCleaningSlug(input.serviceSlug) ||
+    isMovingCleaningSlug(input.serviceSlug) ||
+    isDeepCleaningSlug(input.serviceSlug) ||
+    isOfficeCleaningSlug(input.serviceSlug) ||
+    isCarpetCleaningSlug(input.serviceSlug);
 
-  if (isAirbnb) {
+  if (showPropertyLocation) {
     const location = formatSuburbLocation(input.suburb, input.city);
     pushRow(rows, getWizardSummaryLocationLabel(input.serviceSlug), location);
   }
 
-  if (isResidentialSummarySlug(input.serviceSlug)) {
+  if (isResidentialSummarySlug(input.serviceSlug) || showWorkspaceSummarySecondaryRows(input.serviceSlug)) {
     pushRow(
       rows,
       getWizardSummaryFrequencyLabel(input.serviceSlug),
@@ -143,7 +157,14 @@ export function buildWizardBookingSummarySnapshot(
     estimatedTotalCents: getWizardEstimatedTotalCents(input),
   };
 
-  if (isAirbnbCleaningSlug(input.serviceSlug) && snapshot.secondaryRows.length > 0) {
+  if (
+    (isAirbnbCleaningSlug(input.serviceSlug) ||
+      isMovingCleaningSlug(input.serviceSlug) ||
+      isDeepCleaningSlug(input.serviceSlug) ||
+      isOfficeCleaningSlug(input.serviceSlug) ||
+      isCarpetCleaningSlug(input.serviceSlug)) &&
+    snapshot.secondaryRows.length > 0
+  ) {
     const locationRow = snapshot.secondaryRows.find(
       (r) => r.label === getWizardSummaryLocationLabel(input.serviceSlug),
     );

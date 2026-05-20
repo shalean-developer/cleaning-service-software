@@ -25,7 +25,7 @@ export function humanPaymentEventTitle(
     case "refunded":
       return "Payment refunded";
     case "initialized":
-      return "Payment started";
+      return "Payment pending";
     default:
       return labelForPaymentStatus(status);
   }

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  adminAssignmentQueueScanLine,
   ASSIGNMENT_QUEUE_PRESETS,
   matchesAssignmentQueuePreset,
   queueCountForPreset,
@@ -12,10 +13,26 @@ import type { AdminAssignmentQueueItem } from "@/features/dashboards/server/type
 import {
   getAirbnbAdminListBadges,
   getAirbnbOperationsQueueCopy,
-  isAirbnbOperationalBooking,
 } from "@/features/dashboards/airbnbOperationalDisplay";
+import {
+  getDeepAdminListBadges,
+  getDeepOperationsQueueCopy,
+} from "@/features/dashboards/deepOperationalDisplay";
+import {
+  getCarpetAdminListBadges,
+  getCarpetOperationsQueueCopy,
+} from "@/features/dashboards/carpetOperationalDisplay";
+import {
+  getMovingAdminListBadges,
+  getMovingOperationsQueueCopy,
+} from "@/features/dashboards/movingOperationalDisplay";
+import {
+  getOfficeAdminListBadges,
+  getOfficeOperationsQueueCopy,
+} from "@/features/dashboards/officeOperationalDisplay";
 import { ADMIN_QUEUE_CARD_CLASS } from "@/features/dashboards/adminDisplay";
 import { EmptyState } from "@/components/dashboard/EmptyState";
+import { AdminBookingBadgeRow } from "@/components/dashboard/admin/AdminBookingBadgeRow";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { AdminAssignmentQueueGuidance } from "@/components/dashboard/AdminAssignmentQueueGuidance";
 import {
@@ -83,48 +100,81 @@ export function AdminAssignmentsQueueWorkbench({ items, total, limit }: Props) {
       ) : (
         <ul className="space-y-2.5">
           {filtered.map((item) => {
-            const airbnb = isAirbnbOperationalBooking({ serviceLabel: item.serviceLabel });
-            const queueCopy = getAirbnbOperationsQueueCopy({
-              serviceLabel: item.serviceLabel,
-              scheduleLabel: item.scheduleLabel,
+            const queueCopy =
+              getAirbnbOperationsQueueCopy({
+                serviceLabel: item.serviceLabel,
+                scheduleLabel: item.scheduleLabel,
+              }) ??
+              getMovingOperationsQueueCopy({
+                serviceLabel: item.serviceLabel,
+                scheduleLabel: item.scheduleLabel,
+              }) ??
+              getOfficeOperationsQueueCopy({
+                serviceLabel: item.serviceLabel,
+                scheduleLabel: item.scheduleLabel,
+              }) ??
+              getDeepOperationsQueueCopy({
+                serviceLabel: item.serviceLabel,
+                scheduleLabel: item.scheduleLabel,
+              }) ??
+              getCarpetOperationsQueueCopy({
+                serviceLabel: item.serviceLabel,
+                scheduleLabel: item.scheduleLabel,
+              });
+            const opsBadges = [
+              ...getAirbnbAdminListBadges({ serviceLabel: item.serviceLabel }),
+              ...getMovingAdminListBadges({ serviceLabel: item.serviceLabel }),
+              ...getOfficeAdminListBadges({ serviceLabel: item.serviceLabel }),
+              ...getDeepAdminListBadges({ serviceLabel: item.serviceLabel }),
+              ...getCarpetAdminListBadges({ serviceLabel: item.serviceLabel }),
+            ];
+
+            const queueBadges = [
+              {
+                label: labelForAssignmentAttention(
+                  item.assignmentAttention,
+                  item.assignmentReason,
+                ),
+                tone: "warning" as const,
+              },
+              {
+                label: labelForBookingStatus(item.status),
+                tone: toneForBookingStatus(item.status),
+              },
+              ...opsBadges.map((badge) => ({
+                label: badge.label,
+                tone: badge.tone,
+              })),
+            ];
+
+            const scan = adminAssignmentQueueScanLine(item, {
+              sameDayNote: queueCopy?.sameDayNote ?? null,
             });
-            const airbnbBadges = airbnb
-              ? getAirbnbAdminListBadges({ serviceLabel: item.serviceLabel })
-              : [];
 
             return (
             <li key={item.bookingId} className={ADMIN_QUEUE_CARD_CLASS}>
-              <section className="flex flex-wrap items-center gap-1.5">
-                <StatusBadge
-                  label={labelForAssignmentAttention(
-                    item.assignmentAttention,
-                    item.assignmentReason,
-                  )}
-                  tone="warning"
-                />
-                <StatusBadge
-                  label={labelForBookingStatus(item.status)}
-                  tone={toneForBookingStatus(item.status)}
-                />
-                {airbnbBadges.map((badge) => (
-                  <StatusBadge key={badge.label} label={badge.label} tone={badge.tone} />
-                ))}
-              </section>
+              <AdminBookingBadgeRow badges={queueBadges} />
               <p className="mt-2 break-words text-sm font-semibold text-zinc-900">{item.serviceLabel}</p>
               {queueCopy ? (
                 <p className="mt-0.5 text-xs font-medium text-sky-900/90">{queueCopy.cardSubtitle}</p>
               ) : null}
               <p className="mt-0.5 break-words text-sm text-zinc-600 [overflow-wrap:anywhere]">
-                {item.customerLabel} · {item.scheduleLabel}
+                {item.customerLabel}
               </p>
-              {queueCopy?.sameDayNote ? (
-                <p className="mt-1 text-xs font-medium text-amber-900/90">{queueCopy.sameDayNote}</p>
-              ) : null}
-              {item.assignmentReason ? (
-                <p className="mt-1.5 line-clamp-3 break-words text-xs text-amber-900/90">
-                  {item.assignmentReason}
-                </p>
-              ) : null}
+              <p
+                className="mt-1.5 rounded-lg border border-zinc-100 bg-zinc-50/90 px-2.5 py-2 text-xs leading-snug text-zinc-800"
+                role="status"
+              >
+                <span className="font-medium text-zinc-900">{scan.scheduleLabel}</span>
+                <span className="text-zinc-500"> · </span>
+                <span>{scan.assignmentLabel}</span>
+                <span className="mt-1 block font-medium text-zinc-900">
+                  Next: {scan.nextAction}
+                </span>
+                {scan.sameDayNote ? (
+                  <span className="mt-1 block font-medium text-amber-900">{scan.sameDayNote}</span>
+                ) : null}
+              </p>
 
               <details className="mt-2 text-sm">
                 <summary className="min-h-11 cursor-pointer py-1 font-medium text-zinc-600 hover:text-zinc-900">

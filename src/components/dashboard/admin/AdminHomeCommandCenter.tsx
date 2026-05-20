@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { AdminCronHealthCriticalBanner } from "@/components/dashboard/AdminCronHealthPanel";
-import { AdminOperationalQueueGuideDetails } from "@/components/dashboard/AdminOperationalQueueGuideDetails";
 import { AdminOperationalQueueStrip } from "@/components/dashboard/AdminOperationalQueueStrip";
 import type { DeferredAssignmentDiagnostics } from "@/features/assignments/server/deferredAssignmentDiagnostics";
 import type { CronHealthSummary } from "@/features/dashboards/adminAssignmentsPageDisplay";
@@ -14,13 +13,11 @@ import {
   ADMIN_DETAILS_DISCLOSURE_CLASS,
   ADMIN_DETAILS_SUMMARY_CLASS,
 } from "@/features/dashboards/adminDisplay";
-import type { AdminOperationalQueueCard } from "@/features/dashboards/adminOperationalQueues";
 import type { AdminOperationalQueueCountItem } from "@/features/dashboards/server/adminOperationalQueueCounts";
 import type { CronJobHealthSnapshot } from "@/features/operations/server/cronHealthTypes";
 
 type Props = {
   queues: AdminOperationalQueueCountItem[];
-  queueGuideCards: AdminOperationalQueueCard[];
   cronSummary: CronHealthSummary | null;
   criticalCronJobs: CronJobHealthSnapshot[];
   deferredDiagnostics: DeferredAssignmentDiagnostics | null;
@@ -52,7 +49,6 @@ function HealthTile({ tile }: { tile: AdminHomeHealthTile }) {
 
 export function AdminHomeCommandCenter({
   queues,
-  queueGuideCards,
   cronSummary,
   criticalCronJobs,
   deferredDiagnostics,
@@ -100,7 +96,7 @@ export function AdminHomeCommandCenter({
         className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium text-zinc-600"
       >
         <Link href="/admin/assignments" className="hover:text-zinc-900">
-          Assignments
+          Assignments workbench
         </Link>
         <Link href="/admin/bookings" className="hover:text-zinc-900">
           Bookings
@@ -111,21 +107,23 @@ export function AdminHomeCommandCenter({
         <Link href="/admin/cleaners" className="hover:text-zinc-900">
           Cleaners
         </Link>
-        <Link href="/admin/assignments" className="hover:text-zinc-900">
-          Cron &amp; diagnostics
-        </Link>
       </nav>
 
       <details className={ADMIN_DETAILS_DISCLOSURE_CLASS}>
         <summary className={ADMIN_DETAILS_SUMMARY_CLASS}>
-          All operational queues
+          Queue counts
         </summary>
         <div className={`${ADMIN_DETAILS_BODY_CLASS} pb-2 pt-2`}>
           <AdminOperationalQueueStrip queues={queues} compact />
+          <p className="mt-2 text-[11px] leading-snug text-zinc-500">
+            Open{" "}
+            <Link href="/admin/bookings" className="font-medium text-zinc-700 underline underline-offset-2">
+              bookings
+            </Link>{" "}
+            for queue guides and filters.
+          </p>
         </div>
       </details>
-
-      <AdminOperationalQueueGuideDetails cards={queueGuideCards} />
     </section>
   );
 }

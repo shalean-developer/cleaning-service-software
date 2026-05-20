@@ -8,6 +8,7 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
 import { EmptyState } from "@/components/dashboard/EmptyState";
+import { PastOffersCollapsible } from "@/components/dashboard/PastOffersCollapsible";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
 
 export const metadata: Metadata = {
@@ -72,18 +73,15 @@ function CleanerOffersList({
       </section>
 
       {pastOffers.length > 0 ? (
-        <section>
-          <h2 className="text-sm font-medium text-zinc-800">
-            Past offers ({pastOffers.length})
-          </h2>
-          <ul className="mt-3 space-y-3">
+        <PastOffersCollapsible count={pastOffers.length}>
+          <ul className="space-y-3">
             {pastOffers.map((offer) => (
               <li key={offer.offerId}>
                 <CleanerOfferCard offer={offer} />
               </li>
             ))}
           </ul>
-        </section>
+        </PastOffersCollapsible>
       ) : null}
     </section>
   );

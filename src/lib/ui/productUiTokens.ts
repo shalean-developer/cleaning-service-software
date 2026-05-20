@@ -11,7 +11,7 @@ export const UI_CARD_SHELL_CLASS =
 export const UI_CARD_SHELL_SOFT_BORDER_CLASS =
   "rounded-2xl border border-zinc-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]";
 
-export const UI_CARD_PADDING_COMPACT = "p-3.5 sm:p-4";
+export const UI_CARD_PADDING_COMPACT = "p-3 sm:p-3.5";
 
 export const UI_CARD_PADDING_DEFAULT = "p-4 sm:p-5";
 
@@ -22,9 +22,9 @@ export const UI_INSET_PANEL_CLASS = "rounded-xl border border-zinc-200 bg-zinc-5
 export const UI_PAGE_SECTION_GAP_CLASS = "mt-5 sm:mt-6";
 
 /** Stack spacing inside cards and lists. */
-export const UI_SECTION_STACK_CLASS = "space-y-3";
+export const UI_SECTION_STACK_CLASS = "space-y-2.5 sm:space-y-3";
 
-export const UI_LIST_STACK_CLASS = "space-y-3";
+export const UI_LIST_STACK_CLASS = "space-y-2.5 sm:space-y-3";
 
 /** Section headings. */
 export const UI_SECTION_TITLE_CLASS = "text-sm font-semibold text-zinc-900";
@@ -69,6 +69,10 @@ export const UI_BUTTON_PRIMARY_CLASS =
 
 export const UI_BUTTON_SECONDARY_CLASS =
   "inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
+
+/** Quiet secondary navigation / recovery links (one primary CTA per surface). */
+export const UI_LINK_SECONDARY_ACTION_CLASS =
+  "text-center text-sm font-medium text-zinc-600 underline-offset-2 transition-colors hover:text-zinc-900 hover:underline";
 
 /** Link-wrapped list cards. */
 export const UI_LINK_CARD_INTERACTION_CLASS =

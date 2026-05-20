@@ -11,13 +11,14 @@ function readSource(relativePath: string): string {
 }
 
 describe("customer bookings list surface (Phase 2B-2)", () => {
-  it("/customer and /customer/bookings share CustomerBookingsListContent", () => {
+  it("keeps the full bookings list on /customer/bookings only", () => {
     const home = readSource("src/app/(customer)/customer/page.tsx");
     const bookings = readSource("src/app/(customer)/customer/bookings/page.tsx");
 
-    expect(home).toContain("CustomerBookingsListContent");
+    expect(home).toContain("CustomerHomeContent");
+    expect(home).not.toContain("CustomerBookingsListContent");
+    expect(home).not.toContain("listCustomerBookings");
     expect(bookings).toContain("CustomerBookingsListContent");
-    expect(home).toContain("listCustomerBookings");
     expect(bookings).toContain("listCustomerBookings");
   });
 

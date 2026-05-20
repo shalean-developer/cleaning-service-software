@@ -7,6 +7,7 @@ import type {
   PricingFrequency,
   ServiceSlug,
 } from "@/features/pricing/server/types";
+import type { CarpetStainSeverity } from "./carpetCleaningDisplay";
 
 export const WIZARD_STEPS = [
   "service",
@@ -48,6 +49,12 @@ export type BookingWizardState = {
   propertySizeSqm: number | null;
   frequency: PricingFrequency;
   addons: AddonSlug[];
+  /** Carpet cleaning only — display/metadata; does not affect quote. */
+  carpetStainSeverity: CarpetStainSeverity | null;
+  /** Carpet cleaning only — display/metadata; does not affect quote. */
+  carpetPetStains: boolean;
+  /** Carpet cleaning only — display/metadata; does not affect quote. */
+  carpetGoodDryingAirflow: boolean;
   specialInstructions: string;
   cleanerPreferenceMode: CleanerPreferenceMode;
   selectedCleanerId: string | null;
@@ -85,6 +92,9 @@ export const INITIAL_WIZARD_STATE: BookingWizardState = {
   propertySizeSqm: null,
   frequency: "once",
   addons: [],
+  carpetStainSeverity: null,
+  carpetPetStains: false,
+  carpetGoodDryingAirflow: false,
   specialInstructions: "",
   cleanerPreferenceMode: "best_available",
   selectedCleanerId: null,

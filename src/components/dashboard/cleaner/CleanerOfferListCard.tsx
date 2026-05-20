@@ -13,6 +13,22 @@ import {
   getAirbnbCleanerOfferCopy,
   isAirbnbOperationalBooking,
 } from "@/features/dashboards/airbnbOperationalDisplay";
+import {
+  getDeepCleanerOfferCopy,
+  isDeepOperationalBooking,
+} from "@/features/dashboards/deepOperationalDisplay";
+import {
+  getCarpetCleanerOfferCopy,
+  isCarpetOperationalBooking,
+} from "@/features/dashboards/carpetOperationalDisplay";
+import {
+  getMovingCleanerOfferCopy,
+  isMovingOperationalBooking,
+} from "@/features/dashboards/movingOperationalDisplay";
+import {
+  getOfficeCleanerOfferCopy,
+  isOfficeOperationalBooking,
+} from "@/features/dashboards/officeOperationalDisplay";
 import { CLEANER_DETAIL_CARD_CLASS } from "@/features/dashboards/cleanerJobDetailDisplay";
 import type { OfferExpiryUrgency } from "@/features/dashboards/server/formatOfferExpiryDisplay";
 import {
@@ -52,7 +68,21 @@ export function CleanerOfferListCard({
   const statusTone = isExpired && status === "offered" ? "warning" : toneForOfferStatus(status);
   const showExpiry = status === "offered" && !isExpired && expiry?.relativeLabel;
   const airbnb = isAirbnbOperationalBooking({ serviceLabel });
-  const airbnbOffer = airbnb ? getAirbnbCleanerOfferCopy() : null;
+  const office = isOfficeOperationalBooking({ serviceLabel });
+  const moving = isMovingOperationalBooking({ serviceLabel });
+  const deep = isDeepOperationalBooking({ serviceLabel });
+  const carpet = isCarpetOperationalBooking({ serviceLabel });
+  const opsOffer = airbnb
+    ? getAirbnbCleanerOfferCopy()
+    : office
+      ? getOfficeCleanerOfferCopy()
+      : moving
+        ? getMovingCleanerOfferCopy()
+        : deep
+          ? getDeepCleanerOfferCopy()
+          : carpet
+            ? getCarpetCleanerOfferCopy()
+            : null;
 
   return (
     <Link
@@ -62,22 +92,22 @@ export function CleanerOfferListCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className={CLEANER_SERVICE_EYEBROW_CLASS}>
-            {airbnbOffer?.serviceEyebrow ?? serviceLabel}
+            {opsOffer?.serviceEyebrow ?? serviceLabel}
           </p>
-          {airbnbOffer ? (
-            <p className="mt-0.5 text-sm text-zinc-600">{airbnbOffer.offerSubtitle}</p>
+          {opsOffer ? (
+            <p className="mt-0.5 text-sm text-zinc-600">{opsOffer.offerSubtitle}</p>
           ) : null}
           <p className={CLEANER_META_LINE_CLASS}>
             <span className="font-medium text-zinc-900">
-              {airbnbOffer?.schedulePrefix ? `${airbnbOffer.schedulePrefix}: ` : ""}
+              {opsOffer?.schedulePrefix ? `${opsOffer.schedulePrefix}: ` : ""}
               {scheduleLabel}
             </span>
             <span className="text-zinc-400"> · </span>
             <span className={CLEANER_META_LOCATION_CLASS}>{locationSummary}</span>
           </p>
-          {airbnbOffer ? (
+          {opsOffer ? (
             <p className="mt-1 text-xs text-zinc-500">
-              {airbnbOffer.accessHint} · {airbnbOffer.standardHint}
+              {opsOffer.accessHint} · {opsOffer.standardHint}
             </p>
           ) : null}
         </div>

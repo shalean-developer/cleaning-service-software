@@ -18,6 +18,19 @@ import {
   getAirbnbCustomerBookingDetailCopy,
   isAirbnbCleaningSlug,
 } from "@/features/dashboards/airbnbCustomerDisplay";
+import { isDeepCleaningSlug } from "@/features/booking-wizard/deepCleaningDisplay";
+import { isCarpetCleaningSlug } from "@/features/booking-wizard/carpetCleaningDisplay";
+import { isMovingCleaningSlug } from "@/features/booking-wizard/movingCleaningDisplay";
+import { isOfficeCleaningSlug } from "@/features/booking-wizard/officeCleaningDisplay";
+import { getDeepCustomerBookingDetailCopy } from "@/features/dashboards/deepCustomerDisplay";
+import { getCarpetCustomerBookingDetailCopy } from "@/features/dashboards/carpetCustomerDisplay";
+import { getMovingCustomerBookingDetailCopy } from "@/features/dashboards/movingCustomerDisplay";
+import { getOfficeCustomerBookingDetailCopy } from "@/features/dashboards/officeCustomerDisplay";
+import {
+  getRegularCustomerBookingDetailCopy,
+  isRegularCleaningSlug,
+} from "@/features/dashboards/regularCustomerDisplay";
+import { CUSTOMER_DASHBOARD_NAV } from "@/features/dashboards/customerNav";
 
 type PageProps = { params: Promise<{ bookingId: string }> };
 
@@ -40,19 +53,25 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
     deferredAssignmentMessage: b.deferredAssignmentMessage,
     assignmentCustomerMessage: b.display.assignmentCustomerMessage,
   });
-  const airbnbDetail = isAirbnbCleaningSlug(b.display.serviceSlug)
+  const serviceDetail = isAirbnbCleaningSlug(b.display.serviceSlug)
     ? getAirbnbCustomerBookingDetailCopy()
-    : null;
+    : isOfficeCleaningSlug(b.display.serviceSlug)
+      ? getOfficeCustomerBookingDetailCopy()
+      : isMovingCleaningSlug(b.display.serviceSlug)
+        ? getMovingCustomerBookingDetailCopy()
+        : isDeepCleaningSlug(b.display.serviceSlug)
+          ? getDeepCustomerBookingDetailCopy()
+          : isCarpetCleaningSlug(b.display.serviceSlug)
+            ? getCarpetCustomerBookingDetailCopy()
+            : isRegularCleaningSlug(b.display.serviceSlug)
+              ? getRegularCustomerBookingDetailCopy()
+              : null;
 
   return (
     <DashboardShell
       title="Your booking"
-      subtitle={airbnbDetail?.shellSubtitle ?? "Status, payment, and service details"}
-      nav={[
-        { href: "/customer", label: "Home" },
-        { href: "/customer/bookings", label: "Bookings" },
-        { href: "/customer/book", label: "Book a clean" },
-      ]}
+      subtitle={serviceDetail?.shellSubtitle ?? "Status, payment, and service details"}
+      nav={[...CUSTOMER_DASHBOARD_NAV]}
     >
       <Link
         href="/customer/bookings"
@@ -95,7 +114,7 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
 
         <details className={CUSTOMER_BOOKING_DETAIL_DISCLOSURE_CLASS}>
           <summary className={CUSTOMER_BOOKING_DETAIL_DISCLOSURE_SUMMARY_CLASS}>
-            <span>{airbnbDetail?.detailsSectionTitle ?? "Booking details"}</span>
+            <span>{serviceDetail?.detailsSectionTitle ?? "Booking details"}</span>
             <span
               className="text-xs font-normal text-zinc-500 transition-transform group-open:rotate-180"
               aria-hidden
@@ -127,7 +146,7 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
 
         <details className={CUSTOMER_BOOKING_DETAIL_DISCLOSURE_CLASS} open>
           <summary className={CUSTOMER_BOOKING_DETAIL_DISCLOSURE_SUMMARY_CLASS}>
-            <span>{airbnbDetail?.activitySectionTitle ?? "Activity"}</span>
+            <span>{serviceDetail?.activitySectionTitle ?? "Activity"}</span>
             <span
               className="text-xs font-normal text-zinc-500 transition-transform group-open:rotate-180"
               aria-hidden

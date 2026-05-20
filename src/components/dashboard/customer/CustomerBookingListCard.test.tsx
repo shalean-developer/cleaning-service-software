@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { DEFERRED_ASSIGNMENT_CUSTOMER_MESSAGE } from "@/features/assignments/server/deferredDispatchStatus";
-import { CUSTOMER_PAYMENT_INCOMPLETE_LIST_HELPER } from "@/lib/app/dashboardEcosystemDisplay";
 import type { CustomerBookingListItem } from "@/features/dashboards/server/types";
 import { CustomerBookingListCard } from "./CustomerBookingListCard";
 
@@ -74,8 +73,8 @@ describe("CustomerBookingListCard", () => {
     );
 
     expect(html).toContain("Payment not completed");
-    expect(html).toContain(CUSTOMER_PAYMENT_INCOMPLETE_LIST_HELPER);
-    expect(html).toContain("View details");
+    expect(html).not.toContain("open booking to pay");
+    expect(html).toContain("Complete payment");
   });
 
   it("shows deferred assignment message when present", () => {

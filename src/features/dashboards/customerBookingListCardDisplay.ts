@@ -2,23 +2,29 @@ import type { PaymentStatus } from "@/lib/database/types";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import {
   labelForCustomerBookingStatus,
+  labelForCustomerPaymentStatus,
   type PaymentFailureReason,
 } from "@/features/bookings/server/paymentFailureDisplay";
 import {
   getAirbnbCustomerBookingListCopy,
   isAirbnbCleaningSlug,
 } from "@/features/dashboards/airbnbCustomerDisplay";
+import { isDeepCleaningSlug } from "@/features/booking-wizard/deepCleaningDisplay";
+import { isCarpetCleaningSlug } from "@/features/booking-wizard/carpetCleaningDisplay";
+import { isMovingCleaningSlug } from "@/features/booking-wizard/movingCleaningDisplay";
+import { getCarpetCustomerBookingListCopy } from "@/features/dashboards/carpetCustomerDisplay";
+import { getDeepCustomerBookingListCopy } from "@/features/dashboards/deepCustomerDisplay";
+import { getMovingCustomerBookingListCopy } from "@/features/dashboards/movingCustomerDisplay";
+import { isOfficeCleaningSlug } from "@/features/booking-wizard/officeCleaningDisplay";
+import { getOfficeCustomerBookingListCopy } from "@/features/dashboards/officeCustomerDisplay";
 import {
-  labelForPaymentStatus,
-  toneForBookingStatus,
-  type StatusBadgeTone,
-} from "@/features/bookings/server/statusLabels";
+  getRegularCustomerBookingListCopy,
+  isRegularCleaningSlug,
+} from "@/features/dashboards/regularCustomerDisplay";
+import { toneForBookingStatus, type StatusBadgeTone } from "@/features/bookings/server/statusLabels";
 import type { BookingDisplayFields } from "@/features/dashboards/server/parseBookingDisplay";
 
-import {
-  CUSTOMER_PAYMENT_INCOMPLETE_LIST_HELPER,
-  customerBookingPaymentLineClass,
-} from "@/lib/app/dashboardEcosystemDisplay";
+import { customerBookingPaymentLineClass } from "@/lib/app/dashboardEcosystemDisplay";
 
 export { customerBookingPaymentLineClass };
 
@@ -65,7 +71,7 @@ function paymentStatusLineForBooking(
   paymentStatus: PaymentStatus | null,
 ): CustomerBookingListCardPaymentLine | null {
   if (status === "payment_failed") {
-    return { text: CUSTOMER_PAYMENT_INCOMPLETE_LIST_HELPER, tone: "attention" };
+    return null;
   }
 
   if (
@@ -80,7 +86,7 @@ function paymentStatusLineForBooking(
 
   if (status === "pending_payment") {
     if (paymentStatus === "failed" || paymentStatus === "refunded") {
-      return { text: labelForPaymentStatus(paymentStatus), tone: "muted" };
+      return { text: labelForCustomerPaymentStatus(paymentStatus), tone: "muted" };
     }
     return null;
   }
@@ -94,12 +100,8 @@ function paymentStatusLineForBooking(
     return null;
   }
 
-  if (status === "pending_assignment" && paymentStatus === "paid") {
-    return { text: labelForPaymentStatus(paymentStatus), tone: "muted" };
-  }
-
   if (paymentStatus === "failed" || paymentStatus === "refunded") {
-    return { text: labelForPaymentStatus(paymentStatus), tone: "muted" };
+    return { text: labelForCustomerPaymentStatus(paymentStatus), tone: "muted" };
   }
 
   return null;
@@ -115,6 +117,8 @@ function supportingMessageForBooking(
 
   if (
     input.status !== "payment_failed" &&
+    input.status !== "pending_assignment" &&
+    input.status !== "confirmed" &&
     input.display.assignmentCustomerMessage
   ) {
     return { kind: "assignment", text: input.display.assignmentCustomerMessage };
@@ -140,6 +144,11 @@ export function customerBookingListCardLayers(
   input: CustomerBookingListCardLayersInput,
 ): CustomerBookingListCardLayers {
   const airbnb = isAirbnbCleaningSlug(input.display.serviceSlug);
+  const office = isOfficeCleaningSlug(input.display.serviceSlug);
+  const moving = isMovingCleaningSlug(input.display.serviceSlug);
+  const deep = isDeepCleaningSlug(input.display.serviceSlug);
+  const carpet = isCarpetCleaningSlug(input.display.serviceSlug);
+  const regular = isRegularCleaningSlug(input.display.serviceSlug);
   const airbnbCopy = airbnb
     ? getAirbnbCustomerBookingListCopy({
         status: input.status,
@@ -147,23 +156,63 @@ export function customerBookingListCardLayers(
         isUpcoming: input.isUpcoming,
       })
     : null;
+  const officeCopy = office
+    ? getOfficeCustomerBookingListCopy({
+        status: input.status,
+        paymentFailureReason: input.paymentFailureReason,
+        isUpcoming: input.isUpcoming,
+      })
+    : null;
+  const movingCopy = moving
+    ? getMovingCustomerBookingListCopy({
+        status: input.status,
+        paymentFailureReason: input.paymentFailureReason,
+        isUpcoming: input.isUpcoming,
+      })
+    : null;
+  const deepCopy = deep
+    ? getDeepCustomerBookingListCopy({
+        status: input.status,
+        paymentFailureReason: input.paymentFailureReason,
+        isUpcoming: input.isUpcoming,
+      })
+    : null;
+  const carpetCopy = carpet
+    ? getCarpetCustomerBookingListCopy({
+        status: input.status,
+        paymentFailureReason: input.paymentFailureReason,
+        isUpcoming: input.isUpcoming,
+      })
+    : null;
+  const regularCopy = regular
+    ? getRegularCustomerBookingListCopy({
+        status: input.status,
+        paymentFailureReason: input.paymentFailureReason,
+        isUpcoming: input.isUpcoming,
+      })
+    : null;
+  const serviceCopy =
+    airbnbCopy ?? officeCopy ?? movingCopy ?? deepCopy ?? carpetCopy ?? regularCopy;
 
   const defaultPaymentLine = paymentStatusLineForBooking(input.status, input.paymentStatus);
   const paymentStatusLine =
-    airbnbCopy?.paymentLine != null
-      ? { text: airbnbCopy.paymentLine, tone: "attention" as const }
+    serviceCopy?.paymentLine != null
+      ? { text: serviceCopy.paymentLine, tone: "attention" as const }
       : defaultPaymentLine;
 
   return {
     dominantBadge: {
       label:
-        airbnbCopy?.statusBadgeLabel ??
+        serviceCopy?.statusBadgeLabel ??
         labelForCustomerBookingStatus(input.status, input.paymentFailureReason),
       tone: toneForBookingStatus(input.status),
     },
-    serviceSubtitle: airbnbCopy?.serviceSubtitle ?? null,
+    serviceSubtitle: serviceCopy?.serviceSubtitle ?? null,
     paymentStatusLine,
     supportingMessage: supportingMessageForBooking(input),
-    ctaLabel: airbnbCopy?.ctaLabel ?? "View details",
+    ctaLabel:
+      input.status === "payment_failed"
+        ? "Complete payment"
+        : serviceCopy?.ctaLabel ?? "View details",
   };
 }

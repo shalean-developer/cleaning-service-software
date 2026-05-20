@@ -3,7 +3,7 @@
 import { ADDON_CATALOG } from "@/features/pricing/server/catalog";
 import type { AddonSlug, ServiceSlug } from "@/features/pricing/server/types";
 import { getAddonStepDescription, getAddonStepDisplayOrder, getAddonStepLabel } from "../addonStepDisplay";
-import { getAddonsSectionTitle } from "../airbnbCleaningDisplay";
+import { getAddonsSectionHint, getAddonsSectionTitle } from "../airbnbCleaningDisplay";
 import { DETAILS_OPTION_DESC, DETAILS_STEP_SECTION } from "../detailsStepUi";
 import { formatAddonPrice } from "../format";
 import { DetailsSectionHeading } from "./DetailsSectionHeading";
@@ -66,6 +66,9 @@ export function AddonsStepPanel({ serviceSlug, selected, onChange }: Props) {
         title={getAddonsSectionTitle(serviceSlug)}
         id="addons-step-label"
       />
+      {getAddonsSectionHint(serviceSlug) ? (
+        <p className="mb-2 text-xs leading-snug text-zinc-500">{getAddonsSectionHint(serviceSlug)}</p>
+      ) : null}
 
       <div
         className="overflow-hidden rounded-xl border border-zinc-200/90 bg-white shadow-sm"

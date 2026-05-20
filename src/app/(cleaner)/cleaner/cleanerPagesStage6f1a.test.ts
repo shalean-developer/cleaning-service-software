@@ -31,7 +31,10 @@ describe("cleaner pages Stage 6F-1a wiring", () => {
     expect(jobs).toContain("CleanerJobListCard");
     expect(detail).toContain("CleanerJobStatusHero");
     expect(readPage("src/components/dashboard/cleaner/CleanerJobListCard.tsx")).toContain(
-      "labelForCleanerJobStatus",
+      "resolveCleanerJobStatusLabel",
+    );
+    expect(readPage("src/components/dashboard/cleaner/CleanerJobStatusHero.tsx")).toContain(
+      "resolveCleanerJobStatusLabel",
     );
   });
 

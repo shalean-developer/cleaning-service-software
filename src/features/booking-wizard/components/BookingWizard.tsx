@@ -38,6 +38,7 @@ import {
   WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS,
   WIZARD_MAIN_COLUMN_CLASS,
   WIZARD_PAGE_HEADER_CLASS,
+  WIZARD_STEP_CONTENT_TRANSITION_CLASS,
   WIZARD_STICKY_FOOTER_SUMMARY_SLOT_CLASS,
 } from "../wizardLayout";
 import { buildWizardBookingSummarySnapshot } from "../wizardBookingSummaryDisplay";
@@ -459,7 +460,10 @@ export function BookingWizard({
   );
 
   const wizardStepCard = (
-    <div className={`${getWizardCardClass(state.step)} ${WIZARD_MAIN_COLUMN_CLASS}`}>
+    <div
+      key={state.step}
+      className={`${getWizardCardClass(state.step)} ${WIZARD_MAIN_COLUMN_CLASS} ${WIZARD_STEP_CONTENT_TRANSITION_CLASS}`}
+    >
         {state.step === "service" ? (
           <ServiceStepPanel
             options={WIZARD_SERVICE_OPTIONS}
@@ -560,6 +564,9 @@ export function BookingWizard({
               requestedTeamSize={state.requestedTeamSize}
               frequency={state.frequency}
               addons={state.addons}
+              carpetStainSeverity={state.carpetStainSeverity}
+              carpetPetStains={state.carpetPetStains}
+              carpetGoodDryingAirflow={state.carpetGoodDryingAirflow}
               specialInstructions={state.specialInstructions}
               stepErrors={stepErrors}
               onBedroomsChange={(bedrooms) => patch({ bedrooms })}
@@ -571,6 +578,13 @@ export function BookingWizard({
               onRequestedTeamSizeChange={(requestedTeamSize) => patch({ requestedTeamSize })}
               onFrequencyChange={(frequency) => patch({ frequency })}
               onAddonsChange={(addons) => patch({ addons })}
+              onCarpetStainSeverityChange={(carpetStainSeverity) =>
+                patch({ carpetStainSeverity })
+              }
+              onCarpetPetStainsChange={(carpetPetStains) => patch({ carpetPetStains })}
+              onCarpetGoodDryingAirflowChange={(carpetGoodDryingAirflow) =>
+                patch({ carpetGoodDryingAirflow })
+              }
               onSpecialInstructionsChange={(specialInstructions) =>
                 patch({ specialInstructions })
               }

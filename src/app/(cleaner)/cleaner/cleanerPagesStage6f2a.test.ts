@@ -13,7 +13,7 @@ describe("cleaner offers page Stage 6F-2a wiring", () => {
     expect(source).toContain("partitionCleanerOffers");
     expect(source).toContain("CleanerOfferCard");
     expect(source).toContain("Needs your response");
-    expect(source).toContain("Past offers");
+    expect(source).toContain("PastOffersCollapsible");
     expect(source).not.toContain("OfferActions");
   });
 

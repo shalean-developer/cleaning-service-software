@@ -9,15 +9,30 @@ import {
   CLEANER_SERVICE_EYEBROW_CLASS,
 } from "@/features/dashboards/cleanerDashboardDisplay";
 import {
-  cleanerAirbnbJobStatusLabel,
   getAirbnbCleanerJobCopy,
   isAirbnbOperationalBooking,
 } from "@/features/dashboards/airbnbOperationalDisplay";
-import { CLEANER_DETAIL_CARD_CLASS } from "@/features/dashboards/cleanerJobDetailDisplay";
 import {
-  labelForCleanerJobStatus,
-  toneForCleanerJobStatus,
-} from "@/features/bookings/server/statusLabels";
+  getDeepCleanerJobCopy,
+  isDeepOperationalBooking,
+} from "@/features/dashboards/deepOperationalDisplay";
+import {
+  getCarpetCleanerJobCopy,
+  isCarpetOperationalBooking,
+} from "@/features/dashboards/carpetOperationalDisplay";
+import {
+  getMovingCleanerJobCopy,
+  isMovingOperationalBooking,
+} from "@/features/dashboards/movingOperationalDisplay";
+import {
+  getOfficeCleanerJobCopy,
+  isOfficeOperationalBooking,
+} from "@/features/dashboards/officeOperationalDisplay";
+import {
+  CLEANER_DETAIL_CARD_CLASS,
+  resolveCleanerJobStatusLabel,
+} from "@/features/dashboards/cleanerJobDetailDisplay";
+import { toneForCleanerJobStatus } from "@/features/bookings/server/statusLabels";
 import type { BookingStatus } from "@/features/bookings/server/types";
 
 type Props = {
@@ -40,9 +55,22 @@ export function CleanerJobListCard({
   teamRoleLabel,
 }: Props) {
   const airbnb = isAirbnbOperationalBooking({ serviceLabel });
-  const airbnbJob = airbnb ? getAirbnbCleanerJobCopy() : null;
-  const statusLabel =
-    cleanerAirbnbJobStatusLabel(status) ?? labelForCleanerJobStatus(status);
+  const office = isOfficeOperationalBooking({ serviceLabel });
+  const moving = isMovingOperationalBooking({ serviceLabel });
+  const deep = isDeepOperationalBooking({ serviceLabel });
+  const carpet = isCarpetOperationalBooking({ serviceLabel });
+  const opsJob = airbnb
+    ? getAirbnbCleanerJobCopy()
+    : office
+      ? getOfficeCleanerJobCopy()
+      : moving
+        ? getMovingCleanerJobCopy()
+        : deep
+          ? getDeepCleanerJobCopy()
+          : carpet
+            ? getCarpetCleanerJobCopy()
+            : null;
+  const statusLabel = resolveCleanerJobStatusLabel(status, { serviceLabel });
 
   return (
     <Link
@@ -52,8 +80,8 @@ export function CleanerJobListCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className={CLEANER_SERVICE_EYEBROW_CLASS}>{serviceLabel}</p>
-          {airbnbJob ? (
-            <p className="mt-0.5 text-sm text-zinc-600">{airbnbJob.heroSubtitle}</p>
+          {opsJob ? (
+            <p className="mt-0.5 text-sm text-zinc-600">{opsJob.heroSubtitle}</p>
           ) : null}
           <p className={CLEANER_META_LINE_CLASS}>
             <span className="font-medium text-zinc-900">{scheduleLabel}</span>

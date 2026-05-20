@@ -12,11 +12,23 @@ import type {
 import { formatDateLabel, formatZar } from "../format";
 import {
   buildAirbnbReviewHeroSegments,
+  buildDeepReviewHeroSegments,
+  buildMovingReviewHeroSegments,
+  buildCarpetReviewHeroSegments,
+  buildOfficeReviewHeroSegments,
+  isDeepCleaningSlug,
   getAccessNotesReviewLabel,
+  getReviewAddonsSectionLabel,
+  getReviewBedroomsRowLabel,
   getReviewConfirmationCopy,
   getReviewNextStepsNote as getReviewNextStepsNoteForSlug,
+  getReviewPropertySectionTitle,
+  getReviewWorkspaceSizeRowLabel,
   isAirbnbCleaningSlug,
+  isCarpetCleaningSlug,
 } from "../airbnbCleaningDisplay";
+import { isMovingCleaningSlug } from "../movingCleaningDisplay";
+import { isOfficeCleaningSlug } from "../officeCleaningDisplay";
 import {
   getRecurringScheduleReviewNote,
   isRecurringFrequency,
@@ -202,17 +214,48 @@ export function ReviewStepPanel({
 
   const addonSummary =
     addonLabels.length > 0 ? addonLabels.join(", ") : null;
+  const frequencyLabel = getFrequencyLabel(frequency, serviceSlug);
   const heroSegments = isAirbnbCleaningSlug(serviceSlug)
     ? buildAirbnbReviewHeroSegments({
         scheduleLabel,
         locationLabel,
         bedBathSummary,
         addonSummary,
-        frequencyLabel: getFrequencyLabel(frequency, serviceSlug),
+        frequencyLabel,
       })
-    : ([serviceLabel, bedBathSummary, getFrequencyLabel(frequency, serviceSlug), scheduleLabel].filter(
-        Boolean,
-      ) as string[]);
+    : isMovingCleaningSlug(serviceSlug)
+      ? buildMovingReviewHeroSegments({
+          scheduleLabel,
+          locationLabel,
+          bedBathSummary,
+          addonSummary,
+          frequencyLabel,
+        })
+      : isDeepCleaningSlug(serviceSlug)
+        ? buildDeepReviewHeroSegments({
+            scheduleLabel,
+            locationLabel,
+            bedBathSummary,
+            addonSummary,
+            frequencyLabel,
+          })
+        : isOfficeCleaningSlug(serviceSlug)
+          ? buildOfficeReviewHeroSegments({
+              scheduleLabel,
+              locationLabel,
+              workspaceSizeSummary: bedBathSummary,
+              addonSummary,
+              frequencyLabel,
+            })
+          : isCarpetCleaningSlug(serviceSlug)
+            ? buildCarpetReviewHeroSegments({
+                scheduleLabel,
+                locationLabel,
+                zonesSummary: bedBathSummary,
+                addonSummary,
+                frequencyLabel,
+              })
+            : ([serviceLabel, bedBathSummary, frequencyLabel, scheduleLabel].filter(Boolean) as string[]);
 
   return (
     <div>
@@ -303,12 +346,18 @@ export function ReviewStepPanel({
             </div>
           </ReviewSection>
 
-          <ReviewSection title="Property details" editStep="details" onEditStep={onEditStep}>
+          <ReviewSection
+            title={getReviewPropertySectionTitle(serviceSlug)}
+            editStep="details"
+            onEditStep={onEditStep}
+          >
             <div className="grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2">
-              {bedroomsLabel ? <SummaryRow label="Bedrooms" value={bedroomsLabel} /> : null}
-              {bathroomsLabel ? (
+              {bedroomsLabel ? (
+                <SummaryRow label={getReviewBedroomsRowLabel(serviceSlug)} value={bedroomsLabel} />
+              ) : null}
+              {bathroomsLabel && !isCarpetCleaningSlug(serviceSlug) ? (
                 <SummaryRow
-                  label={serviceSlug === "office-cleaning" ? "Property size" : "Bathrooms"}
+                  label={getReviewWorkspaceSizeRowLabel(serviceSlug)}
                   value={bathroomsLabel}
                 />
               ) : null}
@@ -323,9 +372,7 @@ export function ReviewStepPanel({
               ) : null}
             </div>
             <div className="mt-2">
-              <p className="text-xs text-zinc-500">
-                {isAirbnbCleaningSlug(serviceSlug) ? "Turnover extras" : "Add-ons"}
-              </p>
+              <p className="text-xs text-zinc-500">{getReviewAddonsSectionLabel(serviceSlug)}</p>
               {addonLabels.length > 0 ? (
                 <ul className="mt-0.5 space-y-0.5 text-sm font-medium text-zinc-900">
                   {addonLabels.map((label) => (

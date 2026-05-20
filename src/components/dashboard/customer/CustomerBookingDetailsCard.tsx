@@ -2,14 +2,24 @@ import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
 import { UI_DETAIL_VALUE_CLASS } from "@/lib/ui/productUiTokens";
 import type { PaymentSummary } from "@/features/dashboards/server/types";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import {
-  labelForPaymentStatus,
-  toneForPaymentStatus,
-} from "@/features/bookings/server/statusLabels";
+import { labelForCustomerPaymentStatus } from "@/features/bookings/server/paymentFailureDisplay";
+import { toneForPaymentStatus } from "@/features/bookings/server/statusLabels";
 import {
   getAirbnbCustomerBookingDetailCopy,
   isAirbnbCleaningSlug,
 } from "@/features/dashboards/airbnbCustomerDisplay";
+import { isDeepCleaningSlug } from "@/features/booking-wizard/deepCleaningDisplay";
+import { isCarpetCleaningSlug } from "@/features/booking-wizard/carpetCleaningDisplay";
+import { isMovingCleaningSlug } from "@/features/booking-wizard/movingCleaningDisplay";
+import { isOfficeCleaningSlug } from "@/features/booking-wizard/officeCleaningDisplay";
+import { getDeepCustomerBookingDetailCopy } from "@/features/dashboards/deepCustomerDisplay";
+import { getCarpetCustomerBookingDetailCopy } from "@/features/dashboards/carpetCustomerDisplay";
+import { getMovingCustomerBookingDetailCopy } from "@/features/dashboards/movingCustomerDisplay";
+import { getOfficeCustomerBookingDetailCopy } from "@/features/dashboards/officeCustomerDisplay";
+import {
+  getRegularCustomerBookingDetailCopy,
+  isRegularCleaningSlug,
+} from "@/features/dashboards/regularCustomerDisplay";
 
 type DetailRowProps = {
   label: string;
@@ -73,9 +83,19 @@ export function CustomerBookingDetailsCard({
   teamSupportShownInHero = false,
   assignedCleanerShownInHero = false,
 }: Props) {
-  const airbnbLabels = isAirbnbCleaningSlug(serviceSlug)
+  const serviceLabels = isAirbnbCleaningSlug(serviceSlug)
     ? getAirbnbCustomerBookingDetailCopy()
-    : null;
+    : isOfficeCleaningSlug(serviceSlug)
+      ? getOfficeCustomerBookingDetailCopy()
+      : isMovingCleaningSlug(serviceSlug)
+        ? getMovingCustomerBookingDetailCopy()
+        : isDeepCleaningSlug(serviceSlug)
+          ? getDeepCustomerBookingDetailCopy()
+          : isCarpetCleaningSlug(serviceSlug)
+            ? getCarpetCustomerBookingDetailCopy()
+            : isRegularCleaningSlug(serviceSlug)
+              ? getRegularCustomerBookingDetailCopy()
+              : null;
   const hasServiceDetails =
     homeSizeSummary != null ||
     cleaningIntensityLabel != null ||
@@ -95,7 +115,7 @@ export function CustomerBookingDetailsCard({
         <dl className="space-y-2.5">
           {homeSizeSummary ? (
             <DetailRow
-              label={airbnbLabels?.homeSizeLabel ?? "Home size"}
+              label={serviceLabels?.homeSizeLabel ?? "Home size"}
               value={homeSizeSummary}
             />
           ) : null}
@@ -107,12 +127,12 @@ export function CustomerBookingDetailsCard({
           ) : null}
           {frequencyLabel ? (
             <DetailRow
-              label={airbnbLabels?.frequencyLabel ?? "Frequency"}
+              label={serviceLabels?.frequencyLabel ?? "Frequency"}
               value={frequencyLabel}
             />
           ) : null}
           {addonsSummary ? (
-            <DetailRow label={airbnbLabels?.addonsLabel ?? "Add-ons"} value={addonsSummary} />
+            <DetailRow label={serviceLabels?.addonsLabel ?? "Add-ons"} value={addonsSummary} />
           ) : null}
           {showTeamSupport ? <DetailRow label="Team support" value={teamSupportLabel} /> : null}
         </dl>
@@ -123,12 +143,12 @@ export function CustomerBookingDetailsCard({
           <DetailRow label="Contact number" value={contactPhoneDisplay} />
         ) : null}
         <DetailRow
-          label={airbnbLabels?.cleanerPreferenceLabel ?? "Cleaner preference"}
+          label={serviceLabels?.cleanerPreferenceLabel ?? "Cleaner preference"}
           value={cleanerPreferenceLabel}
         />
         {showAssignedCleaner ? (
           <DetailRow
-            label={airbnbLabels?.assignedCleanerLabel ?? "Assigned cleaner"}
+            label={serviceLabels?.assignedCleanerLabel ?? "Assigned cleaner"}
             value={assignedCleanerLabel}
             valueClassName="text-emerald-800"
           />
@@ -144,7 +164,7 @@ export function CustomerBookingDetailsCard({
       {specialInstructions ? (
         <p className="border-t border-zinc-100 pt-3 text-sm leading-snug text-zinc-600">
           <span className="font-medium text-zinc-800">
-            {airbnbLabels?.notesLabel ?? "Notes"}
+            {serviceLabels?.notesLabel ?? "Notes"}
           </span>
           <span className="mt-0.5 block text-zinc-700">{specialInstructions}</span>
         </p>
@@ -166,7 +186,7 @@ export function CustomerBookingDetailsCard({
               >
                 <span className="min-w-0 shrink">
                   <StatusBadge
-                    label={labelForPaymentStatus(payment.status)}
+                    label={labelForCustomerPaymentStatus(payment.status)}
                     tone={toneForPaymentStatus(payment.status)}
                     variant="soft"
                   />

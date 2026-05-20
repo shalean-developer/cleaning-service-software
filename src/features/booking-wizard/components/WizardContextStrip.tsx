@@ -1,4 +1,5 @@
 import type { PricingFrequency, ServiceSlug } from "@/features/pricing/server/types";
+import { isOfficeCleaningSlug } from "../officeCleaningDisplay";
 import { getFrequencyLabel } from "../reviewDisplay";
 
 type Props = {
@@ -18,7 +19,7 @@ function buildHomeSizeDetail(
   bathrooms: number,
   propertySizeSqm: number | null,
 ): string | null {
-  if (!serviceSlug || serviceSlug === "office-cleaning") {
+  if (!serviceSlug || isOfficeCleaningSlug(serviceSlug)) {
     if (propertySizeSqm != null) return `${propertySizeSqm} sqm`;
     return null;
   }

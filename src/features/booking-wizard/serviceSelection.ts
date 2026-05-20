@@ -14,6 +14,10 @@ export function wizardPatchForServiceSelection(
   | "cleaningIntensity"
   | "equipmentSupply"
   | "requestedTeamSize"
+  | "carpetStainSeverity"
+  | "carpetPetStains"
+  | "carpetGoodDryingAirflow"
+  | "addons"
 > {
   return {
     serviceSlug: slug,
@@ -23,6 +27,10 @@ export function wizardPatchForServiceSelection(
     cleaningIntensity: "standard",
     equipmentSupply: "customer",
     requestedTeamSize: 1,
+    carpetStainSeverity: null,
+    carpetPetStains: false,
+    carpetGoodDryingAirflow: false,
+    addons: [],
   };
 }
 

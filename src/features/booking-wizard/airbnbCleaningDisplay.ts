@@ -7,6 +7,73 @@ import type { AddonSlug, PricingFrequency, ServiceSlug } from "@/features/pricin
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { FrequencyStepOption } from "./constants";
 import { FREQUENCY_STEP_OPTIONS } from "./constants";
+import {
+  buildDeepReviewHeroSegments,
+  getDeepCleaningCheckoutCopy,
+  getDeepCleaningReviewCopy,
+  getDeepCleaningStepCopy,
+  getDeepFrequencyLabel,
+  getDeepFrequencySectionTitle,
+  getDeepFrequencyStepOptions,
+  getDeepScheduleStepHelperCopy,
+  getDeepWizardCleanerFootnote,
+  getDeepWizardSummaryAddonsLabel,
+  getDeepWizardSummaryEstimateHint,
+  getDeepWizardSummaryFrequencyLabel,
+  getDeepWizardSummaryLocationLabel,
+  isDeepCleaningSlug,
+} from "./deepCleaningDisplay";
+import {
+  buildCarpetReviewHeroSegments,
+  getCarpetCleaningCheckoutCopy,
+  getCarpetCleaningReviewCopy,
+  getCarpetCleaningStepCopy,
+  getCarpetFrequencyLabel,
+  getCarpetFrequencySectionTitle,
+  getCarpetFrequencyStepOptions,
+  getCarpetScheduleStepHelperCopy,
+  getCarpetWizardCleanerFootnote,
+  getCarpetWizardSummaryAddonsLabel,
+  getCarpetWizardSummaryEstimateHint,
+  getCarpetWizardSummaryFrequencyLabel,
+  getCarpetWizardSummaryLocationLabel,
+  isCarpetCleaningSlug,
+} from "./carpetCleaningDisplay";
+import {
+  buildMovingReviewHeroSegments,
+  getMovingCleaningCheckoutCopy,
+  getMovingCleaningReviewCopy,
+  getMovingCleaningStepCopy,
+  getMovingFrequencyLabel,
+  getMovingFrequencySectionTitle,
+  getMovingFrequencyStepOptions,
+  getMovingScheduleStepHelperCopy,
+  getMovingWizardCleanerFootnote,
+  getMovingWizardSummaryAddonsLabel,
+  getMovingWizardSummaryEstimateHint,
+  getMovingWizardSummaryFrequencyLabel,
+  getMovingWizardSummaryLocationLabel,
+  isMovingCleaningSlug,
+  MOVING_ADDONS_SECTION_HINT,
+  MOVING_CHECKOUT_WHAT_HAPPENS_NEXT,
+} from "./movingCleaningDisplay";
+import {
+  buildOfficeReviewHeroSegments,
+  getOfficeCleaningCheckoutCopy,
+  getOfficeCleaningReviewCopy,
+  getOfficeCleaningStepCopy,
+  getOfficeFrequencyLabel,
+  getOfficeFrequencySectionTitle,
+  getOfficeFrequencyStepOptions,
+  getOfficeScheduleStepHelperCopy,
+  getOfficeWizardCleanerFootnote,
+  getOfficeWizardSummaryAddonsLabel,
+  getOfficeWizardSummaryEstimateHint,
+  getOfficeWizardSummaryFrequencyLabel,
+  getOfficeWizardSummaryLocationLabel,
+  isOfficeCleaningSlug,
+  OFFICE_ADDONS_SECTION_HINT,
+} from "./officeCleaningDisplay";
 
 export const AIRBNB_CLEANING_SLUG = "airbnb-cleaning" as const;
 
@@ -34,6 +101,14 @@ export const AIRBNB_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
 export function getFrequencyStepOptions(
   serviceSlug: ServiceSlug | null,
 ): FrequencyStepOption[] {
+  const office = getOfficeFrequencyStepOptions(serviceSlug);
+  if (office) return office;
+  const moving = getMovingFrequencyStepOptions(serviceSlug);
+  if (moving) return moving;
+  const deep = getDeepFrequencyStepOptions(serviceSlug);
+  if (deep) return deep;
+  const carpet = getCarpetFrequencyStepOptions(serviceSlug);
+  if (carpet) return carpet;
   return isAirbnbCleaningSlug(serviceSlug)
     ? AIRBNB_FREQUENCY_STEP_OPTIONS
     : FREQUENCY_STEP_OPTIONS;
@@ -43,6 +118,14 @@ export function getFrequencyLabel(
   frequency: PricingFrequency,
   serviceSlug: ServiceSlug | null = null,
 ): string {
+  const office = getOfficeFrequencyLabel(frequency, serviceSlug);
+  if (office) return office;
+  const moving = getMovingFrequencyLabel(frequency, serviceSlug);
+  if (moving) return moving;
+  const deep = getDeepFrequencyLabel(frequency, serviceSlug);
+  if (deep) return deep;
+  const carpet = getCarpetFrequencyLabel(frequency, serviceSlug);
+  if (carpet) return carpet;
   return (
     getFrequencyStepOptions(serviceSlug).find((option) => option.value === frequency)?.label ??
     frequency
@@ -50,6 +133,14 @@ export function getFrequencyLabel(
 }
 
 export function getFrequencySectionTitle(serviceSlug: ServiceSlug | null): string {
+  const office = getOfficeFrequencySectionTitle(serviceSlug);
+  if (office) return office;
+  const moving = getMovingFrequencySectionTitle(serviceSlug);
+  if (moving) return moving;
+  const deep = getDeepFrequencySectionTitle(serviceSlug);
+  if (deep) return deep;
+  const carpet = getCarpetFrequencySectionTitle(serviceSlug);
+  if (carpet) return carpet;
   return isAirbnbCleaningSlug(serviceSlug) ? "Turnover cadence" : "Visit frequency";
 }
 
@@ -85,6 +176,14 @@ export function getDetailsStepIntro(serviceSlug: ServiceSlug | null): {
   title: string;
   description: string;
 } {
+  const office = getOfficeCleaningStepCopy(serviceSlug);
+  if (office) return office.detailsIntro;
+  const moving = getMovingCleaningStepCopy(serviceSlug);
+  if (moving) return moving.detailsIntro;
+  const deep = getDeepCleaningStepCopy(serviceSlug);
+  if (deep) return deep.detailsIntro;
+  const carpet = getCarpetCleaningStepCopy(serviceSlug);
+  if (carpet) return carpet.detailsIntro;
   if (isAirbnbCleaningSlug(serviceSlug)) {
     return {
       title: "Property & turnover options",
@@ -99,18 +198,62 @@ export function getDetailsStepIntro(serviceSlug: ServiceSlug | null): {
 }
 
 export function getHomeSizeSectionTitle(serviceSlug: ServiceSlug | null): string {
+  const office = getOfficeCleaningStepCopy(serviceSlug);
+  if (office) return office.homeSizeTitle;
+  const moving = getMovingCleaningStepCopy(serviceSlug);
+  if (moving) return moving.homeSizeTitle;
+  const deep = getDeepCleaningStepCopy(serviceSlug);
+  if (deep) return deep.homeSizeTitle;
+  const carpet = getCarpetCleaningStepCopy(serviceSlug);
+  if (carpet) return carpet.homeSizeTitle;
   return isAirbnbCleaningSlug(serviceSlug) ? "Property size" : "Home size";
 }
 
 export function getAddonsSectionTitle(serviceSlug: ServiceSlug | null): string {
+  const office = getOfficeCleaningStepCopy(serviceSlug);
+  if (office) return office.addonsTitle;
+  const moving = getMovingCleaningStepCopy(serviceSlug);
+  if (moving) return moving.addonsTitle;
+  const deep = getDeepCleaningStepCopy(serviceSlug);
+  if (deep) return deep.addonsTitle;
+  const carpet = getCarpetCleaningStepCopy(serviceSlug);
+  if (carpet) return carpet.addonsTitle;
   return isAirbnbCleaningSlug(serviceSlug) ? "Turnover extras" : "Add-ons";
 }
 
+export function getAddonsSectionHint(serviceSlug: ServiceSlug | null): string | null {
+  const office = getOfficeCleaningStepCopy(serviceSlug);
+  if (office) return office.addonsHint;
+  const moving = getMovingCleaningStepCopy(serviceSlug);
+  if (moving) return moving.addonsHint;
+  const deep = getDeepCleaningStepCopy(serviceSlug);
+  if (deep) return deep.addonsHint;
+  const carpet = getCarpetCleaningStepCopy(serviceSlug);
+  if (carpet) return carpet.addonsHint;
+  return null;
+}
+
 export function getHostNotesSectionTitle(serviceSlug: ServiceSlug | null): string {
+  const office = getOfficeCleaningStepCopy(serviceSlug);
+  if (office) return office.notesTitle;
+  const moving = getMovingCleaningStepCopy(serviceSlug);
+  if (moving) return moving.notesTitle;
+  const deep = getDeepCleaningStepCopy(serviceSlug);
+  if (deep) return deep.notesTitle;
+  const carpet = getCarpetCleaningStepCopy(serviceSlug);
+  if (carpet) return carpet.notesTitle;
   return isAirbnbCleaningSlug(serviceSlug) ? "Host instructions" : "Notes";
 }
 
 export function getHostNotesPlaceholder(serviceSlug: ServiceSlug | null): string {
+  const office = getOfficeCleaningStepCopy(serviceSlug);
+  if (office) return office.notesPlaceholder;
+  const moving = getMovingCleaningStepCopy(serviceSlug);
+  if (moving) return moving.notesPlaceholder;
+  const deep = getDeepCleaningStepCopy(serviceSlug);
+  if (deep) return deep.notesPlaceholder;
+  const carpet = getCarpetCleaningStepCopy(serviceSlug);
+  if (carpet) return carpet.notesPlaceholder;
   if (isAirbnbCleaningSlug(serviceSlug)) {
     return "Guest focus areas, linen location, restocking notes, or turnover priorities.";
   }
@@ -124,6 +267,14 @@ export type AccessNotesFieldCopy = {
 };
 
 export function getAccessNotesFieldCopy(serviceSlug: ServiceSlug | null): AccessNotesFieldCopy {
+  const office = getOfficeCleaningStepCopy(serviceSlug);
+  if (office) return office.accessNotes;
+  const moving = getMovingCleaningStepCopy(serviceSlug);
+  if (moving) return moving.accessNotes;
+  const deep = getDeepCleaningStepCopy(serviceSlug);
+  if (deep) return deep.accessNotes;
+  const carpet = getCarpetCleaningStepCopy(serviceSlug);
+  if (carpet) return carpet.accessNotes;
   if (isAirbnbCleaningSlug(serviceSlug)) {
     return {
       label: "Property access (optional)",
@@ -140,6 +291,14 @@ export function getAccessNotesFieldCopy(serviceSlug: ServiceSlug | null): Access
 }
 
 export function getAccessNotesReviewLabel(serviceSlug: ServiceSlug | null): string {
+  const officeReview = getOfficeCleaningReviewCopy(serviceSlug);
+  if (officeReview) return officeReview.accessNotesLabel;
+  const movingReview = getMovingCleaningReviewCopy(serviceSlug);
+  if (movingReview) return movingReview.accessNotesLabel;
+  const deepReview = getDeepCleaningReviewCopy(serviceSlug);
+  if (deepReview) return deepReview.accessNotesLabel;
+  const carpetReview = getCarpetCleaningReviewCopy(serviceSlug);
+  if (carpetReview) return carpetReview.accessNotesLabel;
   return isAirbnbCleaningSlug(serviceSlug) ? "Host access instructions" : "Access notes";
 }
 
@@ -147,6 +306,14 @@ export function getScheduleStepHelperCopy(
   serviceSlug: ServiceSlug | null,
   extendedWindowEnabled: boolean,
 ): string {
+  const office = getOfficeScheduleStepHelperCopy(serviceSlug, extendedWindowEnabled);
+  if (office) return office;
+  const moving = getMovingScheduleStepHelperCopy(serviceSlug, extendedWindowEnabled);
+  if (moving) return moving;
+  const deep = getDeepScheduleStepHelperCopy(serviceSlug, extendedWindowEnabled);
+  if (deep) return deep;
+  const carpet = getCarpetScheduleStepHelperCopy(serviceSlug, extendedWindowEnabled);
+  if (carpet) return carpet;
   if (isAirbnbCleaningSlug(serviceSlug)) {
     if (extendedWindowEnabled) {
       return "Book turnovers up to 90 days ahead. Same-day slots depend on cleaner availability — we assign closer to check-in when needed.";
@@ -170,6 +337,14 @@ export type CleanerStepCopy = {
 };
 
 export function getCleanerStepCopy(serviceSlug: ServiceSlug | null): CleanerStepCopy {
+  const office = getOfficeCleaningStepCopy(serviceSlug);
+  if (office) return office.cleaner;
+  const moving = getMovingCleaningStepCopy(serviceSlug);
+  if (moving) return moving.cleaner;
+  const deep = getDeepCleaningStepCopy(serviceSlug);
+  if (deep) return deep.cleaner;
+  const carpet = getCarpetCleaningStepCopy(serviceSlug);
+  if (carpet) return carpet.cleaner;
   if (isAirbnbCleaningSlug(serviceSlug)) {
     return {
       title: "Choose your turnover cleaner",
@@ -218,6 +393,14 @@ export function buildAirbnbReviewHeroSegments(input: {
 }
 
 export function getReviewNextStepsNote(serviceSlug: ServiceSlug | null): string {
+  const officeReview = getOfficeCleaningReviewCopy(serviceSlug);
+  if (officeReview) return officeReview.nextStepsNote;
+  const movingReview = getMovingCleaningReviewCopy(serviceSlug);
+  if (movingReview) return movingReview.nextStepsNote;
+  const deepReview = getDeepCleaningReviewCopy(serviceSlug);
+  if (deepReview) return deepReview.nextStepsNote;
+  const carpetReview = getCarpetCleaningReviewCopy(serviceSlug);
+  if (carpetReview) return carpetReview.nextStepsNote;
   if (isAirbnbCleaningSlug(serviceSlug)) {
     return "Next: secure Paystack checkout. Cleaner assignment begins immediately after payment.";
   }
@@ -225,16 +408,61 @@ export function getReviewNextStepsNote(serviceSlug: ServiceSlug | null): string 
 }
 
 export function getReviewConfirmationCopy(serviceSlug: ServiceSlug | null): string {
+  const officeReview = getOfficeCleaningReviewCopy(serviceSlug);
+  if (officeReview) return officeReview.confirmationCopy;
+  const movingReview = getMovingCleaningReviewCopy(serviceSlug);
+  if (movingReview) return movingReview.confirmationCopy;
+  const deepReview = getDeepCleaningReviewCopy(serviceSlug);
+  if (deepReview) return deepReview.confirmationCopy;
+  const carpetReview = getCarpetCleaningReviewCopy(serviceSlug);
+  if (carpetReview) return carpetReview.confirmationCopy;
   if (isAirbnbCleaningSlug(serviceSlug)) {
     return "I confirm these turnover details are correct and I'm ready for secure payment.";
   }
   return "I confirm these details are correct and I'm ready for secure payment.";
 }
 
+export function getReviewPropertySectionTitle(serviceSlug: ServiceSlug | null): string {
+  const officeReview = getOfficeCleaningReviewCopy(serviceSlug);
+  if (officeReview) return officeReview.propertySectionTitle;
+  const movingReview = getMovingCleaningReviewCopy(serviceSlug);
+  if (movingReview) return movingReview.propertySectionTitle;
+  const deepReview = getDeepCleaningReviewCopy(serviceSlug);
+  if (deepReview) return deepReview.propertySectionTitle;
+  const carpetReview = getCarpetCleaningReviewCopy(serviceSlug);
+  if (carpetReview) return carpetReview.propertySectionTitle;
+  return "Property details";
+}
+
+export function getReviewBedroomsRowLabel(serviceSlug: ServiceSlug | null): string {
+  const carpetReview = getCarpetCleaningReviewCopy(serviceSlug);
+  if (carpetReview) return carpetReview.zonesRowLabel;
+  return "Bedrooms";
+}
+
+export {
+  buildCarpetReviewHeroSegments,
+  buildDeepReviewHeroSegments,
+  buildMovingReviewHeroSegments,
+  buildOfficeReviewHeroSegments,
+  MOVING_CHECKOUT_WHAT_HAPPENS_NEXT,
+  MOVING_ADDONS_SECTION_HINT,
+  OFFICE_ADDONS_SECTION_HINT,
+  isOfficeCleaningSlug,
+};
+
 export function getRecurringScheduleReviewNote(
   frequency: PricingFrequency,
   serviceSlug: ServiceSlug | null = null,
 ): string | null {
+  const officeReview = getOfficeCleaningReviewCopy(serviceSlug);
+  if (officeReview) return officeReview.recurringScheduleReviewNote(frequency);
+  const movingReview = getMovingCleaningReviewCopy(serviceSlug);
+  if (movingReview) return movingReview.recurringScheduleReviewNote(frequency);
+  const deepReview = getDeepCleaningReviewCopy(serviceSlug);
+  if (deepReview) return deepReview.recurringScheduleReviewNote(frequency);
+  const carpetReview = getCarpetCleaningReviewCopy(serviceSlug);
+  if (carpetReview) return carpetReview.recurringScheduleReviewNote(frequency);
   if (!isAirbnbCleaningSlug(serviceSlug)) return null;
   switch (frequency) {
     case "weekly":
@@ -252,6 +480,14 @@ export function getRecurringScheduleExplanation(
   frequency: PricingFrequency,
   serviceSlug: ServiceSlug | null = null,
 ): string | null {
+  const officeReview = getOfficeCleaningReviewCopy(serviceSlug);
+  if (officeReview) return officeReview.recurringScheduleExplanation(frequency);
+  const movingReview = getMovingCleaningReviewCopy(serviceSlug);
+  if (movingReview) return movingReview.recurringScheduleExplanation(frequency);
+  const deepReview = getDeepCleaningReviewCopy(serviceSlug);
+  if (deepReview) return deepReview.recurringScheduleExplanation(frequency);
+  const carpetReview = getCarpetCleaningReviewCopy(serviceSlug);
+  if (carpetReview) return carpetReview.recurringScheduleExplanation(frequency);
   if (!isAirbnbCleaningSlug(serviceSlug)) return null;
   switch (frequency) {
     case "weekly":
@@ -270,6 +506,14 @@ export function getRecurringPaymentExplanation(
   serviceSlug: ServiceSlug | null = null,
 ): string | null {
   if (frequency === "once") return null;
+  const officeReview = getOfficeCleaningReviewCopy(serviceSlug);
+  if (officeReview) return officeReview.recurringPaymentExplanation(frequency);
+  const movingReview = getMovingCleaningReviewCopy(serviceSlug);
+  if (movingReview) return movingReview.recurringPaymentExplanation(frequency);
+  const deepReview = getDeepCleaningReviewCopy(serviceSlug);
+  if (deepReview) return deepReview.recurringPaymentExplanation(frequency);
+  const carpetReview = getCarpetCleaningReviewCopy(serviceSlug);
+  if (carpetReview) return carpetReview.recurringPaymentExplanation(frequency);
   if (isAirbnbCleaningSlug(serviceSlug)) {
     return "Today's payment secures this turnover only. We'll confirm your recurring host schedule after payment; future visits are arranged in your account.";
   }
@@ -283,8 +527,31 @@ export const AIRBNB_CHECKOUT_WHAT_HAPPENS_NEXT = [
 ] as const;
 
 export function getCheckoutGuestReadyNote(serviceSlug: ServiceSlug | null): string | null {
+  const officeCheckout = getOfficeCleaningCheckoutCopy(serviceSlug);
+  if (officeCheckout) return officeCheckout.workspaceNote;
+  const movingCheckout = getMovingCleaningCheckoutCopy(serviceSlug);
+  if (movingCheckout) return movingCheckout.guestReadyNote;
+  const deepCheckout = getDeepCleaningCheckoutCopy(serviceSlug);
+  if (deepCheckout) return deepCheckout.restorationNote;
+  const carpetCheckout = getCarpetCleaningCheckoutCopy(serviceSlug);
+  if (carpetCheckout) return carpetCheckout.floorCareNote;
   if (!isAirbnbCleaningSlug(serviceSlug)) return null;
   return "Your property will be prepared before the next guest arrival.";
+}
+
+export function getCheckoutWhatHappensNext(
+  serviceSlug: ServiceSlug | null,
+): readonly string[] {
+  const officeCheckout = getOfficeCleaningCheckoutCopy(serviceSlug);
+  if (officeCheckout) return officeCheckout.whatHappensNext;
+  const movingCheckout = getMovingCleaningCheckoutCopy(serviceSlug);
+  if (movingCheckout) return movingCheckout.whatHappensNext;
+  const deepCheckout = getDeepCleaningCheckoutCopy(serviceSlug);
+  if (deepCheckout) return deepCheckout.whatHappensNext;
+  const carpetCheckout = getCarpetCleaningCheckoutCopy(serviceSlug);
+  if (carpetCheckout) return carpetCheckout.whatHappensNext;
+  if (isAirbnbCleaningSlug(serviceSlug)) return AIRBNB_CHECKOUT_WHAT_HAPPENS_NEXT;
+  return ["Booking confirmation", "Confirmation email", "Cleaner assignment"];
 }
 
 export function getCheckoutAmountHelper(
@@ -293,6 +560,14 @@ export function getCheckoutAmountHelper(
   recurringNote: string | null,
 ): string {
   if (recurringNote) return recurringNote;
+  const officeCheckout = getOfficeCleaningCheckoutCopy(serviceSlug);
+  if (officeCheckout) return officeCheckout.amountHelper(customerEmail, recurringNote);
+  const movingCheckout = getMovingCleaningCheckoutCopy(serviceSlug);
+  if (movingCheckout) return movingCheckout.amountHelper(customerEmail, recurringNote);
+  const deepCheckout = getDeepCleaningCheckoutCopy(serviceSlug);
+  if (deepCheckout) return deepCheckout.amountHelper(customerEmail, recurringNote);
+  const carpetCheckout = getCarpetCleaningCheckoutCopy(serviceSlug);
+  if (carpetCheckout) return carpetCheckout.amountHelper(customerEmail, recurringNote);
   if (isAirbnbCleaningSlug(serviceSlug)) {
     return `Paying as ${customerEmail} · Cleaner assignment begins after payment.`;
   }
@@ -300,18 +575,50 @@ export function getCheckoutAmountHelper(
 }
 
 export function getWizardSummaryFrequencyLabel(serviceSlug: ServiceSlug | null): string {
+  const office = getOfficeWizardSummaryFrequencyLabel(serviceSlug);
+  if (office) return office;
+  const moving = getMovingWizardSummaryFrequencyLabel(serviceSlug);
+  if (moving) return moving;
+  const deep = getDeepWizardSummaryFrequencyLabel(serviceSlug);
+  if (deep) return deep;
+  const carpet = getCarpetWizardSummaryFrequencyLabel(serviceSlug);
+  if (carpet) return carpet;
   return isAirbnbCleaningSlug(serviceSlug) ? "Turnover cadence" : "Frequency";
 }
 
 export function getWizardSummaryAddonsLabel(serviceSlug: ServiceSlug | null): string {
+  const office = getOfficeWizardSummaryAddonsLabel(serviceSlug);
+  if (office) return office;
+  const moving = getMovingWizardSummaryAddonsLabel(serviceSlug);
+  if (moving) return moving;
+  const deep = getDeepWizardSummaryAddonsLabel(serviceSlug);
+  if (deep) return deep;
+  const carpet = getCarpetWizardSummaryAddonsLabel(serviceSlug);
+  if (carpet) return carpet;
   return isAirbnbCleaningSlug(serviceSlug) ? "Turnover extras" : "Add-ons";
 }
 
 export function getWizardSummaryLocationLabel(serviceSlug: ServiceSlug | null): string {
+  const office = getOfficeWizardSummaryLocationLabel(serviceSlug);
+  if (office) return office;
+  const moving = getMovingWizardSummaryLocationLabel(serviceSlug);
+  if (moving) return moving;
+  const deep = getDeepWizardSummaryLocationLabel(serviceSlug);
+  if (deep) return deep;
+  const carpet = getCarpetWizardSummaryLocationLabel(serviceSlug);
+  if (carpet) return carpet;
   return isAirbnbCleaningSlug(serviceSlug) ? "Property" : "Location";
 }
 
 export function getWizardSummaryEstimateHint(serviceSlug: ServiceSlug | null): string {
+  const office = getOfficeWizardSummaryEstimateHint(serviceSlug);
+  if (office) return office;
+  const moving = getMovingWizardSummaryEstimateHint(serviceSlug);
+  if (moving) return moving;
+  const deep = getDeepWizardSummaryEstimateHint(serviceSlug);
+  if (deep) return deep;
+  const carpet = getCarpetWizardSummaryEstimateHint(serviceSlug);
+  if (carpet) return carpet;
   if (isAirbnbCleaningSlug(serviceSlug)) {
     return "Estimate only — confirmed total on review.";
   }
@@ -319,13 +626,42 @@ export function getWizardSummaryEstimateHint(serviceSlug: ServiceSlug | null): s
 }
 
 export function getWizardCleanerFootnote(serviceSlug: ServiceSlug | null): string | undefined {
+  const office = getOfficeWizardCleanerFootnote(serviceSlug);
+  if (office) return office;
+  const moving = getMovingWizardCleanerFootnote(serviceSlug);
+  if (moving) return moving;
+  const deep = getDeepWizardCleanerFootnote(serviceSlug);
+  if (deep) return deep;
+  const carpet = getCarpetWizardCleanerFootnote(serviceSlug);
+  if (carpet) return carpet;
   if (isAirbnbCleaningSlug(serviceSlug)) {
     return "Cleaner preference is saved with your turnover. Assignment finalizes after payment.";
   }
   return "Cleaner preference is saved with your booking. Assignment finalizes after payment.";
 }
 
+export { isCarpetCleaningSlug, isDeepCleaningSlug, isMovingCleaningSlug };
+
 /** Customer dashboard status lines — presentation only. */
+export function getReviewAddonsSectionLabel(serviceSlug: ServiceSlug | null): string {
+  const officeReview = getOfficeCleaningReviewCopy(serviceSlug);
+  if (officeReview) return officeReview.addonsSectionLabel;
+  const movingReview = getMovingCleaningReviewCopy(serviceSlug);
+  if (movingReview) return movingReview.addonsSectionLabel;
+  const deepReview = getDeepCleaningReviewCopy(serviceSlug);
+  if (deepReview) return deepReview.addonsSectionLabel;
+  const carpetReview = getCarpetCleaningReviewCopy(serviceSlug);
+  if (carpetReview) return carpetReview.addonsSectionLabel;
+  return isAirbnbCleaningSlug(serviceSlug) ? "Turnover extras" : "Add-ons";
+}
+
+/** Review row label for workspace sqm (office only). */
+export function getReviewWorkspaceSizeRowLabel(serviceSlug: ServiceSlug | null): string {
+  const officeReview = getOfficeCleaningReviewCopy(serviceSlug);
+  if (officeReview) return officeReview.workspaceSizeRowLabel;
+  return "Bathrooms";
+}
+
 export function customerAirbnbStatusLine(
   status: BookingStatus,
   defaultLine: string,

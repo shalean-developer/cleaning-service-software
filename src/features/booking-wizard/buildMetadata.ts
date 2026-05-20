@@ -1,6 +1,10 @@
 import { buildBookingQuoteMetadata } from "@/features/pricing/server/metadata";
 import type { PricingBreakdown, PricingInput } from "@/features/pricing/server/types";
 import { normalizeAreaSlug } from "@/features/cleaners/server/eligibility/normalize";
+import {
+  buildCarpetBookingDetailsMetadata,
+  isCarpetCleaningSlug,
+} from "./carpetCleaningDisplay";
 import { resolveContactPhoneForMetadata } from "./contactPhone";
 import type { BookingWizardState } from "./types";
 
@@ -33,8 +37,17 @@ export function buildWizardBookingMetadata(
   const quoteMeta = buildBookingQuoteMetadata(pricingInput, quote);
   const contactPhone = resolveContactPhoneForMetadata(state);
 
+  const carpetDetails = isCarpetCleaningSlug(state.serviceSlug)
+    ? buildCarpetBookingDetailsMetadata({
+        stainSeverity: state.carpetStainSeverity,
+        petStains: state.carpetPetStains,
+        goodDryingAirflow: state.carpetGoodDryingAirflow,
+      })
+    : null;
+
   return {
     ...quoteMeta,
+    ...(carpetDetails ? { carpetDetails } : {}),
     ...(contactPhone ? { contactPhone } : {}),
     areaSlug: normalizeAreaSlug(state.suburb),
     suburb: state.suburb.trim(),

@@ -26,12 +26,9 @@ describe("customerBookingListCardLayers", () => {
       label: "Payment not completed",
       tone: "danger",
     });
-    expect(layers.paymentStatusLine).toEqual({
-      text: "Payment not completed — open booking to pay",
-      tone: "attention",
-    });
+    expect(layers.paymentStatusLine).toBeNull();
     expect(layers.supportingMessage).toBeNull();
-    expect(layers.ctaLabel).toBe("View details");
+    expect(layers.ctaLabel).toBe("Complete payment");
   });
 
   it("uses checkout expired on the dominant badge only", () => {
@@ -45,7 +42,7 @@ describe("customerBookingListCardLayers", () => {
     });
 
     expect(layers.dominantBadge.label).toBe("Checkout not completed");
-    expect(layers.paymentStatusLine?.tone).toBe("attention");
+    expect(layers.paymentStatusLine).toBeNull();
     expect(layers.supportingMessage).toBeNull();
   });
 
@@ -59,7 +56,7 @@ describe("customerBookingListCardLayers", () => {
       assignedCleanerLabel: null,
     });
 
-    expect(layers.dominantBadge.label).toBe("Cleaner assignment in progress");
+    expect(layers.dominantBadge.label).toBe("Finding your cleaner");
     expect(layers.serviceSubtitle).toBe("Guest-ready preparation scheduled");
     expect(layers.ctaLabel).toBe("View turnover");
   });
@@ -100,12 +97,9 @@ describe("customerBookingListCardLayers", () => {
       assignedCleanerLabel: null,
     });
 
-    expect(layers.dominantBadge.label).toBe("Finding cleaner");
-    expect(layers.paymentStatusLine).toEqual({ text: "Paid", tone: "muted" });
-    expect(layers.supportingMessage).toEqual({
-      kind: "assignment",
-      text: "We're finding another available cleaner.",
-    });
+    expect(layers.dominantBadge.label).toBe("Finding your cleaner");
+    expect(layers.paymentStatusLine).toBeNull();
+    expect(layers.supportingMessage).toBeNull();
   });
 
   it("shows assigned cleaner as supporting line when no assignment message", () => {

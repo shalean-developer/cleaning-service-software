@@ -1,6 +1,33 @@
 import type { DeferredAssignmentDiagnostics } from "@/features/assignments/server/deferredAssignmentDiagnostics";
+import { labelForAssignmentAttention } from "@/features/bookings/server/statusLabels";
 import type { CronHealthLevel, CronJobHealthSnapshot } from "@/features/operations/server/cronHealthTypes";
 import type { AdminAssignmentQueueItem } from "@/features/dashboards/server/types";
+
+export type AdminAssignmentQueueScanLine = {
+  scheduleLabel: string;
+  assignmentLabel: string;
+  nextAction: string;
+  sameDayNote: string | null;
+};
+
+/** Always-visible ops scan line for assignment workbench cards (presentation only). */
+export function adminAssignmentQueueScanLine(
+  item: Pick<
+    AdminAssignmentQueueItem,
+    "scheduleLabel" | "assignmentAttention" | "assignmentReason" | "queueReason"
+  >,
+  options?: { sameDayNote?: string | null },
+): AdminAssignmentQueueScanLine {
+  return {
+    scheduleLabel: item.scheduleLabel,
+    assignmentLabel: labelForAssignmentAttention(
+      item.assignmentAttention,
+      item.assignmentReason,
+    ),
+    nextAction: item.queueReason,
+    sameDayNote: options?.sameDayNote ?? null,
+  };
+}
 
 export type CronHealthSummary = {
   worstLevel: CronHealthLevel;

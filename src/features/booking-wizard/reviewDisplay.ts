@@ -8,6 +8,15 @@ import type {
 import { getAddonStepDisplayOrder, getAddonStepLabel } from "./addonStepDisplay";
 import { getFrequencyLabel as getFrequencyLabelForSlug } from "./airbnbCleaningDisplay";
 import {
+  formatCarpetZonesCompact,
+  formatCarpetZonesSummary,
+  isCarpetCleaningSlug,
+} from "./carpetCleaningDisplay";
+import {
+  formatOfficeWorkspaceSizeSummary,
+  isOfficeCleaningSlug,
+} from "./officeCleaningDisplay";
+import {
   CLEANING_INTENSITY_STEP_OPTIONS,
   EQUIPMENT_SUPPLY_STEP_OPTIONS,
 } from "./constants";
@@ -60,8 +69,12 @@ export function formatCompactBedBathSummary(
     propertySizeSqm,
   );
 
-  if (serviceSlug === "office-cleaning") {
+  if (isOfficeCleaningSlug(serviceSlug)) {
     return bathroomsLabel;
+  }
+
+  if (isCarpetCleaningSlug(serviceSlug)) {
+    return formatCarpetZonesCompact(bedrooms);
   }
 
   if (!bedroomsLabel || !bathroomsLabel) return null;
@@ -177,12 +190,16 @@ export function formatBedroomBathroomSummary(
   bathrooms: number,
   propertySizeSqm: number | null,
 ): { bedroomsLabel: string | null; bathroomsLabel: string | null } {
-  if (serviceSlug === "office-cleaning") {
+  if (isOfficeCleaningSlug(serviceSlug)) {
     return {
       bedroomsLabel: null,
-      bathroomsLabel:
-        propertySizeSqm != null ? `${propertySizeSqm} sqm` : null,
+      bathroomsLabel: formatOfficeWorkspaceSizeSummary(propertySizeSqm),
     };
+  }
+
+  if (isCarpetCleaningSlug(serviceSlug)) {
+    const { zonesLabel } = formatCarpetZonesSummary(serviceSlug, bedrooms, bathrooms);
+    return { bedroomsLabel: zonesLabel, bathroomsLabel: null };
   }
 
   return {

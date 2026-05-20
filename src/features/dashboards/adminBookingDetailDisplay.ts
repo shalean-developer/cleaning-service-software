@@ -2,6 +2,22 @@ import {
   isAirbnbOperationalBooking,
   mapAdminBookingHeroRowsForAirbnb,
 } from "@/features/dashboards/airbnbOperationalDisplay";
+import {
+  isDeepOperationalBooking,
+  mapAdminBookingHeroRowsForDeep,
+} from "@/features/dashboards/deepOperationalDisplay";
+import {
+  isCarpetOperationalBooking,
+  mapAdminBookingHeroRowsForCarpet,
+} from "@/features/dashboards/carpetOperationalDisplay";
+import {
+  isMovingOperationalBooking,
+  mapAdminBookingHeroRowsForMoving,
+} from "@/features/dashboards/movingOperationalDisplay";
+import {
+  isOfficeOperationalBooking,
+  mapAdminBookingHeroRowsForOffice,
+} from "@/features/dashboards/officeOperationalDisplay";
 import type { DeferredDispatchStatus } from "@/features/assignments/server/deferredDispatchStatus";
 import type {
   AdminTeamEarningsReconciliation,
@@ -11,6 +27,7 @@ import type {
   TeamRequestFulfillment,
   TeamSupportOps,
 } from "@/features/dashboards/server/adminTeamSupportObservation";
+import type { AssignmentOfferStatus } from "@/lib/database/types";
 
 export type AdminBookingHeroRow = {
   label: string;
@@ -83,6 +100,26 @@ export function buildAdminBookingHeroContextRows(input: {
   if (isAirbnbOperationalBooking(input)) {
     return mapAdminBookingHeroRowsForAirbnb(rows);
   }
+  if (isMovingOperationalBooking(input)) {
+    return mapAdminBookingHeroRowsForMoving(rows, {
+      notesLabel: "Move instructions",
+    });
+  }
+  if (isDeepOperationalBooking(input)) {
+    return mapAdminBookingHeroRowsForDeep(rows, {
+      notesLabel: "Attention areas",
+    });
+  }
+  if (isOfficeOperationalBooking(input)) {
+    return mapAdminBookingHeroRowsForOffice(rows, {
+      notesLabel: "Workspace instructions",
+    });
+  }
+  if (isCarpetOperationalBooking(input)) {
+    return mapAdminBookingHeroRowsForCarpet(rows, {
+      notesLabel: "Areas needing attention",
+    });
+  }
   return rows;
 }
 
@@ -136,4 +173,15 @@ export function adminOperationalNeedsImmediateAttention(input: {
 /** One-line ops scan for summary strip (presentation only). */
 export function adminBookingOperationalScanLine(operational: AdminOperationalStatus): string {
   return `${operational.paymentState} · ${operational.assignmentState} · ${operational.openOfferSummary}`;
+}
+
+type OfferWithStatus = { status: AssignmentOfferStatus };
+
+/** Splits assignment offers for progressive disclosure (presentation only). */
+export function partitionAdminAssignmentOffers<T extends OfferWithStatus>(
+  offers: readonly T[],
+): { activeOffers: T[]; pastOffers: T[] } {
+  const activeOffers = offers.filter((o) => o.status === "offered");
+  const pastOffers = offers.filter((o) => o.status !== "offered");
+  return { activeOffers, pastOffers };
 }

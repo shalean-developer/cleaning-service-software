@@ -8,17 +8,15 @@ import {
   resolvePaystackReference,
 } from "@/lib/app/paymentReturn";
 import { PAYMENT_VERIFY_STATUS_MESSAGE } from "@/lib/app/dashboardEcosystemDisplay";
-import { parsePaymentReturnServiceSlug } from "@/features/dashboards/airbnbCustomerDisplay";
+import { parsePaymentReturnServiceSlug } from "@/features/dashboards/customerDisplayServiceSlug";
 import { resolvePaymentSuccessVariant } from "@/lib/app/paymentReturnDisplay";
 import {
   PaymentConfirmedPanel,
   PaymentVerifyingPanel,
   PaymentVerifyErrorPanel,
 } from "./PaymentReturnPanels";
-import {
-  PaymentVerificationPanel,
-  PaymentVerificationShell,
-} from "./PaymentVerificationShell";
+import { PaymentCustomerShell } from "./PaymentCustomerShell";
+import { PaymentVerificationPanel } from "./PaymentVerificationShell";
 
 type Phase = "verifying" | "success" | "error";
 
@@ -97,8 +95,21 @@ export function PaymentSuccessVerifier() {
     void runVerify();
   }, [runVerify]);
 
+  const shellTitle =
+    phase === "success"
+      ? "Payment confirmed"
+      : phase === "error"
+        ? "Payment issue"
+        : "Confirming payment";
+  const shellSubtitle =
+    phase === "success"
+      ? "Your booking is secured — opening your dashboard"
+      : phase === "error"
+        ? "We could not confirm payment yet"
+        : "This usually takes a few seconds";
+
   return (
-    <PaymentVerificationShell>
+    <PaymentCustomerShell title={shellTitle} subtitle={shellSubtitle}>
       <PaymentVerificationPanel busy={phase === "verifying"}>
         {phase === "verifying" ? <PaymentVerifyingPanel statusMessage={message} /> : null}
 
@@ -118,6 +129,6 @@ export function PaymentSuccessVerifier() {
           />
         ) : null}
       </PaymentVerificationPanel>
-    </PaymentVerificationShell>
+    </PaymentCustomerShell>
   );
 }

@@ -1,35 +1,18 @@
 import type { ReactNode } from "react";
-import { WizardStepper } from "@/features/booking-wizard/components/WizardStepper";
-import {
-  getWizardShellClass,
-  WIZARD_MAIN_COLUMN_CLASS,
-} from "@/features/booking-wizard/wizardLayout";
 import { PAYMENT_VERIFY_STATUS_MESSAGE } from "@/lib/app/dashboardEcosystemDisplay";
 import { PaymentVerifyingPanel } from "./PaymentReturnPanels";
+import { PaymentCustomerShell } from "./PaymentCustomerShell";
 
 type Props = {
   children: ReactNode;
 };
 
-/** Booking wizard shell for payment return — presentation only. */
+/** @deprecated Wizard chrome — use {@link PaymentCustomerShell} for customer payment return. */
 export function PaymentVerificationShell({ children }: Props) {
   return (
-    <div className={getWizardShellClass("checkout")}>
-      <header className={`mb-4 ${WIZARD_MAIN_COLUMN_CLASS}`}>
-        <h1 className="text-xl font-semibold text-zinc-900">Book a clean</h1>
-        <p className="text-sm text-zinc-600">Shalean Cleaning Services</p>
-      </header>
-
-      <div className={WIZARD_MAIN_COLUMN_CLASS}>
-        <WizardStepper current="checkout" />
-      </div>
-
-      <main
-        className={`flex flex-1 flex-col items-center justify-center py-8 md:py-12 ${WIZARD_MAIN_COLUMN_CLASS}`}
-      >
-        {children}
-      </main>
-    </div>
+    <PaymentCustomerShell title="Confirming payment" subtitle="Securing your booking with Shalean">
+      {children}
+    </PaymentCustomerShell>
   );
 }
 

@@ -7,6 +7,7 @@ import type { PaymentSuccessVariant } from "@/lib/app/paymentReturnDisplay";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import {
   CHECKOUT_EXPIRED_FAILURE_REASON,
+  CUSTOMER_FINDING_CLEANER_LABEL,
   type PaymentFailureReason,
 } from "@/features/bookings/server/paymentFailureDisplay";
 import {
@@ -15,6 +16,10 @@ import {
   customerAirbnbStatusLine,
   customerAirbnbTimingHint,
 } from "@/features/booking-wizard/airbnbCleaningDisplay";
+import { isDeepCleaningSlug } from "@/features/booking-wizard/deepCleaningDisplay";
+import { isCarpetCleaningSlug } from "@/features/booking-wizard/carpetCleaningDisplay";
+import { isMovingCleaningSlug } from "@/features/booking-wizard/movingCleaningDisplay";
+import { isOfficeCleaningSlug } from "@/features/booking-wizard/officeCleaningDisplay";
 
 export {
   isAirbnbCleaningSlug,
@@ -136,7 +141,7 @@ export function getAirbnbCustomerBookingListCopy(input: {
       statusBadgeLabel = "Turnover confirmed";
       break;
     case "pending_assignment":
-      statusBadgeLabel = "Cleaner assignment in progress";
+      statusBadgeLabel = CUSTOMER_FINDING_CLEANER_LABEL;
       break;
     case "assigned":
       statusBadgeLabel = "Cleaner confirmed";
@@ -230,7 +235,7 @@ export function customerAirbnbCompactGuidance(
       };
     case "pending_assignment":
       return {
-        primary: "Cleaner assignment is in progress for your turnover schedule.",
+        primary: "We're finding your cleaner for your turnover schedule.",
         secondary: "Status updates appear in Activity below.",
       };
     case "assigned":
@@ -257,5 +262,11 @@ export function parsePaymentReturnServiceSlug(
   value: string | null | undefined,
 ): string | null {
   const trimmed = value?.trim();
-  return trimmed && isAirbnbCleaningSlug(trimmed) ? trimmed : null;
+  if (!trimmed) return null;
+  if (isAirbnbCleaningSlug(trimmed)) return trimmed;
+  if (isOfficeCleaningSlug(trimmed)) return trimmed;
+  if (isMovingCleaningSlug(trimmed)) return trimmed;
+  if (isDeepCleaningSlug(trimmed)) return trimmed;
+  if (isCarpetCleaningSlug(trimmed)) return trimmed;
+  return null;
 }

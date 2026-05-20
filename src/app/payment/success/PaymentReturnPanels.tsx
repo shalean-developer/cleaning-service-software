@@ -7,6 +7,31 @@ import {
   getAirbnbCustomerSuccessCopy,
   isAirbnbCleaningSlug,
 } from "@/features/dashboards/airbnbCustomerDisplay";
+import { isCarpetCleaningSlug } from "@/features/booking-wizard/carpetCleaningDisplay";
+import { isDeepCleaningSlug } from "@/features/booking-wizard/deepCleaningDisplay";
+import { isMovingCleaningSlug } from "@/features/booking-wizard/movingCleaningDisplay";
+import { isOfficeCleaningSlug } from "@/features/booking-wizard/officeCleaningDisplay";
+import {
+  getDeepCustomerPaymentVerifyErrorCopy,
+  getDeepCustomerSuccessCopy,
+} from "@/features/dashboards/deepCustomerDisplay";
+import {
+  getCarpetCustomerPaymentVerifyErrorCopy,
+  getCarpetCustomerSuccessCopy,
+} from "@/features/dashboards/carpetCustomerDisplay";
+import {
+  getMovingCustomerPaymentVerifyErrorCopy,
+  getMovingCustomerSuccessCopy,
+} from "@/features/dashboards/movingCustomerDisplay";
+import {
+  getOfficeCustomerPaymentVerifyErrorCopy,
+  getOfficeCustomerSuccessCopy,
+} from "@/features/dashboards/officeCustomerDisplay";
+import {
+  getRegularCustomerPaymentVerifyErrorCopy,
+  getRegularCustomerSuccessCopy,
+  isRegularCleaningSlug,
+} from "@/features/dashboards/regularCustomerDisplay";
 import {
   PAYMENT_SUCCESS_NEXT_STEPS,
   PAYMENT_VERIFY_ERROR_INTRO,
@@ -17,6 +42,7 @@ import {
   paymentSuccessTitle,
   type PaymentSuccessVariant,
 } from "@/lib/app/paymentReturnDisplay";
+import { UI_LINK_SECONDARY_ACTION_CLASS } from "@/lib/ui/productUiTokens";
 import { PaymentVerificationSpinner } from "./PaymentVerificationSpinner";
 
 export function PaymentVerifyTrustRow() {
@@ -81,13 +107,31 @@ export function PaymentConfirmedPanel({
   serviceSlug?: string | null;
 }) {
   const airbnb = isAirbnbCleaningSlug(serviceSlug);
+  const office = isOfficeCleaningSlug(serviceSlug);
+  const moving = isMovingCleaningSlug(serviceSlug);
+  const deep = isDeepCleaningSlug(serviceSlug);
+  const carpet = isCarpetCleaningSlug(serviceSlug);
+  const regular = isRegularCleaningSlug(serviceSlug);
   const airbnbCopy = airbnb ? getAirbnbCustomerSuccessCopy(variant) : null;
-  const title = airbnbCopy?.title ?? paymentSuccessTitle(variant);
-  const lead = airbnbCopy?.lead ?? paymentSuccessLead(variant);
-  const nextSteps = airbnbCopy?.nextSteps ?? PAYMENT_SUCCESS_NEXT_STEPS;
-  const nextStepsHeading = airbnbCopy?.nextStepsHeading ?? "What happens next";
-  const ctaLabel = airbnbCopy?.ctaLabel ?? "View booking details";
-  const ctaFootnote = airbnbCopy?.ctaFootnote ?? "Opening your booking…";
+  const officeCopy = office ? getOfficeCustomerSuccessCopy(variant) : null;
+  const movingCopy = moving ? getMovingCustomerSuccessCopy(variant) : null;
+  const deepCopy = deep ? getDeepCustomerSuccessCopy(variant) : null;
+  const carpetCopy = carpet ? getCarpetCustomerSuccessCopy(variant) : null;
+  const regularCopy = regular ? getRegularCustomerSuccessCopy(variant) : null;
+  const successCopy =
+    airbnbCopy ?? officeCopy ?? movingCopy ?? deepCopy ?? carpetCopy ?? regularCopy;
+  const title = successCopy?.title ?? paymentSuccessTitle(variant);
+  const lead = successCopy?.lead ?? paymentSuccessLead(variant);
+  const nextSteps = successCopy?.nextSteps ?? PAYMENT_SUCCESS_NEXT_STEPS;
+  const nextStepsHeading = successCopy?.nextStepsHeading ?? "What happens next";
+  const ctaLabel = successCopy?.ctaLabel ?? "View booking details";
+  const ctaFootnote = successCopy?.ctaFootnote ?? "Opening your booking…";
+  const moveReadyNote =
+    airbnbCopy?.guestReadyNote ??
+    movingCopy?.moveReadyNote ??
+    deepCopy?.restorationNote ??
+    carpetCopy?.floorCareNote ??
+    null;
 
   return (
     <div className="flex flex-col gap-5" aria-live="polite">
@@ -95,9 +139,9 @@ export function PaymentConfirmedPanel({
         <PaymentSuccessCheckIcon />
         <h2 className="mt-4 text-xl font-semibold tracking-tight text-zinc-900">{title}</h2>
         <p className="mt-2 text-sm leading-relaxed text-zinc-600">{lead}</p>
-        {airbnbCopy?.guestReadyNote ? (
+        {moveReadyNote ? (
           <p className="mt-2 text-sm font-medium leading-relaxed text-emerald-900/90">
-            {airbnbCopy.guestReadyNote}
+            {moveReadyNote}
           </p>
         ) : null}
       </div>
@@ -146,10 +190,22 @@ export function PaymentVerifyErrorPanel({
   serviceSlug?: string | null;
 }) {
   const airbnb = isAirbnbCleaningSlug(serviceSlug);
+  const office = isOfficeCleaningSlug(serviceSlug);
+  const moving = isMovingCleaningSlug(serviceSlug);
+  const deep = isDeepCleaningSlug(serviceSlug);
+  const carpet = isCarpetCleaningSlug(serviceSlug);
+  const regular = isRegularCleaningSlug(serviceSlug);
   const airbnbError = airbnb ? getAirbnbCustomerPaymentVerifyErrorCopy() : null;
-  const panelTitle = airbnbError?.panelTitle ?? "Payment not confirmed yet";
-  const intro = airbnbError?.intro ?? PAYMENT_VERIFY_ERROR_INTRO;
-  const nextSteps = airbnbError?.nextSteps ?? PAYMENT_VERIFY_ERROR_NEXT_STEPS;
+  const officeError = office ? getOfficeCustomerPaymentVerifyErrorCopy() : null;
+  const movingError = moving ? getMovingCustomerPaymentVerifyErrorCopy() : null;
+  const deepError = deep ? getDeepCustomerPaymentVerifyErrorCopy() : null;
+  const carpetError = carpet ? getCarpetCustomerPaymentVerifyErrorCopy() : null;
+  const regularError = regular ? getRegularCustomerPaymentVerifyErrorCopy() : null;
+  const verifyError =
+    airbnbError ?? officeError ?? movingError ?? deepError ?? carpetError ?? regularError;
+  const panelTitle = verifyError?.panelTitle ?? "Payment not confirmed yet";
+  const intro = verifyError?.intro ?? PAYMENT_VERIFY_ERROR_INTRO;
+  const nextSteps = verifyError?.nextSteps ?? PAYMENT_VERIFY_ERROR_NEXT_STEPS;
 
   return (
     <div className="flex flex-col gap-5">
@@ -186,10 +242,7 @@ export function PaymentVerifyErrorPanel({
         >
           Try again
         </button>
-        <Link
-          href="/customer/bookings"
-          className="text-center text-sm font-medium text-zinc-700 underline-offset-2 hover:underline"
-        >
+        <Link href="/customer/bookings" className={UI_LINK_SECONDARY_ACTION_CLASS}>
           View my bookings
         </Link>
       </div>

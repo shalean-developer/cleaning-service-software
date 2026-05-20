@@ -8,18 +8,12 @@ import {
   getAirbnbCustomerPaymentVerifyErrorCopy,
   getAirbnbCustomerSuccessCopy,
   isAirbnbCleaningService,
-  parsePaymentReturnServiceSlug,
 } from "./airbnbCustomerDisplay";
 
 describe("airbnbCustomerDisplay", () => {
   it("identifies Airbnb cleaning service slug", () => {
     expect(isAirbnbCleaningService(AIRBNB_CLEANING_SLUG)).toBe(true);
     expect(isAirbnbCleaningService("regular-cleaning")).toBe(false);
-  });
-
-  it("parses service query param for payment return pages", () => {
-    expect(parsePaymentReturnServiceSlug("airbnb-cleaning")).toBe(AIRBNB_CLEANING_SLUG);
-    expect(parsePaymentReturnServiceSlug("regular-cleaning")).toBeNull();
   });
 
   it("returns host-focused payment success copy", () => {
@@ -49,7 +43,7 @@ describe("airbnbCustomerDisplay", () => {
       paymentFailureReason: null,
       isUpcoming: true,
     });
-    expect(copy.statusBadgeLabel).toBe("Cleaner assignment in progress");
+    expect(copy.statusBadgeLabel).toBe("Finding your cleaner");
     expect(copy.serviceSubtitle).toBe("Guest-ready preparation scheduled");
     expect(copy.ctaLabel).toBe("View turnover");
   });

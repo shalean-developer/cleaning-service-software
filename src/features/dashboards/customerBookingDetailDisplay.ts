@@ -5,8 +5,37 @@ import {
   customerAirbnbTimingHint,
   isAirbnbCleaningSlug,
 } from "@/features/booking-wizard/airbnbCleaningDisplay";
-import { customerAirbnbCompactGuidance } from "@/features/dashboards/airbnbCustomerDisplay";
 import {
+  customerDeepStatusLine,
+  customerDeepTimingHint,
+  isDeepCleaningSlug,
+} from "@/features/booking-wizard/deepCleaningDisplay";
+import {
+  customerCarpetStatusLine,
+  customerCarpetTimingHint,
+  isCarpetCleaningSlug,
+} from "@/features/booking-wizard/carpetCleaningDisplay";
+import { isMovingCleaningSlug } from "@/features/booking-wizard/movingCleaningDisplay";
+import {
+  customerOfficeStatusLine,
+  customerOfficeTimingHint,
+  isOfficeCleaningSlug,
+} from "@/features/booking-wizard/officeCleaningDisplay";
+import { customerAirbnbCompactGuidance } from "@/features/dashboards/airbnbCustomerDisplay";
+import { customerDeepCompactGuidance } from "@/features/dashboards/deepCustomerDisplay";
+import {
+  customerMovingCompactGuidance,
+  customerMovingStatusLine,
+  customerMovingTimingHint,
+} from "@/features/dashboards/movingCustomerDisplay";
+import { customerCarpetCompactGuidance } from "@/features/dashboards/carpetCustomerDisplay";
+import { customerOfficeCompactGuidance } from "@/features/dashboards/officeCustomerDisplay";
+import {
+  customerRegularCompactGuidance,
+  isRegularCleaningSlug,
+} from "@/features/dashboards/regularCustomerDisplay";
+import {
+  CUSTOMER_FINDING_CLEANER_LABEL,
   labelForCustomerBookingStatus,
   type PaymentFailureReason,
 } from "@/features/bookings/server/paymentFailureDisplay";
@@ -84,7 +113,7 @@ function heroNarrativeForStatus(
       };
     case "pending_assignment":
       return {
-        statusLine: "Finding a cleaner for your schedule.",
+        statusLine: `${CUSTOMER_FINDING_CLEANER_LABEL} for your schedule.`,
         timingHint: "Within 15–60 minutes",
         showStatusNarrative: true,
       };
@@ -138,6 +167,10 @@ export function customerBookingStatusHero(
   const narrative = heroNarrativeForStatus(status, paymentFailureReason);
   const deferredMessage = options?.deferredAssignmentMessage?.trim();
   const airbnb = isAirbnbCleaningSlug(options?.serviceSlug);
+  const moving = isMovingCleaningSlug(options?.serviceSlug);
+  const deep = isDeepCleaningSlug(options?.serviceSlug);
+  const office = isOfficeCleaningSlug(options?.serviceSlug);
+  const carpet = isCarpetCleaningSlug(options?.serviceSlug);
 
   return {
     statusLabel: labelForCustomerBookingStatus(status, paymentFailureReason),
@@ -145,12 +178,28 @@ export function customerBookingStatusHero(
       deferredMessage ??
       (airbnb
         ? customerAirbnbStatusLine(status, narrative.statusLine)
-        : narrative.statusLine),
+        : moving
+          ? customerMovingStatusLine(status, narrative.statusLine)
+          : deep
+            ? customerDeepStatusLine(status, narrative.statusLine)
+            : office
+              ? customerOfficeStatusLine(status, narrative.statusLine)
+              : carpet
+                ? customerCarpetStatusLine(status, narrative.statusLine)
+                : narrative.statusLine),
     timingHint: deferredMessage
       ? "Closer to your service date"
       : airbnb
         ? customerAirbnbTimingHint(status, narrative.timingHint)
-        : narrative.timingHint,
+        : moving
+          ? customerMovingTimingHint(status, narrative.timingHint)
+          : deep
+            ? customerDeepTimingHint(status, narrative.timingHint)
+            : office
+              ? customerOfficeTimingHint(status, narrative.timingHint)
+              : carpet
+                ? customerCarpetTimingHint(status, narrative.timingHint)
+                : narrative.timingHint,
     tone,
     surfaceClass: surfaces.surface,
     ringClass: surfaces.ring,
@@ -197,6 +246,26 @@ export function customerBookingCompactGuidance(
     return customerAirbnbCompactGuidance(status);
   }
 
+  if (isMovingCleaningSlug(options?.serviceSlug)) {
+    return customerMovingCompactGuidance(status);
+  }
+
+  if (isDeepCleaningSlug(options?.serviceSlug)) {
+    return customerDeepCompactGuidance(status);
+  }
+
+  if (isOfficeCleaningSlug(options?.serviceSlug)) {
+    return customerOfficeCompactGuidance(status);
+  }
+
+  if (isCarpetCleaningSlug(options?.serviceSlug)) {
+    return customerCarpetCompactGuidance(status);
+  }
+
+  if (isRegularCleaningSlug(options?.serviceSlug)) {
+    return customerRegularCompactGuidance(status);
+  }
+
   switch (status) {
     case "pending_payment":
       return {
@@ -210,7 +279,7 @@ export function customerBookingCompactGuidance(
       };
     case "pending_assignment":
       return {
-        primary: "We're matching a cleaner to your schedule and preferences.",
+        primary: "We're finding your cleaner for your schedule and preferences.",
         secondary: "Status updates appear in Activity below.",
         detailSteps: [EMAIL_UPDATES_STEP],
       };

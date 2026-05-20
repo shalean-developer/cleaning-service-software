@@ -76,6 +76,41 @@ describe("wizardBookingSummaryDisplay", () => {
     expect(snapshot.secondaryRows.some((r) => r.label === "Intensity")).toBe(false);
   });
 
+  it("includes property and inspection extras for moving-cleaning", () => {
+    const snapshot = buildWizardBookingSummarySnapshot({
+      ...baseInput,
+      serviceLabel: "Move In/Out Cleaning",
+      serviceSlug: "moving-cleaning",
+      frequency: "once",
+      addons: ["inside-cabinets"],
+      suburb: "Claremont",
+      city: "Cape Town",
+    });
+
+    expect(snapshot.secondaryRows.some((r) => r.label === "Property")).toBe(true);
+    expect(snapshot.secondaryRows.some((r) => r.label === "Visit timing")).toBe(true);
+    expect(snapshot.secondaryRows.some((r) => r.label === "Inspection extras")).toBe(true);
+    expect(snapshot.secondaryRows.some((r) => r.label === "Turnover cadence")).toBe(false);
+  });
+
+  it("includes home location and detailed extras for deep-cleaning", () => {
+    const snapshot = buildWizardBookingSummarySnapshot({
+      ...baseInput,
+      serviceLabel: "Deep Cleaning",
+      serviceSlug: "deep-cleaning",
+      frequency: "once",
+      addons: ["inside-oven"],
+      suburb: "Sea Point",
+      city: "Cape Town",
+    });
+
+    expect(snapshot.secondaryRows.some((r) => r.label === "Home")).toBe(true);
+    expect(snapshot.secondaryRows.some((r) => r.label === "Visit timing")).toBe(true);
+    expect(snapshot.secondaryRows.some((r) => r.label === "Detailed cleaning extras")).toBe(true);
+    expect(snapshot.secondaryRows.some((r) => r.label === "Turnover extras")).toBe(false);
+    expect(snapshot.secondaryRows.some((r) => r.label === "Inspection extras")).toBe(false);
+  });
+
   it("includes cleaner preference in secondary rows on cleaner step input", () => {
     const snapshot = buildWizardBookingSummarySnapshot({
       ...baseInput,

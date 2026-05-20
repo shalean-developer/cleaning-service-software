@@ -15,6 +15,22 @@ import {
   getAirbnbCleanerOfferCopy,
   isAirbnbOperationalBooking,
 } from "@/features/dashboards/airbnbOperationalDisplay";
+import {
+  getDeepCleanerOfferCopy,
+  isDeepOperationalBooking,
+} from "@/features/dashboards/deepOperationalDisplay";
+import {
+  getCarpetCleanerOfferCopy,
+  isCarpetOperationalBooking,
+} from "@/features/dashboards/carpetOperationalDisplay";
+import {
+  getMovingCleanerOfferCopy,
+  isMovingOperationalBooking,
+} from "@/features/dashboards/movingOperationalDisplay";
+import {
+  getOfficeCleanerOfferCopy,
+  isOfficeOperationalBooking,
+} from "@/features/dashboards/officeOperationalDisplay";
 import { CLEANER_DETAIL_CARD_CLASS } from "@/features/dashboards/cleanerJobDetailDisplay";
 import { formatOfferExpiryDisplay } from "@/features/dashboards/server/formatOfferExpiryDisplay";
 import { canRespondToCleanerOffer } from "@/features/dashboards/server/partitionCleanerOffers";
@@ -41,7 +57,21 @@ export function CleanerOfferCard({ offer }: Props) {
   const statusTone =
     offer.isExpired && offer.status === "offered" ? "warning" : toneForOfferStatus(offer.status);
   const airbnb = isAirbnbOperationalBooking({ serviceLabel: offer.serviceLabel });
-  const airbnbOffer = airbnb ? getAirbnbCleanerOfferCopy() : null;
+  const office = isOfficeOperationalBooking({ serviceLabel: offer.serviceLabel });
+  const moving = isMovingOperationalBooking({ serviceLabel: offer.serviceLabel });
+  const deep = isDeepOperationalBooking({ serviceLabel: offer.serviceLabel });
+  const carpet = isCarpetOperationalBooking({ serviceLabel: offer.serviceLabel });
+  const opsOffer = airbnb
+    ? getAirbnbCleanerOfferCopy()
+    : office
+      ? getOfficeCleanerOfferCopy()
+      : moving
+        ? getMovingCleanerOfferCopy()
+        : deep
+          ? getDeepCleanerOfferCopy()
+          : carpet
+            ? getCarpetCleanerOfferCopy()
+            : null;
 
   return (
     <article
@@ -52,22 +82,22 @@ export function CleanerOfferCard({ offer }: Props) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className={CLEANER_SERVICE_EYEBROW_CLASS}>
-            {airbnbOffer?.serviceEyebrow ?? offer.serviceLabel}
+            {opsOffer?.serviceEyebrow ?? offer.serviceLabel}
           </p>
-          {airbnbOffer ? (
-            <p className="mt-0.5 text-sm text-zinc-600">{airbnbOffer.offerSubtitle}</p>
+          {opsOffer ? (
+            <p className="mt-0.5 text-sm text-zinc-600">{opsOffer.offerSubtitle}</p>
           ) : null}
           <p className={CLEANER_META_LINE_CLASS}>
             <span className="font-medium text-zinc-900">
-              {airbnbOffer?.schedulePrefix ? `${airbnbOffer.schedulePrefix}: ` : ""}
+              {opsOffer?.schedulePrefix ? `${opsOffer.schedulePrefix}: ` : ""}
               {offer.scheduleLabel}
             </span>
             <span className="text-zinc-400"> · </span>
             <span className={CLEANER_META_LOCATION_CLASS}>{offer.locationSummary}</span>
           </p>
-          {airbnbOffer ? (
+          {opsOffer ? (
             <p className="mt-1 text-xs text-zinc-500">
-              {airbnbOffer.accessHint} · {airbnbOffer.standardHint}
+              {opsOffer.accessHint} · {opsOffer.standardHint}
             </p>
           ) : null}
         </div>

@@ -1,4 +1,8 @@
 import { adminAirbnbBookingListNextAction } from "@/features/dashboards/airbnbOperationalDisplay";
+import { adminDeepBookingListNextAction } from "@/features/dashboards/deepOperationalDisplay";
+import { adminCarpetBookingListNextAction } from "@/features/dashboards/carpetOperationalDisplay";
+import { adminMovingBookingListNextAction } from "@/features/dashboards/movingOperationalDisplay";
+import { adminOfficeBookingListNextAction } from "@/features/dashboards/officeOperationalDisplay";
 import type { AdminBookingListItem } from "@/features/dashboards/server/types";
 
 type BookingRowInput = Pick<
@@ -65,7 +69,23 @@ export function adminBookingListNextAction(
   booking: BookingRowInput & { serviceLabel: string },
 ): string | null {
   const defaultAction = defaultAdminBookingListNextAction(booking);
-  return adminAirbnbBookingListNextAction(defaultAction, {
+  const afterAirbnb = adminAirbnbBookingListNextAction(defaultAction, {
+    serviceLabel: booking.serviceLabel,
+    status: booking.status,
+  });
+  const afterMoving = adminMovingBookingListNextAction(afterAirbnb, {
+    serviceLabel: booking.serviceLabel,
+    status: booking.status,
+  });
+  const afterOffice = adminOfficeBookingListNextAction(afterMoving, {
+    serviceLabel: booking.serviceLabel,
+    status: booking.status,
+  });
+  const afterDeep = adminDeepBookingListNextAction(afterOffice, {
+    serviceLabel: booking.serviceLabel,
+    status: booking.status,
+  });
+  return adminCarpetBookingListNextAction(afterDeep, {
     serviceLabel: booking.serviceLabel,
     status: booking.status,
   });

@@ -22,8 +22,9 @@ describe("PaymentIssuePanel", () => {
     );
 
     expect(html).toContain(PAYMENT_NOT_CHARGED_REASSURANCE);
-    expect(html).toContain("Payment details");
+    expect(html).toContain("Payment not completed");
     expect(html).toContain("Retry payment");
+    expect(html).toContain("Start a new booking");
     expect(html).not.toContain(PAYMENT_RETRY_NOT_ELIGIBLE_EXPLANATION);
   });
 
@@ -38,7 +39,7 @@ describe("PaymentIssuePanel", () => {
     );
 
     expect(html).toContain("You were not charged. Please start a new booking or contact support.");
-    expect(html).toContain("Payment details");
+    expect(html).toContain("Payment not completed");
     expect(html).not.toContain("Retry payment");
     expect(html).toContain("Start a new booking");
   });

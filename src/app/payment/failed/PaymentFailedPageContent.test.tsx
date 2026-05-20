@@ -7,14 +7,16 @@ import { PaymentFailedPageContent } from "./PaymentFailedPageContent";
 const bookingId = "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d";
 
 describe("PaymentFailedPageContent", () => {
-  it("renders generic failed page with my bookings fallback", () => {
+  it("renders generic failed page with dashboard shell and my bookings fallback", () => {
     const html = renderToStaticMarkup(
       <PaymentFailedPageContent model={buildPaymentFailedPageModel({})} />,
     );
     expect(html).toContain("Payment not completed");
-    expect(html).toContain("Complete checkout to confirm your booking");
+    expect(html).toContain("Open your booking to complete checkout");
     expect(html).toContain("Go to my bookings");
+    expect(html).toContain("What happens next");
     expect(html).not.toContain("View booking to retry payment");
+    expect(html).not.toContain("Confirming payment");
   });
 
   it("renders checkout_expired copy when reason is known", () => {

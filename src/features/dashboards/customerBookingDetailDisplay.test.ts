@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFERRED_ASSIGNMENT_CUSTOMER_MESSAGE } from "@/features/assignments/server/deferredDispatchStatus";
+import { CUSTOMER_FINDING_CLEANER_LABEL } from "@/features/bookings/server/paymentFailureDisplay";
 import {
   customerBookingAmountLabel,
   customerBookingCompactGuidance,
@@ -12,8 +13,8 @@ import {
 describe("customerBookingStatusHero", () => {
   it("maps pending_assignment to finding-cleaner reassurance copy", () => {
     const hero = customerBookingStatusHero("pending_assignment", null);
-    expect(hero.statusLabel).toBe("Finding cleaner");
-    expect(hero.statusLine).toContain("Finding");
+    expect(hero.statusLabel).toBe(CUSTOMER_FINDING_CLEANER_LABEL);
+    expect(hero.statusLine).toContain(CUSTOMER_FINDING_CLEANER_LABEL);
     expect(hero.timingHint).toBe("Within 15–60 minutes");
     expect(hero.tone).toBe("warning");
   });
@@ -40,9 +41,16 @@ describe("customerBookingStatusHero", () => {
 });
 
 describe("customerBookingCompactGuidance", () => {
+  it("uses regular cleaning display module for regular service slug", () => {
+    const guidance = customerBookingCompactGuidance("assigned", {
+      serviceSlug: "regular-cleaning",
+    });
+    expect(guidance?.primary).toMatch(/cleaner is confirmed/i);
+  });
+
   it("returns compact copy for active assignment states", () => {
     const guidance = customerBookingCompactGuidance("pending_assignment");
-    expect(guidance?.primary).toContain("matching");
+    expect(guidance?.primary).toContain("finding your cleaner");
     expect(guidance?.detailSteps?.some((s) => s.title === "Email updates")).toBe(true);
   });
 

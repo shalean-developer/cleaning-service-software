@@ -22,7 +22,10 @@ describe("payment failed page (static safety)", () => {
     }
 
     expect(pageSource).toContain("buildPaymentFailedPageModel");
+    expect(contentSource).toContain("PaymentCustomerShell");
+    expect(contentSource).toContain("PaymentVerificationPanel");
     expect(contentSource).toContain("Open booking to complete payment");
     expect(contentSource).toContain("Go to my bookings");
+    expect(contentSource).not.toMatch(/<PaymentVerificationShell[\s>]/);
   });
 });

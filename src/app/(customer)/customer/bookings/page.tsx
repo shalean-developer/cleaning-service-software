@@ -4,6 +4,8 @@ import { listCustomerBookings } from "@/features/dashboards/server/customerBooki
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { CustomerBookingsListContent } from "@/components/dashboard/customer/CustomerBookingsListContent";
+import { CustomerBookingsPageHeader } from "@/components/dashboard/customer/CustomerBookingsPageHeader";
+import { CUSTOMER_DASHBOARD_NAV } from "@/features/dashboards/customerNav";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
 
 export const metadata: Metadata = {
@@ -19,11 +21,7 @@ export default async function CustomerBookingsPage() {
     <DashboardShell
       title="My bookings"
       subtitle="Your cleans, payments, and cleaner assignment status."
-      nav={[
-        { href: "/customer", label: "Home" },
-        { href: "/customer/bookings", label: "Bookings" },
-        { href: "/customer/book", label: "Book a clean" },
-      ]}
+      nav={[...CUSTOMER_DASHBOARD_NAV]}
     >
       {result && !result.ok ? (
         <DashboardFetchError
@@ -31,7 +29,10 @@ export default async function CustomerBookingsPage() {
           description={result.message}
         />
       ) : result?.ok ? (
-        <CustomerBookingsListContent bookings={allBookings} />
+        <section className="space-y-6 sm:space-y-8">
+          <CustomerBookingsPageHeader />
+          <CustomerBookingsListContent bookings={allBookings} />
+        </section>
       ) : null}
     </DashboardShell>
   );

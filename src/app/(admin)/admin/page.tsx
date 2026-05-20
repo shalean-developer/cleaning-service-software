@@ -11,12 +11,26 @@ import { ADMIN_HOME_PREVIEW_LIMIT } from "@/features/dashboards/server/adminOper
 import { summarizeCronHealth } from "@/features/dashboards/adminAssignmentsPageDisplay";
 import { AdminHomeCommandCenter } from "@/components/dashboard/admin/AdminHomeCommandCenter";
 import { AdminBookingListCard } from "@/components/dashboard/admin/AdminBookingListCard";
-import { buildAdminOperationalQueueCards } from "@/features/dashboards/adminOperationalQueues";
 import {
   getAirbnbAdminListBadges,
   getAirbnbOperationsQueueCopy,
-  isAirbnbOperationalBooking,
 } from "@/features/dashboards/airbnbOperationalDisplay";
+import {
+  getDeepAdminListBadges,
+  getDeepOperationsQueueCopy,
+} from "@/features/dashboards/deepOperationalDisplay";
+import {
+  getCarpetAdminListBadges,
+  getCarpetOperationsQueueCopy,
+} from "@/features/dashboards/carpetOperationalDisplay";
+import {
+  getMovingAdminListBadges,
+  getMovingOperationsQueueCopy,
+} from "@/features/dashboards/movingOperationalDisplay";
+import {
+  getOfficeAdminListBadges,
+  getOfficeOperationsQueueCopy,
+} from "@/features/dashboards/officeOperationalDisplay";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -63,7 +77,6 @@ export default async function AdminHomePage() {
       {queueCounts?.ok ? (
         <AdminHomeCommandCenter
           queues={queueCounts.queues}
-          queueGuideCards={buildAdminOperationalQueueCards(queueCounts.queues)}
           cronSummary={cronSummary}
           criticalCronJobs={cronSummary?.criticalJobs ?? []}
           deferredDiagnostics={deferredDiagnostics}
@@ -85,14 +98,34 @@ export default async function AdminHomePage() {
           </header>
           <ul className="mt-2 space-y-2">
             {attention.map((item) => {
-              const airbnb = isAirbnbOperationalBooking({ serviceLabel: item.serviceLabel });
-              const queueCopy = getAirbnbOperationsQueueCopy({
-                serviceLabel: item.serviceLabel,
-                scheduleLabel: item.scheduleLabel,
-              });
-              const airbnbBadges = airbnb
-                ? getAirbnbAdminListBadges({ serviceLabel: item.serviceLabel })
-                : [];
+              const queueCopy =
+                getAirbnbOperationsQueueCopy({
+                  serviceLabel: item.serviceLabel,
+                  scheduleLabel: item.scheduleLabel,
+                }) ??
+                getMovingOperationsQueueCopy({
+                  serviceLabel: item.serviceLabel,
+                  scheduleLabel: item.scheduleLabel,
+                }) ??
+                getOfficeOperationsQueueCopy({
+                  serviceLabel: item.serviceLabel,
+                  scheduleLabel: item.scheduleLabel,
+                }) ??
+                getDeepOperationsQueueCopy({
+                  serviceLabel: item.serviceLabel,
+                  scheduleLabel: item.scheduleLabel,
+                }) ??
+                getCarpetOperationsQueueCopy({
+                  serviceLabel: item.serviceLabel,
+                  scheduleLabel: item.scheduleLabel,
+                });
+              const opsBadges = [
+                ...getAirbnbAdminListBadges({ serviceLabel: item.serviceLabel }),
+                ...getMovingAdminListBadges({ serviceLabel: item.serviceLabel }),
+                ...getOfficeAdminListBadges({ serviceLabel: item.serviceLabel }),
+                ...getDeepAdminListBadges({ serviceLabel: item.serviceLabel }),
+                ...getCarpetAdminListBadges({ serviceLabel: item.serviceLabel }),
+              ];
 
               return (
               <li key={item.bookingId}>
@@ -106,7 +139,7 @@ export default async function AdminHomePage() {
                       ),
                       tone: "warning",
                     },
-                    ...airbnbBadges.map((badge) => ({
+                    ...opsBadges.map((badge) => ({
                       label: badge.label,
                       tone: badge.tone,
                     })),

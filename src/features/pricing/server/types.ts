@@ -27,6 +27,7 @@ export const ADDON_SLUGS = [
   "interior-windows",
   "laundry",
   "balcony",
+  "mattress-cleaning",
 ] as const;
 
 export type AddonSlug = (typeof ADDON_SLUGS)[number];

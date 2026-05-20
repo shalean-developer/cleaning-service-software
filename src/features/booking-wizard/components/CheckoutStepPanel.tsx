@@ -7,10 +7,9 @@ import type {
 } from "@/features/pricing/server/types";
 import { formatDateLabel, formatZar } from "../format";
 import {
-  AIRBNB_CHECKOUT_WHAT_HAPPENS_NEXT,
   getCheckoutAmountHelper,
   getCheckoutGuestReadyNote,
-  isAirbnbCleaningSlug,
+  getCheckoutWhatHappensNext,
 } from "../airbnbCleaningDisplay";
 import {
   getRecurringPaymentExplanation,
@@ -34,12 +33,6 @@ type Props = {
   quote: PricingBreakdown;
   customerEmail: string;
 };
-
-const DEFAULT_WHAT_HAPPENS_NEXT = [
-  "Booking confirmation",
-  "Confirmation email",
-  "Cleaner assignment",
-] as const;
 
 const CTA_TRUST_ITEMS = [
   "Secure payment",
@@ -108,9 +101,7 @@ export function CheckoutStepPanel({
   );
   const recurringPaymentNote = getRecurringPaymentExplanation(frequency, serviceSlug);
   const guestReadyNote = getCheckoutGuestReadyNote(serviceSlug);
-  const whatHappensNext = isAirbnbCleaningSlug(serviceSlug)
-    ? AIRBNB_CHECKOUT_WHAT_HAPPENS_NEXT
-    : DEFAULT_WHAT_HAPPENS_NEXT;
+  const whatHappensNext = getCheckoutWhatHappensNext(serviceSlug);
   const amountHelper = getCheckoutAmountHelper(
     serviceSlug,
     customerEmail,

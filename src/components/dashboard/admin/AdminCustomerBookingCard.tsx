@@ -12,6 +12,22 @@ import {
   getAirbnbAdminCustomerBookingCardCopy,
   isAirbnbOperationalBooking,
 } from "@/features/dashboards/airbnbOperationalDisplay";
+import {
+  getDeepAdminCustomerBookingCardCopy,
+  isDeepOperationalBooking,
+} from "@/features/dashboards/deepOperationalDisplay";
+import {
+  getCarpetAdminCustomerBookingCardCopy,
+  isCarpetOperationalBooking,
+} from "@/features/dashboards/carpetOperationalDisplay";
+import {
+  getMovingAdminCustomerBookingCardCopy,
+  isMovingOperationalBooking,
+} from "@/features/dashboards/movingOperationalDisplay";
+import {
+  getOfficeAdminCustomerBookingCardCopy,
+  isOfficeOperationalBooking,
+} from "@/features/dashboards/officeOperationalDisplay";
 import type { PaymentStatus } from "@/lib/database/types";
 
 type Props = {
@@ -48,7 +64,21 @@ function formatSchedule(start: string, end: string): string {
 export function AdminCustomerBookingCard({ booking }: Props) {
   const bookingStatus = booking.status as BookingStatus;
   const airbnb = isAirbnbOperationalBooking({ serviceLabel: booking.serviceLabel });
-  const airbnbCard = airbnb ? getAirbnbAdminCustomerBookingCardCopy() : null;
+  const office = isOfficeOperationalBooking({ serviceLabel: booking.serviceLabel });
+  const moving = isMovingOperationalBooking({ serviceLabel: booking.serviceLabel });
+  const deep = isDeepOperationalBooking({ serviceLabel: booking.serviceLabel });
+  const carpet = isCarpetOperationalBooking({ serviceLabel: booking.serviceLabel });
+  const opsCard = airbnb
+    ? getAirbnbAdminCustomerBookingCardCopy()
+    : office
+      ? getOfficeAdminCustomerBookingCardCopy()
+      : moving
+        ? getMovingAdminCustomerBookingCardCopy()
+        : deep
+          ? getDeepAdminCustomerBookingCardCopy()
+          : carpet
+            ? getCarpetAdminCustomerBookingCardCopy()
+            : null;
   const showPaymentBadge =
     booking.paymentStatus != null &&
     bookingStatus !== "draft" &&
@@ -71,8 +101,8 @@ export function AdminCustomerBookingCard({ booking }: Props) {
             {booking.serviceLabel ?? "Service"}
             {booking.frequencyLabel ? ` · ${booking.frequencyLabel}` : ""}
           </p>
-          {airbnbCard ? (
-            <p className="text-xs font-medium text-sky-900/90">{airbnbCard.serviceSubtitle}</p>
+          {opsCard ? (
+            <p className="text-xs font-medium text-sky-900/90">{opsCard.serviceSubtitle}</p>
           ) : null}
           <p className="text-sm text-zinc-600">
             {formatSchedule(booking.scheduledStart, booking.scheduledEnd)}
@@ -81,7 +111,7 @@ export function AdminCustomerBookingCard({ booking }: Props) {
             <p className="text-sm text-zinc-600">Assigned: {booking.assignedCleanerLabel}</p>
           ) : (
             <p className="text-sm text-zinc-500">
-              {airbnbCard?.unassignedLabel ?? "No cleaner assigned yet"}
+              {opsCard?.unassignedLabel ?? "No cleaner assigned yet"}
             </p>
           )}
         </div>

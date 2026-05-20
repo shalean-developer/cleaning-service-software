@@ -12,6 +12,17 @@ import {
   getHostNotesPlaceholder,
   getHostNotesSectionTitle,
 } from "../airbnbCleaningDisplay";
+import {
+  CARPET_ZONES_MAX,
+  CARPET_ZONES_MIN,
+  getCarpetCleaningStepCopy,
+  isCarpetCleaningSlug,
+} from "../carpetCleaningDisplay";
+import type { CarpetStainSeverity } from "../carpetCleaningDisplay";
+import { CarpetAddonsStepPanel } from "./CarpetAddonsStepPanel";
+import { CarpetStainSeverityStepPanel } from "./CarpetStainSeverityStepPanel";
+import { CarpetTogglesStepPanel } from "./CarpetTogglesStepPanel";
+import { getOfficeCleaningStepCopy, isOfficeCleaningSlug } from "../officeCleaningDisplay";
 import { EXTRA_ROOMS_VISIBLE_HINT } from "../detailsStepHints";
 import {
   DETAILS_OPTION_ROW_CELL,
@@ -23,6 +34,7 @@ import {
 import { inputClass } from "./Field";
 import { WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS } from "../wizardLayout";
 import { AddonsStepPanel } from "./AddonsStepPanel";
+import { DetailsExtrasDisclosure } from "./DetailsExtrasDisclosure";
 import { CleaningIntensityStepPanel } from "./CleaningIntensityStepPanel";
 import { DetailsLabelWithInfo } from "./DetailsFieldInfo";
 import { DetailsQuantityStepper } from "./DetailsQuantityStepper";
@@ -43,6 +55,9 @@ type Props = {
   requestedTeamSize: 1 | 2;
   frequency: PricingFrequency;
   addons: AddonSlug[];
+  carpetStainSeverity: CarpetStainSeverity | null;
+  carpetPetStains: boolean;
+  carpetGoodDryingAirflow: boolean;
   specialInstructions: string;
   stepErrors: Record<string, string>;
   onBedroomsChange: (bedrooms: number) => void;
@@ -54,6 +69,9 @@ type Props = {
   onRequestedTeamSizeChange: (requestedTeamSize: 1 | 2) => void;
   onFrequencyChange: (frequency: PricingFrequency) => void;
   onAddonsChange: (addons: AddonSlug[]) => void;
+  onCarpetStainSeverityChange: (severity: CarpetStainSeverity) => void;
+  onCarpetPetStainsChange: (value: boolean) => void;
+  onCarpetGoodDryingAirflowChange: (value: boolean) => void;
   onSpecialInstructionsChange: (specialInstructions: string) => void;
 };
 
@@ -77,6 +95,9 @@ export function DetailsStepPanel({
   requestedTeamSize,
   frequency,
   addons,
+  carpetStainSeverity,
+  carpetPetStains,
+  carpetGoodDryingAirflow,
   specialInstructions,
   stepErrors,
   onBedroomsChange,
@@ -88,9 +109,15 @@ export function DetailsStepPanel({
   onRequestedTeamSizeChange,
   onFrequencyChange,
   onAddonsChange,
+  onCarpetStainSeverityChange,
+  onCarpetPetStainsChange,
+  onCarpetGoodDryingAirflowChange,
   onSpecialInstructionsChange,
 }: Props) {
-  const isOffice = serviceSlug === "office-cleaning";
+  const isOffice = isOfficeCleaningSlug(serviceSlug);
+  const officeStep = getOfficeCleaningStepCopy(serviceSlug);
+  const carpetStep = getCarpetCleaningStepCopy(serviceSlug);
+  const isCarpet = isCarpetCleaningSlug(serviceSlug);
   const isRegular = serviceSlug === "regular-cleaning";
 
   return (
@@ -111,34 +138,49 @@ export function DetailsStepPanel({
         />
 
         {!isOffice ? (
-          <div className="grid grid-cols-2 gap-3 sm:max-w-md">
-            <div className="min-w-0">
-              <span className={DETAILS_STEP_LABEL}>Bedrooms</span>
+          isCarpet && carpetStep ? (
+            <div className="min-w-0 sm:max-w-xs">
+              <span className={DETAILS_STEP_LABEL}>{carpetStep.zonesFieldLabel}</span>
+              <p className="mb-1.5 text-xs leading-snug text-zinc-500">{carpetStep.zonesFieldHint}</p>
               <DetailsQuantityStepper
                 value={bedrooms}
-                min={0}
-                max={20}
-                ariaLabel="bedrooms"
+                min={CARPET_ZONES_MIN}
+                max={CARPET_ZONES_MAX}
+                ariaLabel={carpetStep.zonesAriaLabel}
                 onChange={onBedroomsChange}
               />
               <FieldError message={stepErrors.bedrooms} />
             </div>
-            <div className="min-w-0">
-              <span className={DETAILS_STEP_LABEL}>Bathrooms</span>
-              <DetailsQuantityStepper
-                value={bathrooms}
-                min={0}
-                max={20}
-                ariaLabel="bathrooms"
-                onChange={onBathroomsChange}
-              />
-              <FieldError message={stepErrors.bathrooms} />
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:max-w-md">
+              <div className="min-w-0">
+                <span className={DETAILS_STEP_LABEL}>Bedrooms</span>
+                <DetailsQuantityStepper
+                  value={bedrooms}
+                  min={0}
+                  max={20}
+                  ariaLabel="bedrooms"
+                  onChange={onBedroomsChange}
+                />
+                <FieldError message={stepErrors.bedrooms} />
+              </div>
+              <div className="min-w-0">
+                <span className={DETAILS_STEP_LABEL}>Bathrooms</span>
+                <DetailsQuantityStepper
+                  value={bathrooms}
+                  min={0}
+                  max={20}
+                  ariaLabel="bathrooms"
+                  onChange={onBathroomsChange}
+                />
+                <FieldError message={stepErrors.bathrooms} />
+              </div>
             </div>
-          </div>
+          )
         ) : (
           <div className="min-w-0 sm:max-w-xs">
             <label htmlFor="details-property-sqm" className={DETAILS_STEP_LABEL}>
-              Property size (sqm)
+              {officeStep?.propertySizeFieldLabel ?? "Workspace size (sqm)"}
             </label>
             <input
               id="details-property-sqm"
@@ -163,7 +205,27 @@ export function DetailsStepPanel({
         />
       ) : null}
 
-      <AddonsStepPanel serviceSlug={serviceSlug} selected={addons} onChange={onAddonsChange} />
+      {isCarpet ? (
+        <>
+          <CarpetStainSeverityStepPanel
+            value={carpetStainSeverity}
+            onChange={onCarpetStainSeverityChange}
+          />
+          <CarpetTogglesStepPanel
+            petStains={carpetPetStains}
+            goodDryingAirflow={carpetGoodDryingAirflow}
+            onPetStainsChange={onCarpetPetStainsChange}
+            onGoodDryingAirflowChange={onCarpetGoodDryingAirflowChange}
+          />
+          <DetailsExtrasDisclosure serviceSlug={serviceSlug} selected={addons}>
+            <CarpetAddonsStepPanel selected={addons} onChange={onAddonsChange} />
+          </DetailsExtrasDisclosure>
+        </>
+      ) : (
+        <DetailsExtrasDisclosure serviceSlug={serviceSlug} selected={addons}>
+          <AddonsStepPanel serviceSlug={serviceSlug} selected={addons} onChange={onAddonsChange} />
+        </DetailsExtrasDisclosure>
+      )}
 
       {isRegular ? (
         <section className={DETAILS_STEP_SECTION} aria-labelledby="details-supplies-support">

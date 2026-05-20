@@ -1,10 +1,26 @@
 import Link from "next/link";
-import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import type { AdminBookingListCardBadge } from "@/components/dashboard/admin/AdminBookingListCard";
+import { AdminBookingBadgeRow } from "@/components/dashboard/admin/AdminBookingBadgeRow";
 import {
   getAirbnbAdminBookingListCopy,
   isAirbnbOperationalBooking,
 } from "@/features/dashboards/airbnbOperationalDisplay";
+import {
+  getDeepAdminBookingListCopy,
+  isDeepOperationalBooking,
+} from "@/features/dashboards/deepOperationalDisplay";
+import {
+  getCarpetAdminBookingListCopy,
+  isCarpetOperationalBooking,
+} from "@/features/dashboards/carpetOperationalDisplay";
+import {
+  getMovingAdminBookingListCopy,
+  isMovingOperationalBooking,
+} from "@/features/dashboards/movingOperationalDisplay";
+import {
+  getOfficeAdminBookingListCopy,
+  isOfficeOperationalBooking,
+} from "@/features/dashboards/officeOperationalDisplay";
 import { ADMIN_LIST_CARD_CLASS } from "@/features/dashboards/adminDisplay";
 import { UI_LIST_META_CLASS, UI_LIST_TITLE_CLASS } from "@/lib/ui/productUiTokens";
 
@@ -31,7 +47,21 @@ export function AdminBookingListRow({
 }: Props) {
   const highlight = badges.some((b) => b.tone === "danger" || b.tone === "warning");
   const airbnb = isAirbnbOperationalBooking({ serviceLabel });
-  const airbnbList = airbnb ? getAirbnbAdminBookingListCopy() : null;
+  const office = isOfficeOperationalBooking({ serviceLabel });
+  const moving = isMovingOperationalBooking({ serviceLabel });
+  const deep = isDeepOperationalBooking({ serviceLabel });
+  const carpet = isCarpetOperationalBooking({ serviceLabel });
+  const opsList = airbnb
+    ? getAirbnbAdminBookingListCopy()
+    : office
+      ? getOfficeAdminBookingListCopy()
+      : moving
+        ? getMovingAdminBookingListCopy()
+        : deep
+          ? getDeepAdminBookingListCopy()
+          : carpet
+            ? getCarpetAdminBookingListCopy()
+            : null;
 
   return (
     <article
@@ -41,15 +71,11 @@ export function AdminBookingListRow({
     >
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {badges.map((badge) => (
-              <StatusBadge key={badge.label} label={badge.label} tone={badge.tone} />
-            ))}
-          </div>
+          <AdminBookingBadgeRow badges={badges} />
           <h3 className={`mt-1.5 ${UI_LIST_TITLE_CLASS}`}>{serviceLabel}</h3>
-          {airbnbList ? (
+          {opsList ? (
             <p className={`mt-0.5 text-xs font-medium text-sky-900/90`}>
-              {airbnbList.serviceSubtitle}
+              {opsList.serviceSubtitle}
             </p>
           ) : null}
           <p className={`mt-0.5 ${UI_LIST_META_CLASS} text-zinc-700`}>{customerLabel}</p>
@@ -67,7 +93,7 @@ export function AdminBookingListRow({
           href={href}
           className="shrink-0 rounded-lg bg-zinc-900 px-3 py-2 text-xs font-medium text-white hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
         >
-          {airbnbList?.listCtaLabel ?? "Open"}
+          {opsList?.listCtaLabel ?? "Open"}
         </Link>
       </div>
     </article>

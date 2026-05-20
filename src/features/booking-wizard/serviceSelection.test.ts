@@ -8,16 +8,24 @@ import {
 import { filledState } from "./testFixtures";
 import { INITIAL_WIZARD_STATE } from "./types";
 
+const serviceSelectionDefaults = {
+  extraRooms: 0,
+  cleaningIntensity: "standard" as const,
+  equipmentSupply: "customer" as const,
+  requestedTeamSize: 1 as const,
+  carpetStainSeverity: null,
+  carpetPetStains: false,
+  carpetGoodDryingAirflow: false,
+  addons: [] as const,
+};
+
 describe("wizardPatchForServiceSelection", () => {
   it("sets regular-cleaning with bedroom and bathroom defaults", () => {
     expect(wizardPatchForServiceSelection("regular-cleaning")).toEqual({
       serviceSlug: "regular-cleaning",
       bedrooms: 2,
       bathrooms: 1,
-      extraRooms: 0,
-      cleaningIntensity: "standard",
-      equipmentSupply: "customer",
-      requestedTeamSize: 1,
+      ...serviceSelectionDefaults,
     });
   });
 
@@ -26,10 +34,7 @@ describe("wizardPatchForServiceSelection", () => {
       serviceSlug: "office-cleaning",
       bedrooms: 0,
       bathrooms: 0,
-      extraRooms: 0,
-      cleaningIntensity: "standard",
-      equipmentSupply: "customer",
-      requestedTeamSize: 1,
+      ...serviceSelectionDefaults,
     });
   });
 

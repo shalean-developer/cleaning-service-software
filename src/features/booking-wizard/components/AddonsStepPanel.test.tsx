@@ -22,7 +22,8 @@ describe("AddonsStepPanel", () => {
     expect(html).toContain("bg-zinc-900");
     expect(html).not.toContain("bg-blue-500");
     expect(html).toContain("Inside oven");
-    expect(html).toContain("Racks, glass, interior degrease");
+    expect(html).toContain("Oven interior degreased");
+    expect(html).toContain("Detailed cleaning extras");
   });
 
   it("lists all catalog add-ons in display order for non-regular services", () => {
@@ -34,17 +35,17 @@ describe("AddonsStepPanel", () => {
     const ovenIndex = html.indexOf("Inside oven");
     const fridgeIndex = html.indexOf("Inside fridge");
     const wallsIndex = html.indexOf("Interior walls");
-    const laundryIndex = html.indexOf("Laundry");
     const windowsIndex = html.indexOf("Interior windows");
     const balconyIndex = html.indexOf("Balcony");
+    const laundryIndex = html.indexOf("Laundry");
 
     expect(cabinetsIndex).toBeGreaterThan(-1);
     expect(ovenIndex).toBeGreaterThan(cabinetsIndex);
     expect(fridgeIndex).toBeGreaterThan(ovenIndex);
     expect(wallsIndex).toBeGreaterThan(fridgeIndex);
-    expect(laundryIndex).toBeGreaterThan(wallsIndex);
-    expect(windowsIndex).toBeGreaterThan(laundryIndex);
+    expect(windowsIndex).toBeGreaterThan(wallsIndex);
     expect(balconyIndex).toBeGreaterThan(windowsIndex);
+    expect(laundryIndex).toBeGreaterThan(balconyIndex);
   });
 
   it("shows only regular-cleaning add-ons and hides balcony", () => {

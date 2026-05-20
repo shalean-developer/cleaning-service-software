@@ -1,7 +1,10 @@
-import type { BookingStateAuditRow } from "@/lib/database/types";
+import type { BookingStateAuditRow, PaymentStatus } from "@/lib/database/types";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import { isBookingLockRequired } from "@/features/bookings/server/lock/constants";
 import { labelForBookingStatus } from "./statusLabels";
+
+/** Customer-facing assignment state (list, hero, guidance). */
+export const CUSTOMER_FINDING_CLEANER_LABEL = "Finding your cleaner" as const;
 
 /** Known `metadata.failure_reason` from `MARK_PAYMENT_FAILED` (cron / future webhooks). */
 export const CHECKOUT_EXPIRED_FAILURE_REASON = "checkout_expired";
@@ -48,7 +51,27 @@ export function labelForCustomerBookingStatus(
   if (status === "payout_ready" || status === "paid_out") {
     return "Completed";
   }
+  if (status === "pending_assignment") {
+    return CUSTOMER_FINDING_CLEANER_LABEL;
+  }
   return labelForBookingStatus(status);
+}
+
+/** Customer-facing payment chip and list lines (never admin/internal wording). */
+export function labelForCustomerPaymentStatus(status: PaymentStatus | null): string {
+  if (!status) return "Payment pending";
+  switch (status) {
+    case "paid":
+      return "Paid";
+    case "initialized":
+    case "pending":
+      return "Payment pending";
+    case "failed":
+    case "refunded":
+      return "Payment not completed";
+    default:
+      return "Payment pending";
+  }
 }
 
 export function labelForAdminPaymentFailureAttention(

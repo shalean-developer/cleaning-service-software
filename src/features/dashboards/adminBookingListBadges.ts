@@ -8,6 +8,9 @@ import {
 } from "@/features/bookings/server/statusLabels";
 import type { AdminBookingListCardBadge } from "@/components/dashboard/admin/AdminBookingListCard";
 import { getAirbnbAdminListBadges } from "@/features/dashboards/airbnbOperationalDisplay";
+import { getDeepAdminListBadges } from "@/features/dashboards/deepOperationalDisplay";
+import { getMovingAdminListBadges } from "@/features/dashboards/movingOperationalDisplay";
+import { getOfficeAdminListBadges } from "@/features/dashboards/officeOperationalDisplay";
 import { buildAdminOperationalLoadBadges } from "@/features/dashboards/server/adminTeamSupportObservation";
 import type { AdminBookingListItem } from "@/features/dashboards/server/types";
 
@@ -85,6 +88,27 @@ export function adminBookingListBadges(
     scheduledStart: b.scheduledStart,
   })) {
     badges.push(airbnbBadge);
+  }
+
+  for (const movingBadge of getMovingAdminListBadges({
+    serviceLabel: b.serviceLabel,
+    scheduledStart: b.scheduledStart,
+  })) {
+    badges.push(movingBadge);
+  }
+
+  for (const officeBadge of getOfficeAdminListBadges({
+    serviceLabel: b.serviceLabel,
+    scheduledStart: b.scheduledStart,
+  })) {
+    badges.push(officeBadge);
+  }
+
+  for (const deepBadge of getDeepAdminListBadges({
+    serviceLabel: b.serviceLabel,
+    scheduledStart: b.scheduledStart,
+  })) {
+    badges.push(deepBadge);
   }
 
   for (const loadBadge of buildAdminOperationalLoadBadges(b.observation.operationalLoad)) {

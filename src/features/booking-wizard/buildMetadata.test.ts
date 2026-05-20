@@ -92,6 +92,32 @@ describe("buildWizardBookingMetadata", () => {
     expect(quoteInput.cleaningIntensity).toBe("detailed");
   });
 
+  it("snapshots carpetDetails in metadata for carpet-cleaning", () => {
+    const quote = calculateQuote({
+      serviceSlug: "carpet-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+    });
+    expect(quote.ok).toBe(true);
+    if (!quote.ok) return;
+
+    const metadata = buildWizardBookingMetadata(
+      filledState({
+        serviceSlug: "carpet-cleaning",
+        carpetStainSeverity: "noticeable",
+        carpetPetStains: true,
+        carpetGoodDryingAirflow: false,
+      }),
+      quote.breakdown,
+    );
+
+    expect(metadata.carpetDetails).toEqual({
+      stainSeverity: "noticeable",
+      petStains: true,
+      goodDryingAirflow: false,
+    });
+  });
+
   it("snapshots requestedTeamSize in quote.input for regular-cleaning", () => {
     const quote = calculateQuote({
       serviceSlug: "regular-cleaning",

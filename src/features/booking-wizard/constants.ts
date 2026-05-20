@@ -1,4 +1,20 @@
 import { SERVICE_CATALOG } from "@/features/pricing/server/catalog";
+import {
+  DEEP_SERVICE_STEP_DESCRIPTION_DESKTOP,
+  DEEP_SERVICE_STEP_DESCRIPTION_MOBILE,
+} from "./deepCleaningDisplay";
+import {
+  MOVING_SERVICE_STEP_DESCRIPTION_DESKTOP,
+  MOVING_SERVICE_STEP_DESCRIPTION_MOBILE,
+} from "./movingCleaningDisplay";
+import {
+  CARPET_SERVICE_STEP_DESCRIPTION_DESKTOP,
+  CARPET_SERVICE_STEP_DESCRIPTION_MOBILE,
+} from "./carpetCleaningDisplay";
+import {
+  OFFICE_SERVICE_STEP_DESCRIPTION_DESKTOP,
+  OFFICE_SERVICE_STEP_DESCRIPTION_MOBILE,
+} from "./officeCleaningDisplay";
 import type {
   AddonSlug,
   CleaningIntensity,
@@ -21,22 +37,22 @@ export type WizardServiceOption = {
 /** Step 1 mobile card copy — short lines; does not affect pricing or validation. */
 const SERVICE_STEP_DESCRIPTIONS: Record<ServiceSlug, string> = {
   "regular-cleaning": "Routine upkeep for your home",
-  "deep-cleaning": "Detailed top-to-bottom clean",
-  "moving-cleaning": "Move-in or move-out reset",
+  "deep-cleaning": DEEP_SERVICE_STEP_DESCRIPTION_MOBILE,
+  "moving-cleaning": MOVING_SERVICE_STEP_DESCRIPTION_MOBILE,
   "airbnb-cleaning": "Guest-ready turnover",
-  "office-cleaning": "Commercial spaces — size may apply",
-  "carpet-cleaning": "Carpet zones per room",
+  "office-cleaning": OFFICE_SERVICE_STEP_DESCRIPTION_MOBILE,
+  "carpet-cleaning": CARPET_SERVICE_STEP_DESCRIPTION_MOBILE,
 };
 
 /** Step 1 desktop card copy — max two lines; display only. */
 export const SERVICE_STEP_DESCRIPTIONS_DESKTOP: Record<ServiceSlug, string> = {
   "regular-cleaning": "Routine clean for kitchens, bathrooms, and living areas.",
-  "deep-cleaning": "Deep clean for buildup, corners, and high-traffic areas.",
-  "moving-cleaning": "Move-in or move-out clean for floors and surfaces.",
+  "deep-cleaning": DEEP_SERVICE_STEP_DESCRIPTION_DESKTOP,
+  "moving-cleaning": MOVING_SERVICE_STEP_DESCRIPTION_DESKTOP,
   "airbnb-cleaning":
     "Fast, detail-focused property preparation before your next guest check-in.",
-  "office-cleaning": "Commercial office clean; workspace size may apply.",
-  "carpet-cleaning": "Carpet and rug clean by room or zone you choose.",
+  "office-cleaning": OFFICE_SERVICE_STEP_DESCRIPTION_DESKTOP,
+  "carpet-cleaning": CARPET_SERVICE_STEP_DESCRIPTION_DESKTOP,
 };
 
 /** Step 4 frequency cards — display only; values must match `PRICING_FREQUENCIES`. */
@@ -81,6 +97,7 @@ export const ADDON_STEP_DESCRIPTIONS: Record<AddonSlug, string> = {
   "interior-windows": "Accessible interior glass per window group.",
   laundry: "Wash, dry, fold — agreed load size on site.",
   balcony: "Outdoor balcony sweep and surface tidy.",
+  "mattress-cleaning": "Deep clean for one mattress — stain lift and fabric refresh.",
 };
 
 /** Step 4 cleaning intensity — regular cleaning only; values match `CLEANING_INTENSITIES`. */
@@ -165,7 +182,8 @@ export const WIZARD_SERVICE_OPTIONS: WizardServiceOption[] = (
   ] as const
 ).map((slug) => ({
   slug,
-  label: SERVICE_CATALOG[slug].label,
+  label:
+    slug === "moving-cleaning" ? "Move In/Out Cleaning" : SERVICE_CATALOG[slug].label,
   description: SERVICE_STEP_DESCRIPTIONS[slug],
   enabled: true,
 }));

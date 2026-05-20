@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { AdminBookingBadgeRow } from "@/components/dashboard/admin/AdminBookingBadgeRow";
 import { ADMIN_LIST_CARD_CLASS } from "@/features/dashboards/adminDisplay";
 import { UI_LIST_META_CLASS, UI_LIST_TITLE_CLASS } from "@/lib/ui/productUiTokens";
 
@@ -28,11 +28,7 @@ export function AdminBookingListCard({
 }: Props) {
   return (
     <Link href={href} className={ADMIN_LIST_CARD_CLASS}>
-      <section className="flex flex-wrap items-center gap-1.5">
-        {badges.map((badge) => (
-          <StatusBadge key={badge.label} label={badge.label} tone={badge.tone} />
-        ))}
-      </section>
+      <AdminBookingBadgeRow badges={badges} />
       <p className={`mt-2 ${UI_LIST_TITLE_CLASS}`}>{title}</p>
       <p className={`mt-0.5 ${UI_LIST_META_CLASS}`}>{meta}</p>
       {secondary ? <p className={`mt-0.5 text-xs ${UI_LIST_META_CLASS} text-zinc-500`}>{secondary}</p> : null}
@@ -58,11 +54,7 @@ export function AdminBookingListCardShell({
 }) {
   return (
     <Link href={href} className={ADMIN_LIST_CARD_CLASS}>
-      <section className="flex flex-wrap items-center gap-1.5">
-        {badges.map((badge) => (
-          <StatusBadge key={badge.label} label={badge.label} tone={badge.tone} />
-        ))}
-      </section>
+      <AdminBookingBadgeRow badges={badges} />
       <p className={`mt-2 ${UI_LIST_TITLE_CLASS}`}>{title}</p>
       <p className={`mt-0.5 ${UI_LIST_META_CLASS}`}>{meta}</p>
       {children}

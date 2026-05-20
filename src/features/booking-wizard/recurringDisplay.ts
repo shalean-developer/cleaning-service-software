@@ -5,6 +5,8 @@ import {
   getRecurringScheduleReviewNote as getAirbnbRecurringScheduleReviewNote,
   isAirbnbCleaningSlug,
 } from "./airbnbCleaningDisplay";
+import { getCarpetCleaningReviewCopy } from "./carpetCleaningDisplay";
+import { getMovingCleaningReviewCopy } from "./movingCleaningDisplay";
 
 export function isRecurringFrequency(frequency: PricingFrequency): boolean {
   return frequency !== "once";
@@ -15,6 +17,10 @@ export function getRecurringScheduleExplanation(
   frequency: PricingFrequency,
   serviceSlug: ServiceSlug | null = null,
 ): string | null {
+  const moving = getMovingCleaningReviewCopy(serviceSlug);
+  if (moving) return moving.recurringScheduleExplanation(frequency);
+  const carpet = getCarpetCleaningReviewCopy(serviceSlug);
+  if (carpet) return carpet.recurringScheduleExplanation(frequency);
   const airbnb = getAirbnbRecurringScheduleExplanation(frequency, serviceSlug);
   if (airbnb) return airbnb;
   if (isAirbnbCleaningSlug(serviceSlug)) return null;
@@ -35,6 +41,10 @@ export function getRecurringScheduleReviewNote(
   frequency: PricingFrequency,
   serviceSlug: ServiceSlug | null = null,
 ): string | null {
+  const moving = getMovingCleaningReviewCopy(serviceSlug);
+  if (moving) return moving.recurringScheduleReviewNote(frequency);
+  const carpet = getCarpetCleaningReviewCopy(serviceSlug);
+  if (carpet) return carpet.recurringScheduleReviewNote(frequency);
   const airbnb = getAirbnbRecurringScheduleReviewNote(frequency, serviceSlug);
   if (airbnb) return airbnb;
   if (isAirbnbCleaningSlug(serviceSlug)) return null;
@@ -57,6 +67,10 @@ export function getRecurringPaymentExplanation(
 ): string | null {
   if (!isRecurringFrequency(frequency)) return null;
 
+  const moving = getMovingCleaningReviewCopy(serviceSlug);
+  if (moving) return moving.recurringPaymentExplanation(frequency);
+  const carpet = getCarpetCleaningReviewCopy(serviceSlug);
+  if (carpet) return carpet.recurringPaymentExplanation(frequency);
   const airbnb = getAirbnbRecurringPaymentExplanation(frequency, serviceSlug);
   if (airbnb) return airbnb;
 

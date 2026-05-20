@@ -5,6 +5,12 @@ import {
 } from "@/features/pricing/server/catalog";
 import { normalizeAreaSlug } from "@/features/cleaners/server/eligibility/normalize";
 import type { BookingWizardState, StepValidationResult, WizardStep } from "./types";
+import {
+  CARPET_ZONES_MAX,
+  CARPET_ZONES_MIN,
+  getCarpetDetailsValidationCopy,
+  isCarpetCleaningSlug,
+} from "./carpetCleaningDisplay";
 import { WIZARD_SERVICE_OPTIONS } from "./constants";
 import { resolveWizardContactPhone } from "./contactPhone";
 import {
@@ -88,17 +94,29 @@ export function validateDetailsStep(state: BookingWizardState): StepValidationRe
 
   const rule = SERVICE_CATALOG[state.serviceSlug];
   const errors: Record<string, string> = {};
+  const carpet = isCarpetCleaningSlug(state.serviceSlug);
+  const carpetValidation = getCarpetDetailsValidationCopy();
 
-  if (!Number.isInteger(state.bedrooms) || state.bedrooms < 0 || state.bedrooms > 20) {
+  if (carpet) {
+    if (
+      !Number.isInteger(state.bedrooms) ||
+      state.bedrooms < CARPET_ZONES_MIN ||
+      state.bedrooms > CARPET_ZONES_MAX
+    ) {
+      errors.bedrooms = carpetValidation.zonesRange;
+    }
+  } else if (!Number.isInteger(state.bedrooms) || state.bedrooms < 0 || state.bedrooms > 20) {
     errors.bedrooms = "Bedrooms must be between 0 and 20.";
   } else if (!rule.allowZeroRooms && state.bedrooms < 1) {
     errors.bedrooms = "At least 1 bedroom is required.";
   }
 
-  if (!Number.isInteger(state.bathrooms) || state.bathrooms < 0 || state.bathrooms > 20) {
-    errors.bathrooms = "Bathrooms must be between 0 and 20.";
-  } else if (!rule.allowZeroRooms && state.bathrooms < 1) {
-    errors.bathrooms = "At least 1 bathroom is required.";
+  if (!carpet) {
+    if (!Number.isInteger(state.bathrooms) || state.bathrooms < 0 || state.bathrooms > 20) {
+      errors.bathrooms = "Bathrooms must be between 0 and 20.";
+    } else if (!rule.allowZeroRooms && state.bathrooms < 1) {
+      errors.bathrooms = "At least 1 bathroom is required.";
+    }
   }
 
   if (state.serviceSlug === "regular-cleaning") {

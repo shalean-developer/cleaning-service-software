@@ -16,6 +16,9 @@ describe("DetailsStepPanel — regular cleaning hints", () => {
     requestedTeamSize: 2 as const,
     frequency: "weekly" as const,
     addons: [],
+    carpetStainSeverity: null,
+    carpetPetStains: false,
+    carpetGoodDryingAirflow: false,
     specialInstructions: "",
     stepErrors: {},
     onBedroomsChange: noop,
@@ -27,6 +30,9 @@ describe("DetailsStepPanel — regular cleaning hints", () => {
     onRequestedTeamSizeChange: noop,
     onFrequencyChange: noop,
     onAddonsChange: noop,
+    onCarpetStainSeverityChange: noop,
+    onCarpetPetStainsChange: noop,
+    onCarpetGoodDryingAirflowChange: noop,
     onSpecialInstructionsChange: noop,
   };
 
@@ -38,6 +44,7 @@ describe("DetailsStepPanel — regular cleaning hints", () => {
     expect(html).toContain("Visit frequency");
     expect(html).toContain("Home size");
     expect(html).toContain("Cleaning intensity");
+    expect(html).toContain("Add extras");
     expect(html).toContain("Add-ons");
     expect(html).toContain("Supplies &amp; support");
     expect(html).toContain("Notes");

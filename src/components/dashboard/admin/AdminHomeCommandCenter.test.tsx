@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import {
-  ADMIN_OPERATIONAL_QUEUES,
-  buildAdminOperationalQueueCards,
-} from "@/features/dashboards/adminOperationalQueues";
+import { ADMIN_OPERATIONAL_QUEUES } from "@/features/dashboards/adminOperationalQueues";
 import { summarizeCronHealth } from "@/features/dashboards/adminAssignmentsPageDisplay";
 import type { CronJobHealthSnapshot } from "@/features/operations/server/cronHealthTypes";
 import { AdminHomeCommandCenter } from "./AdminHomeCommandCenter";
@@ -42,7 +39,6 @@ describe("AdminHomeCommandCenter", () => {
     const html = renderToStaticMarkup(
       <AdminHomeCommandCenter
         queues={queues}
-        queueGuideCards={buildAdminOperationalQueueCards(queues)}
         cronSummary={cronSummary}
         criticalCronJobs={cronSummary.criticalJobs}
         deferredDiagnostics={null}
@@ -60,17 +56,15 @@ describe("AdminHomeCommandCenter", () => {
     expect(html).toContain("Critical cron jobs need attention");
     expect(html).toContain('href="/admin/assignments"');
     expect(html).toContain('href="/admin/payouts"');
-    expect(html).toContain("All operational queues");
-    expect(html).toContain("How to use this dashboard");
-    expect(html).toMatch(/<details(?![^>]*\bopen\b)[^>]*>[\s\S]*All operational queues/);
-    expect(html).toMatch(/<details(?![^>]*\bopen\b)[^>]*>[\s\S]*How to use this dashboard/);
+    expect(html).toContain("Queue counts");
+    expect(html).not.toContain("How to use this dashboard");
+    expect(html).toMatch(/<details(?![^>]*\bopen\b)[^>]*>[\s\S]*Queue counts/);
   });
 
   it("surfaces deferred overdue status", () => {
     const html = renderToStaticMarkup(
       <AdminHomeCommandCenter
         queues={queues}
-        queueGuideCards={buildAdminOperationalQueueCards(queues)}
         cronSummary={summarizeCronHealth([])}
         criticalCronJobs={[]}
         deferredDiagnostics={{

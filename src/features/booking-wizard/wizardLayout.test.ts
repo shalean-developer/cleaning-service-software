@@ -12,6 +12,8 @@ import {
   WIZARD_MOBILE_STICKY_NAV_OFFSET_REM,
   WIZARD_MOBILE_STICKY_SUMMARY_OFFSET_REM,
   WIZARD_STICKY_FOOTER_INNER_CLASS,
+  WIZARD_STEP_CARD_MIN_HEIGHT_CLASS,
+  WIZARD_STEP_CONTENT_TRANSITION_CLASS,
   WIZARD_STICKY_FOOTER_SUMMARY_SLOT_CLASS,
 } from "./wizardLayout";
 
@@ -78,7 +80,7 @@ describe("wizardLayout", () => {
     expect(getWizardShellClass("checkout")).toContain("safe-area-inset-bottom");
   });
 
-  it("applies consistent card padding across picker steps", () => {
+  it("applies consistent card padding and min-height across picker steps", () => {
     for (const step of [
       "service",
       "datetime",
@@ -88,8 +90,14 @@ describe("wizardLayout", () => {
       "review",
       "checkout",
     ] as const) {
-      expect(getWizardCardClass(step)).toContain("p-4 md:p-6");
+      expect(getWizardCardClass(step)).toContain("p-4 md:p-5");
+      expect(getWizardCardClass(step)).toContain(WIZARD_STEP_CARD_MIN_HEIGHT_CLASS);
     }
+  });
+
+  it("exposes lightweight step transition class without animation libraries", () => {
+    expect(WIZARD_STEP_CONTENT_TRANSITION_CLASS).toContain("transition-opacity");
+    expect(WIZARD_STEP_CONTENT_TRANSITION_CLASS).toContain("duration-150");
   });
 
   it("exposes a shared summary slot class for sticky commerce rows", () => {

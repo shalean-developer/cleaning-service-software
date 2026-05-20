@@ -113,6 +113,11 @@ export const ADDON_CATALOG: Record<
   },
   laundry: { slug: "laundry", label: "Laundry", amountCents: 12_000 },
   balcony: { slug: "balcony", label: "Balcony", amountCents: 10_000 },
+  "mattress-cleaning": {
+    slug: "mattress-cleaning",
+    label: "Mattress cleaning",
+    amountCents: 24_000,
+  },
 };
 
 /** Applied to service + add-on subtotal before frequency discount (regular cleaning only). */

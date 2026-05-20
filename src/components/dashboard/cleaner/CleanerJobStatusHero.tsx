@@ -12,11 +12,27 @@ import {
   isAirbnbOperationalBooking,
 } from "@/features/dashboards/airbnbOperationalDisplay";
 import {
+  getDeepCleanerJobCopy,
+  isDeepOperationalBooking,
+} from "@/features/dashboards/deepOperationalDisplay";
+import {
+  getCarpetCleanerJobCopy,
+  isCarpetOperationalBooking,
+} from "@/features/dashboards/carpetOperationalDisplay";
+import {
+  getMovingCleanerJobCopy,
+  isMovingOperationalBooking,
+} from "@/features/dashboards/movingOperationalDisplay";
+import {
+  getOfficeCleanerJobCopy,
+  isOfficeOperationalBooking,
+} from "@/features/dashboards/officeOperationalDisplay";
+import {
   CLEANER_DETAIL_CARD_CLASS,
   CLEANER_DETAIL_INSET_CLASS,
   cleanerJobStatusHero,
+  resolveCleanerJobStatusLabel,
 } from "@/features/dashboards/cleanerJobDetailDisplay";
-import { labelForCleanerJobStatus } from "@/features/bookings/server/statusLabels";
 import type { BookingStatus } from "@/features/bookings/server/types";
 
 type Props = {
@@ -39,8 +55,22 @@ export function CleanerJobStatusHero({
   actionSlot,
 }: Props) {
   const airbnb = isAirbnbOperationalBooking({ serviceSlug, serviceLabel });
-  const airbnbJob = airbnb ? getAirbnbCleanerJobCopy() : null;
-  const hero = cleanerJobStatusHero(status, airbnb ? "airbnb-cleaning" : serviceSlug);
+  const office = isOfficeOperationalBooking({ serviceSlug, serviceLabel });
+  const moving = isMovingOperationalBooking({ serviceSlug, serviceLabel });
+  const deep = isDeepOperationalBooking({ serviceSlug, serviceLabel });
+  const carpet = isCarpetOperationalBooking({ serviceSlug, serviceLabel });
+  const opsJob = airbnb
+    ? getAirbnbCleanerJobCopy()
+    : office
+      ? getOfficeCleanerJobCopy()
+      : moving
+        ? getMovingCleanerJobCopy()
+        : deep
+          ? getDeepCleanerJobCopy()
+          : carpet
+            ? getCarpetCleanerJobCopy()
+            : null;
+  const hero = cleanerJobStatusHero(status, serviceSlug);
 
   return (
     <section className={`${CLEANER_DETAIL_CARD_CLASS} overflow-hidden`}>
@@ -48,8 +78,8 @@ export function CleanerJobStatusHero({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <p className={CLEANER_SERVICE_EYEBROW_CLASS}>{serviceLabel}</p>
-            {airbnbJob ? (
-              <p className="mt-0.5 text-sm text-zinc-600">{airbnbJob.heroSubtitle}</p>
+            {opsJob ? (
+              <p className="mt-0.5 text-sm text-zinc-600">{opsJob.heroSubtitle}</p>
             ) : null}
             <p className={CLEANER_META_LINE_CLASS}>
               <span className="font-medium text-zinc-900">{scheduleLabel}</span>
@@ -65,7 +95,7 @@ export function CleanerJobStatusHero({
         </div>
         <div className={CLEANER_BADGE_ROW_CLASS}>
           <StatusBadge
-            label={labelForCleanerJobStatus(status)}
+            label={resolveCleanerJobStatusLabel(status, { serviceSlug, serviceLabel })}
             tone={hero.tone}
             variant="soft"
           />
@@ -85,7 +115,9 @@ export function CleanerJobStatusHero({
       )}
 
       {actionSlot ? (
-        <div className="border-t border-zinc-100 px-3.5 py-3 sm:px-4">{actionSlot}</div>
+        <div className="hidden border-t border-zinc-100 px-3.5 py-2.5 sm:block sm:px-4 sm:py-3">
+          {actionSlot}
+        </div>
       ) : null}
     </section>
   );

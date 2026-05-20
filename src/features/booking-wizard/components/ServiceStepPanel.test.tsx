@@ -29,7 +29,7 @@ describe("ServiceStepPanel", () => {
     expect(html).toContain("Routine upkeep for your home");
     expect(html).toContain("Routine clean for kitchens, bathrooms, and living areas.");
     expect(html).toContain("Fast, detail-focused property preparation");
-    expect(html).toContain("Detailed top-to-bottom clean");
+    expect(html).toContain("Intensive home restoration cleaning");
     expect(html).not.toContain("Tap a service, then continue below");
     expect(html).toContain("Regular Cleaning");
     const enabledCount = WIZARD_SERVICE_OPTIONS.filter((s) => s.enabled).length;

@@ -7,6 +7,22 @@ import {
   isAirbnbOperationalBooking,
 } from "@/features/dashboards/airbnbOperationalDisplay";
 import {
+  getDeepCleanerJobCopy,
+  isDeepOperationalBooking,
+} from "@/features/dashboards/deepOperationalDisplay";
+import {
+  getCarpetCleanerJobCopy,
+  isCarpetOperationalBooking,
+} from "@/features/dashboards/carpetOperationalDisplay";
+import {
+  getMovingCleanerJobCopy,
+  isMovingOperationalBooking,
+} from "@/features/dashboards/movingOperationalDisplay";
+import {
+  getOfficeCleanerJobCopy,
+  isOfficeOperationalBooking,
+} from "@/features/dashboards/officeOperationalDisplay";
+import {
   CLEANER_DETAIL_CARD_CLASS,
   CLEANER_DETAIL_INSET_CLASS,
 } from "@/features/dashboards/cleanerJobDetailDisplay";
@@ -43,27 +59,35 @@ export function CleanerJobDetailsCard({
   earnings,
   showPayEstimateNote = true,
 }: Props) {
-  const airbnbJob = isAirbnbOperationalBooking({ serviceLabel })
+  const opsJob = isAirbnbOperationalBooking({ serviceLabel })
     ? getAirbnbCleanerJobCopy()
-    : null;
+    : isOfficeOperationalBooking({ serviceLabel })
+      ? getOfficeCleanerJobCopy()
+      : isMovingOperationalBooking({ serviceLabel })
+        ? getMovingCleanerJobCopy()
+        : isDeepOperationalBooking({ serviceLabel })
+          ? getDeepCleanerJobCopy()
+          : isCarpetOperationalBooking({ serviceLabel })
+            ? getCarpetCleanerJobCopy()
+            : null;
 
   return (
     <section className={`${CLEANER_DETAIL_CARD_CLASS} ${CLEANER_LIST_CARD_PADDING}`}>
       <h2 className="text-sm font-medium text-zinc-800">
-        {airbnbJob?.detailsSectionTitle ?? "Job details"}
+        {opsJob?.detailsSectionTitle ?? "Job details"}
       </h2>
 
       <dl className="mt-3 space-y-2.5">
         <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
           <dt className="text-xs font-medium text-zinc-500">
-            {airbnbJob?.addressLabel ?? "Address"}
+            {opsJob?.addressLabel ?? "Address"}
           </dt>
           <dd className="text-sm font-medium text-zinc-900 sm:text-right">{locationSummary}</dd>
         </div>
         {homeSizeSummary ? (
           <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
             <dt className="text-xs font-medium text-zinc-500">
-              {airbnbJob?.homeSizeLabel ?? "Home size"}
+              {opsJob?.homeSizeLabel ?? "Home size"}
             </dt>
             <dd className="text-sm font-medium text-zinc-900 sm:text-right">{homeSizeSummary}</dd>
           </div>
@@ -95,10 +119,10 @@ export function CleanerJobDetailsCard({
       {specialInstructions || teamSupportCleanerNote ? (
         <section className={`mt-3 ${CLEANER_DETAIL_INSET_CLASS} px-3 py-2.5`}>
           <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-            {airbnbJob?.notesSectionTitle ?? "Customer notes"}
+            {opsJob?.notesSectionTitle ?? "Customer notes"}
           </h3>
-          {airbnbJob ? (
-            <p className="mt-1 text-xs leading-snug text-zinc-500">{airbnbJob.notesIntro}</p>
+          {opsJob ? (
+            <p className="mt-1 text-xs leading-snug text-zinc-500">{opsJob.notesIntro}</p>
           ) : null}
           {teamSupportCleanerNote ? (
             <p className="mt-2 text-sm leading-relaxed text-zinc-600">{teamSupportCleanerNote}</p>

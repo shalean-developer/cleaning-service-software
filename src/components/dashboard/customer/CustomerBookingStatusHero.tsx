@@ -10,14 +10,24 @@ import {
   getAirbnbCustomerBookingDetailCopy,
   isAirbnbCleaningSlug,
 } from "@/features/dashboards/airbnbCustomerDisplay";
+import { isDeepCleaningSlug } from "@/features/booking-wizard/deepCleaningDisplay";
+import { isCarpetCleaningSlug } from "@/features/booking-wizard/carpetCleaningDisplay";
+import { isMovingCleaningSlug } from "@/features/booking-wizard/movingCleaningDisplay";
+import { isOfficeCleaningSlug } from "@/features/booking-wizard/officeCleaningDisplay";
+import { getDeepCustomerBookingDetailCopy } from "@/features/dashboards/deepCustomerDisplay";
+import { getCarpetCustomerBookingDetailCopy } from "@/features/dashboards/carpetCustomerDisplay";
+import { getMovingCustomerBookingDetailCopy } from "@/features/dashboards/movingCustomerDisplay";
+import { getOfficeCustomerBookingDetailCopy } from "@/features/dashboards/officeCustomerDisplay";
+import {
+  getRegularCustomerBookingDetailCopy,
+  isRegularCleaningSlug,
+} from "@/features/dashboards/regularCustomerDisplay";
 import {
   labelForCustomerBookingStatus,
+  labelForCustomerPaymentStatus,
   type PaymentFailureReason,
 } from "@/features/bookings/server/paymentFailureDisplay";
-import {
-  labelForPaymentStatus,
-  toneForPaymentStatus,
-} from "@/features/bookings/server/statusLabels";
+import { toneForPaymentStatus } from "@/features/bookings/server/statusLabels";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { PaymentStatus } from "@/lib/database/types";
 
@@ -50,9 +60,19 @@ export function CustomerBookingStatusHero({
   assignedCleanerLabel,
   teamSupportLabel,
 }: Props) {
-  const airbnbDetail = isAirbnbCleaningSlug(serviceSlug)
+  const serviceDetail = isAirbnbCleaningSlug(serviceSlug)
     ? getAirbnbCustomerBookingDetailCopy()
-    : null;
+    : isOfficeCleaningSlug(serviceSlug)
+      ? getOfficeCustomerBookingDetailCopy()
+      : isMovingCleaningSlug(serviceSlug)
+        ? getMovingCustomerBookingDetailCopy()
+        : isDeepCleaningSlug(serviceSlug)
+          ? getDeepCustomerBookingDetailCopy()
+          : isCarpetCleaningSlug(serviceSlug)
+            ? getCarpetCustomerBookingDetailCopy()
+            : isRegularCleaningSlug(serviceSlug)
+              ? getRegularCustomerBookingDetailCopy()
+              : null;
   const hero = customerBookingStatusHero(status, paymentFailureReason, {
     deferredAssignmentMessage,
     serviceSlug,
@@ -67,8 +87,8 @@ export function CustomerBookingStatusHero({
         <h1 className="break-words text-lg font-semibold tracking-tight text-zinc-900 sm:text-xl">
           {serviceLabel}
         </h1>
-        {airbnbDetail ? (
-          <p className="mt-0.5 text-sm text-zinc-600">{airbnbDetail.serviceHeroTitle}</p>
+        {serviceDetail ? (
+          <p className="mt-0.5 text-sm text-zinc-600">{serviceDetail.serviceHeroTitle}</p>
         ) : null}
       </div>
 
@@ -80,7 +100,7 @@ export function CustomerBookingStatusHero({
         />
         {showPaymentChip ? (
           <StatusBadge
-            label={labelForPaymentStatus(paymentStatus)}
+            label={labelForCustomerPaymentStatus(paymentStatus)}
             tone={toneForPaymentStatus(paymentStatus)}
             variant="soft"
           />

@@ -8,7 +8,7 @@ export function labelForBookingStatus(status: BookingStatus): string {
     draft: "Draft",
     pending_payment: "Awaiting payment",
     confirmed: "Payment confirmed",
-    pending_assignment: "Finding cleaner",
+    pending_assignment: "Finding cleaner", // admin/internal; customers use CUSTOMER_FINDING_CLEANER_LABEL
     assigned: "Cleaner assigned",
     in_progress: "In progress",
     completed: "Completed",

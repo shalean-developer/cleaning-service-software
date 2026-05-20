@@ -16,8 +16,10 @@ import {
   AdminPaymentFailureInset,
 } from "@/components/dashboard/admin/AdminBookingDetailHero";
 import { AdminBookingEarningsAttentionBanner } from "@/components/dashboard/admin/AdminBookingEarningsAttentionBanner";
+import { AdminBookingDetailSectionNav } from "@/components/dashboard/admin/AdminBookingDetailSectionNav";
 import { AdminBookingOperationalSummary } from "@/components/dashboard/admin/AdminBookingOperationalSummary";
 import { AdminDetailSection } from "@/components/dashboard/admin/AdminDetailSection";
+import { PastOffersCollapsible } from "@/components/dashboard/PastOffersCollapsible";
 import { AdminTeamSupportOperationsPanel } from "@/components/dashboard/admin/AdminTeamSupportOperationsPanel";
 import { AdminTeamRosterFoundationPanel } from "@/components/dashboard/admin/AdminTeamRosterFoundationPanel";
 import { buildAdminOperationalLoadBadges } from "@/features/dashboards/server/adminTeamSupportObservation";
@@ -27,12 +29,33 @@ import {
   adminTeamSupportNeedsFollowUp,
   buildAdminBookingHeroContextRows,
   buildAdminBookingHeroEssentialRows,
+  partitionAdminAssignmentOffers,
 } from "@/features/dashboards/adminBookingDetailDisplay";
 import {
   getAirbnbAdminBookingDetailCopy,
   getAirbnbAdminListBadges,
   isAirbnbOperationalBooking,
 } from "@/features/dashboards/airbnbOperationalDisplay";
+import {
+  getDeepAdminBookingDetailCopy,
+  getDeepAdminListBadges,
+  isDeepOperationalBooking,
+} from "@/features/dashboards/deepOperationalDisplay";
+import {
+  getCarpetAdminBookingDetailCopy,
+  getCarpetAdminListBadges,
+  isCarpetOperationalBooking,
+} from "@/features/dashboards/carpetOperationalDisplay";
+import {
+  getMovingAdminBookingDetailCopy,
+  getMovingAdminListBadges,
+  isMovingOperationalBooking,
+} from "@/features/dashboards/movingOperationalDisplay";
+import {
+  getOfficeAdminBookingDetailCopy,
+  getOfficeAdminListBadges,
+  isOfficeOperationalBooking,
+} from "@/features/dashboards/officeOperationalDisplay";
 import { LifecycleTimeline } from "@/components/dashboard/LifecycleTimeline";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
@@ -78,11 +101,53 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
     serviceSlug: b.display.serviceSlug,
     serviceLabel: b.serviceLabel,
   });
-  const airbnbDetail = airbnb ? getAirbnbAdminBookingDetailCopy() : null;
+  const office = isOfficeOperationalBooking({
+    serviceSlug: b.display.serviceSlug,
+    serviceLabel: b.serviceLabel,
+  });
+  const moving = isMovingOperationalBooking({
+    serviceSlug: b.display.serviceSlug,
+    serviceLabel: b.serviceLabel,
+  });
+  const deep = isDeepOperationalBooking({
+    serviceSlug: b.display.serviceSlug,
+    serviceLabel: b.serviceLabel,
+  });
+  const carpet = isCarpetOperationalBooking({
+    serviceSlug: b.display.serviceSlug,
+    serviceLabel: b.serviceLabel,
+  });
+  const opsDetail = airbnb
+    ? getAirbnbAdminBookingDetailCopy()
+    : office
+      ? getOfficeAdminBookingDetailCopy()
+      : moving
+        ? getMovingAdminBookingDetailCopy()
+        : deep
+          ? getDeepAdminBookingDetailCopy()
+          : carpet
+            ? getCarpetAdminBookingDetailCopy()
+            : null;
 
   const heroBadges = [
     { label: labelForBookingStatus(b.status), tone: toneForBookingStatus(b.status) },
     ...getAirbnbAdminListBadges({
+      serviceLabel: b.serviceLabel,
+      scheduledStart: b.scheduledStart,
+    }).map((badge) => ({ label: badge.label, tone: badge.tone })),
+    ...getMovingAdminListBadges({
+      serviceLabel: b.serviceLabel,
+      scheduledStart: b.scheduledStart,
+    }).map((badge) => ({ label: badge.label, tone: badge.tone })),
+    ...getOfficeAdminListBadges({
+      serviceLabel: b.serviceLabel,
+      scheduledStart: b.scheduledStart,
+    }).map((badge) => ({ label: badge.label, tone: badge.tone })),
+    ...getDeepAdminListBadges({
+      serviceLabel: b.serviceLabel,
+      scheduledStart: b.scheduledStart,
+    }).map((badge) => ({ label: badge.label, tone: badge.tone })),
+    ...getCarpetAdminListBadges({
       serviceLabel: b.serviceLabel,
       scheduledStart: b.scheduledStart,
     }).map((badge) => ({ label: badge.label, tone: badge.tone })),
@@ -128,6 +193,8 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
     priceLabel: b.priceLabel,
   });
 
+  const { activeOffers, pastOffers } = partitionAdminAssignmentOffers(b.offers);
+
   const contextRows = buildAdminBookingHeroContextRows({
     serviceSlug: b.display.serviceSlug,
     serviceLabel: b.serviceLabel,
@@ -147,7 +214,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
   return (
     <AdminDashboardShell
       title="Booking"
-      subtitle={airbnbDetail?.shellSubtitle ?? b.serviceLabel}
+      subtitle={opsDetail?.shellSubtitle ?? b.serviceLabel}
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
       <Link
@@ -158,19 +225,22 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
       </Link>
 
       <section className={ADMIN_DETAIL_STACK_CLASS}>
+        <AdminBookingDetailSectionNav />
+
+        <div id="admin-booking-overview" className="scroll-mt-20 space-y-2.5 sm:space-y-3">
         <AdminBookingDetailHero
-          serviceLabel={airbnbDetail?.heroHeadline ?? b.serviceLabel}
+          serviceLabel={opsDetail?.heroHeadline ?? b.serviceLabel}
           bookingId={b.id}
           badges={heroBadges}
           essentialRows={essentialRows}
           contextRows={contextRows}
-          contextSectionTitle={airbnbDetail?.contextSectionTitle}
+          contextSectionTitle={opsDetail?.contextSectionTitle}
           paymentAlert={
             paymentFailed ? (
               <AdminPaymentFailureInset>
-                {airbnbDetail?.paymentFailedNote ??
+                {opsDetail?.paymentFailedNote ??
                   "Payment did not complete. No assignment or earnings until payment succeeds."}
-                {!airbnbDetail && b.paymentFailureReason === "checkout_expired"
+                {!opsDetail && b.paymentFailureReason === "checkout_expired"
                   ? " Checkout expired before Paystack confirmed."
                   : null}
               </AdminPaymentFailureInset>
@@ -196,7 +266,9 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
         {b.deferredDispatch && deferredAttention ? (
           <AdminDeferredDispatchPanel deferredDispatch={b.deferredDispatch} />
         ) : null}
+        </div>
 
+        <div id="admin-booking-assignment" className="scroll-mt-20 space-y-2.5 sm:space-y-3">
         <AdminOperationalStatusPanel bookingId={b.id} operational={b.operational} />
 
         {b.observation.isTwoCleanerRequest && teamSupportFollowUp ? (
@@ -243,34 +315,63 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
         <AdminTeamRosterFoundationPanel rows={b.teamRosterFoundation} />
 
         <AdminDetailSection
-          title={airbnbDetail?.assignmentSectionTitle ?? "Assignment offers"}
+          title={opsDetail?.assignmentSectionTitle ?? "Assignment offers"}
           collapsible
         >
           {b.offers.length === 0 ? (
             <p className="text-sm text-zinc-600">No offers recorded.</p>
           ) : (
-            <ul className="space-y-1.5 text-sm">
-              {b.offers.map((o) => (
-                <li
-                  key={o.id}
-                  className="flex min-w-0 flex-wrap items-center gap-2 border-b border-zinc-100 py-2 last:border-0"
-                >
-                  <StatusBadge
-                    label={labelForOfferStatus(o.status)}
-                    tone={toneForOfferStatus(o.status)}
-                  />
-                  <span className="min-w-0 break-words">
-                    {o.cleanerName ?? o.cleanerId.slice(0, 8)}
-                  </span>
-                  <span className="text-xs text-zinc-500">
-                    {new Date(o.offeredAt).toLocaleString("en-ZA")}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <>
+              {activeOffers.length > 0 ? (
+                <ul className="space-y-1.5 text-sm">
+                  {activeOffers.map((o) => (
+                    <li
+                      key={o.id}
+                      className="flex min-w-0 flex-wrap items-center gap-2 border-b border-zinc-100 py-2 last:border-0"
+                    >
+                      <StatusBadge
+                        label={labelForOfferStatus(o.status)}
+                        tone={toneForOfferStatus(o.status)}
+                      />
+                      <span className="min-w-0 break-words">
+                        {o.cleanerName ?? o.cleanerId.slice(0, 8)}
+                      </span>
+                      <span className="text-xs text-zinc-500">
+                        {new Date(o.offeredAt).toLocaleString("en-ZA")}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-zinc-600">No open offers.</p>
+              )}
+              <PastOffersCollapsible count={pastOffers.length}>
+                <ul className="space-y-1.5 text-sm">
+                  {pastOffers.map((o) => (
+                    <li
+                      key={o.id}
+                      className="flex min-w-0 flex-wrap items-center gap-2 border-b border-zinc-100 py-2 last:border-0"
+                    >
+                      <StatusBadge
+                        label={labelForOfferStatus(o.status)}
+                        tone={toneForOfferStatus(o.status)}
+                      />
+                      <span className="min-w-0 break-words">
+                        {o.cleanerName ?? o.cleanerId.slice(0, 8)}
+                      </span>
+                      <span className="text-xs text-zinc-500">
+                        {new Date(o.offeredAt).toLocaleString("en-ZA")}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </PastOffersCollapsible>
+            </>
           )}
         </AdminDetailSection>
+        </div>
 
+        <div id="admin-booking-payments" className="scroll-mt-20 space-y-2.5 sm:space-y-3">
         <AdminDetailSection title="Earnings & payments" collapsible>
           <section className="space-y-4">
             <section>
@@ -330,11 +431,13 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
             </section>
           </section>
         </AdminDetailSection>
+        </div>
 
+        <div id="admin-booking-timeline" className="scroll-mt-20 space-y-2.5 sm:space-y-3">
         <AdminDetailSection
           title="Lifecycle"
           description={
-            airbnbDetail?.lifecycleDescription ??
+            opsDetail?.lifecycleDescription ??
             "Customer-visible progress from payment through completion."
           }
           collapsible
@@ -398,7 +501,9 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
         >
           <AdminOperationalTimeline audits={b.operationalAudits} />
         </AdminDetailSection>
+        </div>
 
+        <div id="admin-booking-records" className="scroll-mt-20 space-y-2.5 sm:space-y-3">
         <AdminDetailSection
           title="Notifications"
           description="Outbox delivery for this booking (read-only)."
@@ -406,6 +511,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
         >
           <AdminBookingNotificationsSection notifications={b.notifications} />
         </AdminDetailSection>
+        </div>
       </section>
     </AdminDashboardShell>
   );

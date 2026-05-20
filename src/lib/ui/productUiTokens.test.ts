@@ -6,6 +6,8 @@ import {
   UI_DETAILS_SUMMARY_CLASS,
   UI_FILTER_CHIP_NAV_CLASS,
   UI_INTERACTIVE_LIST_CARD_CLASS,
+  UI_LINK_SECONDARY_ACTION_CLASS,
+  UI_SECTION_STACK_CLASS,
 } from "./productUiTokens";
 
 describe("productUiTokens", () => {
@@ -29,5 +31,15 @@ describe("productUiTokens", () => {
     expect(UI_FILTER_CHIP_NAV_CLASS).toContain("overflow-x-auto");
     expect(UI_FILTER_CHIP_NAV_CLASS).toContain("sm:flex-wrap");
     expect(UI_FILTER_CHIP_NAV_CLASS).toContain("sm:overflow-visible");
+  });
+
+  it("tightens mobile section stacks while preserving sm rhythm", () => {
+    expect(UI_SECTION_STACK_CLASS).toContain("space-y-2.5");
+    expect(UI_SECTION_STACK_CLASS).toContain("sm:space-y-3");
+  });
+
+  it("defines quiet link-style secondary actions", () => {
+    expect(UI_LINK_SECONDARY_ACTION_CLASS).toContain("underline-offset-2");
+    expect(UI_LINK_SECONDARY_ACTION_CLASS).toContain("text-zinc-600");
   });
 });

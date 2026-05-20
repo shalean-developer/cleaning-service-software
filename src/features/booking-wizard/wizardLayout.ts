@@ -2,18 +2,18 @@ import type { WizardStep } from "./types";
 
 /** Centered booking page shell shared across wizard steps. */
 export const WIZARD_SHELL_BASE =
-  "mx-auto flex min-h-screen w-full flex-col overflow-x-clip bg-zinc-50 px-4 py-6";
+  "mx-auto flex min-h-screen w-full flex-col overflow-x-clip bg-zinc-50 px-4 py-5 md:py-6";
 
 /** Primary picker and review steps — wide centered column. */
 export const WIZARD_SHELL_MAX_DESKTOP = "max-w-3xl";
 
 /** Literal wide shell for Tailwind scan + service/schedule parity (do not join dynamically). */
 export const WIZARD_SHELL_WIDE_CLASS =
-  "mx-auto flex min-h-screen w-full max-w-3xl flex-col overflow-x-clip bg-zinc-50 px-4 py-6";
+  "mx-auto flex min-h-screen w-full max-w-3xl flex-col overflow-x-clip bg-zinc-50 px-4 py-5 md:py-6";
 
 /** Details/cleaner two-column layout — slightly wider for main + summary sidebar. */
 export const WIZARD_SHELL_WIDE_WITH_SIDEBAR_CLASS =
-  "mx-auto flex min-h-screen w-full max-w-5xl flex-col overflow-x-clip bg-zinc-50 px-4 py-6";
+  "mx-auto flex min-h-screen w-full max-w-5xl flex-col overflow-x-clip bg-zinc-50 px-4 py-5 md:py-6";
 
 /** Fallback narrow column for steps outside the main seven-step flow. */
 export const WIZARD_SHELL_MAX_MOBILE = "max-w-lg";
@@ -60,10 +60,17 @@ export const WIZARD_NAV_IN_STICKY_FOOTER_CLASS = "mt-0 md:mt-6";
 export const WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS = "scroll-mb-[calc(7.5rem+env(safe-area-inset-bottom,0px))]";
 
 /** Page title block below the stepper. */
-export const WIZARD_PAGE_HEADER_CLASS = "mb-3 md:mb-4";
+export const WIZARD_PAGE_HEADER_CLASS = "mb-2.5 md:mb-3.5";
 
 /** Context chip above step content (schedule through review). */
-export const WIZARD_CONTEXT_STRIP_MB_CLASS = "mb-3 md:mb-4";
+export const WIZARD_CONTEXT_STRIP_MB_CLASS = "mb-2.5 md:mb-3.5";
+
+/** Reduces layout shift between wizard steps (presentation only). */
+export const WIZARD_STEP_CARD_MIN_HEIGHT_CLASS = "min-h-[17rem] md:min-h-[18rem]";
+
+/** Lightweight step content mount polish (no animation libraries). */
+export const WIZARD_STEP_CONTENT_TRANSITION_CLASS =
+  "transition-opacity duration-150 ease-out motion-reduce:transition-none";
 
 const WIDE_DESKTOP_STEPS: WizardStep[] = [
   "service",
@@ -144,7 +151,7 @@ export function getWizardShellClass(step: WizardStep): string {
 
 export function getWizardCardClass(step: WizardStep): string {
   void step;
-  return "w-full rounded-2xl border border-zinc-200 bg-white shadow-sm p-4 md:p-6";
+  return `w-full rounded-2xl border border-zinc-200 bg-white shadow-sm p-4 md:p-5 ${WIZARD_STEP_CARD_MIN_HEIGHT_CLASS}`;
 }
 
 /** Keeps stepper, card, and nav on the same horizontal track as the shell. */
