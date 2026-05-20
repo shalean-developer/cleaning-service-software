@@ -11,10 +11,13 @@ import {
   getCheckoutGuestReadyNote,
   getCheckoutWhatHappensNext,
 } from "../airbnbCleaningDisplay";
+import { showFrequencyForService } from "../frequencyVisibility";
 import {
   getRecurringPaymentExplanation,
   isRecurringFrequency,
 } from "../recurringDisplay";
+import { isOfficeCleaningSlug } from "../officeCleaningDisplay";
+import type { OfficeSizeTier, OfficeWorkstationTier } from "../officeSizing";
 import { formatCompactBedBathSummary, formatSuburbLocation } from "../reviewDisplay";
 import { LockIcon } from "./wizardIcons";
 import { WizardStepHeading } from "./WizardStepHeading";
@@ -29,6 +32,8 @@ type Props = {
   bedrooms: number;
   bathrooms: number;
   propertySizeSqm: number | null;
+  officeSizeTier?: OfficeSizeTier | null;
+  officeWorkstations?: OfficeWorkstationTier | null;
   frequency: PricingFrequency;
   quote: PricingBreakdown;
   customerEmail: string;
@@ -87,25 +92,34 @@ export function CheckoutStepPanel({
   bedrooms,
   bathrooms,
   propertySizeSqm,
+  officeSizeTier = null,
+  officeWorkstations = null,
   frequency,
   quote,
   customerEmail,
 }: Props) {
   const scheduleLabel = formatDateLabel(date, time) || "\u2014";
   const locationLabel = formatSuburbLocation(suburb, city);
+  const officeSizing = isOfficeCleaningSlug(serviceSlug)
+    ? { officeSizeTier, officeWorkstations }
+    : null;
   const bedBathSummary = formatCompactBedBathSummary(
     serviceSlug,
     bedrooms,
     bathrooms,
     propertySizeSqm,
+    officeSizing,
   );
-  const recurringPaymentNote = getRecurringPaymentExplanation(frequency, serviceSlug);
+  const showFrequency = showFrequencyForService(serviceSlug);
+  const recurringPaymentNote = showFrequency
+    ? getRecurringPaymentExplanation(frequency, serviceSlug)
+    : null;
   const guestReadyNote = getCheckoutGuestReadyNote(serviceSlug);
   const whatHappensNext = getCheckoutWhatHappensNext(serviceSlug);
   const amountHelper = getCheckoutAmountHelper(
     serviceSlug,
     customerEmail,
-    isRecurringFrequency(frequency) ? recurringPaymentNote : null,
+    showFrequency && isRecurringFrequency(frequency) ? recurringPaymentNote : null,
   );
 
   const snapshotMeta = [bedBathSummary, locationLabel !== "\u2014" ? locationLabel : null].filter(

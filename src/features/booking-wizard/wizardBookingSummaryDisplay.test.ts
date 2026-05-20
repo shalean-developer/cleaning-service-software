@@ -88,24 +88,30 @@ describe("wizardBookingSummaryDisplay", () => {
     });
 
     expect(snapshot.secondaryRows.some((r) => r.label === "Property")).toBe(true);
-    expect(snapshot.secondaryRows.some((r) => r.label === "Visit timing")).toBe(true);
+    expect(snapshot.secondaryRows.some((r) => r.label === "Visit timing")).toBe(false);
     expect(snapshot.secondaryRows.some((r) => r.label === "Inspection extras")).toBe(true);
     expect(snapshot.secondaryRows.some((r) => r.label === "Turnover cadence")).toBe(false);
   });
 
-  it("includes home location and detailed extras for deep-cleaning", () => {
+  it("includes home location, extra rooms, and detailed extras for deep-cleaning", () => {
     const snapshot = buildWizardBookingSummarySnapshot({
       ...baseInput,
       serviceLabel: "Deep Cleaning",
       serviceSlug: "deep-cleaning",
       frequency: "once",
+      extraRooms: 2,
       addons: ["inside-oven"],
       suburb: "Sea Point",
       city: "Cape Town",
     });
 
     expect(snapshot.secondaryRows.some((r) => r.label === "Home")).toBe(true);
-    expect(snapshot.secondaryRows.some((r) => r.label === "Visit timing")).toBe(true);
+    expect(snapshot.secondaryRows.some((r) => r.label === "Visit timing")).toBe(false);
+    expect(
+      snapshot.secondaryRows.some(
+        (r) => r.label === "Extra rooms" && r.value.includes("2 extra"),
+      ),
+    ).toBe(true);
     expect(snapshot.secondaryRows.some((r) => r.label === "Detailed cleaning extras")).toBe(true);
     expect(snapshot.secondaryRows.some((r) => r.label === "Turnover extras")).toBe(false);
     expect(snapshot.secondaryRows.some((r) => r.label === "Inspection extras")).toBe(false);

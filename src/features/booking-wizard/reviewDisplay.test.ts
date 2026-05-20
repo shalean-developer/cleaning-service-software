@@ -5,6 +5,7 @@ import {
   formatExtraRoomsSummary,
   formatCleanerPreference,
   formatSelectedAddons,
+  buildCompactReviewHeroSegments,
   formatSuburbLocation,
   getSelectedAddonLabels,
   getEquipmentSupplyCustomerLabel,
@@ -33,20 +34,25 @@ describe("reviewDisplay", () => {
 
   it("formats add-ons in catalog display order", () => {
     expect(formatSelectedAddons([])).toBe("None");
-    expect(formatSelectedAddons(["laundry", "balcony"])).toBe("Laundry, Balcony");
-    expect(getSelectedAddonLabels(["laundry", "balcony"])).toEqual(["Laundry", "Balcony"]);
+    expect(formatSelectedAddons(["laundry", "balcony"])).toBe("Laundry, Balcony cleaning");
+    expect(getSelectedAddonLabels(["laundry", "balcony"])).toEqual(["Laundry", "Balcony cleaning"]);
   });
 
   it("formats compact bed and bath summary", () => {
     expect(formatCompactBedBathSummary("regular-cleaning", 2, 1, null)).toBe("2 beds · 1 bath");
-    expect(formatCompactBedBathSummary("office-cleaning", 0, 0, 120)).toBe("120 sqm");
+    expect(
+      formatCompactBedBathSummary("office-cleaning", 0, 0, 120, {
+        officeSizeTier: "medium",
+        officeWorkstations: "15",
+      }),
+    ).toBe("Medium office · 15 workstations");
   });
 
   it("formats regular-cleaning add-ons with service-specific labels", () => {
     expect(
       formatSelectedAddons(["laundry", "inside-oven"], "regular-cleaning"),
     ).toBe("Inside oven, Ironing & Laundry");
-    expect(formatSelectedAddons(["balcony"], "regular-cleaning")).toBe("Balcony");
+    expect(formatSelectedAddons(["balcony"], "regular-cleaning")).toBe("Balcony cleaning");
   });
 
   it("formats cleaner preference", () => {
@@ -56,7 +62,22 @@ describe("reviewDisplay", () => {
 
   it("formats suburb and city", () => {
     expect(formatSuburbLocation("Sea Point", "Cape Town")).toBe("Sea Point, Cape Town");
+    expect(formatSuburbLocation("Kenilworth", "Kenilworth")).toBe("Kenilworth");
     expect(formatSuburbLocation("", "")).toBe("\u2014");
+  });
+
+  it("builds compact review hero without duplicates or empty segments", () => {
+    expect(
+      buildCompactReviewHeroSegments(
+        "Wed, 20 May 2026, 14:00",
+        "Kenilworth",
+        "Kenilworth",
+        "Large office",
+        null,
+        "",
+        "\u2014",
+      ),
+    ).toEqual(["Wed, 20 May 2026, 14:00", "Kenilworth", "Large office"]);
   });
 
   it("formats extra rooms summary", () => {
@@ -112,10 +133,13 @@ describe("reviewDisplay", () => {
 
   it("formats office property size instead of beds and baths", () => {
     expect(
-      formatBedroomBathroomSummary("office-cleaning", 0, 0, 120),
+      formatBedroomBathroomSummary("office-cleaning", 0, 0, 120, {
+        officeSizeTier: "medium",
+        officeWorkstations: "15",
+      }),
     ).toEqual({
       bedroomsLabel: null,
-      bathroomsLabel: "120 sqm",
+      bathroomsLabel: "Medium office · 15 workstations",
     });
   });
 });

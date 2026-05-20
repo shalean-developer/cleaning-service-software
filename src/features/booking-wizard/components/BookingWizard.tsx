@@ -41,6 +41,9 @@ import {
   WIZARD_STEP_CONTENT_TRANSITION_CLASS,
   WIZARD_STICKY_FOOTER_SUMMARY_SLOT_CLASS,
 } from "../wizardLayout";
+import { showWizardContextStripForService } from "../officeCleaningDisplay";
+import { showFrequencyForService } from "../frequencyVisibility";
+import { patchOfficeSizing } from "../officeSizing";
 import { buildWizardBookingSummarySnapshot } from "../wizardBookingSummaryDisplay";
 import { WizardBookingSummaryLayout } from "./WizardBookingSummaryLayout";
 import { WizardStepper } from "./WizardStepper";
@@ -366,6 +369,8 @@ export function BookingWizard({
         bathrooms: state.bathrooms,
         extraRooms: state.extraRooms,
         propertySizeSqm: state.propertySizeSqm,
+        officeSizeTier: state.officeSizeTier,
+        officeWorkstations: state.officeWorkstations,
         cleaningIntensity: state.cleaningIntensity,
         equipmentSupply: state.equipmentSupply,
         requestedTeamSize: state.requestedTeamSize,
@@ -387,6 +392,8 @@ export function BookingWizard({
       state.bathrooms,
       state.extraRooms,
       state.propertySizeSqm,
+      state.officeSizeTier,
+      state.officeWorkstations,
       state.cleaningIntensity,
       state.equipmentSupply,
       state.requestedTeamSize,
@@ -404,18 +411,24 @@ export function BookingWizard({
     state.step === "cleaner"
       ? getWizardCleanerFootnote(state.serviceSlug)
       : undefined;
-  const showWizardFrequency = ["details", "cleaner", "review", "checkout"].includes(
-    state.step,
-  );
+  const showWizardFrequency =
+    showFrequencyForService(state.serviceSlug) &&
+    ["datetime", "details", "cleaner", "review", "checkout"].includes(state.step);
 
   const wizardContextStrip =
-    state.serviceSlug && state.step !== "service" && state.step !== "checkout" ? (
+    state.serviceSlug &&
+    showWizardContextStripForService(state.serviceSlug) &&
+    state.step !== "service" &&
+    state.step !== "location" &&
+    state.step !== "checkout" ? (
       <WizardContextStrip
         serviceLabel={serviceLabel}
         serviceSlug={state.serviceSlug}
         bedrooms={state.bedrooms}
         bathrooms={state.bathrooms}
         propertySizeSqm={state.propertySizeSqm}
+        officeSizeTier={state.officeSizeTier}
+        officeWorkstations={state.officeWorkstations}
         frequency={state.frequency}
         showFrequency={showWizardFrequency}
       />
@@ -479,20 +492,22 @@ export function BookingWizard({
             serviceSlug={state.serviceSlug}
             date={state.date}
             time={state.time}
+            frequency={state.frequency}
             minDate={minDate}
             bookingBounds={bookingWindowBounds}
             envMismatchWarning={bookingWindowEnvMismatchWarning}
             dateError={stepErrors.date}
             timeError={stepErrors.time}
+            frequencyError={stepErrors.frequency}
             onDateChange={(date) => patch({ date })}
             onTimeChange={(time) => patch({ time })}
+            onFrequencyChange={(frequency) => patch({ frequency })}
           />
           </>
         ) : null}
 
         {state.step === "location" ? (
           <>
-            {wizardContextStrip}
             <WizardStepHeading title="Location" />
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 [&>label]:mb-0">
               <Field label="Street address" error={stepErrors.addressLine1}>
@@ -558,10 +573,11 @@ export function BookingWizard({
               bathrooms={state.bathrooms}
               extraRooms={state.extraRooms}
               propertySizeSqm={state.propertySizeSqm}
+              officeSizeTier={state.officeSizeTier}
+              officeWorkstations={state.officeWorkstations}
               cleaningIntensity={state.cleaningIntensity}
               equipmentSupply={state.equipmentSupply}
               requestedTeamSize={state.requestedTeamSize}
-              frequency={state.frequency}
               addons={state.addons}
               carpetStainSeverity={state.carpetStainSeverity}
               carpetPetStains={state.carpetPetStains}
@@ -572,10 +588,43 @@ export function BookingWizard({
               onBathroomsChange={(bathrooms) => patch({ bathrooms })}
               onExtraRoomsChange={(extraRooms) => patch({ extraRooms })}
               onPropertySizeSqmChange={(propertySizeSqm) => patch({ propertySizeSqm })}
+              onOfficeSizeChange={(officeSizeTier) => {
+                setState((prev) => ({
+                  ...prev,
+                  ...mergeWithQuoteInvalidation(
+                    prev,
+                    patchOfficeSizing(
+                      { officeSizeTier },
+                      {
+                        officeSizeTier: prev.officeSizeTier,
+                        officeWorkstations: prev.officeWorkstations,
+                      },
+                    ),
+                  ),
+                }));
+                setStepErrors({});
+                setApiError(null);
+              }}
+              onOfficeWorkstationsChange={(officeWorkstations) => {
+                setState((prev) => ({
+                  ...prev,
+                  ...mergeWithQuoteInvalidation(
+                    prev,
+                    patchOfficeSizing(
+                      { officeWorkstations },
+                      {
+                        officeSizeTier: prev.officeSizeTier,
+                        officeWorkstations: prev.officeWorkstations,
+                      },
+                    ),
+                  ),
+                }));
+                setStepErrors({});
+                setApiError(null);
+              }}
               onCleaningIntensityChange={(cleaningIntensity) => patch({ cleaningIntensity })}
               onEquipmentSupplyChange={(equipmentSupply) => patch({ equipmentSupply })}
               onRequestedTeamSizeChange={(requestedTeamSize) => patch({ requestedTeamSize })}
-              onFrequencyChange={(frequency) => patch({ frequency })}
               onAddonsChange={(addons) => patch({ addons })}
               onCarpetStainSeverityChange={(carpetStainSeverity) =>
                 patch({ carpetStainSeverity })
@@ -647,6 +696,8 @@ export function BookingWizard({
                   equipmentSupply={state.equipmentSupply}
                   requestedTeamSize={state.requestedTeamSize}
                   propertySizeSqm={state.propertySizeSqm}
+                  officeSizeTier={state.officeSizeTier}
+                  officeWorkstations={state.officeWorkstations}
                   frequency={state.frequency}
                   addons={state.addons}
                   cleanerPreferenceMode={state.cleanerPreferenceMode}
@@ -673,6 +724,8 @@ export function BookingWizard({
             bedrooms={state.bedrooms}
             bathrooms={state.bathrooms}
             propertySizeSqm={state.propertySizeSqm}
+            officeSizeTier={state.officeSizeTier}
+            officeWorkstations={state.officeWorkstations}
             frequency={state.frequency}
             quote={state.quote}
             customerEmail={customerEmail}

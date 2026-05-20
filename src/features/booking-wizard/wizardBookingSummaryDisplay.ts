@@ -1,3 +1,4 @@
+import { serviceSupportsExtraRooms } from "@/features/pricing/server/catalog";
 import { calculateQuote } from "@/features/pricing/server/calculateQuote";
 import type {
   AddonSlug,
@@ -7,6 +8,7 @@ import type {
   ServiceSlug,
 } from "@/features/pricing/server/types";
 import { wizardStateToPricingInput } from "./buildMetadata";
+import { showFrequencyForService } from "./frequencyVisibility";
 import {
   getWizardSummaryAddonsLabel,
   getWizardSummaryFrequencyLabel,
@@ -17,6 +19,8 @@ import { isDeepCleaningSlug } from "./deepCleaningDisplay";
 import { isCarpetCleaningSlug } from "./carpetCleaningDisplay";
 import { isMovingCleaningSlug } from "./movingCleaningDisplay";
 import { isOfficeCleaningSlug } from "./officeCleaningDisplay";
+import type { OfficeSizeTier, OfficeWorkstationTier } from "./officeSizing";
+import { deriveOfficePropertySizeSqm } from "./officeSizing";
 import { formatDateLabel } from "./format";
 import { formatSuburbLocation } from "./reviewDisplay";
 import {
@@ -56,6 +60,8 @@ export type WizardBookingSummaryInput = {
   bathrooms: number;
   extraRooms: number;
   propertySizeSqm: number | null;
+  officeSizeTier?: OfficeSizeTier | null;
+  officeWorkstations?: OfficeWorkstationTier | null;
   cleaningIntensity: CleaningIntensity;
   equipmentSupply: EquipmentSupply;
   requestedTeamSize: 1 | 2;
@@ -99,11 +105,13 @@ function buildSecondaryRows(input: WizardBookingSummaryInput): WizardSummaryRow[
   }
 
   if (isResidentialSummarySlug(input.serviceSlug) || showWorkspaceSummarySecondaryRows(input.serviceSlug)) {
-    pushRow(
-      rows,
-      getWizardSummaryFrequencyLabel(input.serviceSlug),
-      getFrequencyLabel(input.frequency, input.serviceSlug),
-    );
+    if (showFrequencyForService(input.serviceSlug)) {
+      pushRow(
+        rows,
+        getWizardSummaryFrequencyLabel(input.serviceSlug),
+        getFrequencyLabel(input.frequency, input.serviceSlug),
+      );
+    }
 
     const addonsLabel = formatSelectedAddons(input.addons, input.serviceSlug);
     if (addonsLabel !== "None") {
@@ -111,13 +119,15 @@ function buildSecondaryRows(input: WizardBookingSummaryInput): WizardSummaryRow[
     }
   }
 
+  if (input.serviceSlug && serviceSupportsExtraRooms(input.serviceSlug)) {
+    const extraRooms = formatExtraRoomsSummary(input.extraRooms);
+    pushRow(rows, "Extra rooms", extraRooms);
+  }
+
   if (input.serviceSlug === "regular-cleaning") {
     if (input.cleaningIntensity !== "standard") {
       pushRow(rows, "Intensity", getCleaningIntensityLabel(input.cleaningIntensity));
     }
-
-    const extraRooms = formatExtraRoomsSummary(input.extraRooms);
-    pushRow(rows, "Extra rooms", extraRooms);
 
     const teamSupport = getTeamSupportReviewSummaryLabel(input.requestedTeamSize);
     pushRow(rows, "Team", teamSupport);
@@ -142,11 +152,19 @@ export function buildWizardBookingSummarySnapshot(
   input: WizardBookingSummaryInput,
 ): WizardBookingSummarySnapshot {
   const when = formatDateLabel(input.date, input.time) || null;
+  const officeSizing = isOfficeCleaningSlug(input.serviceSlug)
+    ? {
+        officeSizeTier: input.officeSizeTier ?? null,
+        officeWorkstations: input.officeWorkstations ?? null,
+      }
+    : null;
+
   const home = formatCompactBedBathSummary(
     input.serviceSlug,
     input.bedrooms,
     input.bathrooms,
     input.propertySizeSqm,
+    officeSizing,
   );
 
   const snapshot: WizardBookingSummarySnapshot = {
@@ -188,7 +206,12 @@ export function getWizardEstimatedTotalCents(input: WizardBookingSummaryInput): 
     cleaningIntensity: input.cleaningIntensity,
     equipmentSupply: input.equipmentSupply,
     requestedTeamSize: input.requestedTeamSize,
-    propertySizeSqm: input.propertySizeSqm,
+    propertySizeSqm: isOfficeCleaningSlug(input.serviceSlug)
+      ? (deriveOfficePropertySizeSqm(
+          input.officeSizeTier ?? null,
+          input.officeWorkstations ?? null,
+        ) ?? input.propertySizeSqm)
+      : input.propertySizeSqm,
     frequency: input.frequency,
     addons: input.addons,
   });

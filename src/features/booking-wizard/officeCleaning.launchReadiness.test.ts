@@ -34,6 +34,8 @@ function officeState(
     serviceSlug: OFFICE,
     bedrooms: 0,
     bathrooms: 0,
+    officeSizeTier: "medium",
+    officeWorkstations: "15",
     propertySizeSqm: 120,
     frequency: "once",
     addons: [],
@@ -129,12 +131,15 @@ describe("Office Cleaning launch readiness", () => {
   });
 
   describe("validation", () => {
-    it("requires property size sqm", () => {
-      const missing = validateDetailsStep(officeState({ propertySizeSqm: null }));
+    it("requires office size and workstation selection", () => {
+      const missing = validateDetailsStep(
+        officeState({ officeSizeTier: null, officeWorkstations: null, propertySizeSqm: null }),
+      );
       expect(missing.valid).toBe(false);
-      expect(missing.errors.propertySizeSqm).toBeDefined();
+      expect(missing.errors.officeSizeTier).toBeDefined();
+      expect(missing.errors.officeWorkstations).toBeDefined();
 
-      const valid = validateDetailsStep(officeState({ propertySizeSqm: 80 }));
+      const valid = validateDetailsStep(officeState());
       expect(valid.valid).toBe(true);
     });
   });
@@ -152,6 +157,8 @@ describe("Office Cleaning launch readiness", () => {
         bathrooms: 0,
         extraRooms: 0,
         propertySizeSqm: 120,
+        officeSizeTier: "medium",
+        officeWorkstations: "15",
         cleaningIntensity: "standard",
         equipmentSupply: "customer",
         requestedTeamSize: 1,
@@ -164,7 +171,7 @@ describe("Office Cleaning launch readiness", () => {
       expect(snapshot.secondaryRows.some((r) => r.label === "Commercial extras")).toBe(true);
       expect(snapshot.secondaryRows.some((r) => r.label === "Intensity")).toBe(false);
       expect(snapshot.secondaryRows.some((r) => r.label === "Team")).toBe(false);
-      expect(snapshot.home).toBe("120 sqm");
+      expect(snapshot.home).toBe("Medium office · 15 workstations");
     });
   });
 

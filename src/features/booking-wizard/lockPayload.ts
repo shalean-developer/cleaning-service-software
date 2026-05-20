@@ -1,3 +1,4 @@
+import { serviceSupportsExtraRooms } from "@/features/pricing/server/catalog";
 import { buildWizardBookingMetadata, wizardStateToPricingInput } from "./buildMetadata";
 import { buildWizardSlot } from "./slot";
 import type { BookingWizardState } from "./types";
@@ -53,14 +54,17 @@ export function buildLockRequestPayload(
     serviceSlug: state.serviceSlug,
     bedrooms: state.bedrooms,
     bathrooms: state.bathrooms,
-    extraRooms: state.serviceSlug === "regular-cleaning" ? state.extraRooms : 0,
+    extraRooms:
+      state.serviceSlug && serviceSupportsExtraRooms(state.serviceSlug)
+        ? state.extraRooms
+        : 0,
     cleaningIntensity:
       state.serviceSlug === "regular-cleaning" ? state.cleaningIntensity : "standard",
     equipmentSupply:
       state.serviceSlug === "regular-cleaning" ? state.equipmentSupply : "customer",
     requestedTeamSize:
       state.serviceSlug === "regular-cleaning" ? state.requestedTeamSize : 1,
-    propertySizeSqm: state.propertySizeSqm,
+    propertySizeSqm: pricingInput.propertySizeSqm ?? null,
     frequency: state.frequency,
     addons: state.addons,
     scheduledStart: slot.scheduledStart,

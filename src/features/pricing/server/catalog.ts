@@ -24,7 +24,7 @@ export type ServicePricingRule = {
   baseCents: number;
   extraBedroomCents: number;
   extraBathroomCents: number;
-  /** Per additional non-bedroom/bathroom space (regular cleaning only). */
+  /** Per additional non-bedroom/bathroom space (regular, deep, move in/out). */
   extraRoomCents?: number;
   /** When true, bedrooms/bathrooms may be 0 (office). */
   allowZeroRooms?: boolean;
@@ -52,6 +52,7 @@ export const SERVICE_CATALOG: Record<ServiceSlug, ServicePricingRule> = {
     baseCents: 85_000,
     extraBedroomCents: 15_000,
     extraBathroomCents: 12_000,
+    extraRoomCents: 7_000,
     fixedCleanerPayout: true,
   },
   "moving-cleaning": {
@@ -60,6 +61,7 @@ export const SERVICE_CATALOG: Record<ServiceSlug, ServicePricingRule> = {
     baseCents: 120_000,
     extraBedroomCents: 20_000,
     extraBathroomCents: 15_000,
+    extraRoomCents: 7_000,
     fixedCleanerPayout: true,
   },
   "airbnb-cleaning": {
@@ -112,11 +114,106 @@ export const ADDON_CATALOG: Record<
     amountCents: 20_000,
   },
   laundry: { slug: "laundry", label: "Laundry", amountCents: 12_000 },
-  balcony: { slug: "balcony", label: "Balcony", amountCents: 10_000 },
+  balcony: { slug: "balcony", label: "Balcony cleaning", amountCents: 10_000 },
   "mattress-cleaning": {
     slug: "mattress-cleaning",
     label: "Mattress cleaning",
     amountCents: 24_000,
+  },
+  "carpet-addon": {
+    slug: "carpet-addon",
+    label: "Carpet cleaning",
+    amountCents: 20_000,
+  },
+  "ceiling-cleaning": {
+    slug: "ceiling-cleaning",
+    label: "Ceiling cleaning",
+    amountCents: 10_000,
+  },
+  "garage-cleaning": {
+    slug: "garage-cleaning",
+    label: "Garage cleaning",
+    amountCents: 10_000,
+  },
+  "outside-windows": {
+    slug: "outside-windows",
+    label: "Outside windows",
+    amountCents: 20_000,
+  },
+  "couch-cleaning": {
+    slug: "couch-cleaning",
+    label: "Couch cleaning",
+    amountCents: 15_000,
+  },
+  "restocking-assistance": {
+    slug: "restocking-assistance",
+    label: "Restocking assistance",
+    amountCents: 12_000,
+  },
+  "patio-outdoor-sweep": {
+    slug: "patio-outdoor-sweep",
+    label: "Patio/outdoor sweep",
+    amountCents: 10_000,
+  },
+  "same-day-urgent-turnaround": {
+    slug: "same-day-urgent-turnaround",
+    label: "Same-day urgent turnaround",
+    amountCents: 25_000,
+  },
+  "boardroom-detailing": {
+    slug: "boardroom-detailing",
+    label: "Boardroom detailing",
+    amountCents: 18_000,
+  },
+  "kitchenette-cleaning": {
+    slug: "kitchenette-cleaning",
+    label: "Kitchenette cleaning",
+    amountCents: 15_000,
+  },
+  "carpet-spot-cleaning": {
+    slug: "carpet-spot-cleaning",
+    label: "Carpet spot cleaning",
+    amountCents: 15_000,
+  },
+  "sanitization-treatment": {
+    slug: "sanitization-treatment",
+    label: "Sanitization treatment",
+    amountCents: 12_000,
+  },
+  "waste-removal": {
+    slug: "waste-removal",
+    label: "Waste removal",
+    amountCents: 10_000,
+  },
+  "after-hours-cleaning": {
+    slug: "after-hours-cleaning",
+    label: "After-hours cleaning",
+    amountCents: 20_000,
+  },
+  "rug-cleaning": {
+    slug: "rug-cleaning",
+    label: "Rug cleaning",
+    amountCents: 18_000,
+  },
+  "stain-treatment": {
+    slug: "stain-treatment",
+    label: "Stain treatment",
+    amountCents: 15_000,
+  },
+  "deodorizing-treatment": {
+    slug: "deodorizing-treatment",
+    label: "Deodorizing treatment",
+    amountCents: 12_000,
+  },
+  "fabric-protection": {
+    slug: "fabric-protection",
+    label: "Fabric protection",
+    amountCents: 18_000,
+  },
+  "upholstery-refresh": {
+    slug: "upholstery-refresh",
+    label: "Upholstery refresh",
+    amountCents: 15_000,
   },
 };
 
@@ -137,6 +234,10 @@ export const FREQUENCY_MULTIPLIERS: Record<PricingFrequency, number> = {
 
 export function isServiceSlug(value: string): value is ServiceSlug {
   return value in SERVICE_CATALOG;
+}
+
+export function serviceSupportsExtraRooms(slug: ServiceSlug): boolean {
+  return SERVICE_CATALOG[slug].extraRoomCents != null;
 }
 
 export function isAddonSlug(value: string): value is AddonSlug {

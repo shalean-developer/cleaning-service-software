@@ -11,6 +11,8 @@ const QUOTE_INVALIDATING_KEYS = [
   "bathrooms",
   "extraRooms",
   "propertySizeSqm",
+  "officeSizeTier",
+  "officeWorkstations",
   "cleaningIntensity",
   "equipmentSupply",
   "requestedTeamSize",

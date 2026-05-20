@@ -8,6 +8,7 @@ import type {
   ServiceSlug,
 } from "@/features/pricing/server/types";
 import type { CarpetStainSeverity } from "./carpetCleaningDisplay";
+import type { OfficeSizeTier, OfficeWorkstationTier } from "./officeSizing";
 
 export const WIZARD_STEPS = [
   "service",
@@ -47,6 +48,9 @@ export type BookingWizardState = {
   /** Team support preference (regular cleaning only; 1 = default, 2 = request only). */
   requestedTeamSize: 1 | 2;
   propertySizeSqm: number | null;
+  /** Office cleaning — UI selection; drives derived propertySizeSqm. */
+  officeSizeTier: OfficeSizeTier | null;
+  officeWorkstations: OfficeWorkstationTier | null;
   frequency: PricingFrequency;
   addons: AddonSlug[];
   /** Carpet cleaning only — display/metadata; does not affect quote. */
@@ -90,6 +94,8 @@ export const INITIAL_WIZARD_STATE: BookingWizardState = {
   equipmentSupply: "customer",
   requestedTeamSize: 1,
   propertySizeSqm: null,
+  officeSizeTier: null,
+  officeWorkstations: null,
   frequency: "once",
   addons: [],
   carpetStainSeverity: null,

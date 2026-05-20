@@ -19,7 +19,7 @@ import {
   type BookingWindowBounds,
   VISIBLE_DATE_OPTION_COUNT,
 } from "../bookingWindowConfig";
-import type { ServiceSlug } from "@/features/pricing/server/types";
+import type { PricingFrequency, ServiceSlug } from "@/features/pricing/server/types";
 import {
   buildScheduleDateOptions,
   formatTimeSlotLabel,
@@ -37,20 +37,25 @@ import {
   WIZARD_FOCUS_RING,
   wizardCardClass,
 } from "../wizardSelection";
+import { showFrequencyForService } from "../frequencyVisibility";
+import { FrequencyStepPanel } from "./FrequencyStepPanel";
 import { WizardStepHeading } from "./WizardStepHeading";
 
 type Props = {
   serviceSlug?: ServiceSlug | null;
   date: string;
   time: string;
+  frequency: PricingFrequency;
   minDate: string;
   /** When set, matches server lock validation (from GET /api/booking/window-bounds). */
   bookingBounds?: BookingWindowBounds | null;
   envMismatchWarning?: string | null;
   dateError?: string;
   timeError?: string;
+  frequencyError?: string;
   onDateChange: (value: string) => void;
   onTimeChange: (value: string) => void;
+  onFrequencyChange: (value: PricingFrequency) => void;
 };
 
 type DateCardProps = {
@@ -352,13 +357,16 @@ export function ScheduleStepPanel({
   serviceSlug = null,
   date,
   time,
+  frequency,
   minDate,
   bookingBounds: bookingBoundsProp,
   envMismatchWarning,
   dateError,
   timeError,
+  frequencyError,
   onDateChange,
   onTimeChange,
+  onFrequencyChange,
 }: Props) {
   const fallbackBounds = useMemo(
     () => resolveBookingWindowBounds(undefined, undefined, { client: true }),
@@ -393,6 +401,7 @@ export function ScheduleStepPanel({
   const timeSlots = useMemo(() => resolveScheduleTimeSlots(time), [time]);
 
   const selectedDateInList = dateOptions.some((o) => o.value === date && !o.disabled);
+  const showFrequency = showFrequencyForService(serviceSlug);
 
   return (
     <div className="w-full min-w-0">
@@ -519,6 +528,17 @@ export function ScheduleStepPanel({
           onChange={(e) => onTimeChange(e.target.value)}
         />
       </section>
+
+      {showFrequency ? (
+        <div className="mt-8 min-w-0">
+          <FrequencyStepPanel
+            serviceSlug={serviceSlug}
+            value={frequency}
+            onChange={onFrequencyChange}
+            error={frequencyError}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

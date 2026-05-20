@@ -12,6 +12,7 @@ import {
   isPricingFrequency,
   isServiceSlug,
   SERVICE_CATALOG,
+  serviceSupportsExtraRooms,
 } from "./catalog";
 import { CLEANING_INTENSITIES, EQUIPMENT_SUPPLY_OPTIONS } from "./types";
 
@@ -71,10 +72,10 @@ export function validatePricingInput(raw: PricingInput): PricingQuoteFailure | n
       `extraRooms must be an integer between 0 and ${MAX_EXTRA_ROOMS}.`,
     );
   }
-  if (raw.serviceSlug !== "regular-cleaning" && extraRooms > 0) {
+  if (!serviceSupportsExtraRooms(raw.serviceSlug) && extraRooms > 0) {
     return fail(
       "INVALID_EXTRA_ROOMS",
-      "Extra rooms are only available for regular cleaning.",
+      "Extra rooms are not available for this service.",
     );
   }
 

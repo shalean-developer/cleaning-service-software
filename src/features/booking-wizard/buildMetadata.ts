@@ -1,3 +1,4 @@
+import { serviceSupportsExtraRooms } from "@/features/pricing/server/catalog";
 import { buildBookingQuoteMetadata } from "@/features/pricing/server/metadata";
 import type { PricingBreakdown, PricingInput } from "@/features/pricing/server/types";
 import { normalizeAreaSlug } from "@/features/cleaners/server/eligibility/normalize";
@@ -6,7 +7,19 @@ import {
   isCarpetCleaningSlug,
 } from "./carpetCleaningDisplay";
 import { resolveContactPhoneForMetadata } from "./contactPhone";
+import { buildOfficeBookingDetailsMetadata, isOfficeCleaningSlug } from "./officeCleaningDisplay";
+import { deriveOfficePropertySizeSqm } from "./officeSizing";
 import type { BookingWizardState } from "./types";
+
+function resolveWizardPropertySizeSqm(state: BookingWizardState): number | null | undefined {
+  if (!isOfficeCleaningSlug(state.serviceSlug)) {
+    return state.propertySizeSqm;
+  }
+  return (
+    deriveOfficePropertySizeSqm(state.officeSizeTier, state.officeWorkstations) ??
+    state.propertySizeSqm
+  );
+}
 
 export function wizardStateToPricingInput(state: BookingWizardState): PricingInput | null {
   if (!state.serviceSlug) return null;
@@ -15,12 +28,15 @@ export function wizardStateToPricingInput(state: BookingWizardState): PricingInp
     serviceSlug: state.serviceSlug,
     bedrooms: state.bedrooms,
     bathrooms: state.bathrooms,
-    extraRooms: state.serviceSlug === "regular-cleaning" ? state.extraRooms : 0,
+    extraRooms:
+      state.serviceSlug && serviceSupportsExtraRooms(state.serviceSlug)
+        ? state.extraRooms
+        : 0,
     cleaningIntensity:
       state.serviceSlug === "regular-cleaning" ? state.cleaningIntensity : "standard",
     equipmentSupply:
       state.serviceSlug === "regular-cleaning" ? state.equipmentSupply : "customer",
-    propertySizeSqm: state.propertySizeSqm,
+    propertySizeSqm: resolveWizardPropertySizeSqm(state),
     frequency: state.frequency,
     addons: state.addons.length > 0 ? state.addons : undefined,
     teamSize: 1,
@@ -45,9 +61,17 @@ export function buildWizardBookingMetadata(
       })
     : null;
 
+  const officeDetails = isOfficeCleaningSlug(state.serviceSlug)
+    ? buildOfficeBookingDetailsMetadata({
+        officeSizeTier: state.officeSizeTier,
+        officeWorkstations: state.officeWorkstations,
+      })
+    : null;
+
   return {
     ...quoteMeta,
     ...(carpetDetails ? { carpetDetails } : {}),
+    ...(officeDetails ? { officeDetails } : {}),
     ...(contactPhone ? { contactPhone } : {}),
     areaSlug: normalizeAreaSlug(state.suburb),
     suburb: state.suburb.trim(),

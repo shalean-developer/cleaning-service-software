@@ -2,8 +2,10 @@ import {
   isCleaningIntensity,
   isEquipmentSupply,
   SERVICE_CATALOG,
+  serviceSupportsExtraRooms,
 } from "@/features/pricing/server/catalog";
 import { normalizeAreaSlug } from "@/features/cleaners/server/eligibility/normalize";
+import { isOfficeSizeTier, isOfficeWorkstationTier } from "./officeSizing";
 import type { BookingWizardState, StepValidationResult, WizardStep } from "./types";
 import {
   CARPET_ZONES_MAX,
@@ -119,7 +121,7 @@ export function validateDetailsStep(state: BookingWizardState): StepValidationRe
     }
   }
 
-  if (state.serviceSlug === "regular-cleaning") {
+  if (state.serviceSlug && serviceSupportsExtraRooms(state.serviceSlug)) {
     if (
       !Number.isInteger(state.extraRooms) ||
       state.extraRooms < 0 ||
@@ -127,6 +129,9 @@ export function validateDetailsStep(state: BookingWizardState): StepValidationRe
     ) {
       errors.extraRooms = "Extra rooms must be between 0 and 6.";
     }
+  }
+
+  if (state.serviceSlug === "regular-cleaning") {
     if (!isCleaningIntensity(state.cleaningIntensity)) {
       errors.cleaningIntensity = "Please select a cleaning intensity.";
     }
@@ -139,12 +144,11 @@ export function validateDetailsStep(state: BookingWizardState): StepValidationRe
   }
 
   if (state.serviceSlug === "office-cleaning") {
-    if (
-      state.propertySizeSqm == null ||
-      !Number.isFinite(state.propertySizeSqm) ||
-      state.propertySizeSqm <= 0
-    ) {
-      errors.propertySizeSqm = "Property size (sqm) is required for office cleaning.";
+    if (!isOfficeSizeTier(state.officeSizeTier)) {
+      errors.officeSizeTier = "Select an office size.";
+    }
+    if (!isOfficeWorkstationTier(state.officeWorkstations)) {
+      errors.officeWorkstations = "Select an approximate workstation count.";
     }
   }
 

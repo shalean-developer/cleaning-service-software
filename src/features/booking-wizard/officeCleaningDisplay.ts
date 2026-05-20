@@ -4,6 +4,13 @@
  */
 
 import type { AddonSlug, PricingFrequency, ServiceSlug } from "@/features/pricing/server/types";
+import type { OfficeSizeTier, OfficeWorkstationTier } from "./officeSizing";
+import {
+  formatOfficeSizingSummary,
+  getOfficeSizeLabel,
+  getOfficeWorkstationLabel,
+} from "./officeSizing";
+import { buildCompactReviewHeroSegments } from "./reviewDisplay";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { FrequencyStepOption } from "./constants";
 import { FREQUENCY_STEP_OPTIONS } from "./constants";
@@ -14,6 +21,13 @@ export function isOfficeCleaningSlug(
   serviceSlug: ServiceSlug | string | null | undefined,
 ): serviceSlug is typeof OFFICE_CLEANING_SLUG {
   return serviceSlug === OFFICE_CLEANING_SLUG;
+}
+
+/** Office steps use dedicated sizing/extras sections — hide the compact context chip strip. */
+export function showWizardContextStripForService(
+  serviceSlug: ServiceSlug | string | null | undefined,
+): boolean {
+  return !isOfficeCleaningSlug(serviceSlug);
 }
 
 /** Step 1 mobile card — commercial positioning. */
@@ -31,34 +45,55 @@ export const OFFICE_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
   { value: "monthly", label: "Monthly", description: "Scheduled office upkeep" },
 ];
 
-/** Commercial add-on order — display only. */
-export const OFFICE_ADDON_STEP_DISPLAY_ORDER: AddonSlug[] = [
-  "interior-windows",
-  "interior-walls",
-  "inside-cabinets",
-  "inside-fridge",
-  "inside-oven",
-  "balcony",
-  "laundry",
+export type OfficeAddonStepGroup = {
+  id: string;
+  title: string;
+  slugs: AddonSlug[];
+};
+
+/** Operational groupings for the office extras step — display only. */
+export const OFFICE_ADDON_STEP_GROUPS: OfficeAddonStepGroup[] = [
+  {
+    id: "workspace-care",
+    title: "Workspace care",
+    slugs: ["boardroom-detailing", "carpet-spot-cleaning", "interior-windows"],
+  },
+  {
+    id: "kitchen-hygiene",
+    title: "Kitchen & hygiene",
+    slugs: ["kitchenette-cleaning", "inside-fridge", "waste-removal", "sanitization-treatment"],
+  },
+  {
+    id: "scheduling",
+    title: "Scheduling",
+    slugs: ["after-hours-cleaning"],
+  },
 ];
 
+/** Commercial add-on order — display only; matches group order above. */
+export const OFFICE_ADDON_STEP_DISPLAY_ORDER: AddonSlug[] =
+  OFFICE_ADDON_STEP_GROUPS.flatMap((g) => g.slugs);
+
 export const OFFICE_ADDON_STEP_DESCRIPTIONS: Partial<Record<AddonSlug, string>> = {
-  "interior-windows": "Interior glass — bright, professional common areas.",
-  "interior-walls": "Spot-clean marks on accessible walls in shared spaces.",
-  "inside-cabinets": "Cupboard and storage interiors in kitchenettes or break areas.",
-  "inside-fridge": "Staff kitchenette fridge shelves refreshed.",
-  "inside-oven": "Kitchenette oven interior degreased.",
-  balcony: "Outdoor terrace or balcony tidy where applicable.",
-  laundry: "Wash, dry, fold — only if laundry facilities are on site.",
+  "boardroom-detailing": "Conference room surfaces and presentation areas.",
+  "kitchenette-cleaning": "Shared kitchen counters, sinks, and appliances.",
+  "inside-fridge": "Break-room or kitchenette fridge interior refreshed.",
+  "carpet-spot-cleaning": "Targeted treatment for carpet marks in traffic areas.",
+  "interior-windows": "Interior glass in common areas and meeting rooms.",
+  "sanitization-treatment": "Disinfection for shared-touch office surfaces.",
+  "waste-removal": "Shared-area bins emptied and liners replaced.",
+  "after-hours-cleaning": "Cleaning scheduled outside office operating hours.",
 };
 
 export const OFFICE_ADDON_STEP_LABELS: Partial<Record<AddonSlug, string>> = {
-  "interior-windows": "Interior windows",
-  laundry: "On-site laundry (if applicable)",
+  "inside-fridge": "Fridge cleaning",
+  "interior-windows": "Window cleaning",
+  "sanitization-treatment": "Sanitization treatment",
+  "after-hours-cleaning": "After-hours cleaning",
 };
 
 export const OFFICE_ADDONS_SECTION_HINT =
-  "Most requested for office maintenance — windows, kitchenettes, and shared areas.";
+  "Optional add-ons for meeting rooms, kitchenettes, and after-hours service.";
 
 export type OfficeCleaningStepCopy = {
   mobileDescription: string;
@@ -103,11 +138,11 @@ export function getOfficeCleaningStepCopy(
     detailsIntro: {
       title: "Workspace details",
       description:
-        "Workspace size, service cadence, and commercial extras that affect your office clean.",
+        "Office size, workstations, and commercial extras that affect your office clean.",
     },
-    homeSizeTitle: "Workspace size",
-    propertySizeFieldLabel: "Workspace size (sqm)",
-    addonsTitle: "Commercial cleaning extras",
+    homeSizeTitle: "Office size",
+    propertySizeFieldLabel: "Office size",
+    addonsTitle: "Extras",
     addonsHint: OFFICE_ADDONS_SECTION_HINT,
     notesTitle: "Workspace instructions",
     notesPlaceholder:
@@ -165,9 +200,8 @@ export type OfficeCleaningReviewCopy = {
   heroSegments: (input: {
     scheduleLabel: string;
     locationLabel: string;
-    workspaceSizeSummary: string | null;
-    addonSummary: string | null;
-    frequencyLabel: string;
+    officeSizeLabel: string | null;
+    workstationLabel: string | null;
   }) => string[];
   addonsSectionLabel: string;
   propertySectionTitle: string;
@@ -188,7 +222,7 @@ export function getOfficeCleaningReviewCopy(
     heroSegments: buildOfficeReviewHeroSegments,
     addonsSectionLabel: "Commercial cleaning extras",
     propertySectionTitle: "Workspace details",
-    workspaceSizeRowLabel: "Workspace size",
+    workspaceSizeRowLabel: "Office & workstations",
     nextStepsNote:
       "Next: secure Paystack checkout. Cleaner assignment begins after payment confirmation.",
     confirmationCopy:
@@ -203,17 +237,15 @@ export function getOfficeCleaningReviewCopy(
 export function buildOfficeReviewHeroSegments(input: {
   scheduleLabel: string;
   locationLabel: string;
-  workspaceSizeSummary: string | null;
-  addonSummary: string | null;
-  frequencyLabel: string;
+  officeSizeLabel: string | null;
+  workstationLabel: string | null;
 }): string[] {
-  return [
+  return buildCompactReviewHeroSegments(
     input.scheduleLabel,
-    input.locationLabel !== "\u2014" ? input.locationLabel : null,
-    input.workspaceSizeSummary,
-    input.addonSummary,
-    input.frequencyLabel,
-  ].filter(Boolean) as string[];
+    input.locationLabel,
+    input.officeSizeLabel,
+    input.workstationLabel,
+  );
 }
 
 function getOfficeRecurringScheduleReviewNote(
@@ -301,9 +333,27 @@ export function getOfficeWizardCleanerFootnote(serviceSlug: ServiceSlug | null):
     : null;
 }
 
-/** Format workspace sqm for review, sidebar, and dashboards. */
-export function formatOfficeWorkspaceSizeSummary(propertySizeSqm: number | null): string | null {
-  return propertySizeSqm != null ? `${propertySizeSqm} sqm` : null;
+/** Format office size + workstations for review, sidebar, and summaries. */
+export function formatOfficeWorkspaceSizeSummary(
+  propertySizeSqm: number | null,
+  officeSizeTier: OfficeSizeTier | null = null,
+  officeWorkstations: OfficeWorkstationTier | null = null,
+): string | null {
+  return formatOfficeSizingSummary(officeSizeTier, officeWorkstations, propertySizeSqm);
+}
+
+/** Optional booking metadata for operational context — does not affect pricing. */
+export function buildOfficeBookingDetailsMetadata(input: {
+  officeSizeTier: OfficeSizeTier | null;
+  officeWorkstations: OfficeWorkstationTier | null;
+}): Record<string, string> | null {
+  if (!input.officeSizeTier || !input.officeWorkstations) return null;
+  return {
+    officeSizeTier: input.officeSizeTier,
+    officeSizeLabel: getOfficeSizeLabel(input.officeSizeTier),
+    officeWorkstations: input.officeWorkstations,
+    officeWorkstationsLabel: getOfficeWorkstationLabel(input.officeWorkstations),
+  };
 }
 
 /** Customer dashboard status — presentation only. */

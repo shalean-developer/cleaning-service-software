@@ -17,18 +17,17 @@ describe("addonStepDisplay", () => {
     expect(order).not.toContain("balcony");
   });
 
-  it("returns restoration-focused add-on order for deep cleaning", () => {
+  it("returns deep/move add-on order for deep cleaning", () => {
     const order = getAddonStepDisplayOrder("deep-cleaning");
 
     expect(order).toEqual(DEEP_ADDON_STEP_DISPLAY_ORDER);
-    expect(order.indexOf("inside-cabinets")).toBeLessThan(order.indexOf("laundry"));
-    expect(getAddonStepDescription("inside-cabinets", "deep-cleaning")).toMatch(
-      /deep cleaning|buildup/i,
-    );
+    expect(order).toContain("couch-cleaning");
+    expect(order).not.toContain("inside-cabinets");
+    expect(getAddonStepDescription("balcony", "deep-cleaning")).toMatch(/balcony|outdoor/i);
   });
 
   it("uses regular-cleaning display label for laundry", () => {
     expect(getAddonStepLabel("laundry", "regular-cleaning")).toBe("Ironing & Laundry");
-    expect(getAddonStepLabel("laundry", "deep-cleaning")).toBe("Laundry (if on site)");
+    expect(getAddonStepLabel("laundry", "deep-cleaning")).toBe("Laundry");
   });
 });

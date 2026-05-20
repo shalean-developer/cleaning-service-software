@@ -12,10 +12,11 @@ const carpetProps = {
   bathrooms: 1,
   extraRooms: 0,
   propertySizeSqm: null,
+  officeSizeTier: null,
+  officeWorkstations: null,
   cleaningIntensity: "standard" as const,
   equipmentSupply: "customer" as const,
   requestedTeamSize: 1 as const,
-  frequency: "once" as const,
   addons: [],
   carpetStainSeverity: null,
   carpetPetStains: false,
@@ -26,10 +27,11 @@ const carpetProps = {
   onBathroomsChange: noop,
   onExtraRoomsChange: noop,
   onPropertySizeSqmChange: noop,
+  onOfficeSizeChange: noop,
+  onOfficeWorkstationsChange: noop,
   onCleaningIntensityChange: noop,
   onEquipmentSupplyChange: noop,
   onRequestedTeamSizeChange: noop,
-  onFrequencyChange: noop,
   onAddonsChange: noop,
   onCarpetStainSeverityChange: noop,
   onCarpetPetStainsChange: noop,
@@ -75,14 +77,16 @@ describe("DetailsStepPanel — carpet cleaning form", () => {
     expect(html).toContain('role="switch"');
   });
 
-  it("shows carpet-only add-ons and hides residential add-ons", () => {
+  it("shows carpet fabric add-ons and hides residential add-ons", () => {
     const html = renderToStaticMarkup(<DetailsStepPanel {...carpetProps} />);
 
     expect(html).toContain("Carpet add-ons");
     expect(html).toContain("Mattress cleaning");
-    expect(html).toContain("Sofa cleaning");
-    expect(html).toContain("Odor treatment");
-    expect(html).toContain("Soon");
+    expect(html).toContain("Couch cleaning");
+    expect(html).toContain("Rug cleaning");
+    expect(html).toContain("Stain treatment");
+    expect(html).toContain("Fabric protection");
+    expect(html).not.toContain("Soon");
     expect(html).not.toContain("Inside oven");
     expect(html).not.toContain("Inside fridge");
     expect(html).not.toContain("Inside cabinets");
@@ -102,15 +106,30 @@ describe("DetailsStepPanel — carpet cleaning form", () => {
 
     expect(html).toContain("Bedrooms");
     expect(html).toContain("Bathrooms");
+    expect(html).toContain("Extra rooms");
+    expect(html).toContain("Supplies &amp; support");
     expect(html).toContain("Add-ons");
     expect(html).not.toContain("Carpet scope");
     expect(html).not.toContain("Stain severity");
     expect(html).not.toContain("Mattress cleaning");
   });
+
+  it("does not show extra rooms on carpet cleaning", () => {
+    const html = renderToStaticMarkup(<DetailsStepPanel {...carpetProps} />);
+    expect(html).not.toContain("Extra rooms");
+  });
 });
 
 describe("addonStepDisplay — carpet cleaning", () => {
-  it("orders only carpet-priced add-ons for catalog helpers", () => {
-    expect(getAddonStepDisplayOrder(CARPET)).toEqual(["mattress-cleaning"]);
+  it("orders all carpet fabric add-ons for catalog helpers", () => {
+    expect(getAddonStepDisplayOrder(CARPET)).toEqual([
+      "mattress-cleaning",
+      "couch-cleaning",
+      "rug-cleaning",
+      "stain-treatment",
+      "deodorizing-treatment",
+      "fabric-protection",
+      "upholstery-refresh",
+    ]);
   });
 });

@@ -18,12 +18,18 @@ export function wizardPatchForServiceSelection(
   | "carpetPetStains"
   | "carpetGoodDryingAirflow"
   | "addons"
+  | "officeSizeTier"
+  | "officeWorkstations"
+  | "propertySizeSqm"
 > {
   return {
     serviceSlug: slug,
     bedrooms: slug === "office-cleaning" ? 0 : 2,
     bathrooms: slug === "office-cleaning" ? 0 : 1,
     extraRooms: 0,
+    officeSizeTier: null,
+    officeWorkstations: null,
+    propertySizeSqm: null,
     cleaningIntensity: "standard",
     equipmentSupply: "customer",
     requestedTeamSize: 1,

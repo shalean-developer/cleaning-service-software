@@ -56,7 +56,7 @@ describe("Move In/Out Cleaning launch readiness", () => {
       expect(result.breakdown.cleanerEarnings.perCleanerAmountCents).toBeGreaterThan(0);
     });
 
-    it("strips regular-only fields in lock payload", () => {
+    it("includes extraRooms and strips regular-only fields in lock payload", () => {
       const state = movingState({
         extraRooms: 2,
         cleaningIntensity: "heavy",
@@ -71,22 +71,30 @@ describe("Move In/Out Cleaning launch readiness", () => {
       expect("error" in payload).toBe(false);
       if ("error" in payload) return;
 
-      expect(payload.extraRooms).toBe(0);
+      expect(payload.extraRooms).toBe(2);
       expect(payload.cleaningIntensity).toBe("standard");
       expect(payload.equipmentSupply).toBe("customer");
       expect(payload.requestedTeamSize).toBe(1);
       expect(payload.serviceSlug).toBe(MOVING);
     });
 
-    it("snapshots serviceSlug in metadata", () => {
-      const quote = calculateQuote({ serviceSlug: MOVING, bedrooms: 2, bathrooms: 1 });
+    it("snapshots serviceSlug and extraRooms in metadata", () => {
+      const quote = calculateQuote({
+        serviceSlug: MOVING,
+        bedrooms: 2,
+        bathrooms: 1,
+        extraRooms: 2,
+      });
       expect(quote.ok).toBe(true);
       if (!quote.ok) return;
 
-      const metadata = buildWizardBookingMetadata(movingState(), quote.breakdown);
+      const metadata = buildWizardBookingMetadata(
+        movingState({ extraRooms: 2 }),
+        quote.breakdown,
+      );
       const input = (metadata.quote as { input: Record<string, unknown> }).input;
       expect(input.serviceSlug).toBe(MOVING);
-      expect(input.extraRooms).toBe(0);
+      expect(input.extraRooms).toBe(2);
     });
   });
 
@@ -114,7 +122,7 @@ describe("Move In/Out Cleaning launch readiness", () => {
         equipmentSupply: "customer",
         requestedTeamSize: 1,
         frequency: "once",
-        addons: ["inside-oven"],
+        addons: ["balcony"],
       });
 
       expect(snapshot.secondaryRows.some((r) => r.label === "Property")).toBe(true);

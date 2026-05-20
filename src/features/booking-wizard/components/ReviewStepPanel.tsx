@@ -30,6 +30,10 @@ import {
 import { isMovingCleaningSlug } from "../movingCleaningDisplay";
 import { isOfficeCleaningSlug } from "../officeCleaningDisplay";
 import {
+  formatOfficeWorkstationHeroSegment,
+  getOfficeSizeLabel,
+} from "../officeSizing";
+import {
   getRecurringScheduleReviewNote,
   isRecurringFrequency,
 } from "../recurringDisplay";
@@ -38,15 +42,17 @@ import {
   formatCleanerPreference,
   formatCompactBedBathSummary,
   formatExtraRoomsSummary,
+  buildCompactReviewHeroSegments,
   formatSuburbLocation,
   getCleaningIntensityLabel,
   getEquipmentSupplyCustomerLabel,
-  getFrequencyLabel,
   getSelectedAddonLabels,
   getTeamSupportReviewSummaryLabel,
 } from "../reviewDisplay";
+import { showFrequencyForService } from "../frequencyVisibility";
 import { resolveWizardContactPhone } from "../contactPhone";
 import { formatZaMobileForDisplay } from "@/lib/validation/zaPhone";
+import type { OfficeSizeTier, OfficeWorkstationTier } from "../officeSizing";
 import type { CleanerPreferenceMode, WizardStep } from "../types";
 import { WizardStepHeading } from "./WizardStepHeading";
 
@@ -133,6 +139,8 @@ type Props = {
   equipmentSupply: EquipmentSupply;
   requestedTeamSize: 1 | 2;
   propertySizeSqm: number | null;
+  officeSizeTier: OfficeSizeTier | null;
+  officeWorkstations: OfficeWorkstationTier | null;
   frequency: PricingFrequency;
   addons: AddonSlug[];
   cleanerPreferenceMode: CleanerPreferenceMode;
@@ -162,6 +170,8 @@ export function ReviewStepPanel({
   equipmentSupply,
   requestedTeamSize,
   propertySizeSqm,
+  officeSizeTier,
+  officeWorkstations,
   frequency,
   addons,
   cleanerPreferenceMode,
@@ -172,11 +182,16 @@ export function ReviewStepPanel({
   onEditStep,
   reviewConfirmedError,
 }: Props) {
+  const officeSizing = isOfficeCleaningSlug(serviceSlug)
+    ? { officeSizeTier, officeWorkstations }
+    : null;
+
   const { bedroomsLabel, bathroomsLabel } = formatBedroomBathroomSummary(
     serviceSlug,
     bedrooms,
     bathrooms,
     propertySizeSqm,
+    officeSizing,
   );
   const streetAddress = addressLine1.trim() || "\u2014";
   const scheduleLabel = formatDateLabel(date, time) || "\u2014";
@@ -205,6 +220,7 @@ export function ReviewStepPanel({
     bedrooms,
     bathrooms,
     propertySizeSqm,
+    officeSizing,
   );
   const addonLabels = getSelectedAddonLabels(addons, serviceSlug);
   const cleanerPreferenceLabel = formatCleanerPreference(
@@ -212,50 +228,45 @@ export function ReviewStepPanel({
     selectedCleanerDisplayName,
   );
 
-  const addonSummary =
-    addonLabels.length > 0 ? addonLabels.join(", ") : null;
-  const frequencyLabel = getFrequencyLabel(frequency, serviceSlug);
+  const showFrequency = showFrequencyForService(serviceSlug);
   const heroSegments = isAirbnbCleaningSlug(serviceSlug)
     ? buildAirbnbReviewHeroSegments({
         scheduleLabel,
         locationLabel,
         bedBathSummary,
-        addonSummary,
-        frequencyLabel,
       })
     : isMovingCleaningSlug(serviceSlug)
       ? buildMovingReviewHeroSegments({
           scheduleLabel,
           locationLabel,
           bedBathSummary,
-          addonSummary,
-          frequencyLabel,
         })
       : isDeepCleaningSlug(serviceSlug)
         ? buildDeepReviewHeroSegments({
             scheduleLabel,
             locationLabel,
             bedBathSummary,
-            addonSummary,
-            frequencyLabel,
           })
         : isOfficeCleaningSlug(serviceSlug)
           ? buildOfficeReviewHeroSegments({
               scheduleLabel,
               locationLabel,
-              workspaceSizeSummary: bedBathSummary,
-              addonSummary,
-              frequencyLabel,
+              officeSizeLabel: officeSizeTier ? getOfficeSizeLabel(officeSizeTier) : null,
+              workstationLabel: officeWorkstations
+                ? formatOfficeWorkstationHeroSegment(officeWorkstations)
+                : null,
             })
           : isCarpetCleaningSlug(serviceSlug)
             ? buildCarpetReviewHeroSegments({
                 scheduleLabel,
                 locationLabel,
                 zonesSummary: bedBathSummary,
-                addonSummary,
-                frequencyLabel,
               })
-            : ([serviceLabel, bedBathSummary, frequencyLabel, scheduleLabel].filter(Boolean) as string[]);
+            : buildCompactReviewHeroSegments(
+                scheduleLabel,
+                locationLabel,
+                bedBathSummary,
+              );
 
   return (
     <div>
@@ -298,7 +309,7 @@ export function ReviewStepPanel({
             {formatZar(quote.totalCents)}
           </span>
         </div>
-        {isRecurringFrequency(frequency) ? (
+        {showFrequency && isRecurringFrequency(frequency) ? (
           <p className="mt-1.5 text-xs leading-snug text-zinc-500">
             {recurringScheduleNote ?? "Recurring booking."} Today&apos;s total is for this visit
             only.
@@ -335,7 +346,7 @@ export function ReviewStepPanel({
               {intensityLabel ? (
                 <SummaryRow label="Cleaning intensity" value={intensityLabel} />
               ) : null}
-              {isRecurringFrequency(frequency) ? (
+              {showFrequency && isRecurringFrequency(frequency) ? (
                 <div className="flex flex-wrap items-center justify-end gap-2 sm:justify-between">
                   <span className="text-xs text-zinc-500 sm:sr-only">Cadence</span>
                   <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-white">

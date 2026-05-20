@@ -6,6 +6,12 @@
 import type { AddonSlug, PricingFrequency, ServiceSlug } from "@/features/pricing/server/types";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { FrequencyStepOption } from "./constants";
+import {
+  DEEP_MOVING_ADDON_STEP_DESCRIPTIONS,
+  DEEP_MOVING_ADDON_STEP_DISPLAY_ORDER,
+  DEEP_MOVING_ADDON_STEP_LABELS,
+} from "./deepMovingAddonDisplay";
+import { buildCompactReviewHeroSegments } from "./reviewDisplay";
 
 export const DEEP_CLEANING_SLUG = "deep-cleaning" as const;
 
@@ -31,36 +37,14 @@ export const DEEP_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
 ];
 
 /** Restoration-focused add-on order — display only. */
-export const DEEP_ADDON_STEP_DISPLAY_ORDER: AddonSlug[] = [
-  "inside-cabinets",
-  "inside-oven",
-  "inside-fridge",
-  "interior-walls",
-  "interior-windows",
-  "balcony",
-  "laundry",
-];
+export const DEEP_ADDON_STEP_DISPLAY_ORDER = DEEP_MOVING_ADDON_STEP_DISPLAY_ORDER;
 
-export const DEEP_ADDON_STEP_DESCRIPTIONS: Partial<Record<AddonSlug, string>> = {
-  "inside-cabinets": "Cabinet interiors — most requested for deep cleaning and buildup removal.",
-  "inside-oven": "Oven interior degreased — ideal for neglected appliance restoration.",
-  "inside-fridge": "Fridge shelves and drawers refreshed for a full-home reset.",
-  "interior-walls": "Spot-clean marks on accessible walls — buildup and scuff attention.",
-  "interior-windows": "Interior glass for a brighter, detailed home refresh.",
-  balcony: "Balcony sweep and outdoor surfaces — often included in seasonal resets.",
-  laundry: "Wash, dry, fold — only if laundry facilities are on site.",
-};
+export const DEEP_ADDON_STEP_DESCRIPTIONS = DEEP_MOVING_ADDON_STEP_DESCRIPTIONS;
 
-export const DEEP_ADDON_STEP_LABELS: Partial<Record<AddonSlug, string>> = {
-  "inside-cabinets": "Inside cabinets",
-  "inside-oven": "Inside oven",
-  "inside-fridge": "Inside fridge",
-  "interior-windows": "Interior windows",
-  laundry: "Laundry (if on site)",
-};
+export const DEEP_ADDON_STEP_LABELS = DEEP_MOVING_ADDON_STEP_LABELS;
 
 export const DEEP_ADDONS_SECTION_HINT =
-  "Most requested for deep cleaning — ideal for buildup and detailed restoration.";
+  "Deep and move-ready extras — balconies, carpets, ceilings, garages, mattresses, windows, and upholstery.";
 
 export type DeepCleaningStepCopy = {
   mobileDescription: string;
@@ -201,16 +185,14 @@ export function buildDeepReviewHeroSegments(input: {
   scheduleLabel: string;
   locationLabel: string;
   bedBathSummary: string | null;
-  addonSummary: string | null;
-  frequencyLabel: string;
+  addonSummary?: string | null;
+  frequencyLabel?: string | null;
 }): string[] {
-  return [
+  return buildCompactReviewHeroSegments(
     input.scheduleLabel,
-    input.locationLabel !== "\u2014" ? input.locationLabel : null,
+    input.locationLabel,
     input.bedBathSummary,
-    input.addonSummary,
-    input.frequencyLabel,
-  ].filter(Boolean) as string[];
+  );
 }
 
 function getDeepRecurringScheduleReviewNote(

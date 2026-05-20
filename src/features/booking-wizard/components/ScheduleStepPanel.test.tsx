@@ -2,6 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ScheduleStepPanel } from "./ScheduleStepPanel";
 
+const noop = () => {};
+
+const scheduleFrequencyProps = {
+  frequency: "once" as const,
+  onFrequencyChange: noop,
+};
+
 describe("ScheduleStepPanel", () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -20,6 +27,7 @@ describe("ScheduleStepPanel", () => {
         date="2026-05-20"
         time="09:00"
         minDate="2026-05-18"
+        {...scheduleFrequencyProps}
         onDateChange={() => {}}
         onTimeChange={() => {}}
       />,
@@ -69,6 +77,7 @@ describe("ScheduleStepPanel", () => {
           extendedWindowEnabled: true,
         }}
         envMismatchWarning="Flags mismatched."
+        {...scheduleFrequencyProps}
         onDateChange={() => {}}
         onTimeChange={() => {}}
       />,
@@ -90,6 +99,7 @@ describe("ScheduleStepPanel", () => {
           maxAdvanceDays: 90,
           extendedWindowEnabled: true,
         }}
+        {...scheduleFrequencyProps}
         onDateChange={() => {}}
         onTimeChange={() => {}}
       />,
@@ -107,6 +117,7 @@ describe("ScheduleStepPanel", () => {
         minDate="2026-05-18"
         dateError="Please choose a date."
         timeError="Please choose a start time."
+        {...scheduleFrequencyProps}
         onDateChange={() => {}}
         onTimeChange={() => {}}
       />,
@@ -114,5 +125,131 @@ describe("ScheduleStepPanel", () => {
 
     expect(html).toContain("Please choose a date.");
     expect(html).toContain("Please choose a start time.");
+  });
+
+  it("renders frequency below arrival time for regular cleaning", () => {
+    const html = renderToStaticMarkup(
+      <ScheduleStepPanel
+        serviceSlug="regular-cleaning"
+        date="2026-05-20"
+        time="09:00"
+        frequency="weekly"
+        minDate="2026-05-18"
+        onDateChange={() => {}}
+        onTimeChange={() => {}}
+        onFrequencyChange={() => {}}
+      />,
+    );
+
+    expect(html).toContain("Visit frequency");
+    expect(html).toContain("Weekly");
+    expect(html.indexOf("Arrival time")).toBeLessThan(html.indexOf("Visit frequency"));
+    expect(html.indexOf("Visit frequency")).toBeLessThan(html.indexOf("Once-off"));
+  });
+
+  it("renders frequency below arrival time for airbnb cleaning", () => {
+    const html = renderToStaticMarkup(
+      <ScheduleStepPanel
+        serviceSlug="airbnb-cleaning"
+        date="2026-05-20"
+        time="09:00"
+        frequency="weekly"
+        minDate="2026-05-18"
+        onDateChange={() => {}}
+        onTimeChange={() => {}}
+        onFrequencyChange={() => {}}
+      />,
+    );
+
+    expect(html).toContain("Turnover cadence");
+    expect(html.indexOf("Arrival time")).toBeLessThan(html.indexOf("Turnover cadence"));
+  });
+
+  it("hides frequency for deep cleaning", () => {
+    const html = renderToStaticMarkup(
+      <ScheduleStepPanel
+        serviceSlug="deep-cleaning"
+        date="2026-05-20"
+        time="09:00"
+        frequency="weekly"
+        minDate="2026-05-18"
+        onDateChange={() => {}}
+        onTimeChange={() => {}}
+        onFrequencyChange={() => {}}
+      />,
+    );
+
+    expect(html).not.toContain("Visit frequency");
+  });
+
+  it("hides frequency for move in/out cleaning", () => {
+    const html = renderToStaticMarkup(
+      <ScheduleStepPanel
+        serviceSlug="moving-cleaning"
+        date="2026-05-20"
+        time="09:00"
+        frequency="weekly"
+        minDate="2026-05-18"
+        onDateChange={() => {}}
+        onTimeChange={() => {}}
+        onFrequencyChange={() => {}}
+      />,
+    );
+
+    expect(html).not.toContain("Visit frequency");
+  });
+
+  it("hides frequency for carpet cleaning", () => {
+    const html = renderToStaticMarkup(
+      <ScheduleStepPanel
+        serviceSlug="carpet-cleaning"
+        date="2026-05-20"
+        time="09:00"
+        frequency="weekly"
+        minDate="2026-05-18"
+        onDateChange={() => {}}
+        onTimeChange={() => {}}
+        onFrequencyChange={() => {}}
+      />,
+    );
+
+    expect(html).not.toContain("Visit timing");
+    expect(html).not.toContain("Visit frequency");
+  });
+
+  it("shows frequency for office cleaning", () => {
+    const html = renderToStaticMarkup(
+      <ScheduleStepPanel
+        serviceSlug="office-cleaning"
+        date="2026-05-20"
+        time="09:00"
+        frequency="weekly"
+        minDate="2026-05-18"
+        onDateChange={() => {}}
+        onTimeChange={() => {}}
+        onFrequencyChange={() => {}}
+      />,
+    );
+
+    expect(html).toContain("Service cadence");
+    expect(html.indexOf("Arrival time")).toBeLessThan(html.indexOf("Service cadence"));
+  });
+
+  it("shows frequency validation error when provided", () => {
+    const html = renderToStaticMarkup(
+      <ScheduleStepPanel
+        serviceSlug="regular-cleaning"
+        date="2026-05-20"
+        time="09:00"
+        frequency="once"
+        minDate="2026-05-18"
+        frequencyError="Invalid frequency."
+        onDateChange={() => {}}
+        onTimeChange={() => {}}
+        onFrequencyChange={() => {}}
+      />,
+    );
+
+    expect(html).toContain("Invalid frequency.");
   });
 });

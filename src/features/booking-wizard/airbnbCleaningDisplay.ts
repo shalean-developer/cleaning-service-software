@@ -7,6 +7,7 @@ import type { AddonSlug, PricingFrequency, ServiceSlug } from "@/features/pricin
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { FrequencyStepOption } from "./constants";
 import { FREQUENCY_STEP_OPTIONS } from "./constants";
+import { buildCompactReviewHeroSegments } from "./reviewDisplay";
 import {
   buildDeepReviewHeroSegments,
   getDeepCleaningCheckoutCopy,
@@ -144,32 +145,39 @@ export function getFrequencySectionTitle(serviceSlug: ServiceSlug | null): strin
   return isAirbnbCleaningSlug(serviceSlug) ? "Turnover cadence" : "Visit frequency";
 }
 
-/** Airbnb add-on order — turnover-relevant first. */
+/** Airbnb add-on order — turnover and guest-readiness first. */
 export const AIRBNB_ADDON_STEP_DISPLAY_ORDER: AddonSlug[] = [
-  "balcony",
   "laundry",
   "inside-fridge",
   "inside-oven",
+  "balcony",
   "inside-cabinets",
-  "interior-windows",
-  "interior-walls",
+  "restocking-assistance",
+  "patio-outdoor-sweep",
+  "same-day-urgent-turnaround",
 ];
 
 /** Display-only host-oriented add-on subtitles. */
 export const AIRBNB_ADDON_STEP_DESCRIPTIONS: Partial<Record<AddonSlug, string>> = {
-  balcony: "Balcony sweep and outdoor reset for guest arrival.",
-  laundry: "Wash, dry, fold — linen refresh for the next guest.",
-  "inside-fridge": "Fridge shelves and drawers checked and refreshed.",
+  laundry: "Fresh linen setup and towel reset for incoming guests.",
+  "inside-fridge": "Fridge shelves and drawers checked and refreshed for guests.",
   "inside-oven": "Oven interior ready for the next booking.",
+  balcony: "Balcony sweep and outdoor reset for guest arrival.",
   "inside-cabinets": "Cupboard interiors wiped for a tidy handover.",
-  "interior-windows": "Interior glass cleaned for a bright welcome.",
-  "interior-walls": "Spot-clean marks on accessible walls.",
+  "restocking-assistance": "Help restock guest essentials and consumables.",
+  "patio-outdoor-sweep": "Patio and outdoor areas swept before guest check-in.",
+  "same-day-urgent-turnaround": "Priority turnover support between guest bookings.",
 };
 
 export const AIRBNB_ADDON_STEP_LABELS: Partial<Record<AddonSlug, string>> = {
-  laundry: "Linen & towel refresh",
-  balcony: "Balcony reset",
-  "inside-fridge": "Fridge check",
+  laundry: "Laundry & linen change",
+  "inside-fridge": "Fridge cleaning",
+  "inside-oven": "Oven cleaning",
+  balcony: "Balcony cleaning",
+  "inside-cabinets": "Inside cabinets",
+  "restocking-assistance": "Restocking assistance",
+  "patio-outdoor-sweep": "Patio/outdoor sweep",
+  "same-day-urgent-turnaround": "Same-day urgent turnaround",
 };
 
 export function getDetailsStepIntro(serviceSlug: ServiceSlug | null): {
@@ -380,16 +388,14 @@ export function buildAirbnbReviewHeroSegments(input: {
   scheduleLabel: string;
   locationLabel: string;
   bedBathSummary: string | null;
-  addonSummary: string | null;
-  frequencyLabel: string;
+  addonSummary?: string | null;
+  frequencyLabel?: string | null;
 }): string[] {
-  return [
+  return buildCompactReviewHeroSegments(
     input.scheduleLabel,
-    input.locationLabel !== "\u2014" ? input.locationLabel : null,
+    input.locationLabel,
     input.bedBathSummary,
-    input.addonSummary,
-    input.frequencyLabel,
-  ].filter(Boolean) as string[];
+  );
 }
 
 export function getReviewNextStepsNote(serviceSlug: ServiceSlug | null): string {

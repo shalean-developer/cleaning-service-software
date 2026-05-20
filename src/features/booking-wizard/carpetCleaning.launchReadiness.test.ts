@@ -171,13 +171,16 @@ describe("Carpet Cleaning launch readiness", () => {
         equipmentSupply: "customer",
         requestedTeamSize: 1,
         frequency: "weekly",
-        addons: ["interior-walls"],
+        addons: ["stain-treatment"],
       });
 
       expect(snapshot.home).toBe("2 zones");
       expect(snapshot.secondaryRows.some((r) => r.label === "Location")).toBe(true);
-      expect(snapshot.secondaryRows.some((r) => r.label === "Visit timing")).toBe(true);
+      expect(snapshot.secondaryRows.some((r) => r.label === "Visit timing")).toBe(false);
       expect(snapshot.secondaryRows.some((r) => r.label === "Floor-care extras")).toBe(true);
+      expect(
+        snapshot.secondaryRows.find((r) => r.label === "Floor-care extras")?.value,
+      ).toContain("Stain treatment");
       expect(snapshot.secondaryRows.some((r) => r.label === "Intensity")).toBe(false);
       expect(snapshot.secondaryRows.some((r) => r.label === "Turnover")).toBe(false);
     });

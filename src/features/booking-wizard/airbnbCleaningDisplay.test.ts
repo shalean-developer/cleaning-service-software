@@ -37,7 +37,7 @@ describe("airbnbCleaningDisplay", () => {
     ]);
   });
 
-  it("orders review hero for operational scanning", () => {
+  it("orders compact review hero for operational scanning without add-ons or frequency", () => {
     const segments = buildAirbnbReviewHeroSegments({
       scheduleLabel: "Mon 15 Jun · 09:00",
       locationLabel: "Sea Point, Cape Town",
@@ -45,9 +45,11 @@ describe("airbnbCleaningDisplay", () => {
       addonSummary: "Balcony reset",
       frequencyLabel: "Single turnover",
     });
-    expect(segments[0]).toContain("Jun");
-    expect(segments[1]).toContain("Sea Point");
-    expect(segments).toContain("2 beds · 1 bath");
+    expect(segments).toEqual([
+      "Mon 15 Jun · 09:00",
+      "Sea Point, Cape Town",
+      "2 beds · 1 bath",
+    ]);
   });
 
   it("uses host access field copy", () => {

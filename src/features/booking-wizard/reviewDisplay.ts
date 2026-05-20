@@ -12,10 +12,12 @@ import {
   formatCarpetZonesSummary,
   isCarpetCleaningSlug,
 } from "./carpetCleaningDisplay";
+import { isOfficeCleaningSlug } from "./officeCleaningDisplay";
 import {
-  formatOfficeWorkspaceSizeSummary,
-  isOfficeCleaningSlug,
-} from "./officeCleaningDisplay";
+  formatOfficeSizingSummary,
+  type OfficeSizeTier,
+  type OfficeWorkstationTier,
+} from "./officeSizing";
 import {
   CLEANING_INTENSITY_STEP_OPTIONS,
   EQUIPMENT_SUPPLY_STEP_OPTIONS,
@@ -56,17 +58,24 @@ export function formatSelectedAddons(
   return getSelectedAddonLabels(addons, serviceSlug).join(", ");
 }
 
+export type OfficeSizingDisplayInput = {
+  officeSizeTier: OfficeSizeTier | null;
+  officeWorkstations: OfficeWorkstationTier | null;
+};
+
 export function formatCompactBedBathSummary(
   serviceSlug: ServiceSlug | null,
   bedrooms: number,
   bathrooms: number,
   propertySizeSqm: number | null,
+  officeSizing?: OfficeSizingDisplayInput | null,
 ): string | null {
   const { bedroomsLabel, bathroomsLabel } = formatBedroomBathroomSummary(
     serviceSlug,
     bedrooms,
     bathrooms,
     propertySizeSqm,
+    officeSizing,
   );
 
   if (isOfficeCleaningSlug(serviceSlug)) {
@@ -93,8 +102,32 @@ export function formatCleanerPreference(
 }
 
 export function formatSuburbLocation(suburb: string, city: string): string {
-  const parts = [suburb.trim(), city.trim()].filter(Boolean);
-  return parts.length > 0 ? parts.join(", ") : "\u2014";
+  const suburbTrimmed = suburb.trim();
+  const cityTrimmed = city.trim();
+  if (!suburbTrimmed && !cityTrimmed) return "\u2014";
+  if (!suburbTrimmed) return cityTrimmed;
+  if (!cityTrimmed) return suburbTrimmed;
+  if (suburbTrimmed.toLowerCase() === cityTrimmed.toLowerCase()) return suburbTrimmed;
+  return `${suburbTrimmed}, ${cityTrimmed}`;
+}
+
+/** Compact review hero pill — omits empty, em-dash, and duplicate segments (display only). */
+export function buildCompactReviewHeroSegments(
+  ...segments: Array<string | null | undefined>
+): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const segment of segments) {
+    const trimmed = segment?.trim();
+    if (!trimmed || trimmed === "\u2014") continue;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(trimmed);
+  }
+
+  return result;
 }
 
 export function getCleaningIntensityLabel(intensity: CleaningIntensity): string {
@@ -189,11 +222,16 @@ export function formatBedroomBathroomSummary(
   bedrooms: number,
   bathrooms: number,
   propertySizeSqm: number | null,
+  officeSizing?: OfficeSizingDisplayInput | null,
 ): { bedroomsLabel: string | null; bathroomsLabel: string | null } {
   if (isOfficeCleaningSlug(serviceSlug)) {
     return {
       bedroomsLabel: null,
-      bathroomsLabel: formatOfficeWorkspaceSizeSummary(propertySizeSqm),
+      bathroomsLabel: formatOfficeSizingSummary(
+        officeSizing?.officeSizeTier ?? null,
+        officeSizing?.officeWorkstations ?? null,
+        propertySizeSqm,
+      ),
     };
   }
 

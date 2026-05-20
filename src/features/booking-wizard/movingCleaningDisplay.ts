@@ -7,6 +7,12 @@ import type { AddonSlug, PricingFrequency, ServiceSlug } from "@/features/pricin
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { FrequencyStepOption } from "./constants";
 import { FREQUENCY_STEP_OPTIONS } from "./constants";
+import {
+  DEEP_MOVING_ADDON_STEP_DESCRIPTIONS,
+  DEEP_MOVING_ADDON_STEP_DISPLAY_ORDER,
+  DEEP_MOVING_ADDON_STEP_LABELS,
+} from "./deepMovingAddonDisplay";
+import { buildCompactReviewHeroSegments } from "./reviewDisplay";
 
 export const MOVING_CLEANING_SLUG = "moving-cleaning" as const;
 
@@ -32,36 +38,14 @@ export const MOVING_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
 ];
 
 /** Inspection-focused add-on order — display only. */
-export const MOVING_ADDON_STEP_DISPLAY_ORDER: AddonSlug[] = [
-  "inside-cabinets",
-  "inside-oven",
-  "inside-fridge",
-  "interior-windows",
-  "interior-walls",
-  "balcony",
-  "laundry",
-];
+export const MOVING_ADDON_STEP_DISPLAY_ORDER = DEEP_MOVING_ADDON_STEP_DISPLAY_ORDER;
 
-export const MOVING_ADDON_STEP_DESCRIPTIONS: Partial<Record<AddonSlug, string>> = {
-  "inside-cabinets": "Cupboard and cabinet interiors — common for inspection sign-off.",
-  "inside-oven": "Oven interior degreased — often checked at handover.",
-  "inside-fridge": "Fridge shelves and drawers refreshed for occupancy.",
-  "interior-windows": "Interior glass for a bright, inspection-ready finish.",
-  "interior-walls": "Spot-clean marks on accessible interior walls.",
-  balcony: "Balcony sweep and outdoor surfaces before handover.",
-  laundry: "Wash, dry, fold — only if laundry facilities remain on site.",
-};
+export const MOVING_ADDON_STEP_DESCRIPTIONS = DEEP_MOVING_ADDON_STEP_DESCRIPTIONS;
 
-export const MOVING_ADDON_STEP_LABELS: Partial<Record<AddonSlug, string>> = {
-  "inside-cabinets": "Inside cabinets",
-  "inside-oven": "Inside oven",
-  "inside-fridge": "Inside fridge",
-  "interior-windows": "Interior windows",
-  laundry: "Laundry (if on site)",
-};
+export const MOVING_ADDON_STEP_LABELS = DEEP_MOVING_ADDON_STEP_LABELS;
 
 export const MOVING_ADDONS_SECTION_HINT =
-  "Most requested for move-out and inspection-ready cleans.";
+  "Move and handover extras — balconies, carpets, ceilings, garages, mattresses, windows, and upholstery.";
 
 export type MovingCleaningStepCopy = {
   mobileDescription: string;
@@ -202,16 +186,14 @@ export function buildMovingReviewHeroSegments(input: {
   scheduleLabel: string;
   locationLabel: string;
   bedBathSummary: string | null;
-  addonSummary: string | null;
-  frequencyLabel: string;
+  addonSummary?: string | null;
+  frequencyLabel?: string | null;
 }): string[] {
-  return [
+  return buildCompactReviewHeroSegments(
     input.scheduleLabel,
-    input.locationLabel !== "\u2014" ? input.locationLabel : null,
+    input.locationLabel,
     input.bedBathSummary,
-    input.addonSummary,
-    input.frequencyLabel,
-  ].filter(Boolean) as string[];
+  );
 }
 
 function getMovingRecurringScheduleReviewNote(

@@ -26,10 +26,16 @@ describe("movingCleaningDisplay", () => {
     expect(step?.desktopDescription).not.toMatch(/turnover|guest-ready/i);
   });
 
-  it("orders inspection-focused add-ons before laundry", () => {
-    expect(MOVING_ADDON_STEP_DISPLAY_ORDER.indexOf("inside-cabinets")).toBeLessThan(
-      MOVING_ADDON_STEP_DISPLAY_ORDER.indexOf("laundry"),
-    );
+  it("shows only deep/move add-ons in the step panel order", () => {
+    expect(MOVING_ADDON_STEP_DISPLAY_ORDER).toEqual([
+      "balcony",
+      "carpet-addon",
+      "ceiling-cleaning",
+      "garage-cleaning",
+      "mattress-cleaning",
+      "outside-windows",
+      "couch-cleaning",
+    ]);
     expect(getAddonStepDisplayOrder("moving-cleaning")).toEqual(MOVING_ADDON_STEP_DISPLAY_ORDER);
   });
 
@@ -46,7 +52,7 @@ describe("movingCleaningDisplay", () => {
     expect(options?.find((o) => o.value === "weekly")?.value).toBe("weekly");
   });
 
-  it("builds review hero with schedule first", () => {
+  it("builds compact review hero with schedule first and no add-ons or frequency", () => {
     const segments = buildMovingReviewHeroSegments({
       scheduleLabel: "Mon 10:00",
       locationLabel: "Sea Point, Cape Town",
@@ -54,8 +60,7 @@ describe("movingCleaningDisplay", () => {
       addonSummary: "Inside oven",
       frequencyLabel: "One-time move clean",
     });
-    expect(segments[0]).toBe("Mon 10:00");
-    expect(segments.join(" · ")).toMatch(/Sea Point/);
+    expect(segments).toEqual(["Mon 10:00", "Sea Point, Cape Town", "2 beds · 1 bath"]);
   });
 
   it("provides checkout copy without turnover language", () => {

@@ -13,6 +13,8 @@ const baseProps = {
   contactPhone: "",
   profilePhone: null as string | null,
   propertySizeSqm: null as number | null,
+  officeSizeTier: null as null,
+  officeWorkstations: null as null,
   reviewConfirmed: false,
   onReviewConfirmedChange: () => {},
 };

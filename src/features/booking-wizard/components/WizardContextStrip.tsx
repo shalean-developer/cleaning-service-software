@@ -1,5 +1,8 @@
 import type { PricingFrequency, ServiceSlug } from "@/features/pricing/server/types";
+import { showFrequencyForService } from "../frequencyVisibility";
 import { isOfficeCleaningSlug } from "../officeCleaningDisplay";
+import type { OfficeSizeTier, OfficeWorkstationTier } from "../officeSizing";
+import { formatOfficeSizingSummary } from "../officeSizing";
 import { getFrequencyLabel } from "../reviewDisplay";
 
 type Props = {
@@ -8,6 +11,8 @@ type Props = {
   bedrooms: number;
   bathrooms: number;
   propertySizeSqm: number | null;
+  officeSizeTier?: OfficeSizeTier | null;
+  officeWorkstations?: OfficeWorkstationTier | null;
   frequency: PricingFrequency;
   showHomeSize?: boolean;
   showFrequency?: boolean;
@@ -18,10 +23,12 @@ function buildHomeSizeDetail(
   bedrooms: number,
   bathrooms: number,
   propertySizeSqm: number | null,
+  officeSizeTier: OfficeSizeTier | null = null,
+  officeWorkstations: OfficeWorkstationTier | null = null,
 ): string | null {
-  if (!serviceSlug || isOfficeCleaningSlug(serviceSlug)) {
-    if (propertySizeSqm != null) return `${propertySizeSqm} sqm`;
-    return null;
+  if (!serviceSlug) return null;
+  if (isOfficeCleaningSlug(serviceSlug)) {
+    return formatOfficeSizingSummary(officeSizeTier, officeWorkstations, propertySizeSqm);
   }
 
   const bedShort = bedrooms === 1 ? "1 bed" : `${bedrooms} beds`;
@@ -35,14 +42,26 @@ export function WizardContextStrip({
   bedrooms,
   bathrooms,
   propertySizeSqm,
+  officeSizeTier = null,
+  officeWorkstations = null,
   frequency,
   showHomeSize = true,
   showFrequency = false,
 }: Props) {
   const homeDetail = showHomeSize
-    ? buildHomeSizeDetail(serviceSlug, bedrooms, bathrooms, propertySizeSqm)
+    ? buildHomeSizeDetail(
+        serviceSlug,
+        bedrooms,
+        bathrooms,
+        propertySizeSqm,
+        officeSizeTier,
+        officeWorkstations,
+      )
     : null;
-  const frequencyLabel = showFrequency ? getFrequencyLabel(frequency) : null;
+  const frequencyLabel =
+    showFrequency && showFrequencyForService(serviceSlug)
+      ? getFrequencyLabel(frequency, serviceSlug)
+      : null;
 
   const segments = [serviceLabel, homeDetail, frequencyLabel].filter(Boolean) as string[];
 

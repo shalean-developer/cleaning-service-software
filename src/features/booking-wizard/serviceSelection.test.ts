@@ -29,11 +29,14 @@ describe("wizardPatchForServiceSelection", () => {
     });
   });
 
-  it("zeros rooms for office-cleaning", () => {
+  it("zeros rooms and clears office sizing for office-cleaning", () => {
     expect(wizardPatchForServiceSelection("office-cleaning")).toEqual({
       serviceSlug: "office-cleaning",
       bedrooms: 0,
       bathrooms: 0,
+      officeSizeTier: null,
+      officeWorkstations: null,
+      propertySizeSqm: null,
       ...serviceSelectionDefaults,
     });
   });
@@ -67,6 +70,24 @@ describe("service URL preselection vs lock payload", () => {
     expect(lock.bedrooms).toBe(2);
     expect(lock.bathrooms).toBe(1);
     expect(lock.extraRooms).toBe(0);
+  });
+
+  it("includes extraRooms in lock payload for deep-cleaning", () => {
+    const state = filledState({ serviceSlug: "deep-cleaning", extraRooms: 2 });
+    const quoteResult = calculateQuote({
+      serviceSlug: "deep-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      extraRooms: 2,
+    });
+    expect(quoteResult.ok).toBe(true);
+    if (!quoteResult.ok) return;
+
+    const lock = buildLockRequestPayload(state, quoteResult.breakdown, "checkout:deep-extra");
+    expect("error" in lock).toBe(false);
+    if ("error" in lock) return;
+
+    expect(lock.extraRooms).toBe(2);
   });
 
   it("includes extraRooms in lock payload for regular-cleaning", () => {

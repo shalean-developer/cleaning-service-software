@@ -1,6 +1,10 @@
 import { INITIAL_WIZARD_STATE, type BookingWizardState } from "./types";
 import { WIZARD_STORAGE_KEY } from "./constants";
 import { WIZARD_STEPS } from "./types";
+import {
+  deriveOfficePropertySizeSqm,
+  inferOfficeSizingFromPropertySizeSqm,
+} from "./officeSizing";
 
 const PERSIST_KEYS: (keyof BookingWizardState)[] = [
   "step",
@@ -19,6 +23,8 @@ const PERSIST_KEYS: (keyof BookingWizardState)[] = [
   "equipmentSupply",
   "requestedTeamSize",
   "propertySizeSqm",
+  "officeSizeTier",
+  "officeWorkstations",
   "frequency",
   "addons",
   "carpetStainSeverity",
@@ -46,7 +52,7 @@ export function loadWizardState(): BookingWizardState {
     const requestedTeamSize =
       persisted.requestedTeamSize === 2 ? 2 : INITIAL_WIZARD_STATE.requestedTeamSize;
 
-    return {
+    let merged: BookingWizardState = {
       ...INITIAL_WIZARD_STATE,
       ...persisted,
       requestedTeamSize,
@@ -60,6 +66,12 @@ export function loadWizardState(): BookingWizardState {
       lockId: null,
       lockedBookingId: null,
     };
+
+    if (merged.serviceSlug === "office-cleaning") {
+      merged = hydrateOfficeWizardSizing(merged);
+    }
+
+    return merged;
   } catch {
     return INITIAL_WIZARD_STATE;
   }
@@ -82,6 +94,34 @@ export function clearWizardStorage(): void {
   } catch {
     // ignore
   }
+}
+
+function hydrateOfficeWizardSizing(state: BookingWizardState): BookingWizardState {
+  if (state.officeSizeTier && state.officeWorkstations) {
+    return {
+      ...state,
+      propertySizeSqm: deriveOfficePropertySizeSqm(
+        state.officeSizeTier,
+        state.officeWorkstations,
+      ),
+    };
+  }
+
+  if (state.propertySizeSqm != null) {
+    const inferred = inferOfficeSizingFromPropertySizeSqm(state.propertySizeSqm);
+    if (inferred.officeSizeTier && inferred.officeWorkstations) {
+      return {
+        ...state,
+        ...inferred,
+        propertySizeSqm: deriveOfficePropertySizeSqm(
+          inferred.officeSizeTier,
+          inferred.officeWorkstations,
+        ),
+      };
+    }
+  }
+
+  return state;
 }
 
 function pickPersisted(

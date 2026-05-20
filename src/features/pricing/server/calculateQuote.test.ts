@@ -37,9 +37,43 @@ describe("calculateQuote", () => {
     expect(result.code).toBe("INVALID_EXTRA_ROOMS");
   });
 
-  it("rejects extra rooms for non-regular services", () => {
+  it("quotes deep cleaning with extra rooms line item", () => {
     const result = calculateQuote({
       serviceSlug: "deep-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      extraRooms: 2,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const extraRoomsItem = result.breakdown.lineItems.find((i) => i.code === "extra_rooms");
+    expect(extraRoomsItem).toMatchObject({
+      quantity: 2,
+      unitAmountCents: 7_000,
+      amountCents: 14_000,
+    });
+  });
+
+  it("quotes move in/out cleaning with extra rooms line item", () => {
+    const result = calculateQuote({
+      serviceSlug: "moving-cleaning",
+      bedrooms: 2,
+      bathrooms: 1,
+      extraRooms: 1,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const extraRoomsItem = result.breakdown.lineItems.find((i) => i.code === "extra_rooms");
+    expect(extraRoomsItem?.amountCents).toBe(7_000);
+  });
+
+  it("rejects extra rooms for services without extra room pricing", () => {
+    const result = calculateQuote({
+      serviceSlug: "airbnb-cleaning",
       bedrooms: 2,
       bathrooms: 1,
       extraRooms: 1,

@@ -6,8 +6,10 @@ import { getAddonStepDescription, getAddonStepDisplayOrder, getAddonStepLabel } 
 import { getAddonsSectionHint, getAddonsSectionTitle } from "../airbnbCleaningDisplay";
 import { DETAILS_OPTION_DESC, DETAILS_STEP_SECTION } from "../detailsStepUi";
 import { formatAddonPrice } from "../format";
+import { isOfficeCleaningSlug } from "../officeCleaningDisplay";
 import { DetailsSectionHeading } from "./DetailsSectionHeading";
 import { DetailsToggleSwitch } from "./DetailsToggleSwitch";
+import { OfficeAddonsStepPanel } from "./OfficeAddonsStepPanel";
 
 type Props = {
   serviceSlug: ServiceSlug | null;
@@ -48,6 +50,10 @@ function AddonRow({ slug, label, description, checked, onToggle }: AddonRowProps
 }
 
 export function AddonsStepPanel({ serviceSlug, selected, onChange }: Props) {
+  if (isOfficeCleaningSlug(serviceSlug)) {
+    return <OfficeAddonsStepPanel selected={selected} onChange={onChange} />;
+  }
+
   const displayOrder = getAddonStepDisplayOrder(serviceSlug);
 
   const toggleAddon = (slug: AddonSlug, enabled: boolean) => {

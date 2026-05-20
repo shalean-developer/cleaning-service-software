@@ -7,6 +7,7 @@ import type { AddonSlug, PricingFrequency, ServiceSlug } from "@/features/pricin
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { FrequencyStepOption } from "./constants";
 import { FREQUENCY_STEP_OPTIONS } from "./constants";
+import { buildCompactReviewHeroSegments } from "./reviewDisplay";
 
 export const CARPET_CLEANING_SLUG = "carpet-cleaning" as const;
 
@@ -31,18 +32,34 @@ export const CARPET_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
   { value: "monthly", label: "Monthly", description: "Light carpet maintenance" },
 ];
 
-/** Carpet form add-on order — priced mattress only; sofa/odor are display-only rows. */
-export const CARPET_ADDON_STEP_DISPLAY_ORDER: AddonSlug[] = ["mattress-cleaning"];
+/** Carpet add-on order — fabric and upholstery treatment. */
+export const CARPET_ADDON_STEP_DISPLAY_ORDER: AddonSlug[] = [
+  "mattress-cleaning",
+  "couch-cleaning",
+  "rug-cleaning",
+  "stain-treatment",
+  "deodorizing-treatment",
+  "fabric-protection",
+  "upholstery-refresh",
+];
 
 export const CARPET_ADDON_STEP_DESCRIPTIONS: Partial<Record<AddonSlug, string>> = {
   "mattress-cleaning": "Deep clean for one mattress — stain lift and fabric refresh.",
+  "couch-cleaning": "Upholstery refresh for one couch or sofa — fabric-safe clean.",
+  "rug-cleaning": "Area rug refresh — stain lift and pile revitalization.",
+  "stain-treatment": "Targeted stain lifting for high-traffic or marked areas.",
+  "deodorizing-treatment": "Odor neutralization for fabrics and carpeted areas.",
+  "fabric-protection": "Protective treatment to help reduce future staining.",
+  "upholstery-refresh": "Light upholstery clean for chairs and fabric seating.",
 };
 
 export const CARPET_ADDON_STEP_LABELS: Partial<Record<AddonSlug, string>> = {
   "mattress-cleaning": "Mattress cleaning",
+  "couch-cleaning": "Couch cleaning",
 };
 
-export const CARPET_ADDONS_SECTION_HINT = null;
+export const CARPET_ADDONS_SECTION_HINT =
+  "Fabric and upholstery extras — stains, odor, and protection treatments.";
 
 export const CARPET_STAIN_SEVERITY_VALUES = ["light", "noticeable", "heavy"] as const;
 
@@ -73,16 +90,15 @@ export type CarpetFormAddonRow =
       label: string;
     };
 
-export const CARPET_FORM_ADDON_ROWS: CarpetFormAddonRow[] = [
-  {
-    kind: "addon",
-    addonSlug: "mattress-cleaning",
-    label: "Mattress cleaning",
-    description: CARPET_ADDON_STEP_DESCRIPTIONS["mattress-cleaning"]!,
-  },
-  { kind: "soon", id: "sofa-cleaning", label: "Sofa cleaning" },
-  { kind: "soon", id: "odor-treatment", label: "Odor treatment" },
-];
+/** @deprecated Use `CARPET_ADDON_STEP_DISPLAY_ORDER` with `AddonsStepPanel`. */
+export const CARPET_FORM_ADDON_ROWS: CarpetFormAddonRow[] = CARPET_ADDON_STEP_DISPLAY_ORDER.map(
+  (addonSlug) => ({
+    kind: "addon" as const,
+    addonSlug,
+    label: CARPET_ADDON_STEP_LABELS[addonSlug] ?? addonSlug,
+    description: CARPET_ADDON_STEP_DESCRIPTIONS[addonSlug] ?? "",
+  }),
+);
 
 export const CARPET_ZONES_MIN = 1;
 export const CARPET_ZONES_MAX = 6;
@@ -296,16 +312,14 @@ export function buildCarpetReviewHeroSegments(input: {
   scheduleLabel: string;
   locationLabel: string;
   zonesSummary: string | null;
-  addonSummary: string | null;
-  frequencyLabel: string;
+  addonSummary?: string | null;
+  frequencyLabel?: string | null;
 }): string[] {
-  return [
+  return buildCompactReviewHeroSegments(
     input.scheduleLabel,
-    input.locationLabel !== "\u2014" ? input.locationLabel : null,
+    input.locationLabel,
     input.zonesSummary,
-    input.addonSummary,
-    input.frequencyLabel,
-  ].filter(Boolean) as string[];
+  );
 }
 
 function getCarpetRecurringScheduleReviewNote(

@@ -81,6 +81,27 @@ describe("booking wizard validation", () => {
     expect(tooHigh.errors.extraRooms).toBeDefined();
   });
 
+  it("validates extra rooms bounds for deep-cleaning", () => {
+    const valid = validateDetailsStep(
+      filledState({ serviceSlug: "deep-cleaning", extraRooms: 2 }),
+    );
+    expect(valid.valid).toBe(true);
+
+    const tooHigh = validateDetailsStep(
+      filledState({ serviceSlug: "deep-cleaning", extraRooms: 7 }),
+    );
+    expect(tooHigh.valid).toBe(false);
+    expect(tooHigh.errors.extraRooms).toBeDefined();
+  });
+
+  it("does not validate extra rooms for carpet-cleaning", () => {
+    const result = validateDetailsStep(
+      filledState({ serviceSlug: "carpet-cleaning", extraRooms: 99 }),
+    );
+    expect(result.valid).toBe(true);
+    expect(result.errors.extraRooms).toBeUndefined();
+  });
+
   it("blocks past date/time", () => {
     const result = validateDateTimeStep(
       filledState({ date: "2020-01-01", time: "08:00" }),
