@@ -1,6 +1,12 @@
 import type { PaymentStatus } from "@/lib/database/types";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import {
+  customerAirbnbStatusLine,
+  customerAirbnbTimingHint,
+  isAirbnbCleaningSlug,
+} from "@/features/booking-wizard/airbnbCleaningDisplay";
+import { customerAirbnbCompactGuidance } from "@/features/dashboards/airbnbCustomerDisplay";
+import {
   labelForCustomerBookingStatus,
   type PaymentFailureReason,
 } from "@/features/bookings/server/paymentFailureDisplay";
@@ -121,18 +127,30 @@ function heroNarrativeForStatus(
 export function customerBookingStatusHero(
   status: BookingStatus,
   paymentFailureReason: PaymentFailureReason,
-  options?: { deferredAssignmentMessage?: string | null },
+  options?: {
+    deferredAssignmentMessage?: string | null;
+    serviceSlug?: string | null;
+  },
 ): CustomerBookingStatusHeroPresentation {
   const tone =
     status === "payment_failed" ? "warning" : toneForBookingStatus(status);
   const surfaces = HERO_SURFACE_BY_TONE[tone];
   const narrative = heroNarrativeForStatus(status, paymentFailureReason);
   const deferredMessage = options?.deferredAssignmentMessage?.trim();
+  const airbnb = isAirbnbCleaningSlug(options?.serviceSlug);
 
   return {
     statusLabel: labelForCustomerBookingStatus(status, paymentFailureReason),
-    statusLine: deferredMessage ?? narrative.statusLine,
-    timingHint: deferredMessage ? "Closer to your service date" : narrative.timingHint,
+    statusLine:
+      deferredMessage ??
+      (airbnb
+        ? customerAirbnbStatusLine(status, narrative.statusLine)
+        : narrative.statusLine),
+    timingHint: deferredMessage
+      ? "Closer to your service date"
+      : airbnb
+        ? customerAirbnbTimingHint(status, narrative.timingHint)
+        : narrative.timingHint,
     tone,
     surfaceClass: surfaces.surface,
     ringClass: surfaces.ring,
@@ -160,7 +178,10 @@ const EMAIL_UPDATES_STEP: CustomerBookingNextStep = {
 /** Returns null when hero or payment panel already owns the explanation. */
 export function customerBookingCompactGuidance(
   status: BookingStatus,
-  options?: { deferredAssignmentMessage?: string | null },
+  options?: {
+    deferredAssignmentMessage?: string | null;
+    serviceSlug?: string | null;
+  },
 ): CustomerBookingCompactGuidance | null {
   if (status === "payment_failed" || status === "cancelled") return null;
   if (
@@ -170,6 +191,10 @@ export function customerBookingCompactGuidance(
       status === "assigned")
   ) {
     return null;
+  }
+
+  if (isAirbnbCleaningSlug(options?.serviceSlug)) {
+    return customerAirbnbCompactGuidance(status);
   }
 
   switch (status) {

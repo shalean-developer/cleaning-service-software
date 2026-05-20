@@ -5,7 +5,7 @@ import { FrequencyStepPanel } from "./FrequencyStepPanel";
 describe("FrequencyStepPanel", () => {
   it("renders four frequency pills with visible short hints", () => {
     const html = renderToStaticMarkup(
-      <FrequencyStepPanel value="weekly" onChange={() => {}} />,
+      <FrequencyStepPanel serviceSlug="regular-cleaning" value="weekly" onChange={() => {}} />,
     );
 
     expect(html).toContain("Visit frequency");
@@ -29,7 +29,12 @@ describe("FrequencyStepPanel", () => {
 
   it("shows validation error when provided", () => {
     const html = renderToStaticMarkup(
-      <FrequencyStepPanel value="once" onChange={() => {}} error="Invalid frequency." />,
+      <FrequencyStepPanel
+        serviceSlug="regular-cleaning"
+        value="once"
+        onChange={() => {}}
+        error="Invalid frequency."
+      />,
     );
 
     expect(html).toContain('role="alert"');

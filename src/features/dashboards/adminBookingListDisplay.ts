@@ -1,3 +1,4 @@
+import { adminAirbnbBookingListNextAction } from "@/features/dashboards/airbnbOperationalDisplay";
 import type { AdminBookingListItem } from "@/features/dashboards/server/types";
 
 type BookingRowInput = Pick<
@@ -11,8 +12,7 @@ type BookingRowInput = Pick<
   | "observation"
 >;
 
-/** Short next-step copy for admin booking list rows (presentation only). */
-export function adminBookingListNextAction(booking: BookingRowInput): string | null {
+function defaultAdminBookingListNextAction(booking: BookingRowInput): string | null {
   if (booking.status === "payment_failed") {
     return "Customer must retry payment — open booking to verify notifications.";
   }
@@ -58,6 +58,17 @@ export function adminBookingListNextAction(booking: BookingRowInput): string | n
   }
 
   return null;
+}
+
+/** Short next-step copy for admin booking list rows (presentation only). */
+export function adminBookingListNextAction(
+  booking: BookingRowInput & { serviceLabel: string },
+): string | null {
+  const defaultAction = defaultAdminBookingListNextAction(booking);
+  return adminAirbnbBookingListNextAction(defaultAction, {
+    serviceLabel: booking.serviceLabel,
+    status: booking.status,
+  });
 }
 
 export function adminBookingListNeedsHighlight(booking: BookingRowInput): boolean {

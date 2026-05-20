@@ -57,6 +57,25 @@ describe("wizardBookingSummaryDisplay", () => {
     expect(snapshot.secondaryRows.some((r) => r.label === "Add-ons")).toBe(false);
   });
 
+  it("includes frequency and add-ons for airbnb-cleaning in secondary rows", () => {
+    const snapshot = buildWizardBookingSummarySnapshot({
+      ...baseInput,
+      serviceLabel: "Airbnb Cleaning",
+      serviceSlug: "airbnb-cleaning",
+      frequency: "weekly",
+      addons: ["balcony"],
+    });
+
+    expect(
+      snapshot.secondaryRows.some(
+        (r) => r.label === "Turnover cadence" && r.value.includes("Weekly"),
+      ),
+    ).toBe(true);
+    expect(snapshot.secondaryRows.some((r) => r.label === "Turnover extras")).toBe(true);
+    expect(snapshot.secondaryRows.some((r) => r.label === "Property")).toBe(true);
+    expect(snapshot.secondaryRows.some((r) => r.label === "Intensity")).toBe(false);
+  });
+
   it("includes cleaner preference in secondary rows on cleaner step input", () => {
     const snapshot = buildWizardBookingSummarySnapshot({
       ...baseInput,

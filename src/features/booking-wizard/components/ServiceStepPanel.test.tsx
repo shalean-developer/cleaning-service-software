@@ -28,7 +28,7 @@ describe("ServiceStepPanel", () => {
     expect(html).not.toContain("bg-zinc-200/80");
     expect(html).toContain("Routine upkeep for your home");
     expect(html).toContain("Routine clean for kitchens, bathrooms, and living areas.");
-    expect(html).toContain("Guest-ready clean for kitchens, baths, and key spaces.");
+    expect(html).toContain("Fast, detail-focused property preparation");
     expect(html).toContain("Detailed top-to-bottom clean");
     expect(html).not.toContain("Tap a service, then continue below");
     expect(html).toContain("Regular Cleaning");

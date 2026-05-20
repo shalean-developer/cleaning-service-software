@@ -13,6 +13,7 @@ type Props = {
     bookingId?: string;
     booking?: string;
     reference?: string;
+    service?: string;
   }>;
 };
 

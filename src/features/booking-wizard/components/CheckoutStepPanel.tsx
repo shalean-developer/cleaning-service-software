@@ -7,6 +7,12 @@ import type {
 } from "@/features/pricing/server/types";
 import { formatDateLabel, formatZar } from "../format";
 import {
+  AIRBNB_CHECKOUT_WHAT_HAPPENS_NEXT,
+  getCheckoutAmountHelper,
+  getCheckoutGuestReadyNote,
+  isAirbnbCleaningSlug,
+} from "../airbnbCleaningDisplay";
+import {
   getRecurringPaymentExplanation,
   isRecurringFrequency,
 } from "../recurringDisplay";
@@ -29,7 +35,7 @@ type Props = {
   customerEmail: string;
 };
 
-const WHAT_HAPPENS_NEXT = [
+const DEFAULT_WHAT_HAPPENS_NEXT = [
   "Booking confirmation",
   "Confirmation email",
   "Cleaner assignment",
@@ -100,10 +106,16 @@ export function CheckoutStepPanel({
     bathrooms,
     propertySizeSqm,
   );
-  const recurringPaymentNote = getRecurringPaymentExplanation(frequency);
-  const amountHelper = isRecurringFrequency(frequency)
-    ? recurringPaymentNote
-    : `Paying as ${customerEmail}`;
+  const recurringPaymentNote = getRecurringPaymentExplanation(frequency, serviceSlug);
+  const guestReadyNote = getCheckoutGuestReadyNote(serviceSlug);
+  const whatHappensNext = isAirbnbCleaningSlug(serviceSlug)
+    ? AIRBNB_CHECKOUT_WHAT_HAPPENS_NEXT
+    : DEFAULT_WHAT_HAPPENS_NEXT;
+  const amountHelper = getCheckoutAmountHelper(
+    serviceSlug,
+    customerEmail,
+    isRecurringFrequency(frequency) ? recurringPaymentNote : null,
+  );
 
   const snapshotMeta = [bedBathSummary, locationLabel !== "\u2014" ? locationLabel : null].filter(
     Boolean,
@@ -121,6 +133,9 @@ export function CheckoutStepPanel({
         <p className="mt-0.5 text-sm text-zinc-800">{scheduleLabel}</p>
         {snapshotMeta.length > 0 ? (
           <p className="mt-0.5 text-xs leading-snug text-zinc-600">{snapshotMeta.join(" · ")}</p>
+        ) : null}
+        {guestReadyNote ? (
+          <p className="mt-1.5 text-xs leading-snug text-emerald-900/90">{guestReadyNote}</p>
         ) : null}
       </header>
 
@@ -173,7 +188,7 @@ export function CheckoutStepPanel({
           What happens next
         </h3>
         <ul className="space-y-1">
-          {WHAT_HAPPENS_NEXT.map((step) => (
+          {whatHappensNext.map((step) => (
             <li key={step} className="flex items-center gap-2 text-sm text-zinc-800">
               <span
                 className="h-1 w-1 shrink-0 rounded-full bg-emerald-600"

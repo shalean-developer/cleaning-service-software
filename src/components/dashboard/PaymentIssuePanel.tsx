@@ -7,11 +7,16 @@ import {
   paymentIssuePanelCopy,
   paymentIssuePanelReassurance,
 } from "@/features/bookings/server/paymentFailureDisplay";
+import {
+  getAirbnbCustomerPaymentIssueCopy,
+  isAirbnbCleaningSlug,
+} from "@/features/dashboards/airbnbCustomerDisplay";
 import { RetryPaymentButton } from "./RetryPaymentButton";
 
 type PaymentIssuePanelProps = {
   bookingId: string;
   customerEmail: string;
+  serviceSlug?: string | null;
   paymentFailureReason?: PaymentFailureReason;
   canRetryPayment: boolean;
 };
@@ -19,11 +24,16 @@ type PaymentIssuePanelProps = {
 export function PaymentIssuePanel({
   bookingId,
   customerEmail,
+  serviceSlug,
   paymentFailureReason,
   canRetryPayment,
 }: PaymentIssuePanelProps) {
-  const copy = paymentIssuePanelCopy(paymentFailureReason);
+  const airbnbCopy = isAirbnbCleaningSlug(serviceSlug)
+    ? getAirbnbCustomerPaymentIssueCopy(paymentFailureReason)
+    : null;
+  const copy = airbnbCopy ?? paymentIssuePanelCopy(paymentFailureReason);
   const reassurance = paymentIssuePanelReassurance(canRetryPayment);
+  const assignmentNote = airbnbCopy?.assignmentNote ?? PAYMENT_FAILED_ASSIGNMENT_NOTE;
 
   return (
     <section className="rounded-2xl border border-zinc-200 bg-zinc-50/90 px-4 py-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:px-5 sm:py-4">
@@ -52,7 +62,8 @@ export function PaymentIssuePanel({
           Payment details
         </summary>
         <div className="mt-2 space-y-1.5 leading-relaxed">
-          <p>{PAYMENT_FAILED_ASSIGNMENT_NOTE}</p>
+          <p>{assignmentNote}</p>
+          {airbnbCopy?.slotWarning ? <p>{airbnbCopy.slotWarning}</p> : null}
           {canRetryPayment ? (
             <p>{PAYMENT_RETRY_FRESH_CHECKOUT_HINT}</p>
           ) : (

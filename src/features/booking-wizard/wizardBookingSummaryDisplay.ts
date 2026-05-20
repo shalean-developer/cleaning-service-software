@@ -7,7 +7,14 @@ import type {
   ServiceSlug,
 } from "@/features/pricing/server/types";
 import { wizardStateToPricingInput } from "./buildMetadata";
+import {
+  getWizardSummaryAddonsLabel,
+  getWizardSummaryFrequencyLabel,
+  getWizardSummaryLocationLabel,
+  isAirbnbCleaningSlug,
+} from "./airbnbCleaningDisplay";
 import { formatDateLabel } from "./format";
+import { formatSuburbLocation } from "./reviewDisplay";
 import {
   formatCleanerPreference,
   formatCompactBedBathSummary,
@@ -59,17 +66,38 @@ function pushRow(rows: WizardSummaryRow[], label: string, value: string | null |
   rows.push({ label, value: value.trim() });
 }
 
+function isResidentialSummarySlug(serviceSlug: ServiceSlug | null): boolean {
+  return (
+    serviceSlug === "regular-cleaning" ||
+    serviceSlug === "airbnb-cleaning" ||
+    serviceSlug === "deep-cleaning" ||
+    serviceSlug === "moving-cleaning"
+  );
+}
+
 function buildSecondaryRows(input: WizardBookingSummaryInput): WizardSummaryRow[] {
   const rows: WizardSummaryRow[] = [];
+  const isAirbnb = isAirbnbCleaningSlug(input.serviceSlug);
 
-  if (input.serviceSlug === "regular-cleaning") {
-    pushRow(rows, "Frequency", getFrequencyLabel(input.frequency));
+  if (isAirbnb) {
+    const location = formatSuburbLocation(input.suburb, input.city);
+    pushRow(rows, getWizardSummaryLocationLabel(input.serviceSlug), location);
+  }
+
+  if (isResidentialSummarySlug(input.serviceSlug)) {
+    pushRow(
+      rows,
+      getWizardSummaryFrequencyLabel(input.serviceSlug),
+      getFrequencyLabel(input.frequency, input.serviceSlug),
+    );
 
     const addonsLabel = formatSelectedAddons(input.addons, input.serviceSlug);
     if (addonsLabel !== "None") {
-      pushRow(rows, "Add-ons", addonsLabel);
+      pushRow(rows, getWizardSummaryAddonsLabel(input.serviceSlug), addonsLabel);
     }
+  }
 
+  if (input.serviceSlug === "regular-cleaning") {
     if (input.cleaningIntensity !== "standard") {
       pushRow(rows, "Intensity", getCleaningIntensityLabel(input.cleaningIntensity));
     }
@@ -107,13 +135,23 @@ export function buildWizardBookingSummarySnapshot(
     input.propertySizeSqm,
   );
 
-  return {
+  const snapshot: WizardBookingSummarySnapshot = {
     service: input.serviceLabel.trim() || "—",
     when,
     home,
     secondaryRows: buildSecondaryRows(input),
     estimatedTotalCents: getWizardEstimatedTotalCents(input),
   };
+
+  if (isAirbnbCleaningSlug(input.serviceSlug) && snapshot.secondaryRows.length > 0) {
+    const locationRow = snapshot.secondaryRows.find(
+      (r) => r.label === getWizardSummaryLocationLabel(input.serviceSlug),
+    );
+    const otherRows = snapshot.secondaryRows.filter((r) => r !== locationRow);
+    snapshot.secondaryRows = locationRow ? [locationRow, ...otherRows] : otherRows;
+  }
+
+  return snapshot;
 }
 
 /** Mirrors review pricing for sidebar display only — official quote still loads on review. */

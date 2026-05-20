@@ -1,6 +1,13 @@
 import { ADDON_CATALOG } from "@/features/pricing/server/catalog";
 import type { AddonSlug, ServiceSlug } from "@/features/pricing/server/types";
 import {
+  AIRBNB_ADDON_STEP_DESCRIPTIONS,
+  AIRBNB_ADDON_STEP_DISPLAY_ORDER,
+  AIRBNB_ADDON_STEP_LABELS,
+  isAirbnbCleaningSlug,
+} from "./airbnbCleaningDisplay";
+import {
+  ADDON_STEP_DESCRIPTIONS,
   ADDON_STEP_DISPLAY_ORDER,
   REGULAR_CLEANING_ADDON_STEP_DISPLAY_ORDER,
   REGULAR_CLEANING_ADDON_STEP_LABELS,
@@ -11,6 +18,9 @@ export function getAddonStepDisplayOrder(serviceSlug: ServiceSlug | null): Addon
   if (serviceSlug === "regular-cleaning") {
     return REGULAR_CLEANING_ADDON_STEP_DISPLAY_ORDER;
   }
+  if (isAirbnbCleaningSlug(serviceSlug)) {
+    return AIRBNB_ADDON_STEP_DISPLAY_ORDER;
+  }
   return ADDON_STEP_DISPLAY_ORDER;
 }
 
@@ -19,5 +29,16 @@ export function getAddonStepLabel(slug: AddonSlug, serviceSlug: ServiceSlug | nu
   if (serviceSlug === "regular-cleaning") {
     return REGULAR_CLEANING_ADDON_STEP_LABELS[slug] ?? ADDON_CATALOG[slug].label;
   }
+  if (isAirbnbCleaningSlug(serviceSlug)) {
+    return AIRBNB_ADDON_STEP_LABELS[slug] ?? ADDON_CATALOG[slug].label;
+  }
   return ADDON_CATALOG[slug].label;
+}
+
+/** Step 4 add-on subtitle — display only. */
+export function getAddonStepDescription(slug: AddonSlug, serviceSlug: ServiceSlug | null): string {
+  if (isAirbnbCleaningSlug(serviceSlug) && AIRBNB_ADDON_STEP_DESCRIPTIONS[slug]) {
+    return AIRBNB_ADDON_STEP_DESCRIPTIONS[slug]!;
+  }
+  return ADDON_STEP_DESCRIPTIONS[slug];
 }

@@ -23,7 +23,7 @@ const SERVICE_STEP_DESCRIPTIONS: Record<ServiceSlug, string> = {
   "regular-cleaning": "Routine upkeep for your home",
   "deep-cleaning": "Detailed top-to-bottom clean",
   "moving-cleaning": "Move-in or move-out reset",
-  "airbnb-cleaning": "Guest-ready turnaround",
+  "airbnb-cleaning": "Guest-ready turnover",
   "office-cleaning": "Commercial spaces — size may apply",
   "carpet-cleaning": "Carpet zones per room",
 };
@@ -33,7 +33,8 @@ export const SERVICE_STEP_DESCRIPTIONS_DESKTOP: Record<ServiceSlug, string> = {
   "regular-cleaning": "Routine clean for kitchens, bathrooms, and living areas.",
   "deep-cleaning": "Deep clean for buildup, corners, and high-traffic areas.",
   "moving-cleaning": "Move-in or move-out clean for floors and surfaces.",
-  "airbnb-cleaning": "Guest-ready clean for kitchens, baths, and key spaces.",
+  "airbnb-cleaning":
+    "Fast, detail-focused property preparation before your next guest check-in.",
   "office-cleaning": "Commercial office clean; workspace size may apply.",
   "carpet-cleaning": "Carpet and rug clean by room or zone you choose.",
 };

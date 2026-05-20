@@ -5,6 +5,10 @@ import {
   type PaymentFailureReason,
 } from "@/features/bookings/server/paymentFailureDisplay";
 import {
+  getAirbnbCustomerBookingListCopy,
+  isAirbnbCleaningSlug,
+} from "@/features/dashboards/airbnbCustomerDisplay";
+import {
   labelForPaymentStatus,
   toneForBookingStatus,
   type StatusBadgeTone,
@@ -22,9 +26,13 @@ export type CustomerBookingListCardLayersInput = {
   status: BookingStatus;
   paymentStatus: PaymentStatus | null;
   paymentFailureReason: PaymentFailureReason;
+  isUpcoming: boolean;
   display: Pick<
     BookingDisplayFields,
-    "assignmentCustomerMessage" | "isTwoCleanerRequest" | "teamSupportLabel"
+    | "assignmentCustomerMessage"
+    | "isTwoCleanerRequest"
+    | "teamSupportLabel"
+    | "serviceSlug"
   >;
   deferredAssignmentMessage?: string | null;
   assignedCleanerLabel: string | null;
@@ -46,8 +54,10 @@ export type CustomerBookingListCardSupportingMessage =
 
 export type CustomerBookingListCardLayers = {
   dominantBadge: CustomerBookingListCardDominantBadge;
+  serviceSubtitle: string | null;
   paymentStatusLine: CustomerBookingListCardPaymentLine | null;
   supportingMessage: CustomerBookingListCardSupportingMessage | null;
+  ctaLabel: string;
 };
 
 function paymentStatusLineForBooking(
@@ -129,12 +139,31 @@ function supportingMessageForBooking(
 export function customerBookingListCardLayers(
   input: CustomerBookingListCardLayersInput,
 ): CustomerBookingListCardLayers {
+  const airbnb = isAirbnbCleaningSlug(input.display.serviceSlug);
+  const airbnbCopy = airbnb
+    ? getAirbnbCustomerBookingListCopy({
+        status: input.status,
+        paymentFailureReason: input.paymentFailureReason,
+        isUpcoming: input.isUpcoming,
+      })
+    : null;
+
+  const defaultPaymentLine = paymentStatusLineForBooking(input.status, input.paymentStatus);
+  const paymentStatusLine =
+    airbnbCopy?.paymentLine != null
+      ? { text: airbnbCopy.paymentLine, tone: "attention" as const }
+      : defaultPaymentLine;
+
   return {
     dominantBadge: {
-      label: labelForCustomerBookingStatus(input.status, input.paymentFailureReason),
+      label:
+        airbnbCopy?.statusBadgeLabel ??
+        labelForCustomerBookingStatus(input.status, input.paymentFailureReason),
       tone: toneForBookingStatus(input.status),
     },
-    paymentStatusLine: paymentStatusLineForBooking(input.status, input.paymentStatus),
+    serviceSubtitle: airbnbCopy?.serviceSubtitle ?? null,
+    paymentStatusLine,
     supportingMessage: supportingMessageForBooking(input),
+    ctaLabel: airbnbCopy?.ctaLabel ?? "View details",
   };
 }

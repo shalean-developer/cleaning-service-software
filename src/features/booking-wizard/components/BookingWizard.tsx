@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ServiceSlug } from "@/features/pricing/server/types";
+import { getAccessNotesFieldCopy, getWizardCleanerFootnote } from "../airbnbCleaningDisplay";
 import { syncBookServiceUrlOnSelection } from "../bookServiceRoute";
 import { WIZARD_SERVICE_OPTIONS } from "../constants";
 import type { BookingWindowBounds } from "../bookingWindowConfig";
@@ -400,7 +401,7 @@ export function BookingWizard({
   const showBookingSummarySidebar = usesWizardStepSummarySidebar(state.step);
   const bookingSummaryFootnote =
     state.step === "cleaner"
-      ? "Cleaner preference is saved with your booking. Assignment finalizes after payment."
+      ? getWizardCleanerFootnote(state.serviceSlug)
       : undefined;
   const showWizardFrequency = ["details", "cleaner", "review", "checkout"].includes(
     state.step,
@@ -472,6 +473,7 @@ export function BookingWizard({
           <>
             {wizardContextStrip}
             <ScheduleStepPanel
+            serviceSlug={state.serviceSlug}
             date={state.date}
             time={state.time}
             minDate={minDate}
@@ -524,13 +526,22 @@ export function BookingWizard({
               </Field>
             </div>
             <div className="mt-4">
-              <Field label="Access notes (optional)">
-                <textarea
-                  className={`${inputClass} min-h-[80px] ${WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS}`}
-                  value={state.locationNotes}
-                  onChange={(e) => patch({ locationNotes: e.target.value })}
-                />
-              </Field>
+              {(() => {
+                const accessCopy = getAccessNotesFieldCopy(state.serviceSlug);
+                return (
+                  <Field label={accessCopy.label}>
+                    {accessCopy.hint ? (
+                      <p className="mb-1.5 text-xs leading-snug text-zinc-500">{accessCopy.hint}</p>
+                    ) : null}
+                    <textarea
+                      className={`${inputClass} min-h-[80px] ${WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS}`}
+                      value={state.locationNotes}
+                      onChange={(e) => patch({ locationNotes: e.target.value })}
+                      placeholder={accessCopy.placeholder}
+                    />
+                  </Field>
+                );
+              })()}
             </div>
           </>
         ) : null}
@@ -571,6 +582,7 @@ export function BookingWizard({
           <>
             {wizardContextStrip}
             <CleanerStepPanel
+              serviceSlug={state.serviceSlug}
               cleanerPreferenceMode={state.cleanerPreferenceMode}
               selectedCleanerId={state.selectedCleanerId}
               availableCleaners={state.availableCleaners}

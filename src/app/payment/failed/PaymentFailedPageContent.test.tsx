@@ -29,6 +29,20 @@ describe("PaymentFailedPageContent", () => {
     expect(html).toContain("Book a clean");
   });
 
+  it("renders Airbnb turnover failure copy when service param is airbnb-cleaning", () => {
+    const html = renderToStaticMarkup(
+      <PaymentFailedPageContent
+        model={buildPaymentFailedPageModel({
+          service: "airbnb-cleaning",
+          reason: CHECKOUT_EXPIRED_FAILURE_REASON,
+        })}
+      />,
+    );
+    expect(html).toContain("turnover booking is not confirmed yet");
+    expect(html).toContain("property preparation slot");
+    expect(html).toContain("turnover slot may be released");
+  });
+
   it("shows booking retry CTA when booking id is present", () => {
     const html = renderToStaticMarkup(
       <PaymentFailedPageContent

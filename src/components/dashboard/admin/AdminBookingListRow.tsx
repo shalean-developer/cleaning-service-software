@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import type { AdminBookingListCardBadge } from "@/components/dashboard/admin/AdminBookingListCard";
+import {
+  getAirbnbAdminBookingListCopy,
+  isAirbnbOperationalBooking,
+} from "@/features/dashboards/airbnbOperationalDisplay";
 import { ADMIN_LIST_CARD_CLASS } from "@/features/dashboards/adminDisplay";
 import { UI_LIST_META_CLASS, UI_LIST_TITLE_CLASS } from "@/lib/ui/productUiTokens";
 
@@ -26,6 +30,8 @@ export function AdminBookingListRow({
   cleanerLabel,
 }: Props) {
   const highlight = badges.some((b) => b.tone === "danger" || b.tone === "warning");
+  const airbnb = isAirbnbOperationalBooking({ serviceLabel });
+  const airbnbList = airbnb ? getAirbnbAdminBookingListCopy() : null;
 
   return (
     <article
@@ -41,6 +47,11 @@ export function AdminBookingListRow({
             ))}
           </div>
           <h3 className={`mt-1.5 ${UI_LIST_TITLE_CLASS}`}>{serviceLabel}</h3>
+          {airbnbList ? (
+            <p className={`mt-0.5 text-xs font-medium text-sky-900/90`}>
+              {airbnbList.serviceSubtitle}
+            </p>
+          ) : null}
           <p className={`mt-0.5 ${UI_LIST_META_CLASS} text-zinc-700`}>{customerLabel}</p>
           <p className={`mt-0.5 text-xs ${UI_LIST_META_CLASS}`}>
             {scheduleLabel}
@@ -56,7 +67,7 @@ export function AdminBookingListRow({
           href={href}
           className="shrink-0 rounded-lg bg-zinc-900 px-3 py-2 text-xs font-medium text-white hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
         >
-          Open
+          {airbnbList?.listCtaLabel ?? "Open"}
         </Link>
       </div>
     </article>

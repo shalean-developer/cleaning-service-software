@@ -8,6 +8,10 @@ import {
   CLEANER_SERVICE_EYEBROW_CLASS,
 } from "@/features/dashboards/cleanerDashboardDisplay";
 import {
+  getAirbnbCleanerJobCopy,
+  isAirbnbOperationalBooking,
+} from "@/features/dashboards/airbnbOperationalDisplay";
+import {
   CLEANER_DETAIL_CARD_CLASS,
   CLEANER_DETAIL_INSET_CLASS,
   cleanerJobStatusHero,
@@ -16,6 +20,7 @@ import { labelForCleanerJobStatus } from "@/features/bookings/server/statusLabel
 import type { BookingStatus } from "@/features/bookings/server/types";
 
 type Props = {
+  serviceSlug?: string | null;
   serviceLabel: string;
   scheduleLabel: string;
   locationSummary: string;
@@ -25,6 +30,7 @@ type Props = {
 };
 
 export function CleanerJobStatusHero({
+  serviceSlug,
   serviceLabel,
   scheduleLabel,
   locationSummary,
@@ -32,7 +38,9 @@ export function CleanerJobStatusHero({
   status,
   actionSlot,
 }: Props) {
-  const hero = cleanerJobStatusHero(status);
+  const airbnb = isAirbnbOperationalBooking({ serviceSlug, serviceLabel });
+  const airbnbJob = airbnb ? getAirbnbCleanerJobCopy() : null;
+  const hero = cleanerJobStatusHero(status, airbnb ? "airbnb-cleaning" : serviceSlug);
 
   return (
     <section className={`${CLEANER_DETAIL_CARD_CLASS} overflow-hidden`}>
@@ -40,6 +48,9 @@ export function CleanerJobStatusHero({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <p className={CLEANER_SERVICE_EYEBROW_CLASS}>{serviceLabel}</p>
+            {airbnbJob ? (
+              <p className="mt-0.5 text-sm text-zinc-600">{airbnbJob.heroSubtitle}</p>
+            ) : null}
             <p className={CLEANER_META_LINE_CLASS}>
               <span className="font-medium text-zinc-900">{scheduleLabel}</span>
               <span className="text-zinc-400"> · </span>

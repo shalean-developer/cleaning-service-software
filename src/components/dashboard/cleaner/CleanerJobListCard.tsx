@@ -8,6 +8,11 @@ import {
   CLEANER_META_LOCATION_CLASS,
   CLEANER_SERVICE_EYEBROW_CLASS,
 } from "@/features/dashboards/cleanerDashboardDisplay";
+import {
+  cleanerAirbnbJobStatusLabel,
+  getAirbnbCleanerJobCopy,
+  isAirbnbOperationalBooking,
+} from "@/features/dashboards/airbnbOperationalDisplay";
 import { CLEANER_DETAIL_CARD_CLASS } from "@/features/dashboards/cleanerJobDetailDisplay";
 import {
   labelForCleanerJobStatus,
@@ -34,6 +39,11 @@ export function CleanerJobListCard({
   status,
   teamRoleLabel,
 }: Props) {
+  const airbnb = isAirbnbOperationalBooking({ serviceLabel });
+  const airbnbJob = airbnb ? getAirbnbCleanerJobCopy() : null;
+  const statusLabel =
+    cleanerAirbnbJobStatusLabel(status) ?? labelForCleanerJobStatus(status);
+
   return (
     <Link
       href={href}
@@ -42,6 +52,9 @@ export function CleanerJobListCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className={CLEANER_SERVICE_EYEBROW_CLASS}>{serviceLabel}</p>
+          {airbnbJob ? (
+            <p className="mt-0.5 text-sm text-zinc-600">{airbnbJob.heroSubtitle}</p>
+          ) : null}
           <p className={CLEANER_META_LINE_CLASS}>
             <span className="font-medium text-zinc-900">{scheduleLabel}</span>
             <span className="text-zinc-400"> · </span>
@@ -52,7 +65,7 @@ export function CleanerJobListCard({
       </div>
       <div className={CLEANER_BADGE_ROW_CLASS}>
         <StatusBadge
-          label={labelForCleanerJobStatus(status)}
+          label={statusLabel}
           tone={toneForCleanerJobStatus(status)}
           variant="soft"
         />

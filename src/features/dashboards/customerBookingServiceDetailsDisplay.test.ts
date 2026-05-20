@@ -64,7 +64,7 @@ describe("parseCustomerBookingServiceDetails", () => {
       "regular-cleaning",
     );
 
-    expect(details.cleaningIntensityLabel).toBe("Detailed");
+    expect(details.cleaningIntensityLabel).toBe("Heavy use");
   });
 
   it("shows cleaning supplies labels for regular cleaning", () => {

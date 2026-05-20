@@ -2,8 +2,8 @@
 
 import { ADDON_CATALOG } from "@/features/pricing/server/catalog";
 import type { AddonSlug, ServiceSlug } from "@/features/pricing/server/types";
-import { getAddonStepDisplayOrder, getAddonStepLabel } from "../addonStepDisplay";
-import { ADDON_STEP_DESCRIPTIONS } from "../constants";
+import { getAddonStepDescription, getAddonStepDisplayOrder, getAddonStepLabel } from "../addonStepDisplay";
+import { getAddonsSectionTitle } from "../airbnbCleaningDisplay";
 import { DETAILS_OPTION_DESC, DETAILS_STEP_SECTION } from "../detailsStepUi";
 import { formatAddonPrice } from "../format";
 import { DetailsSectionHeading } from "./DetailsSectionHeading";
@@ -18,11 +18,12 @@ type Props = {
 type AddonRowProps = {
   slug: AddonSlug;
   label: string;
+  description: string;
   checked: boolean;
   onToggle: (slug: AddonSlug, enabled: boolean) => void;
 };
 
-function AddonRow({ slug, label, checked, onToggle }: AddonRowProps) {
+function AddonRow({ slug, label, description, checked, onToggle }: AddonRowProps) {
   const addon = ADDON_CATALOG[slug];
   const rowClass = checked ? "bg-zinc-50/80" : "bg-white";
 
@@ -32,7 +33,7 @@ function AddonRow({ slug, label, checked, onToggle }: AddonRowProps) {
     >
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium leading-snug text-zinc-900">{label}</p>
-        <p className={`${DETAILS_OPTION_DESC} line-clamp-2`}>{ADDON_STEP_DESCRIPTIONS[slug]}</p>
+        <p className={`${DETAILS_OPTION_DESC} line-clamp-2`}>{description}</p>
       </div>
       <span className="shrink-0 text-[11px] font-medium tabular-nums text-zinc-500 sm:text-xs">
         {formatAddonPrice(addon.amountCents)}
@@ -61,7 +62,10 @@ export function AddonsStepPanel({ serviceSlug, selected, onChange }: Props) {
 
   return (
     <section className={DETAILS_STEP_SECTION} aria-labelledby="addons-step-label">
-      <DetailsSectionHeading title="Add-ons" id="addons-step-label" />
+      <DetailsSectionHeading
+        title={getAddonsSectionTitle(serviceSlug)}
+        id="addons-step-label"
+      />
 
       <div
         className="overflow-hidden rounded-xl border border-zinc-200/90 bg-white shadow-sm"
@@ -74,6 +78,7 @@ export function AddonsStepPanel({ serviceSlug, selected, onChange }: Props) {
               key={slug}
               slug={slug}
               label={getAddonStepLabel(slug, serviceSlug)}
+              description={getAddonStepDescription(slug, serviceSlug)}
               checked={selected.includes(slug)}
               onToggle={toggleAddon}
             />

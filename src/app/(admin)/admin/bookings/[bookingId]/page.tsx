@@ -28,6 +28,11 @@ import {
   buildAdminBookingHeroContextRows,
   buildAdminBookingHeroEssentialRows,
 } from "@/features/dashboards/adminBookingDetailDisplay";
+import {
+  getAirbnbAdminBookingDetailCopy,
+  getAirbnbAdminListBadges,
+  isAirbnbOperationalBooking,
+} from "@/features/dashboards/airbnbOperationalDisplay";
 import { LifecycleTimeline } from "@/components/dashboard/LifecycleTimeline";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
@@ -69,9 +74,18 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
   });
   const earningsAttention = adminEarningsNeedsAttention(b.teamEarningsReconciliation);
   const deferredAttention = adminDeferredDispatchNeedsAttention(b.deferredDispatch);
+  const airbnb = isAirbnbOperationalBooking({
+    serviceSlug: b.display.serviceSlug,
+    serviceLabel: b.serviceLabel,
+  });
+  const airbnbDetail = airbnb ? getAirbnbAdminBookingDetailCopy() : null;
 
   const heroBadges = [
     { label: labelForBookingStatus(b.status), tone: toneForBookingStatus(b.status) },
+    ...getAirbnbAdminListBadges({
+      serviceLabel: b.serviceLabel,
+      scheduledStart: b.scheduledStart,
+    }).map((badge) => ({ label: badge.label, tone: badge.tone })),
     ...buildAdminOperationalLoadBadges(b.observation.operationalLoad).map((badge) => ({
       label: badge.label,
       tone: badge.tone,
@@ -115,6 +129,8 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
   });
 
   const contextRows = buildAdminBookingHeroContextRows({
+    serviceSlug: b.display.serviceSlug,
+    serviceLabel: b.serviceLabel,
     customerPhone: b.customerPhone,
     homeSizeSummary: b.display.homeSizeSummary,
     cleaningIntensityLabel: b.display.cleaningIntensityLabel,
@@ -131,7 +147,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
   return (
     <AdminDashboardShell
       title="Booking"
-      subtitle={b.serviceLabel}
+      subtitle={airbnbDetail?.shellSubtitle ?? b.serviceLabel}
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
       <Link
@@ -143,19 +159,20 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
 
       <section className={ADMIN_DETAIL_STACK_CLASS}>
         <AdminBookingDetailHero
-          serviceLabel={b.serviceLabel}
+          serviceLabel={airbnbDetail?.heroHeadline ?? b.serviceLabel}
           bookingId={b.id}
           badges={heroBadges}
           essentialRows={essentialRows}
           contextRows={contextRows}
+          contextSectionTitle={airbnbDetail?.contextSectionTitle}
           paymentAlert={
             paymentFailed ? (
               <AdminPaymentFailureInset>
-                Payment did not complete
-                {b.paymentFailureReason === "checkout_expired"
-                  ? " — checkout expired before Paystack confirmed."
-                  : "."}{" "}
-                No assignment or earnings until payment succeeds.
+                {airbnbDetail?.paymentFailedNote ??
+                  "Payment did not complete. No assignment or earnings until payment succeeds."}
+                {!airbnbDetail && b.paymentFailureReason === "checkout_expired"
+                  ? " Checkout expired before Paystack confirmed."
+                  : null}
               </AdminPaymentFailureInset>
             ) : undefined
           }
@@ -225,7 +242,10 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
 
         <AdminTeamRosterFoundationPanel rows={b.teamRosterFoundation} />
 
-        <AdminDetailSection title="Assignment offers" collapsible>
+        <AdminDetailSection
+          title={airbnbDetail?.assignmentSectionTitle ?? "Assignment offers"}
+          collapsible
+        >
           {b.offers.length === 0 ? (
             <p className="text-sm text-zinc-600">No offers recorded.</p>
           ) : (
@@ -313,7 +333,10 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
 
         <AdminDetailSection
           title="Lifecycle"
-          description="Customer-visible progress from payment through completion."
+          description={
+            airbnbDetail?.lifecycleDescription ??
+            "Customer-visible progress from payment through completion."
+          }
           collapsible
         >
           <LifecycleTimeline events={b.timeline} />

@@ -5,7 +5,6 @@ import {
   getCleaningIntensityLabel,
   getEquipmentSupplyCustomerLabel,
   getEquipmentSupplyOperationalLabel,
-  getFrequencyLabel,
   getTeamSupportCleanerNote,
   getTeamSupportCustomerLabel,
 } from "@/features/booking-wizard/reviewDisplay";
@@ -20,6 +19,7 @@ import {
   isEquipmentSupply,
   isServiceSlug,
 } from "@/features/pricing/server/catalog";
+import { getFrequencyLabel } from "@/features/booking-wizard/airbnbCleaningDisplay";
 import type { Json } from "@/lib/database/types";
 
 export type CustomerBookingServiceDetails = {
@@ -140,7 +140,7 @@ export function parseCustomerBookingServiceDetails(
     cleaningIntensityLabel,
     equipmentSupplyLabel,
     equipmentSupplyOperationalLabel,
-    frequencyLabel: frequency ? getFrequencyLabel(frequency) : null,
+    frequencyLabel: frequency ? getFrequencyLabel(frequency, slug) : null,
     addonsSummary: addons.length > 0 ? formatSelectedAddons(addons, slug) : null,
     teamSupportLabel,
     teamSupportCleanerNote,

@@ -13,6 +13,7 @@ import { CleanerLifecycleTimeline } from "@/components/dashboard/cleaner/Cleaner
 import { CleanerTeamJobSection } from "@/components/dashboard/cleaner/CleanerTeamJobSection";
 import { CleanerSupportJobNotice } from "@/components/dashboard/cleaner/CleanerSupportJobNotice";
 import { SupportParticipationActions } from "@/components/dashboard/cleaner/SupportParticipationActions";
+import { getAirbnbCleanerJobCopy, isAirbnbOperationalBooking } from "@/features/dashboards/airbnbOperationalDisplay";
 import { CLEANER_DETAIL_CARD_CLASS } from "@/features/dashboards/cleanerJobDetailDisplay";
 
 type PageProps = { params: Promise<{ bookingId: string }> };
@@ -34,11 +35,14 @@ export default async function CleanerJobDetailPage({ params }: PageProps) {
   const showActions =
     job.team.canStartJob &&
     (job.status === "assigned" || job.status === "in_progress");
+  const airbnbJob = isAirbnbOperationalBooking({ serviceLabel: job.serviceLabel })
+    ? getAirbnbCleanerJobCopy()
+    : null;
 
   return (
     <DashboardShell
       title="Your job"
-      subtitle="Schedule, location, pay, and next steps."
+      subtitle={airbnbJob?.shellSubtitle ?? "Schedule, location, pay, and next steps."}
       nav={[...CLEANER_NAV_ITEMS]}
     >
       <Link
@@ -50,6 +54,7 @@ export default async function CleanerJobDetailPage({ params }: PageProps) {
 
       <section className="mt-4 space-y-3 sm:mt-5 sm:space-y-4">
         <CleanerJobStatusHero
+          serviceSlug={job.serviceLabel === "Airbnb Cleaning" ? "airbnb-cleaning" : null}
           serviceLabel={job.serviceLabel}
           scheduleLabel={job.scheduleLabel}
           locationSummary={job.locationSummary}
@@ -64,7 +69,10 @@ export default async function CleanerJobDetailPage({ params }: PageProps) {
 
         {job.team.isTeamJob ? <CleanerTeamJobSection team={job.team} /> : null}
 
-        <CleanerJobWhatHappensNext status={job.status} />
+        <CleanerJobWhatHappensNext
+          status={job.status}
+          serviceLabel={job.serviceLabel}
+        />
 
         {job.team.viewerRole === "support" ? (
           <>
@@ -78,6 +86,7 @@ export default async function CleanerJobDetailPage({ params }: PageProps) {
         ) : null}
 
         <CleanerJobDetailsCard
+          serviceLabel={job.serviceLabel}
           locationSummary={job.locationSummary}
           homeSizeSummary={job.homeSizeSummary}
           cleaningIntensityLabel={job.cleaningIntensityLabel}
@@ -90,7 +99,9 @@ export default async function CleanerJobDetailPage({ params }: PageProps) {
         />
 
         <section className={`${CLEANER_DETAIL_CARD_CLASS} p-3.5 sm:p-4`}>
-          <h2 className="text-sm font-medium text-zinc-800">Activity</h2>
+          <h2 className="text-sm font-medium text-zinc-800">
+            {airbnbJob?.activitySectionTitle ?? "Activity"}
+          </h2>
           <section className="mt-2.5">
             <CleanerLifecycleTimeline events={job.timeline} />
           </section>

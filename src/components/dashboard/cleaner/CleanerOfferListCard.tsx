@@ -9,6 +9,10 @@ import {
   CLEANER_META_LOCATION_CLASS,
   CLEANER_SERVICE_EYEBROW_CLASS,
 } from "@/features/dashboards/cleanerDashboardDisplay";
+import {
+  getAirbnbCleanerOfferCopy,
+  isAirbnbOperationalBooking,
+} from "@/features/dashboards/airbnbOperationalDisplay";
 import { CLEANER_DETAIL_CARD_CLASS } from "@/features/dashboards/cleanerJobDetailDisplay";
 import type { OfferExpiryUrgency } from "@/features/dashboards/server/formatOfferExpiryDisplay";
 import {
@@ -47,6 +51,8 @@ export function CleanerOfferListCard({
   const statusLabel = isExpired && status === "offered" ? "Expired" : labelForOfferStatus(status);
   const statusTone = isExpired && status === "offered" ? "warning" : toneForOfferStatus(status);
   const showExpiry = status === "offered" && !isExpired && expiry?.relativeLabel;
+  const airbnb = isAirbnbOperationalBooking({ serviceLabel });
+  const airbnbOffer = airbnb ? getAirbnbCleanerOfferCopy() : null;
 
   return (
     <Link
@@ -55,12 +61,25 @@ export function CleanerOfferListCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className={CLEANER_SERVICE_EYEBROW_CLASS}>{serviceLabel}</p>
+          <p className={CLEANER_SERVICE_EYEBROW_CLASS}>
+            {airbnbOffer?.serviceEyebrow ?? serviceLabel}
+          </p>
+          {airbnbOffer ? (
+            <p className="mt-0.5 text-sm text-zinc-600">{airbnbOffer.offerSubtitle}</p>
+          ) : null}
           <p className={CLEANER_META_LINE_CLASS}>
-            <span className="font-medium text-zinc-900">{scheduleLabel}</span>
+            <span className="font-medium text-zinc-900">
+              {airbnbOffer?.schedulePrefix ? `${airbnbOffer.schedulePrefix}: ` : ""}
+              {scheduleLabel}
+            </span>
             <span className="text-zinc-400"> · </span>
             <span className={CLEANER_META_LOCATION_CLASS}>{locationSummary}</span>
           </p>
+          {airbnbOffer ? (
+            <p className="mt-1 text-xs text-zinc-500">
+              {airbnbOffer.accessHint} · {airbnbOffer.standardHint}
+            </p>
+          ) : null}
         </div>
         <CleanerPayDisplay earningsLabel={earningsLabel} className="shrink-0 text-right" />
       </div>

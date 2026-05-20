@@ -7,6 +7,11 @@ import type {
   PricingFrequency,
   ServiceSlug,
 } from "@/features/pricing/server/types";
+import {
+  getHomeSizeSectionTitle,
+  getHostNotesPlaceholder,
+  getHostNotesSectionTitle,
+} from "../airbnbCleaningDisplay";
 import { EXTRA_ROOMS_VISIBLE_HINT } from "../detailsStepHints";
 import {
   DETAILS_OPTION_ROW_CELL,
@@ -90,12 +95,20 @@ export function DetailsStepPanel({
 
   return (
     <div className="min-w-0">
-      <DetailsStepIntro />
+      <DetailsStepIntro serviceSlug={serviceSlug} />
 
-      <FrequencyStepPanel value={frequency} onChange={onFrequencyChange} error={stepErrors.frequency} />
+      <FrequencyStepPanel
+        serviceSlug={serviceSlug}
+        value={frequency}
+        onChange={onFrequencyChange}
+        error={stepErrors.frequency}
+      />
 
       <section className={DETAILS_STEP_SECTION} aria-labelledby="details-home-size">
-        <DetailsSectionHeading title="Home size" id="details-home-size" />
+        <DetailsSectionHeading
+          title={getHomeSizeSectionTitle(serviceSlug)}
+          id="details-home-size"
+        />
 
         {!isOffice ? (
           <div className="grid grid-cols-2 gap-3 sm:max-w-md">
@@ -190,13 +203,16 @@ export function DetailsStepPanel({
       ) : null}
 
       <section className={DETAILS_STEP_SECTION} aria-labelledby="details-notes">
-        <DetailsSectionHeading title="Notes" id="details-notes" />
+        <DetailsSectionHeading
+          title={getHostNotesSectionTitle(serviceSlug)}
+          id="details-notes"
+        />
         <textarea
           id="details-special-instructions-input"
           className={`${inputClass} min-h-[4.5rem] resize-y ${WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS}`}
           value={specialInstructions}
           onChange={(e) => onSpecialInstructionsChange(e.target.value)}
-          placeholder="Gate code, pets, focus areas, or access instructions."
+          placeholder={getHostNotesPlaceholder(serviceSlug)}
         />
       </section>
     </div>

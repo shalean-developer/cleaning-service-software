@@ -1,4 +1,13 @@
 import type { BookingStatus } from "@/features/bookings/server/types";
+import {
+  cleanerAirbnbExpectedUpdate,
+  cleanerAirbnbJobDescription,
+  isAirbnbCleaningSlug,
+} from "@/features/booking-wizard/airbnbCleaningDisplay";
+import {
+  getAirbnbCleanerJobGuidanceSteps,
+  isAirbnbOperationalBooking,
+} from "@/features/dashboards/airbnbOperationalDisplay";
 import type { StatusBadgeTone } from "@/features/bookings/server/statusLabels";
 import { toneForCleanerJobStatus } from "@/features/bookings/server/statusLabels";
 import { LIFECYCLE_GUIDANCE_PANEL_TITLE } from "@/lib/app/dashboardEcosystemDisplay";
@@ -50,10 +59,19 @@ function heroCopyForCleanerJob(
   }
 }
 
-export function cleanerJobStatusHero(status: BookingStatus): CleanerJobHeroPresentation {
+export function cleanerJobStatusHero(
+  status: BookingStatus,
+  serviceSlug?: string | null,
+): CleanerJobHeroPresentation {
   const copy = heroCopyForCleanerJob(status);
+  const airbnb = isAirbnbCleaningSlug(serviceSlug);
   return {
-    ...copy,
+    description: airbnb
+      ? cleanerAirbnbJobDescription(status, copy.description)
+      : copy.description,
+    expectedUpdate: airbnb
+      ? cleanerAirbnbExpectedUpdate(status, copy.expectedUpdate)
+      : copy.expectedUpdate,
     tone: toneForCleanerJobStatus(status),
   };
 }
@@ -71,7 +89,22 @@ export type CleanerJobWhatHappensNextPresentation = {
 /** Informational next steps keyed by job status (no lifecycle logic). */
 export function cleanerJobWhatHappensNext(
   status: BookingStatus,
+  options?: { serviceSlug?: string | null; serviceLabel?: string | null },
 ): CleanerJobWhatHappensNextPresentation | null {
+  if (
+    isAirbnbOperationalBooking({
+      serviceSlug: options?.serviceSlug,
+      serviceLabel: options?.serviceLabel,
+    })
+  ) {
+    const steps = getAirbnbCleanerJobGuidanceSteps(status);
+    if (!steps || steps.length === 0) return null;
+    return {
+      title: "Turnover guidance",
+      steps,
+    };
+  }
+
   switch (status) {
     case "assigned":
       return {

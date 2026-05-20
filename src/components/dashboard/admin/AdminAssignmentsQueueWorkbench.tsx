@@ -9,6 +9,11 @@ import {
   type AssignmentQueuePresetId,
 } from "@/features/dashboards/adminAssignmentsPageDisplay";
 import type { AdminAssignmentQueueItem } from "@/features/dashboards/server/types";
+import {
+  getAirbnbAdminListBadges,
+  getAirbnbOperationsQueueCopy,
+  isAirbnbOperationalBooking,
+} from "@/features/dashboards/airbnbOperationalDisplay";
 import { ADMIN_QUEUE_CARD_CLASS } from "@/features/dashboards/adminDisplay";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -77,7 +82,17 @@ export function AdminAssignmentsQueueWorkbench({ items, total, limit }: Props) {
         />
       ) : (
         <ul className="space-y-2.5">
-          {filtered.map((item) => (
+          {filtered.map((item) => {
+            const airbnb = isAirbnbOperationalBooking({ serviceLabel: item.serviceLabel });
+            const queueCopy = getAirbnbOperationsQueueCopy({
+              serviceLabel: item.serviceLabel,
+              scheduleLabel: item.scheduleLabel,
+            });
+            const airbnbBadges = airbnb
+              ? getAirbnbAdminListBadges({ serviceLabel: item.serviceLabel })
+              : [];
+
+            return (
             <li key={item.bookingId} className={ADMIN_QUEUE_CARD_CLASS}>
               <section className="flex flex-wrap items-center gap-1.5">
                 <StatusBadge
@@ -91,11 +106,20 @@ export function AdminAssignmentsQueueWorkbench({ items, total, limit }: Props) {
                   label={labelForBookingStatus(item.status)}
                   tone={toneForBookingStatus(item.status)}
                 />
+                {airbnbBadges.map((badge) => (
+                  <StatusBadge key={badge.label} label={badge.label} tone={badge.tone} />
+                ))}
               </section>
               <p className="mt-2 break-words text-sm font-semibold text-zinc-900">{item.serviceLabel}</p>
+              {queueCopy ? (
+                <p className="mt-0.5 text-xs font-medium text-sky-900/90">{queueCopy.cardSubtitle}</p>
+              ) : null}
               <p className="mt-0.5 break-words text-sm text-zinc-600 [overflow-wrap:anywhere]">
                 {item.customerLabel} · {item.scheduleLabel}
               </p>
+              {queueCopy?.sameDayNote ? (
+                <p className="mt-1 text-xs font-medium text-amber-900/90">{queueCopy.sameDayNote}</p>
+              ) : null}
               {item.assignmentReason ? (
                 <p className="mt-1.5 line-clamp-3 break-words text-xs text-amber-900/90">
                   {item.assignmentReason}
@@ -139,10 +163,11 @@ export function AdminAssignmentsQueueWorkbench({ items, total, limit }: Props) {
                 href={`/admin/bookings/${item.bookingId}`}
                 className="mt-3 inline-flex min-h-10 items-center rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800"
               >
-                Open booking →
+                {queueCopy?.openBookingCta ?? "Open booking →"}
               </Link>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </section>

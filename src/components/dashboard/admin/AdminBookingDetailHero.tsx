@@ -18,6 +18,7 @@ type Props = {
   badges: AdminBookingDetailHeroBadge[];
   essentialRows: AdminBookingHeroRow[];
   contextRows: AdminBookingHeroRow[];
+  contextSectionTitle?: string;
   paymentAlert?: ReactNode;
   footer?: ReactNode;
 };
@@ -28,6 +29,7 @@ export function AdminBookingDetailHero({
   badges,
   essentialRows,
   contextRows,
+  contextSectionTitle = "Booking context",
   paymentAlert,
   footer,
 }: Props) {
@@ -57,7 +59,7 @@ export function AdminBookingDetailHero({
         {contextRows.length > 0 ? (
           <details className="mt-2.5 text-sm">
             <summary className="cursor-pointer font-medium text-zinc-600 hover:text-zinc-900">
-              Booking context
+              {contextSectionTitle}
             </summary>
             <dl className="mt-2 grid gap-2.5 sm:grid-cols-2 sm:gap-x-5">
               {contextRows.map((row) => (

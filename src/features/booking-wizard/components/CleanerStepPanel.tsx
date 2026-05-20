@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import type { ServiceSlug } from "@/features/pricing/server/types";
 import type { CleanerPublicCard } from "@/features/cleaners/server/types";
+import { getCleanerStepCopy } from "../airbnbCleaningDisplay";
 import {
   CLEANER_LIST_INITIAL_VISIBLE,
   cleanerCardAriaLabel,
@@ -23,6 +25,7 @@ import { StarIcon } from "./wizardIcons";
 import { WizardStepHeading } from "./WizardStepHeading";
 
 type Props = {
+  serviceSlug: ServiceSlug | null;
   cleanerPreferenceMode: CleanerPreferenceMode;
   selectedCleanerId: string | null;
   availableCleaners: CleanerPublicCard[];
@@ -101,6 +104,7 @@ function CleanerListCard({ card, selected, onSelect }: CleanerListCardProps) {
 }
 
 export function CleanerStepPanel({
+  serviceSlug,
   cleanerPreferenceMode,
   selectedCleanerId,
   availableCleaners,
@@ -115,12 +119,11 @@ export function CleanerStepPanel({
   const visibleCleaners = showAllCleaners
     ? availableCleaners
     : availableCleaners.slice(0, CLEANER_LIST_INITIAL_VISIBLE);
+  const copy = getCleanerStepCopy(serviceSlug);
+
   return (
     <div className="min-w-0">
-      <WizardStepHeading
-        title="Choose your cleaner"
-        subtitle="Recommended for speed — or pick someone you prefer."
-      />
+      <WizardStepHeading title={copy.title} subtitle={copy.subtitle} />
 
       <button
         type="button"
@@ -135,9 +138,9 @@ export function CleanerStepPanel({
             <span className="inline-flex rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
               Recommended
             </span>
-            <p className="mt-1.5 text-sm font-semibold text-zinc-900">Best available cleaner</p>
+            <p className="mt-1.5 text-sm font-semibold text-zinc-900">{copy.bestAvailableTitle}</p>
             <p className="mt-0.5 text-xs leading-snug text-zinc-500">
-              Fastest assignment — we match the top eligible cleaner. No need to choose manually.
+              {copy.bestAvailableDescription}
             </p>
           </div>
           {bestAvailableSelected ? (
@@ -149,10 +152,7 @@ export function CleanerStepPanel({
       </button>
 
       {cleanerPreferenceMode === "selected" ? (
-        <p className="mb-3 text-xs leading-snug text-zinc-600">
-          We&apos;ll try your selected cleaner first. If they can&apos;t take the job, we&apos;ll
-          assign the next best eligible match.
-        </p>
+        <p className="mb-3 text-xs leading-snug text-zinc-600">{copy.selectedHint}</p>
       ) : null}
 
       {loading && availableCleaners.length === 0 ? (
@@ -202,13 +202,12 @@ export function CleanerStepPanel({
         </summary>
         <div className="mt-2 space-y-2 text-xs leading-relaxed text-zinc-600">
           <p>
-            <strong className="font-medium text-zinc-800">Best available</strong> assigns the
-            highest-rated cleaner who is eligible for your service, area, and time.
+            <strong className="font-medium text-zinc-800">Best available</strong>{" "}
+            {copy.disclosureBestAvailable}
           </p>
           <p>
-            <strong className="font-medium text-zinc-800">Selected cleaner</strong> means we offer
-            the job to them first after payment. If they decline or are unavailable, we continue
-            with the next best match — you are still fully booked.
+            <strong className="font-medium text-zinc-800">Selected cleaner</strong>{" "}
+            {copy.disclosureSelected}
           </p>
           <p className="text-zinc-500">
             Ratings and availability hints help you compare; only eligible cleaners can be selected.

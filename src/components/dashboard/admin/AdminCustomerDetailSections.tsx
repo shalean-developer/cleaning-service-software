@@ -18,7 +18,10 @@ import { ADMIN_SECTION_MUTED_CLASS } from "@/features/dashboards/adminDisplay";
 import { labelForPaymentStatus } from "@/features/bookings/server/statusLabels";
 import { AdminCustomerActivityTimeline } from "@/components/dashboard/admin/AdminCustomerActivityTimeline";
 import type { CustomerOperationalTimelineEvent } from "@/features/customers/server/admin/customerOperationalTimelineTypes";
-import type { AdminCustomerDetail } from "@/features/customers/server/admin/types";
+import type {
+  AdminCustomerDetail,
+  AdminCustomerPaymentSupportSummary,
+} from "@/features/customers/server/admin/types";
 
 type Props = {
   detail: AdminCustomerDetail;
@@ -71,6 +74,36 @@ function OpsMetric({ label, value }: { label: string; value: string }) {
       <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{label}</p>
       <p className="mt-0.5 text-lg font-semibold text-zinc-900">{value}</p>
     </div>
+  );
+}
+
+function LatestPaymentStatusCell({
+  paymentSupport,
+}: {
+  paymentSupport: AdminCustomerPaymentSupportSummary;
+}) {
+  const statusLabel = paymentSupport.latestPaymentStatus
+    ? labelForPaymentStatus(paymentSupport.latestPaymentStatus)
+    : "\u2014";
+  const bookingId = paymentSupport.latestPaymentBookingId;
+
+  if (!bookingId) {
+    return <>{statusLabel}</>;
+  }
+
+  return (
+    <>
+      {statusLabel}
+      <span className="text-zinc-700">
+        {" \u00b7 "}
+        <Link
+          href={`/admin/bookings/${bookingId}`}
+          className="underline-offset-2 hover:underline"
+        >
+          Booking {bookingId.slice(0, 8)}
+        </Link>
+      </span>
+    </>
   );
 }
 
@@ -214,21 +247,7 @@ export function AdminCustomerDetailSections({
           <div>
             <dt className="text-zinc-500">Latest payment status</dt>
             <dd>
-              {paymentSupport.latestPaymentStatus
-                ? labelForPaymentStatus(paymentSupport.latestPaymentStatus)
-                : "—"}
-              {paymentSupport.latestPaymentBookingId ? (
-                <>
-                  {" "}
-                  ·{" "}
-                  <Link
-                    href={`/admin/bookings/${paymentSupport.latestPaymentBookingId}`}
-                    className="underline-offset-2 hover:underline"
-                  >
-                    Booking {paymentSupport.latestPaymentBookingId.slice(0, 8)}…
-                  </Link>
-                </>
-              ) : null}
+              <LatestPaymentStatusCell paymentSupport={paymentSupport} />
             </dd>
           </div>
         </dl>

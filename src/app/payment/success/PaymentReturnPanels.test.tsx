@@ -16,6 +16,20 @@ describe("PaymentReturnPanels", () => {
     expect(html).toContain("Keep this window open");
   });
 
+  it("renders Airbnb turnover success copy when service slug is airbnb-cleaning", () => {
+    const html = renderToStaticMarkup(
+      <PaymentConfirmedPanel
+        variant="confirmed"
+        bookingDetailHref="/customer/bookings/abc"
+        serviceSlug="airbnb-cleaning"
+      />,
+    );
+    expect(html).toContain("turnover is confirmed");
+    expect(html).toContain("guest-ready preparation");
+    expect(html).toContain("View turnover details");
+    expect(html).not.toContain("Booking confirmed");
+  });
+
   it("renders confirmed panel with next steps and booking CTA", () => {
     const html = renderToStaticMarkup(
       <PaymentConfirmedPanel

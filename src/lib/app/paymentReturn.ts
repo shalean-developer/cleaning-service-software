@@ -7,8 +7,14 @@ export function normalizeAppBaseUrl(base: string): string {
 }
 
 /** Builds `${base}/payment/success` for Paystack `callback_url`. */
-export function buildPaymentSuccessCallbackUrl(appBaseUrl: string): string {
-  return `${normalizeAppBaseUrl(appBaseUrl)}${PAYMENT_SUCCESS_PATH}`;
+export function buildPaymentSuccessCallbackUrl(
+  appBaseUrl: string,
+  serviceSlug?: string | null,
+): string {
+  const base = `${normalizeAppBaseUrl(appBaseUrl)}${PAYMENT_SUCCESS_PATH}`;
+  const trimmed = serviceSlug?.trim();
+  if (!trimmed) return base;
+  return `${base}?service=${encodeURIComponent(trimmed)}`;
 }
 
 /**

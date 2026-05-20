@@ -15,6 +15,12 @@ describe("buildPaymentSuccessCallbackUrl", () => {
       "http://localhost:3000/payment/success",
     );
   });
+
+  it("appends service slug for Airbnb turnover callback copy", () => {
+    expect(
+      buildPaymentSuccessCallbackUrl("http://localhost:3000", "airbnb-cleaning"),
+    ).toBe("http://localhost:3000/payment/success?service=airbnb-cleaning");
+  });
 });
 
 describe("resolvePaystackReference", () => {

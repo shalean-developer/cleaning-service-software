@@ -7,6 +7,10 @@ import {
   shouldShowPaymentStatusChip,
 } from "@/features/dashboards/customerBookingDetailDisplay";
 import {
+  getAirbnbCustomerBookingDetailCopy,
+  isAirbnbCleaningSlug,
+} from "@/features/dashboards/airbnbCustomerDisplay";
+import {
   labelForCustomerBookingStatus,
   type PaymentFailureReason,
 } from "@/features/bookings/server/paymentFailureDisplay";
@@ -18,6 +22,7 @@ import type { BookingStatus } from "@/features/bookings/server/types";
 import type { PaymentStatus } from "@/lib/database/types";
 
 type Props = {
+  serviceSlug?: string | null;
   serviceLabel: string;
   scheduleLabel: string;
   locationSummary: string;
@@ -32,6 +37,7 @@ type Props = {
 };
 
 export function CustomerBookingStatusHero({
+  serviceSlug,
   serviceLabel,
   scheduleLabel,
   locationSummary,
@@ -44,8 +50,12 @@ export function CustomerBookingStatusHero({
   assignedCleanerLabel,
   teamSupportLabel,
 }: Props) {
+  const airbnbDetail = isAirbnbCleaningSlug(serviceSlug)
+    ? getAirbnbCustomerBookingDetailCopy()
+    : null;
   const hero = customerBookingStatusHero(status, paymentFailureReason, {
     deferredAssignmentMessage,
+    serviceSlug,
   });
   const showPaymentChip = shouldShowPaymentStatusChip(status, paymentStatus);
   const amountLabel = customerBookingAmountLabel(status, paymentStatus);
@@ -53,9 +63,14 @@ export function CustomerBookingStatusHero({
 
   return (
     <section className={`${CUSTOMER_BOOKING_DETAIL_CARD_CLASS} px-4 py-3.5 sm:px-5 sm:py-4`}>
-      <h1 className="break-words text-lg font-semibold tracking-tight text-zinc-900 sm:text-xl">
-        {serviceLabel}
-      </h1>
+      <div>
+        <h1 className="break-words text-lg font-semibold tracking-tight text-zinc-900 sm:text-xl">
+          {serviceLabel}
+        </h1>
+        {airbnbDetail ? (
+          <p className="mt-0.5 text-sm text-zinc-600">{airbnbDetail.serviceHeroTitle}</p>
+        ) : null}
+      </div>
 
       <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
         <StatusBadge

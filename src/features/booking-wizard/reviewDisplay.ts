@@ -6,17 +6,18 @@ import type {
   ServiceSlug,
 } from "@/features/pricing/server/types";
 import { getAddonStepDisplayOrder, getAddonStepLabel } from "./addonStepDisplay";
+import { getFrequencyLabel as getFrequencyLabelForSlug } from "./airbnbCleaningDisplay";
 import {
   CLEANING_INTENSITY_STEP_OPTIONS,
   EQUIPMENT_SUPPLY_STEP_OPTIONS,
-  FREQUENCY_STEP_OPTIONS,
 } from "./constants";
 import type { CleanerPreferenceMode } from "./types";
 
-export function getFrequencyLabel(frequency: PricingFrequency): string {
-  return (
-    FREQUENCY_STEP_OPTIONS.find((option) => option.value === frequency)?.label ?? frequency
-  );
+export function getFrequencyLabel(
+  frequency: PricingFrequency,
+  serviceSlug: ServiceSlug | null = null,
+): string {
+  return getFrequencyLabelForSlug(frequency, serviceSlug);
 }
 
 function orderSelectedAddonSlugs(

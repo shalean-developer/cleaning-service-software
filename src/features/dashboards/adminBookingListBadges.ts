@@ -7,6 +7,7 @@ import {
   toneForPaymentStatus,
 } from "@/features/bookings/server/statusLabels";
 import type { AdminBookingListCardBadge } from "@/components/dashboard/admin/AdminBookingListCard";
+import { getAirbnbAdminListBadges } from "@/features/dashboards/airbnbOperationalDisplay";
 import { buildAdminOperationalLoadBadges } from "@/features/dashboards/server/adminTeamSupportObservation";
 import type { AdminBookingListItem } from "@/features/dashboards/server/types";
 
@@ -19,6 +20,9 @@ type BookingListBadgeInput = Pick<
   | "assignmentAttention"
   | "deferredDispatch"
   | "observation"
+  | "serviceLabel"
+  | "scheduledStart"
+  | "cleanerLabel"
 >;
 
 /** Display-only badge stack for admin booking list cards. */
@@ -74,6 +78,13 @@ export function adminBookingListBadges(
           ? "info"
           : "warning",
     });
+  }
+
+  for (const airbnbBadge of getAirbnbAdminListBadges({
+    serviceLabel: b.serviceLabel,
+    scheduledStart: b.scheduledStart,
+  })) {
+    badges.push(airbnbBadge);
   }
 
   for (const loadBadge of buildAdminOperationalLoadBadges(b.observation.operationalLoad)) {

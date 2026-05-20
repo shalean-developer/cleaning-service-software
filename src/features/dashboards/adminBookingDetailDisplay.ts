@@ -1,3 +1,7 @@
+import {
+  isAirbnbOperationalBooking,
+  mapAdminBookingHeroRowsForAirbnb,
+} from "@/features/dashboards/airbnbOperationalDisplay";
 import type { DeferredDispatchStatus } from "@/features/assignments/server/deferredDispatchStatus";
 import type {
   AdminTeamEarningsReconciliation,
@@ -37,6 +41,8 @@ export function buildAdminBookingHeroEssentialRows(input: {
 
 /** Secondary booking context — collapsed by default on detail page. */
 export function buildAdminBookingHeroContextRows(input: {
+  serviceSlug?: string | null;
+  serviceLabel?: string | null;
   customerPhone: string | null;
   homeSizeSummary: string | null;
   cleaningIntensityLabel: string | null;
@@ -72,6 +78,10 @@ export function buildAdminBookingHeroContextRows(input: {
   }
   if (input.coordinationStatusLabel) {
     rows.push({ label: "Team coordination", value: input.coordinationStatusLabel });
+  }
+
+  if (isAirbnbOperationalBooking(input)) {
+    return mapAdminBookingHeroRowsForAirbnb(rows);
   }
   return rows;
 }

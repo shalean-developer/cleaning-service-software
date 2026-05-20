@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { LockIcon } from "@/features/booking-wizard/components/wizardIcons";
 import {
+  getAirbnbCustomerPaymentVerifyErrorCopy,
+  getAirbnbCustomerSuccessCopy,
+  isAirbnbCleaningSlug,
+} from "@/features/dashboards/airbnbCustomerDisplay";
+import {
   PAYMENT_SUCCESS_NEXT_STEPS,
   PAYMENT_VERIFY_ERROR_INTRO,
   PAYMENT_VERIFY_ERROR_NEXT_STEPS,
@@ -69,18 +74,32 @@ function PaymentSuccessCheckIcon() {
 export function PaymentConfirmedPanel({
   variant,
   bookingDetailHref,
+  serviceSlug,
 }: {
   variant: PaymentSuccessVariant;
   bookingDetailHref: string;
+  serviceSlug?: string | null;
 }) {
+  const airbnb = isAirbnbCleaningSlug(serviceSlug);
+  const airbnbCopy = airbnb ? getAirbnbCustomerSuccessCopy(variant) : null;
+  const title = airbnbCopy?.title ?? paymentSuccessTitle(variant);
+  const lead = airbnbCopy?.lead ?? paymentSuccessLead(variant);
+  const nextSteps = airbnbCopy?.nextSteps ?? PAYMENT_SUCCESS_NEXT_STEPS;
+  const nextStepsHeading = airbnbCopy?.nextStepsHeading ?? "What happens next";
+  const ctaLabel = airbnbCopy?.ctaLabel ?? "View booking details";
+  const ctaFootnote = airbnbCopy?.ctaFootnote ?? "Opening your booking…";
+
   return (
     <div className="flex flex-col gap-5" aria-live="polite">
       <div className="text-center">
         <PaymentSuccessCheckIcon />
-        <h2 className="mt-4 text-xl font-semibold tracking-tight text-zinc-900">
-          {paymentSuccessTitle(variant)}
-        </h2>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-600">{paymentSuccessLead(variant)}</p>
+        <h2 className="mt-4 text-xl font-semibold tracking-tight text-zinc-900">{title}</h2>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-600">{lead}</p>
+        {airbnbCopy?.guestReadyNote ? (
+          <p className="mt-2 text-sm font-medium leading-relaxed text-emerald-900/90">
+            {airbnbCopy.guestReadyNote}
+          </p>
+        ) : null}
       </div>
 
       <section
@@ -88,10 +107,10 @@ export function PaymentConfirmedPanel({
         className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 text-left"
       >
         <h3 id="payment-success-next-heading" className="text-sm font-medium text-zinc-800">
-          What happens next
+          {nextStepsHeading}
         </h3>
         <ul className="mt-3 space-y-3">
-          {PAYMENT_SUCCESS_NEXT_STEPS.map((item) => (
+          {nextSteps.map((item) => (
             <li key={item.title} className="flex gap-3 text-sm">
               <span
                 className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-400"
@@ -110,9 +129,9 @@ export function PaymentConfirmedPanel({
         href={bookingDetailHref}
         className="rounded-xl bg-zinc-900 px-4 py-3.5 text-center text-sm font-semibold text-white shadow-[0_2px_10px_rgba(24,24,27,0.18)] hover:bg-zinc-800"
       >
-        View booking details
+        {ctaLabel}
       </Link>
-      <p className="text-center text-xs text-zinc-500">Opening your booking…</p>
+      <p className="text-center text-xs text-zinc-500">{ctaFootnote}</p>
     </div>
   );
 }
@@ -120,17 +139,23 @@ export function PaymentConfirmedPanel({
 export function PaymentVerifyErrorPanel({
   message,
   onRetry,
+  serviceSlug,
 }: {
   message: string;
   onRetry: () => void;
+  serviceSlug?: string | null;
 }) {
+  const airbnb = isAirbnbCleaningSlug(serviceSlug);
+  const airbnbError = airbnb ? getAirbnbCustomerPaymentVerifyErrorCopy() : null;
+  const panelTitle = airbnbError?.panelTitle ?? "Payment not confirmed yet";
+  const intro = airbnbError?.intro ?? PAYMENT_VERIFY_ERROR_INTRO;
+  const nextSteps = airbnbError?.nextSteps ?? PAYMENT_VERIFY_ERROR_NEXT_STEPS;
+
   return (
     <div className="flex flex-col gap-5">
       <div className="space-y-2 text-center sm:text-left">
-        <h2 className="text-lg font-semibold tracking-tight text-zinc-900">
-          Payment not confirmed yet
-        </h2>
-        <p className="text-sm leading-relaxed text-zinc-600">{PAYMENT_VERIFY_ERROR_INTRO}</p>
+        <h2 className="text-lg font-semibold tracking-tight text-zinc-900">{panelTitle}</h2>
+        <p className="text-sm leading-relaxed text-zinc-600">{intro}</p>
         <p
           className="break-words rounded-xl border border-amber-100 bg-amber-50/90 px-3 py-2.5 text-sm leading-relaxed text-amber-950"
           role="alert"
@@ -147,7 +172,7 @@ export function PaymentVerifyErrorPanel({
           What you can do
         </h3>
         <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-zinc-600">
-          {PAYMENT_VERIFY_ERROR_NEXT_STEPS.map((step) => (
+          {nextSteps.map((step) => (
             <li key={step}>{step}</li>
           ))}
         </ul>

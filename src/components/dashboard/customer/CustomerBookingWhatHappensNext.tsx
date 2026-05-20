@@ -6,14 +6,19 @@ import type { BookingStatus } from "@/features/bookings/server/types";
 
 type Props = {
   status: BookingStatus;
+  serviceSlug?: string | null;
   deferredAssignmentMessage?: string | null;
 };
 
 export function CustomerBookingWhatHappensNext({
   status,
+  serviceSlug,
   deferredAssignmentMessage,
 }: Props) {
-  const guidance = customerBookingCompactGuidance(status, { deferredAssignmentMessage });
+  const guidance = customerBookingCompactGuidance(status, {
+    deferredAssignmentMessage,
+    serviceSlug,
+  });
   if (!guidance) return null;
 
   const hasDetails = (guidance.detailSteps?.length ?? 0) > 0;

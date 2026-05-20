@@ -38,7 +38,9 @@ describe("checkout payload", () => {
     expect(payload.bookingId).toBe("booking-1");
     expect(payload.lockId).toBe("lock-1");
     expect(payload.paymentIdempotencyKey).toBe("paystack:checkout:key-1");
-    expect(payload.callbackUrl).toMatch(/\/payment\/success$/);
+    expect(payload.callbackUrl).toMatch(
+      /\/payment\/success\?service=regular-cleaning$/,
+    );
     expect(payload).not.toHaveProperty("priceCents");
   });
 

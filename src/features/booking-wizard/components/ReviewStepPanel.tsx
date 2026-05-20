@@ -11,6 +11,13 @@ import type {
 } from "@/features/pricing/server/types";
 import { formatDateLabel, formatZar } from "../format";
 import {
+  buildAirbnbReviewHeroSegments,
+  getAccessNotesReviewLabel,
+  getReviewConfirmationCopy,
+  getReviewNextStepsNote as getReviewNextStepsNoteForSlug,
+  isAirbnbCleaningSlug,
+} from "../airbnbCleaningDisplay";
+import {
   getRecurringScheduleReviewNote,
   isRecurringFrequency,
 } from "../recurringDisplay";
@@ -23,7 +30,6 @@ import {
   getCleaningIntensityLabel,
   getEquipmentSupplyCustomerLabel,
   getFrequencyLabel,
-  getReviewNextStepsNote,
   getSelectedAddonLabels,
   getTeamSupportReviewSummaryLabel,
 } from "../reviewDisplay";
@@ -181,7 +187,7 @@ export function ReviewStepPanel({
       ? getTeamSupportReviewSummaryLabel(requestedTeamSize) ??
         (requestedTeamSize === 1 ? "1 cleaner" : null)
       : null;
-  const recurringScheduleNote = getRecurringScheduleReviewNote(frequency);
+  const recurringScheduleNote = getRecurringScheduleReviewNote(frequency, serviceSlug);
   const bedBathSummary = formatCompactBedBathSummary(
     serviceSlug,
     bedrooms,
@@ -194,12 +200,19 @@ export function ReviewStepPanel({
     selectedCleanerDisplayName,
   );
 
-  const heroSegments = [
-    serviceLabel,
-    bedBathSummary,
-    getFrequencyLabel(frequency),
-    scheduleLabel,
-  ].filter(Boolean) as string[];
+  const addonSummary =
+    addonLabels.length > 0 ? addonLabels.join(", ") : null;
+  const heroSegments = isAirbnbCleaningSlug(serviceSlug)
+    ? buildAirbnbReviewHeroSegments({
+        scheduleLabel,
+        locationLabel,
+        bedBathSummary,
+        addonSummary,
+        frequencyLabel: getFrequencyLabel(frequency, serviceSlug),
+      })
+    : ([serviceLabel, bedBathSummary, getFrequencyLabel(frequency, serviceSlug), scheduleLabel].filter(
+        Boolean,
+      ) as string[]);
 
   return (
     <div>
@@ -250,7 +263,9 @@ export function ReviewStepPanel({
         ) : null}
       </section>
 
-      <p className="mb-2.5 text-xs leading-snug text-zinc-600 md:mb-3">{getReviewNextStepsNote()}</p>
+      <p className="mb-2.5 text-xs leading-snug text-zinc-600 md:mb-3">
+        {getReviewNextStepsNoteForSlug(serviceSlug)}
+      </p>
 
       <details className="group mb-2.5 rounded-lg border border-zinc-100 bg-white open:mb-3 md:mb-3">
         <summary className="min-h-11 cursor-pointer list-none px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-zinc-500 marker:content-none [&::-webkit-details-marker]:hidden">
@@ -308,7 +323,9 @@ export function ReviewStepPanel({
               ) : null}
             </div>
             <div className="mt-2">
-              <p className="text-xs text-zinc-500">Add-ons</p>
+              <p className="text-xs text-zinc-500">
+                {isAirbnbCleaningSlug(serviceSlug) ? "Turnover extras" : "Add-ons"}
+              </p>
               {addonLabels.length > 0 ? (
                 <ul className="mt-0.5 space-y-0.5 text-sm font-medium text-zinc-900">
                   {addonLabels.map((label) => (
@@ -332,7 +349,10 @@ export function ReviewStepPanel({
               <SummaryRow label="City / suburb" value={locationLabel} />
               <SummaryRow label="Mobile number" value={contactPhoneLabel} />
               {accessNotes ? (
-                <SummaryRow label="Access notes" value={accessNotes} />
+                <SummaryRow
+                  label={getAccessNotesReviewLabel(serviceSlug)}
+                  value={accessNotes}
+                />
               ) : null}
             </div>
           </ReviewSection>
@@ -351,7 +371,7 @@ export function ReviewStepPanel({
           className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300"
         />
         <span className="leading-snug text-zinc-700">
-          I confirm these details are correct and I&apos;m ready for secure payment.
+          {getReviewConfirmationCopy(serviceSlug)}
         </span>
       </label>
       {reviewConfirmedError ? (

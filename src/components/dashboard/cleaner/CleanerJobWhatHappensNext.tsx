@@ -11,10 +11,12 @@ import type { BookingStatus } from "@/features/bookings/server/types";
 
 type Props = {
   status: BookingStatus;
+  serviceLabel?: string | null;
+  serviceSlug?: string | null;
 };
 
-export function CleanerJobWhatHappensNext({ status }: Props) {
-  const content = cleanerJobWhatHappensNext(status);
+export function CleanerJobWhatHappensNext({ status, serviceLabel, serviceSlug }: Props) {
+  const content = cleanerJobWhatHappensNext(status, { serviceLabel, serviceSlug });
   if (!content) return null;
 
   return (

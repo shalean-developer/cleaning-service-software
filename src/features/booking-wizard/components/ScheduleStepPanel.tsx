@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { getScheduleStepHelperCopy, isAirbnbCleaningSlug } from "../airbnbCleaningDisplay";
 import {
   canShiftDateWindowBack,
   canShiftDateWindowForward,
@@ -15,10 +16,10 @@ import {
   resolveBookingWindowBounds,
   resolveDateWindowStartOffsetForDate,
   resolveMaxDateWindowStartOffset,
-  resolveScheduleStepHelperCopy,
   type BookingWindowBounds,
   VISIBLE_DATE_OPTION_COUNT,
 } from "../bookingWindowConfig";
+import type { ServiceSlug } from "@/features/pricing/server/types";
 import {
   buildScheduleDateOptions,
   formatTimeSlotLabel,
@@ -39,6 +40,7 @@ import {
 import { WizardStepHeading } from "./WizardStepHeading";
 
 type Props = {
+  serviceSlug?: ServiceSlug | null;
   date: string;
   time: string;
   minDate: string;
@@ -347,6 +349,7 @@ function TimeSlotButton({ slot, selected, disabled, onSelect }: TimeSlotButtonPr
 }
 
 export function ScheduleStepPanel({
+  serviceSlug = null,
   date,
   time,
   minDate,
@@ -363,10 +366,15 @@ export function ScheduleStepPanel({
   );
   const bookingBounds = bookingBoundsProp ?? fallbackBounds;
   const maxDate = bookingBounds.maxDate;
-  const scheduleHelperCopy = resolveScheduleStepHelperCopy(bookingBounds.extendedWindowEnabled);
+  const scheduleHelperCopy = getScheduleStepHelperCopy(
+    serviceSlug,
+    bookingBounds.extendedWindowEnabled,
+  );
   const deferredAssignmentHint =
     date && time && isOutsideImmediateAssignmentWindow(date, time)
-      ? "Cleaner assignment for this date happens closer to your service day."
+      ? isAirbnbCleaningSlug(serviceSlug)
+        ? "Turnover cleaner assignment for this date happens closer to check-in."
+        : "Cleaner assignment for this date happens closer to your service day."
       : null;
 
   const [windowStartOffsetDays, setWindowStartOffsetDays] = useState(0);

@@ -1,7 +1,7 @@
 "use client";
 
-import type { PricingFrequency } from "@/features/pricing/server/types";
-import { FREQUENCY_STEP_OPTIONS } from "../constants";
+import type { PricingFrequency, ServiceSlug } from "@/features/pricing/server/types";
+import { getFrequencySectionTitle, getFrequencyStepOptions } from "../airbnbCleaningDisplay";
 import {
   DETAILS_OPTION_DESC,
   DETAILS_STEP_SECTION,
@@ -12,18 +12,24 @@ import {
 import { DetailsSectionHeading } from "./DetailsSectionHeading";
 
 type Props = {
+  serviceSlug: ServiceSlug | null;
   value: PricingFrequency;
   onChange: (value: PricingFrequency) => void;
   error?: string;
 };
 
-export function FrequencyStepPanel({ value, onChange, error }: Props) {
+export function FrequencyStepPanel({ serviceSlug, value, onChange, error }: Props) {
+  const options = getFrequencyStepOptions(serviceSlug);
+
   return (
     <section className={DETAILS_STEP_SECTION} aria-labelledby="frequency-step-label">
-      <DetailsSectionHeading title="Visit frequency" id="frequency-step-label" />
+      <DetailsSectionHeading
+        title={getFrequencySectionTitle(serviceSlug)}
+        id="frequency-step-label"
+      />
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-2" role="radiogroup">
-        {FREQUENCY_STEP_OPTIONS.map((option) => {
+        {options.map((option) => {
           const selected = value === option.value;
 
           return (

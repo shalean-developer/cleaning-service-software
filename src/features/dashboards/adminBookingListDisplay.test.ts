@@ -9,6 +9,7 @@ type RowInput = Parameters<typeof adminBookingListNextAction>[0];
 
 function row(partial: Partial<RowInput> & Pick<RowInput, "status">): RowInput {
   return {
+    serviceLabel: "Regular Cleaning",
     paymentStatus: null,
     paymentFailureReason: "unknown",
     assignmentVisibilityKey: undefined,
@@ -76,5 +77,16 @@ describe("adminBookingListDisplay", () => {
     });
     expect(adminBookingListNextAction(booking)).toContain("coordination");
     expect(adminBookingListNeedsHighlight(booking)).toBe(true);
+  });
+
+  it("reframes next action for Airbnb turnovers only", () => {
+    const action = adminBookingListNextAction(
+      row({
+        status: "pending_assignment",
+        serviceLabel: "Airbnb Cleaning",
+        assignmentVisibilityKey: "needs_assignment",
+      }),
+    );
+    expect(action).toContain("turnover cleaner");
   });
 });

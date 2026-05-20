@@ -44,7 +44,7 @@ export function buildInitializeCheckoutPayload(
     lockId: params.lockId,
     paymentIdempotencyKey: params.paymentIdempotencyKey,
     email: params.email.trim(),
-    callbackUrl: buildPaymentSuccessCallbackUrl(appBaseUrl),
+    callbackUrl: buildPaymentSuccessCallbackUrl(appBaseUrl, state.serviceSlug),
   };
 }
 

@@ -8,6 +8,7 @@ import {
   resolvePaystackReference,
 } from "@/lib/app/paymentReturn";
 import { PAYMENT_VERIFY_STATUS_MESSAGE } from "@/lib/app/dashboardEcosystemDisplay";
+import { parsePaymentReturnServiceSlug } from "@/features/dashboards/airbnbCustomerDisplay";
 import { resolvePaymentSuccessVariant } from "@/lib/app/paymentReturnDisplay";
 import {
   PaymentConfirmedPanel,
@@ -24,6 +25,7 @@ type Phase = "verifying" | "success" | "error";
 export function PaymentSuccessVerifier() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const serviceSlug = parsePaymentReturnServiceSlug(searchParams.get("service"));
   const [phase, setPhase] = useState<Phase>("verifying");
   const [message, setMessage] = useState<string>(PAYMENT_VERIFY_STATUS_MESSAGE);
   const [confirmedBookingId, setConfirmedBookingId] = useState<string | null>(null);
@@ -104,11 +106,16 @@ export function PaymentSuccessVerifier() {
           <PaymentConfirmedPanel
             variant={resolvePaymentSuccessVariant(successIdempotent)}
             bookingDetailHref={customerBookingDetailPath(confirmedBookingId)}
+            serviceSlug={serviceSlug}
           />
         ) : null}
 
         {phase === "error" ? (
-          <PaymentVerifyErrorPanel message={message} onRetry={() => void runVerify()} />
+          <PaymentVerifyErrorPanel
+            message={message}
+            onRetry={() => void runVerify()}
+            serviceSlug={serviceSlug}
+          />
         ) : null}
       </PaymentVerificationPanel>
     </PaymentVerificationShell>

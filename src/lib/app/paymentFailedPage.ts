@@ -7,6 +7,11 @@ import {
   paymentIssuePanelCopy,
   type PaymentFailureReason,
 } from "@/features/bookings/server/paymentFailureDisplay";
+import {
+  getAirbnbCustomerPaymentIssueCopy,
+  isAirbnbCleaningSlug,
+  parsePaymentReturnServiceSlug,
+} from "@/features/dashboards/airbnbCustomerDisplay";
 import { customerBookingDetailPath } from "./paymentReturn";
 
 const BOOKING_ID_UUID =
@@ -17,6 +22,7 @@ export type PaymentFailedSearchParams = {
   bookingId?: string;
   booking?: string;
   reference?: string;
+  service?: string;
 };
 
 export type PaymentFailedPageModel = {
@@ -53,14 +59,23 @@ export function buildPaymentFailedPageModel(
 ): PaymentFailedPageModel {
   const paymentFailureReason = normalizePaymentFailureReasonParam(params.reason);
   const bookingId = parseSafeBookingIdFromSearchParams(params);
+  const serviceSlug = parsePaymentReturnServiceSlug(params.service);
+  const airbnb = isAirbnbCleaningSlug(serviceSlug);
+  const airbnbCopy = airbnb
+    ? getAirbnbCustomerPaymentIssueCopy(paymentFailureReason)
+    : null;
+  const genericCopy = paymentIssuePanelCopy(paymentFailureReason);
 
   return {
-    copy: paymentIssuePanelCopy(paymentFailureReason),
+    copy: airbnbCopy ?? genericCopy,
     reassurance: PAYMENT_NOT_CHARGED_REASSURANCE,
     paymentFailureReason,
-    assignmentNote: PAYMENT_FAILED_ASSIGNMENT_NOTE,
-    retryGuidance: PAYMENT_FAILED_RETRY_GUIDANCE,
-    supportNote: PAYMENT_FAILED_SUPPORT_NOTE,
+    assignmentNote: airbnbCopy?.assignmentNote ?? PAYMENT_FAILED_ASSIGNMENT_NOTE,
+    retryGuidance: airbnbCopy?.retryGuidance ?? PAYMENT_FAILED_RETRY_GUIDANCE,
+    supportNote:
+      airbnb && airbnbCopy
+        ? `${PAYMENT_NOT_CHARGED_REASSURANCE} ${airbnbCopy.slotWarning}`
+        : PAYMENT_FAILED_SUPPORT_NOTE,
     bookingId,
     bookingReferenceLabel: bookingId ? formatBookingReferenceLabel(bookingId) : null,
     bookingDetailHref: bookingId ? customerBookingDetailPath(bookingId) : null,

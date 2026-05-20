@@ -6,6 +6,10 @@ import {
   labelForPaymentStatus,
   toneForPaymentStatus,
 } from "@/features/bookings/server/statusLabels";
+import {
+  getAirbnbCustomerBookingDetailCopy,
+  isAirbnbCleaningSlug,
+} from "@/features/dashboards/airbnbCustomerDisplay";
 
 type DetailRowProps = {
   label: string;
@@ -27,6 +31,7 @@ function DetailRow({ label, value, valueClassName }: DetailRowProps) {
 }
 
 type Props = {
+  serviceSlug?: string | null;
   homeSizeSummary: string | null;
   cleaningIntensityLabel: string | null;
   equipmentSupplyLabel: string | null;
@@ -49,6 +54,7 @@ type Props = {
 };
 
 export function CustomerBookingDetailsCard({
+  serviceSlug,
   homeSizeSummary,
   cleaningIntensityLabel,
   equipmentSupplyLabel,
@@ -67,6 +73,9 @@ export function CustomerBookingDetailsCard({
   teamSupportShownInHero = false,
   assignedCleanerShownInHero = false,
 }: Props) {
+  const airbnbLabels = isAirbnbCleaningSlug(serviceSlug)
+    ? getAirbnbCustomerBookingDetailCopy()
+    : null;
   const hasServiceDetails =
     homeSizeSummary != null ||
     cleaningIntensityLabel != null ||
@@ -84,15 +93,27 @@ export function CustomerBookingDetailsCard({
     <div className="space-y-3 px-4 pb-4 pt-1 sm:px-5 sm:pb-5">
       {hasServiceDetails ? (
         <dl className="space-y-2.5">
-          {homeSizeSummary ? <DetailRow label="Home size" value={homeSizeSummary} /> : null}
+          {homeSizeSummary ? (
+            <DetailRow
+              label={airbnbLabels?.homeSizeLabel ?? "Home size"}
+              value={homeSizeSummary}
+            />
+          ) : null}
           {cleaningIntensityLabel ? (
             <DetailRow label="Cleaning intensity" value={cleaningIntensityLabel} />
           ) : null}
           {equipmentSupplyLabel ? (
             <DetailRow label="Cleaning supplies" value={equipmentSupplyLabel} />
           ) : null}
-          {frequencyLabel ? <DetailRow label="Frequency" value={frequencyLabel} /> : null}
-          {addonsSummary ? <DetailRow label="Add-ons" value={addonsSummary} /> : null}
+          {frequencyLabel ? (
+            <DetailRow
+              label={airbnbLabels?.frequencyLabel ?? "Frequency"}
+              value={frequencyLabel}
+            />
+          ) : null}
+          {addonsSummary ? (
+            <DetailRow label={airbnbLabels?.addonsLabel ?? "Add-ons"} value={addonsSummary} />
+          ) : null}
           {showTeamSupport ? <DetailRow label="Team support" value={teamSupportLabel} /> : null}
         </dl>
       ) : null}
@@ -101,10 +122,13 @@ export function CustomerBookingDetailsCard({
         {contactPhoneDisplay ? (
           <DetailRow label="Contact number" value={contactPhoneDisplay} />
         ) : null}
-        <DetailRow label="Cleaner preference" value={cleanerPreferenceLabel} />
+        <DetailRow
+          label={airbnbLabels?.cleanerPreferenceLabel ?? "Cleaner preference"}
+          value={cleanerPreferenceLabel}
+        />
         {showAssignedCleaner ? (
           <DetailRow
-            label="Assigned cleaner"
+            label={airbnbLabels?.assignedCleanerLabel ?? "Assigned cleaner"}
             value={assignedCleanerLabel}
             valueClassName="text-emerald-800"
           />
@@ -119,7 +143,9 @@ export function CustomerBookingDetailsCard({
 
       {specialInstructions ? (
         <p className="border-t border-zinc-100 pt-3 text-sm leading-snug text-zinc-600">
-          <span className="font-medium text-zinc-800">Notes</span>
+          <span className="font-medium text-zinc-800">
+            {airbnbLabels?.notesLabel ?? "Notes"}
+          </span>
           <span className="mt-0.5 block text-zinc-700">{specialInstructions}</span>
         </p>
       ) : null}

@@ -14,6 +14,10 @@ import {
   CUSTOMER_BOOKING_DETAIL_DISCLOSURE_SUMMARY_CLASS,
   shouldSuppressAssignmentCalloutInDetails,
 } from "@/features/dashboards/customerBookingDetailDisplay";
+import {
+  getAirbnbCustomerBookingDetailCopy,
+  isAirbnbCleaningSlug,
+} from "@/features/dashboards/airbnbCustomerDisplay";
 
 type PageProps = { params: Promise<{ bookingId: string }> };
 
@@ -36,11 +40,14 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
     deferredAssignmentMessage: b.deferredAssignmentMessage,
     assignmentCustomerMessage: b.display.assignmentCustomerMessage,
   });
+  const airbnbDetail = isAirbnbCleaningSlug(b.display.serviceSlug)
+    ? getAirbnbCustomerBookingDetailCopy()
+    : null;
 
   return (
     <DashboardShell
       title="Your booking"
-      subtitle="Status, payment, and service details"
+      subtitle={airbnbDetail?.shellSubtitle ?? "Status, payment, and service details"}
       nav={[
         { href: "/customer", label: "Home" },
         { href: "/customer/bookings", label: "Bookings" },
@@ -56,6 +63,7 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
 
       <section className="mt-3 space-y-2.5 sm:mt-4">
         <CustomerBookingStatusHero
+          serviceSlug={b.display.serviceSlug}
           serviceLabel={b.display.serviceLabel}
           scheduleLabel={b.scheduleLabel}
           locationSummary={b.display.locationSummary}
@@ -73,19 +81,21 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
           <PaymentIssuePanel
             bookingId={b.id}
             customerEmail={customerEmail}
+            serviceSlug={b.display.serviceSlug}
             paymentFailureReason={b.paymentFailureReason}
             canRetryPayment={b.canRetryPayment}
           />
         ) : (
           <CustomerBookingWhatHappensNext
             status={b.status}
+            serviceSlug={b.display.serviceSlug}
             deferredAssignmentMessage={b.deferredAssignmentMessage}
           />
         )}
 
         <details className={CUSTOMER_BOOKING_DETAIL_DISCLOSURE_CLASS}>
           <summary className={CUSTOMER_BOOKING_DETAIL_DISCLOSURE_SUMMARY_CLASS}>
-            <span>Booking details</span>
+            <span>{airbnbDetail?.detailsSectionTitle ?? "Booking details"}</span>
             <span
               className="text-xs font-normal text-zinc-500 transition-transform group-open:rotate-180"
               aria-hidden
@@ -94,6 +104,7 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
             </span>
           </summary>
           <CustomerBookingDetailsCard
+            serviceSlug={b.display.serviceSlug}
             homeSizeSummary={b.display.homeSizeSummary}
             cleaningIntensityLabel={b.display.cleaningIntensityLabel}
             equipmentSupplyLabel={b.display.equipmentSupplyLabel}
@@ -116,7 +127,7 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
 
         <details className={CUSTOMER_BOOKING_DETAIL_DISCLOSURE_CLASS} open>
           <summary className={CUSTOMER_BOOKING_DETAIL_DISCLOSURE_SUMMARY_CLASS}>
-            <span>Activity</span>
+            <span>{airbnbDetail?.activitySectionTitle ?? "Activity"}</span>
             <span
               className="text-xs font-normal text-zinc-500 transition-transform group-open:rotate-180"
               aria-hidden

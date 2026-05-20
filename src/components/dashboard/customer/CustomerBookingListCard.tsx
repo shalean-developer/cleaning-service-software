@@ -14,8 +14,13 @@ type Props = {
 
 export function CustomerBookingListCard({ booking }: Props) {
   const layers = customerBookingListCardLayers({
-    ...booking,
+    status: booking.status,
+    paymentStatus: booking.paymentStatus,
+    paymentFailureReason: booking.paymentFailureReason,
+    isUpcoming: booking.isUpcoming,
+    display: booking.display,
     deferredAssignmentMessage: booking.deferredAssignmentMessage,
+    assignedCleanerLabel: booking.assignedCleanerLabel,
   });
   const amountLabel = formatZar(booking.priceCents, booking.currency);
 
@@ -26,9 +31,14 @@ export function CustomerBookingListCard({ booking }: Props) {
     >
       <section className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <section className={`min-w-0 flex-1 ${UI_LIST_STACK_CLASS}`}>
-          <h2 className="break-words text-base font-semibold tracking-tight text-zinc-900 sm:text-lg">
-            {booking.display.serviceLabel}
-          </h2>
+          <div>
+            <h2 className="break-words text-base font-semibold tracking-tight text-zinc-900 sm:text-lg">
+              {booking.display.serviceLabel}
+            </h2>
+            {layers.serviceSubtitle ? (
+              <p className="mt-0.5 text-sm text-zinc-600">{layers.serviceSubtitle}</p>
+            ) : null}
+          </div>
           <dl className="grid gap-2 text-sm sm:grid-cols-2 sm:gap-x-6">
             <div>
               <dt className="sr-only">Schedule</dt>
@@ -59,7 +69,7 @@ export function CustomerBookingListCard({ booking }: Props) {
           />
           <p className="text-sm font-semibold tabular-nums text-zinc-900">{amountLabel}</p>
           <span className="inline-flex items-center text-sm font-medium text-zinc-600 transition-colors group-hover:text-zinc-900">
-            View details
+            {layers.ctaLabel}
             <span aria-hidden className="ml-1 transition-transform group-hover:translate-x-0.5">
               →
             </span>

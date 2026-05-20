@@ -17,6 +17,7 @@ describe("CleanerStepPanel", () => {
   it("uses zinc selected styling instead of inverted dark cards", () => {
     const html = renderToStaticMarkup(
       <CleanerStepPanel
+        serviceSlug="regular-cleaning"
         cleanerPreferenceMode="selected"
         selectedCleanerId="c1"
         availableCleaners={[sampleCleaner]}
@@ -34,6 +35,7 @@ describe("CleanerStepPanel", () => {
   it("renders recommended best available and selection guide", () => {
     const html = renderToStaticMarkup(
       <CleanerStepPanel
+        serviceSlug="regular-cleaning"
         cleanerPreferenceMode="best_available"
         selectedCleanerId={null}
         availableCleaners={[sampleCleaner]}
@@ -55,6 +57,7 @@ describe("CleanerStepPanel", () => {
   it("shows selected-cleaner fallback copy and hides long eligibility on card face", () => {
     const html = renderToStaticMarkup(
       <CleanerStepPanel
+        serviceSlug="regular-cleaning"
         cleanerPreferenceMode="selected"
         selectedCleanerId="c1"
         availableCleaners={[sampleCleaner]}
@@ -78,6 +81,7 @@ describe("CleanerStepPanel", () => {
 
     const html = renderToStaticMarkup(
       <CleanerStepPanel
+        serviceSlug="regular-cleaning"
         cleanerPreferenceMode="best_available"
         selectedCleanerId={null}
         availableCleaners={cleaners}

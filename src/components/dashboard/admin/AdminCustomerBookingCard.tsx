@@ -8,6 +8,10 @@ import {
 } from "@/features/bookings/server/statusLabels";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { AdminCustomerBookingHistoryItem } from "@/features/customers/server/admin/types";
+import {
+  getAirbnbAdminCustomerBookingCardCopy,
+  isAirbnbOperationalBooking,
+} from "@/features/dashboards/airbnbOperationalDisplay";
 import type { PaymentStatus } from "@/lib/database/types";
 
 type Props = {
@@ -43,6 +47,8 @@ function formatSchedule(start: string, end: string): string {
 
 export function AdminCustomerBookingCard({ booking }: Props) {
   const bookingStatus = booking.status as BookingStatus;
+  const airbnb = isAirbnbOperationalBooking({ serviceLabel: booking.serviceLabel });
+  const airbnbCard = airbnb ? getAirbnbAdminCustomerBookingCardCopy() : null;
   const showPaymentBadge =
     booking.paymentStatus != null &&
     bookingStatus !== "draft" &&
@@ -65,13 +71,18 @@ export function AdminCustomerBookingCard({ booking }: Props) {
             {booking.serviceLabel ?? "Service"}
             {booking.frequencyLabel ? ` · ${booking.frequencyLabel}` : ""}
           </p>
+          {airbnbCard ? (
+            <p className="text-xs font-medium text-sky-900/90">{airbnbCard.serviceSubtitle}</p>
+          ) : null}
           <p className="text-sm text-zinc-600">
             {formatSchedule(booking.scheduledStart, booking.scheduledEnd)}
           </p>
           {booking.assignedCleanerLabel ? (
             <p className="text-sm text-zinc-600">Assigned: {booking.assignedCleanerLabel}</p>
           ) : (
-            <p className="text-sm text-zinc-500">No cleaner assigned yet</p>
+            <p className="text-sm text-zinc-500">
+              {airbnbCard?.unassignedLabel ?? "No cleaner assigned yet"}
+            </p>
           )}
         </div>
         <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">

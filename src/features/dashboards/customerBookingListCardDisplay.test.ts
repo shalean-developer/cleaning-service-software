@@ -5,6 +5,7 @@ import {
 import { customerBookingListCardLayers } from "./customerBookingListCardDisplay";
 
 const baseDisplay = {
+  serviceSlug: null as string | null,
   assignmentCustomerMessage: null as string | null,
   isTwoCleanerRequest: false,
   teamSupportLabel: null as string | null,
@@ -16,6 +17,7 @@ describe("customerBookingListCardLayers", () => {
       status: "payment_failed",
       paymentStatus: "failed",
       paymentFailureReason: null,
+      isUpcoming: false,
       display: baseDisplay,
       assignedCleanerLabel: null,
     });
@@ -29,6 +31,7 @@ describe("customerBookingListCardLayers", () => {
       tone: "attention",
     });
     expect(layers.supportingMessage).toBeNull();
+    expect(layers.ctaLabel).toBe("View details");
   });
 
   it("uses checkout expired on the dominant badge only", () => {
@@ -36,6 +39,7 @@ describe("customerBookingListCardLayers", () => {
       status: "payment_failed",
       paymentStatus: "failed",
       paymentFailureReason: CHECKOUT_EXPIRED_FAILURE_REASON,
+      isUpcoming: false,
       display: baseDisplay,
       assignedCleanerLabel: null,
     });
@@ -45,12 +49,29 @@ describe("customerBookingListCardLayers", () => {
     expect(layers.supportingMessage).toBeNull();
   });
 
+  it("uses Airbnb turnover list copy when service is airbnb-cleaning", () => {
+    const layers = customerBookingListCardLayers({
+      status: "pending_assignment",
+      paymentStatus: "paid",
+      paymentFailureReason: null,
+      isUpcoming: true,
+      display: { ...baseDisplay, serviceSlug: "airbnb-cleaning" },
+      assignedCleanerLabel: null,
+    });
+
+    expect(layers.dominantBadge.label).toBe("Cleaner assignment in progress");
+    expect(layers.serviceSubtitle).toBe("Guest-ready preparation scheduled");
+    expect(layers.ctaLabel).toBe("View turnover");
+  });
+
   it("shows team support status when requested and no assignment message", () => {
     const layers = customerBookingListCardLayers({
       status: "confirmed",
       paymentStatus: "paid",
       paymentFailureReason: null,
+      isUpcoming: true,
       display: {
+        serviceSlug: null,
         assignmentCustomerMessage: null,
         isTwoCleanerRequest: true,
         teamSupportLabel: "Team support requested — awaiting confirmation",
@@ -69,7 +90,9 @@ describe("customerBookingListCardLayers", () => {
       status: "pending_assignment",
       paymentStatus: "paid",
       paymentFailureReason: null,
+      isUpcoming: true,
       display: {
+        serviceSlug: null,
         assignmentCustomerMessage: "We're finding another available cleaner.",
         isTwoCleanerRequest: false,
         teamSupportLabel: null,
@@ -90,6 +113,7 @@ describe("customerBookingListCardLayers", () => {
       status: "assigned",
       paymentStatus: "paid",
       paymentFailureReason: null,
+      isUpcoming: true,
       display: baseDisplay,
       assignedCleanerLabel: "Cleaner assigned",
     });
@@ -107,6 +131,7 @@ describe("customerBookingListCardLayers", () => {
       status: "completed",
       paymentStatus: "paid",
       paymentFailureReason: null,
+      isUpcoming: false,
       display: baseDisplay,
       assignedCleanerLabel: "Cleaner assigned",
     });
@@ -124,6 +149,7 @@ describe("customerBookingListCardLayers", () => {
       status: "payout_ready",
       paymentStatus: "paid",
       paymentFailureReason: null,
+      isUpcoming: false,
       display: baseDisplay,
       assignedCleanerLabel: null,
     });
