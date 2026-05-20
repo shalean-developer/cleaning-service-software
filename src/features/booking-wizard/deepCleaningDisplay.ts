@@ -16,11 +16,11 @@ export function isDeepCleaningSlug(
 }
 
 /** Step 1 mobile card — restoration positioning. */
-export const DEEP_SERVICE_STEP_DESCRIPTION_MOBILE = "Intensive home restoration cleaning";
+export const DEEP_SERVICE_STEP_DESCRIPTION_MOBILE = "Buildup removal and seasonal resets";
 
 /** Step 1 desktop card — max two lines. */
 export const DEEP_SERVICE_STEP_DESCRIPTION_DESKTOP =
-  "Detailed deep cleaning for neglected buildup — ideal for seasonal resets and full-home refreshes.";
+  "Detailed cleaning for neglected buildup and seasonal resets.";
 
 /** Softer recurring labels — frequency values unchanged. */
 export const DEEP_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
@@ -155,7 +155,7 @@ export function getDeepScheduleStepHelperCopy(
 ): string | null {
   if (!isDeepCleaningSlug(serviceSlug)) return null;
   if (extendedWindowEnabled) {
-    return "Book up to 90 days ahead. Deep cleans may require more detailed preparation time — ideal before holidays, events, or seasonal resets.";
+    return "Book up to 90 days ahead.";
   }
   return "Deep cleans may require more detailed preparation time. Ideal before holidays, events, or seasonal resets — allow enough cleaning time on your chosen date.";
 }

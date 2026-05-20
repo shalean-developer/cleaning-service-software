@@ -337,7 +337,7 @@ function TimeSlotButton({ slot, selected, disabled, onSelect }: TimeSlotButtonPr
       disabled={disabled}
       aria-pressed={selected}
       onClick={() => onSelect(slot)}
-      className={`min-h-[2.75rem] rounded-xl border px-3 py-2.5 text-sm font-medium tabular-nums text-zinc-900 disabled:cursor-not-allowed disabled:opacity-40 ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${
+      className={`min-h-[2.75rem] w-full rounded-lg border px-2.5 py-2 text-sm font-medium tabular-nums text-zinc-900 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-[2.5rem] sm:px-2.5 sm:py-1.5 sm:text-xs md:min-h-9 md:px-3 lg:min-h-8 lg:rounded-md lg:px-2.5 lg:py-1.5 lg:text-xs ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${
         selected
           ? wizardCardClass(true)
           : `${wizardCardClass(false)} hover:bg-zinc-50/60`
@@ -399,9 +399,6 @@ export function ScheduleStepPanel({
       <WizardStepHeading title="Schedule" />
 
       <p className="mt-2 text-xs leading-relaxed text-zinc-500">{scheduleHelperCopy}</p>
-      <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-        Times in South Africa (SAST).
-      </p>
 
       {envMismatchWarning ? (
         <p
@@ -487,19 +484,21 @@ export function ScheduleStepPanel({
         </h3>
 
         <div
-          className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-2 md:gap-2.5 lg:grid-cols-3"
+          className="mt-3 w-full max-w-3xl min-w-0"
           role="group"
           aria-label="Available arrival times"
         >
-          {timeSlots.map((slot) => (
-            <TimeSlotButton
-              key={slot}
-              slot={slot}
-              selected={time === slot}
-              disabled={isScheduleTimeSlotDisabled(date, slot)}
-              onSelect={onTimeChange}
-            />
-          ))}
+          <div className="grid w-full grid-cols-2 gap-1.5 sm:grid-cols-3 sm:gap-2 md:grid-cols-4 md:gap-2 lg:grid-cols-5 lg:gap-2">
+            {timeSlots.map((slot) => (
+              <TimeSlotButton
+                key={slot}
+                slot={slot}
+                selected={time === slot}
+                disabled={isScheduleTimeSlotDisabled(date, slot)}
+                onSelect={onTimeChange}
+              />
+            ))}
+          </div>
         </div>
 
         {timeError ? (

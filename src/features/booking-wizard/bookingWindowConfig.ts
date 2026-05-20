@@ -278,7 +278,7 @@ export function resolveScheduleStepHelperCopy(
   extendedWindowEnabled: boolean,
 ): string {
   if (extendedWindowEnabled) {
-    return "Book up to 90 days ahead. Cleaner assignment happens closer to your service date.";
+    return "Book up to 90 days ahead.";
   }
   return "Choose your preferred service date. Future bookings are assigned closer to the service date.";
 }

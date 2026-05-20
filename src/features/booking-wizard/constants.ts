@@ -36,21 +36,22 @@ export type WizardServiceOption = {
 
 /** Step 1 mobile card copy — short lines; does not affect pricing or validation. */
 const SERVICE_STEP_DESCRIPTIONS: Record<ServiceSlug, string> = {
-  "regular-cleaning": "Routine upkeep for your home",
+  "regular-cleaning": "Routine kitchens, bathrooms, and living areas",
   "deep-cleaning": DEEP_SERVICE_STEP_DESCRIPTION_MOBILE,
   "moving-cleaning": MOVING_SERVICE_STEP_DESCRIPTION_MOBILE,
-  "airbnb-cleaning": "Guest-ready turnover",
+  "airbnb-cleaning": "Fast prep before your next guest",
   "office-cleaning": OFFICE_SERVICE_STEP_DESCRIPTION_MOBILE,
   "carpet-cleaning": CARPET_SERVICE_STEP_DESCRIPTION_MOBILE,
 };
 
 /** Step 1 desktop card copy — max two lines; display only. */
 export const SERVICE_STEP_DESCRIPTIONS_DESKTOP: Record<ServiceSlug, string> = {
-  "regular-cleaning": "Routine clean for kitchens, bathrooms, and living areas.",
+  "regular-cleaning":
+    "Routine cleaning for kitchens, bathrooms, and living spaces.",
   "deep-cleaning": DEEP_SERVICE_STEP_DESCRIPTION_DESKTOP,
   "moving-cleaning": MOVING_SERVICE_STEP_DESCRIPTION_DESKTOP,
   "airbnb-cleaning":
-    "Fast, detail-focused property preparation before your next guest check-in.",
+    "Fast property preparation before your next guest check-in.",
   "office-cleaning": OFFICE_SERVICE_STEP_DESCRIPTION_DESKTOP,
   "carpet-cleaning": CARPET_SERVICE_STEP_DESCRIPTION_DESKTOP,
 };

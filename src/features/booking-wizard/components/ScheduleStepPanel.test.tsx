@@ -30,7 +30,11 @@ describe("ScheduleStepPanel", () => {
     expect(html).not.toContain(
       "Choose the date and start time that works best for you.",
     );
-    expect(html).toContain("Times in South Africa (SAST).");
+    expect(html).not.toContain("Times in South Africa (SAST).");
+    expect(html).toContain("grid-cols-2");
+    expect(html).toContain("lg:grid-cols-5");
+    expect(html).toContain("max-w-3xl");
+    expect(html).not.toContain("lg:w-fit");
     expect(html).toContain("Date");
     expect(html).toContain("Arrival time");
     expect(html).not.toMatch(/>\s*Today\s*</i);

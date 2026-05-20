@@ -84,11 +84,11 @@ export function isAirbnbCleaningSlug(
 }
 
 /** Step 1 mobile card — host-focused. */
-export const AIRBNB_SERVICE_STEP_DESCRIPTION_MOBILE = "Guest-ready turnover";
+export const AIRBNB_SERVICE_STEP_DESCRIPTION_MOBILE = "Fast prep before your next guest";
 
 /** Step 1 desktop card — max two lines. */
 export const AIRBNB_SERVICE_STEP_DESCRIPTION_DESKTOP =
-  "Reliable reset between guests — kitchens, baths, and key spaces guest-ready.";
+  "Fast property preparation before your next guest check-in.";
 
 /** Host-oriented frequency cards — values unchanged. */
 export const AIRBNB_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
@@ -316,12 +316,12 @@ export function getScheduleStepHelperCopy(
   if (carpet) return carpet;
   if (isAirbnbCleaningSlug(serviceSlug)) {
     if (extendedWindowEnabled) {
-      return "Book turnovers up to 90 days ahead. Same-day slots depend on cleaner availability — we assign closer to check-in when needed.";
+      return "Book up to 90 days ahead.";
     }
     return "Pick your turnover date and arrival window. Same-day requests are subject to availability — book early before the next guest check-in.";
   }
   if (extendedWindowEnabled) {
-    return "Book up to 90 days ahead. Cleaner assignment happens closer to your service date.";
+    return "Book up to 90 days ahead.";
   }
   return "Choose your preferred service date. Future bookings are assigned closer to the service date.";
 }

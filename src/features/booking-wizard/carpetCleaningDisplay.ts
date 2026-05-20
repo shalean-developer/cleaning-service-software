@@ -17,11 +17,11 @@ export function isCarpetCleaningSlug(
 }
 
 /** Step 1 mobile card — floor-care positioning. */
-export const CARPET_SERVICE_STEP_DESCRIPTION_MOBILE = "Professional carpet & floor-care";
+export const CARPET_SERVICE_STEP_DESCRIPTION_MOBILE = "Carpets and high-traffic area refresh";
 
 /** Step 1 desktop card — max two lines. */
 export const CARPET_SERVICE_STEP_DESCRIPTION_DESKTOP =
-  "Restore freshness to carpets and high-traffic areas — stain treatment and fabric refresh.";
+  "Restore freshness to carpets and high-traffic areas.";
 
 /** Recurring labels — frequency values unchanged. */
 export const CARPET_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
@@ -184,7 +184,7 @@ export function getCarpetScheduleStepHelperCopy(
 ): string | null {
   if (!isCarpetCleaningSlug(serviceSlug)) return null;
   if (extendedWindowEnabled) {
-    return "Book up to 90 days ahead. Allow drying time after carpet cleaning — good ventilation helps carpets dry faster.";
+    return "Book up to 90 days ahead.";
   }
   return "Allow drying time after carpet cleaning. Good ventilation helps carpets dry faster. Pick a date with room access for each carpet zone.";
 }

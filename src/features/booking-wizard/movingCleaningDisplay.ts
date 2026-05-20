@@ -17,11 +17,11 @@ export function isMovingCleaningSlug(
 }
 
 /** Step 1 mobile card — move-ready positioning. */
-export const MOVING_SERVICE_STEP_DESCRIPTION_MOBILE = "Move-ready property preparation";
+export const MOVING_SERVICE_STEP_DESCRIPTION_MOBILE = "Move-in, handover, and inspection prep";
 
 /** Step 1 desktop card — max two lines. */
 export const MOVING_SERVICE_STEP_DESCRIPTION_DESKTOP =
-  "Detailed cleaning before move-in, handover, or inspection — vacant homes and key spaces reset.";
+  "Detailed cleaning before move-in, handover, or inspection.";
 
 /** Softer recurring labels — frequency values unchanged. */
 export const MOVING_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
@@ -156,7 +156,7 @@ export function getMovingScheduleStepHelperCopy(
 ): string | null {
   if (!isMovingCleaningSlug(serviceSlug)) return null;
   if (extendedWindowEnabled) {
-    return "Book up to 90 days ahead. Schedule before move-in, handover, or inspection — allow time before key collection or occupancy.";
+    return "Book up to 90 days ahead.";
   }
   return "Schedule before your move-in, handover, or inspection. Allow enough time before key collection or occupancy.";
 }

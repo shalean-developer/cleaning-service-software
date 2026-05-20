@@ -475,7 +475,6 @@ export function BookingWizard({
 
         {state.step === "datetime" ? (
           <>
-            {wizardContextStrip}
             <ScheduleStepPanel
             serviceSlug={state.serviceSlug}
             date={state.date}

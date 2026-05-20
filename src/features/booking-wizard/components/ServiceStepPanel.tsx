@@ -99,10 +99,10 @@ function ServiceCardMobile({ service, selected, onSelect }: ServiceCardProps) {
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="block text-[0.8125rem] font-semibold leading-snug text-zinc-900">
+        <span className="block min-h-[2.25rem] text-[0.8125rem] font-semibold leading-snug text-zinc-900 [text-wrap:pretty] line-clamp-2">
           {service.label}
         </span>
-        <span className="mt-0.5 block text-xs leading-snug text-zinc-500 [text-wrap:pretty] line-clamp-2">
+        <span className="mt-0.5 block min-h-[2.5rem] text-xs leading-snug text-zinc-500 [text-wrap:pretty] line-clamp-2">
           {service.description}
         </span>
       </span>
@@ -119,7 +119,7 @@ function ServiceCardDesktop({ service, selected, onSelect }: ServiceCardProps) {
       type="button"
       onClick={() => onSelect(service.slug)}
       aria-pressed={selected}
-      className={`group relative flex w-full min-w-0 flex-col gap-2 rounded-2xl border px-4 py-4 text-left transition-[border-color,box-shadow,background-color] duration-200 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 motion-reduce:transition-none ${
+      className={`group relative flex h-full w-full min-w-0 flex-col gap-2 rounded-2xl border px-4 py-4 text-left transition-[border-color,box-shadow,background-color] duration-200 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 motion-reduce:transition-none ${
         selected
           ? "border-zinc-900 bg-zinc-50 shadow-[0_1px_2px_rgba(24,24,27,0.06),0_4px_14px_rgba(24,24,27,0.08)]"
           : "border-zinc-200/80 bg-white shadow-[0_1px_2px_rgba(24,24,27,0.04)] hover:border-zinc-300 hover:bg-zinc-50/40 hover:shadow-[0_2px_10px_rgba(24,24,27,0.07)]"
@@ -139,7 +139,7 @@ function ServiceCardDesktop({ service, selected, onSelect }: ServiceCardProps) {
         >
           <ServiceStepIcon slug={service.slug} className="h-5 w-5" />
         </span>
-        <span className="min-w-0 flex-1 pt-0.5 text-[0.9375rem] font-semibold tracking-tight leading-snug text-zinc-900">
+        <span className="min-h-[2.75rem] min-w-0 flex-1 pt-0.5 text-[0.9375rem] font-semibold tracking-tight leading-snug text-zinc-900 [text-wrap:pretty] line-clamp-2">
           {service.label}
         </span>
         {selected ? (
@@ -160,11 +160,11 @@ function ServiceCard(props: ServiceCardProps) {
   const reserveBadgeSpace = props.service.slug === MOST_BOOKED_SLUG;
 
   return (
-    <li className={`w-full min-w-0 ${reserveBadgeSpace ? "pt-2.5" : ""}`}>
-      <div className="md:hidden">
+    <li className={`h-full w-full min-w-0 ${reserveBadgeSpace ? "pt-2.5" : ""}`}>
+      <div className="h-full md:hidden">
         <ServiceCardMobile {...props} />
       </div>
-      <div className="hidden w-full min-w-0 md:block">
+      <div className="hidden h-full w-full min-w-0 md:block">
         <ServiceCardDesktop {...props} />
       </div>
     </li>

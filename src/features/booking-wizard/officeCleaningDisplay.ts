@@ -17,11 +17,11 @@ export function isOfficeCleaningSlug(
 }
 
 /** Step 1 mobile card — commercial positioning. */
-export const OFFICE_SERVICE_STEP_DESCRIPTION_MOBILE = "Professional workspace cleaning";
+export const OFFICE_SERVICE_STEP_DESCRIPTION_MOBILE = "Reliable office workspace cleaning";
 
 /** Step 1 desktop card — max two lines. */
 export const OFFICE_SERVICE_STEP_DESCRIPTION_DESKTOP =
-  "Reliable office and commercial cleaning — maintain a clean, productive work environment.";
+  "Reliable office cleaning for productive workspaces.";
 
 /** Commercial cadence — frequency values unchanged. */
 export const OFFICE_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
@@ -156,7 +156,7 @@ export function getOfficeScheduleStepHelperCopy(
 ): string | null {
   if (!isOfficeCleaningSlug(serviceSlug)) return null;
   if (extendedWindowEnabled) {
-    return "Book up to 90 days ahead. Schedule around office hours or team operations — recurring office cleaning helps maintain workspace standards.";
+    return "Book up to 90 days ahead.";
   }
   return "Schedule around office hours or after-hours access. Recurring office cleaning helps maintain a clean, productive workspace.";
 }
