@@ -1,7 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Database } from "@/lib/database/types";
-import { loadProfileRoleForUser } from "./loadProfileRole";
+import { profileRoleLookupTimeoutMessage } from "./profileErrors";
+import {
+  loadProfileRoleForUser,
+  PROFILE_ROLE_LOOKUP_TIMEOUT_MS,
+} from "./loadProfileRole";
 
 const ADMIN_USER_ID = "168c96e1-3d07-447f-bf64-3c0bbb8f9a3b";
 
@@ -104,5 +108,33 @@ describe("loadProfileRoleForUser", () => {
 
     expect(result.ok).toBe(false);
     expect(eq).toHaveBeenCalledWith("id", ADMIN_USER_ID);
+  });
+
+  describe("timeout", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("fails when the profile query does not resolve in time", async () => {
+      const never = new Promise<{ data: null; error: null }>(() => {});
+      const maybeSingle = vi.fn(() => never);
+      const eq = vi.fn(() => ({ maybeSingle }));
+      const select = vi.fn(() => ({ eq }));
+      const from = vi.fn(() => ({ select }));
+      const client = { from } as unknown as SupabaseClient<Database>;
+
+      const pending = loadProfileRoleForUser(client, ADMIN_USER_ID);
+      await vi.advanceTimersByTimeAsync(PROFILE_ROLE_LOOKUP_TIMEOUT_MS);
+      const result = await pending;
+
+      expect(result).toEqual({
+        ok: false,
+        error: profileRoleLookupTimeoutMessage(),
+      });
+    });
   });
 });

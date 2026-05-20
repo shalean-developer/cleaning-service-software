@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useClientMounted } from "@/lib/react/useClientMounted";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { loadProfileRoleForUser } from "@/lib/auth/loadProfileRole";
@@ -192,11 +193,7 @@ function SignUpFormFields() {
 }
 
 export function SignUpForm() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useClientMounted();
 
   if (!mounted) {
     return <SignUpFormSkeleton />;

@@ -16,3 +16,11 @@ export function missingProfileMessage(): string {
   }
   return NO_PROFILE_DEVELOPMENT;
 }
+
+const PROFILE_LOOKUP_TIMEOUT =
+  "We could not verify your account access. Check your connection and try again.";
+
+/** Shown when the post-sign-in profile role query exceeds the timeout. */
+export function profileRoleLookupTimeoutMessage(): string {
+  return PROFILE_LOOKUP_TIMEOUT;
+}

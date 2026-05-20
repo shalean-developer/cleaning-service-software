@@ -19,6 +19,7 @@ import {
   type BookingWindowBounds,
   VISIBLE_DATE_OPTION_COUNT,
 } from "../bookingWindowConfig";
+import { deferEffectWork } from "@/lib/react/deferEffectWork";
 import type { PricingFrequency, ServiceSlug } from "@/features/pricing/server/types";
 import {
   buildScheduleDateOptions,
@@ -389,9 +390,11 @@ export function ScheduleStepPanel({
 
   useEffect(() => {
     if (!date) return;
-    setWindowStartOffsetDays(
-      resolveDateWindowStartOffsetForDate(minDate, date, maxDate),
-    );
+    deferEffectWork(() => {
+      setWindowStartOffsetDays(
+        resolveDateWindowStartOffsetForDate(minDate, date, maxDate),
+      );
+    });
   }, [date, minDate, maxDate]);
 
   const dateOptions = useMemo(

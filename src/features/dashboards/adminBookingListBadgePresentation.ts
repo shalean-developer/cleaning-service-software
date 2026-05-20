@@ -2,6 +2,20 @@ import type { AdminBookingListCardBadge } from "@/components/dashboard/admin/Adm
 
 export const ADMIN_BOOKING_LIST_MAX_VISIBLE_BADGES = 2;
 
+/** Drops later badges that repeat the same label (e.g. assignment + status both "Finding cleaner"). */
+export function dedupeAdminBookingListBadgesByLabel(
+  badges: readonly AdminBookingListCardBadge[],
+): AdminBookingListCardBadge[] {
+  const seen = new Set<string>();
+  const result: AdminBookingListCardBadge[] = [];
+  for (const badge of badges) {
+    if (seen.has(badge.label)) continue;
+    seen.add(badge.label);
+    result.push(badge);
+  }
+  return result;
+}
+
 export type AdminBookingListBadgePresentation = {
   visible: AdminBookingListCardBadge[];
   overflowCount: number;
@@ -73,16 +87,18 @@ export function presentAdminBookingListBadges(
   badges: readonly AdminBookingListCardBadge[],
   maxVisible: number = ADMIN_BOOKING_LIST_MAX_VISIBLE_BADGES,
 ): AdminBookingListBadgePresentation {
-  if (badges.length <= maxVisible) {
-    return { visible: [...badges], overflowCount: 0 };
+  const unique = dedupeAdminBookingListBadgesByLabel(badges);
+
+  if (unique.length <= maxVisible) {
+    return { visible: unique, overflowCount: 0 };
   }
 
-  const ranked = [...badges].sort(
+  const ranked = [...unique].sort(
     (a, b) => priorityScoreForAdminBookingBadge(b) - priorityScoreForAdminBookingBadge(a),
   );
   const visible = ranked.slice(0, maxVisible);
   return {
     visible,
-    overflowCount: badges.length - maxVisible,
+    overflowCount: unique.length - maxVisible,
   };
 }

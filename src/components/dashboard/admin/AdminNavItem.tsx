@@ -9,9 +9,18 @@ type Props = NavItem & {
   pathname: string | null;
   onNavigate?: () => void;
   layout?: "bar" | "menu";
+  /** Highlights primary destinations such as Home in the bar layout. */
+  emphasis?: "primary";
 };
 
-export function AdminNavItem({ href, label, pathname, onNavigate, layout = "bar" }: Props) {
+export function AdminNavItem({
+  href,
+  label,
+  pathname,
+  onNavigate,
+  layout = "bar",
+  emphasis,
+}: Props) {
   const active = isAdminNavItemActive(pathname, href);
 
   if (layout === "menu") {
@@ -30,14 +39,24 @@ export function AdminNavItem({ href, label, pathname, onNavigate, layout = "bar"
     );
   }
 
+  const primaryBar = emphasis === "primary";
+
   return (
     <Link
       href={href}
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
       title={label}
-      className={`group relative flex min-w-[4.75rem] max-w-[7.25rem] shrink-0 flex-col items-center gap-1 px-1.5 py-1.5 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
-        active ? "text-blue-600" : "text-zinc-500 hover:text-zinc-700"
+      className={`group relative flex shrink-0 flex-col items-center gap-1 px-1.5 py-1.5 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
+        primaryBar ? "min-w-[4.5rem] max-w-[5.5rem]" : "min-w-[4.25rem] max-w-[6.75rem]"
+      } ${
+        active
+          ? primaryBar
+            ? "text-blue-700"
+            : "text-blue-600"
+          : primaryBar
+            ? "text-zinc-700 hover:text-blue-600"
+            : "text-zinc-500 hover:text-zinc-700"
       }`}
     >
       <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center">
@@ -48,8 +67,12 @@ export function AdminNavItem({ href, label, pathname, onNavigate, layout = "bar"
       </span>
       <span
         aria-hidden
-        className={`absolute inset-x-1 bottom-0 h-0.5 rounded-full transition-colors ${
-          active ? "bg-blue-600" : "bg-transparent group-hover:bg-zinc-200"
+        className={`absolute inset-x-1 bottom-0 h-0.5 rounded-full transition-colors duration-150 ${
+          active
+            ? primaryBar
+              ? "bg-blue-700"
+              : "bg-blue-600"
+            : "bg-transparent group-hover:bg-zinc-200"
         }`}
       />
     </Link>

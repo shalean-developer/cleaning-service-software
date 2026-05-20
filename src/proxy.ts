@@ -21,7 +21,7 @@ function redirectWithSessionCookies(
   return redirectResponse;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const env = getSupabasePublicEnv();
   const pathname = request.nextUrl.pathname;
 

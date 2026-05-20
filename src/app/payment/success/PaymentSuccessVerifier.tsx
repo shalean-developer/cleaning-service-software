@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { deferEffectWork } from "@/lib/react/deferEffectWork";
 import {
   customerBookingDetailPath,
   parseVerifyPaymentResponse,
@@ -92,7 +93,9 @@ export function PaymentSuccessVerifier() {
   }, [router, searchParams]);
 
   useEffect(() => {
-    void runVerify();
+    deferEffectWork(() => {
+      void runVerify();
+    });
   }, [runVerify]);
 
   const shellTitle =

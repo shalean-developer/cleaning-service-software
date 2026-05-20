@@ -1,14 +1,14 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { resolveSignInEmail } from "@/lib/auth/cleanerAuthIdentity";
 import { loadProfileRoleForUser } from "@/lib/auth/loadProfileRole";
 import { resolvePostSignInPath } from "@/lib/auth/redirects";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export type SignInActionState = {
-  error: string;
-} | null;
+export type SignInActionState =
+  | { error: string }
+  | { redirectTo: string }
+  | null;
 
 export async function signInAction(
   _previousState: SignInActionState,
@@ -49,11 +49,14 @@ export async function signInAction(
     return { error: "Sign-in succeeded but no user was returned." };
   }
 
-  // Attach the new session JWT before the RLS-scoped profiles read.
-  const { error: sessionError } = await supabase.auth.getUser();
-  if (sessionError) {
-    await supabase.auth.signOut();
-    return { error: sessionError.message };
+  // signInWithPassword already attaches the session to this client; only refresh
+  // when the session cookie was not returned (avoids an extra auth round-trip).
+  if (!data.session) {
+    const { error: sessionError } = await supabase.auth.getUser();
+    if (sessionError) {
+      await supabase.auth.signOut();
+      return { error: sessionError.message };
+    }
   }
 
   const profileResult = await loadProfileRoleForUser(supabase, user.id);
@@ -62,5 +65,7 @@ export async function signInAction(
     return { error: profileResult.error };
   }
 
-  redirect(resolvePostSignInPath(profileResult.role, redirectedFrom));
+  return {
+    redirectTo: resolvePostSignInPath(profileResult.role, redirectedFrom),
+  };
 }

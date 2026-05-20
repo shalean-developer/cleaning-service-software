@@ -13,8 +13,12 @@ export function AdminBookingBadgeRow({ badges, className = "" }: Props) {
 
   return (
     <section className={`flex flex-wrap items-center gap-1.5 ${className}`.trim()}>
-      {visible.map((badge) => (
-        <StatusBadge key={badge.label} label={badge.label} tone={badge.tone} />
+      {visible.map((badge, index) => (
+        <StatusBadge
+          key={`${badge.label}-${badge.tone}-${index}`}
+          label={badge.label}
+          tone={badge.tone}
+        />
       ))}
       {overflowCount > 0 ? (
         <StatusBadge label={`+${overflowCount}`} tone="neutral" variant="soft" />

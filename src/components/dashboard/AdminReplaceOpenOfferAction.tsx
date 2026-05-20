@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { deferEffectWork } from "@/lib/react/deferEffectWork";
 import type { CleanerPublicCard } from "@/features/cleaners/server/types";
 import type { AdminOperationalStatus } from "@/features/dashboards/server/adminOperationalHelpers";
 import {
@@ -60,7 +61,9 @@ export function AdminReplaceOpenOfferAction({ bookingId, operational }: Props) {
   }, [bookingId]);
 
   useEffect(() => {
-    void loadCleaners();
+    deferEffectWork(() => {
+      void loadCleaners();
+    });
   }, [loadCleaners]);
 
   if (!operational.replaceOfferEligible) {

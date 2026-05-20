@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { deferEffectWork } from "@/lib/react/deferEffectWork";
 import type { ServiceSlug } from "@/features/pricing/server/types";
 import { getAccessNotesFieldCopy, getWizardCleanerFootnote } from "../airbnbCleaningDisplay";
 import { syncBookServiceUrlOnSelection } from "../bookServiceRoute";
@@ -106,20 +107,22 @@ export function BookingWizard({
   );
 
   useEffect(() => {
-    const loaded = loadWizardState();
-    const profilePhone = initialCustomerPhone?.trim() || null;
-    const merged = mergeLoadedWizardAddressDefaults(loaded, initialAddressDefaults);
-    const withPhone = {
-      ...merged,
-      profilePhone,
-      contactPhone: initialContactPhoneField(loaded.contactPhone, profilePhone),
-    };
-    if (initialServiceSlug) {
-      setState({ ...withPhone, ...wizardPatchForServiceSelection(initialServiceSlug) });
-    } else {
-      setState(withPhone);
-    }
-    hydrated.current = true;
+    deferEffectWork(() => {
+      const loaded = loadWizardState();
+      const profilePhone = initialCustomerPhone?.trim() || null;
+      const merged = mergeLoadedWizardAddressDefaults(loaded, initialAddressDefaults);
+      const withPhone = {
+        ...merged,
+        profilePhone,
+        contactPhone: initialContactPhoneField(loaded.contactPhone, profilePhone),
+      };
+      if (initialServiceSlug) {
+        setState({ ...withPhone, ...wizardPatchForServiceSelection(initialServiceSlug) });
+      } else {
+        setState(withPhone);
+      }
+      hydrated.current = true;
+    });
   }, [initialServiceSlug, initialCustomerPhone, initialAddressDefaultsKey]);
 
   useEffect(() => {
@@ -254,16 +257,19 @@ export function BookingWizard({
   }, [state, patch]);
 
   useEffect(() => {
-    if (state.step === "review" && !state.quote && !loading) {
+    if (state.step !== "review" || state.quote || loading) return;
+    deferEffectWork(() => {
       void loadQuoteForReview();
-    }
+    });
   }, [state.step, state.quote, loading, loadQuoteForReview]);
 
   useEffect(() => {
     if (!shouldRedirectCheckoutWithoutQuote(state)) return;
-    setStepErrors({});
-    setApiError(CHECKOUT_QUOTE_REQUIRED_MESSAGE);
-    setState((prev) => ({ ...prev, step: "review" }));
+    deferEffectWork(() => {
+      setStepErrors({});
+      setApiError(CHECKOUT_QUOTE_REQUIRED_MESSAGE);
+      setState((prev) => ({ ...prev, step: "review" }));
+    });
   }, [state.step, state.quote]);
 
   const handleCheckout = useCallback(async () => {

@@ -48,6 +48,17 @@ describe("SignInForm server action", () => {
     expect(source).not.toContain("createSupabaseBrowserClient");
   });
 
+  it("navigates client-side when sign-in returns redirectTo", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "src/app/sign-in/SignInForm.tsx"),
+      "utf8",
+    );
+    expect(source).toContain("useRouter");
+    expect(source).toContain("router.replace");
+    expect(source).toContain('"redirectTo"');
+    expect(source).not.toContain('redirect(');
+  });
+
   it("accepts email or mobile number in the identifier field", () => {
     const source = readFileSync(
       resolve(process.cwd(), "src/app/sign-in/SignInForm.tsx"),
@@ -90,7 +101,7 @@ describe("signInAction", () => {
     expect(source).toContain("createSupabaseServerClient");
     expect(source).toContain("signInWithPassword");
     expect(source).toContain("loadProfileRoleForUser");
-    expect(source).toContain("redirect(resolvePostSignInPath");
+    expect(source).toContain("redirectTo: resolvePostSignInPath");
   });
 
   it("resolves phone identifiers to shalean auth email before sign-in", () => {

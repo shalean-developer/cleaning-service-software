@@ -115,15 +115,31 @@ export function AdminChevronDownIcon({ className }: IconProps) {
   return strokeIcon(className, <path d="m6 9 6 6 6-6" />);
 }
 
+export function AdminNavCustomersIcon({ className }: IconProps) {
+  return strokeIcon(className, (
+    <>
+      <path d="M4 20v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" />
+      <circle cx="12" cy="8" r="3.5" />
+    </>
+  ));
+}
+
+export function AdminNavDispatchIcon({ className }: IconProps) {
+  return AdminNavAssignmentsIcon({ className });
+}
+
 const ADMIN_NAV_ICON_BY_HREF: Record<string, (props: IconProps) => ReactElement> = {
   "/admin": AdminNavHomeIcon,
   "/admin/cleaners": AdminNavCleanersIcon,
+  "/admin/customers": AdminNavCustomersIcon,
   "/admin/bookings": AdminNavBookingsIcon,
   "/admin/assignments": AdminNavAssignmentsIcon,
   "/admin/analytics/assignments": AdminNavAnalyticsIcon,
   "/admin/analytics/team-support": AdminNavTeamSupportIcon,
   "/admin/notifications": AdminNavNotificationsIcon,
   "/admin/payouts": AdminNavPayoutsIcon,
+  "/customer/book": AdminNavBookingsIcon,
+  "/admin/customers/new": AdminNavCustomersIcon,
 };
 
 export function AdminNavIcon({ href, className }: { href: string; className?: string }) {

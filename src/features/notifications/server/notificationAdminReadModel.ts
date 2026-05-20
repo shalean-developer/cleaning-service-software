@@ -240,7 +240,7 @@ async function listFilteredNotificationRows(
     throw new Error(error.message);
   }
 
-  let rows = (data ?? []).map((row) =>
+  const rows = (data ?? []).map((row) =>
     mapNotificationOutboxRowForAdmin(row, { requeueActionsEnabled: true }),
   );
 

@@ -1,8 +1,23 @@
 import { describe, expect, it } from "vitest";
 import {
+  dedupeAdminBookingListBadgesByLabel,
   presentAdminBookingListBadges,
   priorityScoreForAdminBookingBadge,
 } from "./adminBookingListBadgePresentation";
+
+describe("dedupeAdminBookingListBadgesByLabel", () => {
+  it("keeps the first badge when labels repeat", () => {
+    const badges = [
+      { label: "Finding cleaner", tone: "warning" as const },
+      { label: "Finding cleaner", tone: "warning" as const },
+      { label: "Paid", tone: "success" as const },
+    ];
+    expect(dedupeAdminBookingListBadgesByLabel(badges).map((b) => b.label)).toEqual([
+      "Finding cleaner",
+      "Paid",
+    ]);
+  });
+});
 
 describe("presentAdminBookingListBadges", () => {
   it("shows at most two badges plus overflow count", () => {
@@ -32,6 +47,17 @@ describe("presentAdminBookingListBadges", () => {
 
   it("returns all badges when within limit", () => {
     const badges = [
+      { label: "Finding cleaner", tone: "warning" as const },
+      { label: "Paid", tone: "success" as const },
+    ];
+    const result = presentAdminBookingListBadges(badges);
+    expect(result.visible).toHaveLength(2);
+    expect(result.overflowCount).toBe(0);
+  });
+
+  it("dedupes duplicate labels before applying the visible cap", () => {
+    const badges = [
+      { label: "Finding cleaner", tone: "warning" as const },
       { label: "Finding cleaner", tone: "warning" as const },
       { label: "Paid", tone: "success" as const },
     ];

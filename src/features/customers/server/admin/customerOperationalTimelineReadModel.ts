@@ -321,8 +321,8 @@ export async function getCustomerOperationalTimeline(
   const bookingRows = (bookings ?? []) as BookingTimelineSlice[];
   const bookingIds = bookingRows.map((b) => b.id);
 
-  let bookingAudits: BookingStateAuditRow[] = [];
-  let payments: PaymentRow[] = [];
+  const bookingAudits: BookingStateAuditRow[] = [];
+  const payments: PaymentRow[] = [];
 
   if (bookingIds.length > 0) {
     const chunkSize = 40;

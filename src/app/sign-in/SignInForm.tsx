@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 import { signInAction, type SignInActionState } from "@/lib/auth/signInAction";
 import {
   UI_AUTH_BUTTON_PRIMARY_CLASS,
@@ -24,10 +25,17 @@ function SignInSubmitButton() {
 }
 
 export function SignInForm({ redirectedFrom, onForgotPassword }: Props) {
+  const router = useRouter();
   const [state, formAction] = useActionState<SignInActionState, FormData>(
     signInAction,
     null,
   );
+
+  useEffect(() => {
+    if (state && "redirectTo" in state && state.redirectTo) {
+      router.replace(state.redirectTo);
+    }
+  }, [state, router]);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -70,7 +78,7 @@ export function SignInForm({ redirectedFrom, onForgotPassword }: Props) {
         />
       </label>
 
-      {state?.error ? (
+      {state && "error" in state && state.error ? (
         <p
           className="rounded-xl border border-red-200/80 bg-red-50 px-3.5 py-2.5 text-sm text-red-800"
           role="alert"

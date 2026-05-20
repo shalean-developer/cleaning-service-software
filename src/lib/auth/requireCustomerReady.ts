@@ -31,7 +31,7 @@ export async function requireCustomerReadyForPath(pathname: string): Promise<voi
   redirect(buildCustomerSetupRedirectPath(pathname));
 }
 
-/** Uses `x-pathname` from middleware when no explicit path is passed. */
+/** Uses `x-pathname` from proxy when no explicit path is passed. */
 export async function requireCustomerReady(redirectedFrom?: string): Promise<void> {
   const pathname =
     redirectedFrom?.trim() ||

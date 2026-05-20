@@ -4,21 +4,27 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
+  --shalean-primary: #2563eb;
+  --shalean-navy: #0f172a;
+  --shalean-soft-blue: #dbeafe;
+  --shalean-sky: #38bdf8;
+  --shalean-surface: #f8fafc;
+  --shalean-border: #e2e8f0;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-shalean-primary: var(--shalean-primary);
+  --color-shalean-navy: var(--shalean-navy);
+  --color-shalean-soft-blue: var(--shalean-soft-blue);
+  --color-shalean-sky: var(--shalean-sky);
+  --color-shalean-surface: var(--shalean-surface);
+  --color-shalean-border: var(--shalean-border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-marketing: var(--font-plus-jakarta);
 }
 
 html,
@@ -29,5 +35,53 @@ body {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.marketing-gradient-text {
+  background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 4px 24px rgba(15, 23, 42, 0.08),
+    0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.marketing-container {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1280px;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .marketing-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+.marketing-section {
+  padding-top: 6rem;
+  padding-bottom: 6rem;
+}
+
+@media (min-width: 1024px) {
+  .marketing-section {
+    padding-top: 8rem;
+    padding-bottom: 8rem;
+  }
+}
+
+.marketing-card-shadow {
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
 }

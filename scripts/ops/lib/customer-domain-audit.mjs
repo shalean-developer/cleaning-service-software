@@ -24,6 +24,31 @@ export async function listAuthEmailsByProfileId(client) {
 }
 
 /**
+ * Resolve auth emails only for known profile IDs (faster than full listUsers scan).
+ * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {readonly string[]} profileIds
+ */
+export async function listAuthEmailsForProfileIds(client, profileIds) {
+  /** @type {Map<string, string>} */
+  const byId = new Map();
+  const unique = [...new Set(profileIds.filter(Boolean))];
+  const concurrency = 12;
+
+  for (let i = 0; i < unique.length; i += concurrency) {
+    const chunk = unique.slice(i, i + concurrency);
+    await Promise.all(
+      chunk.map(async (profileId) => {
+        const { data, error } = await client.auth.admin.getUserById(profileId);
+        if (error || !data.user?.email) return;
+        byId.set(profileId, data.user.email);
+      }),
+    );
+  }
+
+  return byId;
+}
+
+/**
  * @param {import('@supabase/supabase-js').SupabaseClient} client
  */
 export async function loadDomainSnapshot(client) {

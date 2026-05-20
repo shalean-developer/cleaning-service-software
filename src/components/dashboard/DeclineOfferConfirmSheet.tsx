@@ -36,18 +36,16 @@ export function DeclineOfferConfirmSheet({
   const panelRef = useRef<HTMLDivElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
-  const loadingRef = useRef(loading);
-  loadingRef.current = loading;
-
   useEffect(() => {
     if (!open) return;
 
     const previousFocus = document.activeElement as HTMLElement | null;
+    const returnFocusEl = returnFocusRef?.current ?? null;
     cancelButtonRef.current?.focus();
 
     return () => {
-      if (returnFocusRef?.current) {
-        returnFocusRef.current.focus();
+      if (returnFocusEl) {
+        returnFocusEl.focus();
       } else {
         previousFocus?.focus();
       }
@@ -60,7 +58,7 @@ export function DeclineOfferConfirmSheet({
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         event.preventDefault();
-        if (!loadingRef.current) onClose();
+        if (!loading) onClose();
         return;
       }
 
@@ -86,7 +84,7 @@ export function DeclineOfferConfirmSheet({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
+  }, [open, onClose, loading]);
 
   if (!open) return null;
 

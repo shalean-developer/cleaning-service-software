@@ -1,16 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const redirectMock = vi.fn();
 const loadProfileRoleForUserMock = vi.fn();
 const resolveSignInEmailMock = vi.fn();
 const createSupabaseServerClientMock = vi.fn();
-
-vi.mock("next/navigation", () => ({
-  redirect: (...args: unknown[]) => {
-    redirectMock(...args);
-    throw new Error("NEXT_REDIRECT");
-  },
-}));
 
 vi.mock("@/lib/auth/loadProfileRole", () => ({
   loadProfileRoleForUser: (...args: unknown[]) => loadProfileRoleForUserMock(...args),
@@ -48,27 +40,33 @@ describe("signInAction", () => {
       auth: { signInWithPassword, signOut, getUser },
     });
     signInWithPassword.mockResolvedValue({
-      data: { user: { id: USER_ID } },
+      data: { user: { id: USER_ID }, session: { access_token: "token" } },
       error: null,
     });
     getUser.mockResolvedValue({ data: { user: { id: USER_ID } }, error: null });
   });
 
-  it("redirects when auth user has a profile role", async () => {
+  it("returns admin redirect path without server redirect", async () => {
     loadProfileRoleForUserMock.mockResolvedValue({ ok: true, role: "admin" });
 
-    await expect(
-      signInAction(null, buildForm({ redirectedFrom: "/admin/payouts" })),
-    ).rejects.toThrow("NEXT_REDIRECT");
-
-    expect(signInWithPassword).toHaveBeenCalled();
-    expect(getUser).toHaveBeenCalled();
-    expect(loadProfileRoleForUserMock).toHaveBeenCalledWith(
-      expect.anything(),
-      USER_ID,
+    const result = await signInAction(
+      null,
+      buildForm({ redirectedFrom: "/admin/payouts" }),
     );
-    expect(redirectMock).toHaveBeenCalledWith("/admin/payouts");
+
+    expect(result).toEqual({ redirectTo: "/admin/payouts" });
+    expect(signInWithPassword).toHaveBeenCalled();
+    expect(getUser).not.toHaveBeenCalled();
+    expect(loadProfileRoleForUserMock).toHaveBeenCalledWith(expect.anything(), USER_ID);
     expect(signOut).not.toHaveBeenCalled();
+  });
+
+  it("defaults admin role to /admin when redirectedFrom is outside namespace", async () => {
+    loadProfileRoleForUserMock.mockResolvedValue({ ok: true, role: "admin" });
+
+    const result = await signInAction(null, buildForm({ redirectedFrom: "/cleaner/jobs" }));
+
+    expect(result).toEqual({ redirectTo: "/admin" });
   });
 
   it("signs out and returns error when profile is missing", async () => {
@@ -81,28 +79,40 @@ describe("signInAction", () => {
 
     expect(signOut).toHaveBeenCalled();
     expect(result).toEqual({ error: "Signed in but no profile was found." });
-    expect(redirectMock).not.toHaveBeenCalled();
   });
 
   it("does not grant admin redirect for customer role", async () => {
     loadProfileRoleForUserMock.mockResolvedValue({ ok: true, role: "customer" });
 
-    await expect(
-      signInAction(null, buildForm({ redirectedFrom: "/admin/payouts" })),
-    ).rejects.toThrow("NEXT_REDIRECT");
+    const result = await signInAction(
+      null,
+      buildForm({ redirectedFrom: "/admin/payouts" }),
+    );
 
-    expect(redirectMock).toHaveBeenCalledWith("/customer");
+    expect(result).toEqual({ redirectTo: "/customer" });
   });
 
-  it("refreshes session before profile lookup", async () => {
+  it("loads profile after sign-in without refreshing session when session is present", async () => {
     loadProfileRoleForUserMock.mockResolvedValue({ ok: true, role: "cleaner" });
 
-    await expect(signInAction(null, buildForm())).rejects.toThrow("NEXT_REDIRECT");
+    const result = await signInAction(null, buildForm());
 
+    expect(result).toEqual({ redirectTo: "/cleaner" });
     const signInOrder = signInWithPassword.mock.invocationCallOrder[0];
-    const getUserOrder = getUser.mock.invocationCallOrder[0];
     const profileOrder = loadProfileRoleForUserMock.mock.invocationCallOrder[0];
-    expect(signInOrder).toBeLessThan(getUserOrder);
-    expect(getUserOrder).toBeLessThan(profileOrder);
+    expect(signInOrder).toBeLessThan(profileOrder);
+    expect(getUser).not.toHaveBeenCalled();
+  });
+
+  it("refreshes session only when sign-in returns no session", async () => {
+    signInWithPassword.mockResolvedValue({
+      data: { user: { id: USER_ID }, session: null },
+      error: null,
+    });
+    loadProfileRoleForUserMock.mockResolvedValue({ ok: true, role: "admin" });
+
+    await signInAction(null, buildForm());
+
+    expect(getUser).toHaveBeenCalled();
   });
 });

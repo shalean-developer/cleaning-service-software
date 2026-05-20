@@ -39,7 +39,7 @@ export function sanitizeWorkerRunErrors(
     if (!entry || typeof entry !== "object") continue;
     const outboxId = typeof entry.outboxId === "string" ? entry.outboxId.trim() : "";
     const code = typeof entry.code === "string" ? entry.code.trim().slice(0, 80) : "";
-    let message =
+    const message =
       typeof entry.message === "string"
         ? stripEmailLikeText(entry.message).slice(0, MAX_ERROR_MESSAGE_LENGTH)
         : "";
