@@ -1,5 +1,7 @@
+import { MarketingHashCleanup } from "./MarketingHashCleanup";
 import { MarketingHeader } from "./MarketingHeader";
 import { MarketingMobileBar } from "./MarketingMobileBar";
+import { MarketingSkipLink } from "./MarketingSkipLink";
 import { FaqCtaSection } from "./sections/FaqCtaSection";
 import { HeroSection } from "./sections/HeroSection";
 import { HowItWorksSection } from "./sections/HowItWorksSection";
@@ -12,8 +14,10 @@ import { WhyChooseSection } from "./sections/WhyChooseSection";
 export function MarketingHomePage() {
   return (
     <>
+      <MarketingHashCleanup />
+      <MarketingSkipLink />
       <MarketingHeader />
-      <main className="bg-shalean-surface pb-20 md:pb-0">
+      <main id="main-content" className="bg-shalean-surface pb-24 lg:pb-0" tabIndex={-1}>
         <HeroSection />
         <ServicesSection />
         <HowItWorksSection />

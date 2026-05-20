@@ -5,15 +5,18 @@ import { useRouter } from "next/navigation";
 import {
   estimateBasePriceCents,
   formatZarFromCents,
+  marketingBookPath,
 } from "@/features/marketing/constants";
-import { customerBookServicePath } from "@/features/booking-wizard/bookServiceRoute";
 import { SERVICE_CATALOG } from "@/features/pricing/server/catalog";
 import type { ServiceSlug } from "@/features/pricing/server/types";
 import { ClientOnly } from "./ClientOnly";
-import { IconArrowRight, IconCalendar, IconMapPin } from "./icons";
+import { IconArrowRight, IconMapPin } from "./icons";
 import { HeroBookingCardSkeleton } from "./HeroBookingCardSkeleton";
+import { MarketingDatePicker } from "./MarketingDatePicker";
+import { todayIsoDateLocal } from "./marketingDateUtils";
+import { MarketingSelect, type MarketingSelectOption } from "./MarketingSelect";
 
-const SERVICE_OPTIONS = (
+const SERVICE_OPTIONS: readonly MarketingSelectOption[] = (
   [
     "regular-cleaning",
     "deep-cleaning",
@@ -21,35 +24,39 @@ const SERVICE_OPTIONS = (
     "airbnb-cleaning",
   ] as const
 ).map((slug) => ({
-  slug,
+  value: slug,
   label: SERVICE_CATALOG[slug].label,
 }));
 
-const LOCATIONS = [
+const BEDROOM_OPTIONS: readonly MarketingSelectOption[] = [1, 2, 3, 4, 5].map((n) => ({
+  value: String(n),
+  label: String(n),
+}));
+
+const BATHROOM_OPTIONS: readonly MarketingSelectOption[] = [1, 2, 3, 4].map((n) => ({
+  value: String(n),
+  label: String(n),
+}));
+
+const LOCATION_OPTIONS: readonly MarketingSelectOption[] = [
   "Sea Point, Cape Town",
   "Claremont, Cape Town",
   "Camps Bay, Cape Town",
   "Bellville, Cape Town",
   "Durbanville, Cape Town",
   "Other Cape Town area",
-];
+].map((loc) => ({ value: loc, label: loc }));
 
-const fieldClass =
-  "h-11 w-full rounded-lg border border-shalean-border bg-white px-3 text-sm text-shalean-navy outline-none transition focus:border-shalean-primary focus:ring-2 focus:ring-shalean-primary/15";
-
-const labelClass = "mb-1.5 block text-xs font-semibold text-slate-500";
+const labelClass = "mb-2.5 block text-sm font-medium text-slate-700";
 
 function HeroBookingCardForm() {
   const router = useRouter();
   const [service, setService] = useState<ServiceSlug>("regular-cleaning");
   const [bedrooms, setBedrooms] = useState(2);
   const [bathrooms, setBathrooms] = useState(1);
-  const [location, setLocation] = useState(LOCATIONS[0]);
-  const [date, setDate] = useState("");
-  const minDate = useMemo(
-    () => (typeof window !== "undefined" ? new Date().toISOString().slice(0, 10) : ""),
-    [],
-  );
+  const [location, setLocation] = useState(LOCATION_OPTIONS[0].value);
+  const minDate = useMemo(() => todayIsoDateLocal(), []);
+  const [date, setDate] = useState(() => todayIsoDateLocal());
 
   const estimatedCents = useMemo(
     () => estimateBasePriceCents(service, bedrooms, bathrooms),
@@ -57,111 +64,82 @@ function HeroBookingCardForm() {
   );
 
   return (
-    <div className="w-full rounded-2xl border border-shalean-border/80 bg-white p-6 shadow-[0_12px_40px_rgba(15,23,42,0.12)] sm:p-7">
-      <h2 className="text-xl font-bold text-shalean-navy sm:text-[1.35rem]">
-        Get Your <span className="text-shalean-primary">Instant</span> Cleaning Quote
-      </h2>
+    <div className="marketing-hero-quote-card relative w-full rounded-3xl border border-white/80 bg-white p-7 sm:p-9 lg:max-w-[36rem] lg:justify-self-end xl:max-w-[38rem]">
+      <p className="text-sm font-medium text-slate-500">Instant quote</p>
 
-      <div className="mt-5 grid gap-4">
-        <div className="grid grid-cols-[minmax(0,1fr)_5.25rem_5.25rem] gap-3 sm:gap-4">
-          <label className="block min-w-0">
-            <span className={labelClass}>Select Service</span>
-            <select
+      <div className="mt-7 grid gap-6">
+        <div className="grid grid-cols-1 gap-5 min-[420px]:grid-cols-[minmax(0,1fr)_6.25rem_6.25rem] sm:gap-6">
+          <div className="block min-w-0">
+            <span className={labelClass}>Service</span>
+            <MarketingSelect
               value={service}
-              onChange={(e) => setService(e.target.value as ServiceSlug)}
-              className={fieldClass}
-              autoComplete="off"
-            >
-              {SERVICE_OPTIONS.map((opt) => (
-                <option key={opt.slug} value={opt.slug}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block min-w-0">
+              onChange={(next) => setService(next as ServiceSlug)}
+              options={SERVICE_OPTIONS}
+              ariaLabel="Service"
+            />
+          </div>
+          <div className="block min-w-0">
             <span className={labelClass}>Bedrooms</span>
-            <select
-              value={bedrooms}
-              onChange={(e) => setBedrooms(Number(e.target.value))}
-              className={fieldClass}
-              autoComplete="off"
-            >
-              {[1, 2, 3, 4, 5].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block min-w-0">
+            <MarketingSelect
+              value={String(bedrooms)}
+              onChange={(next) => setBedrooms(Number(next))}
+              options={BEDROOM_OPTIONS}
+              ariaLabel="Bedrooms"
+            />
+          </div>
+          <div className="block min-w-0">
             <span className={labelClass}>Bathrooms</span>
-            <select
-              value={bathrooms}
-              onChange={(e) => setBathrooms(Number(e.target.value))}
-              className={fieldClass}
-              autoComplete="off"
-            >
-              {[1, 2, 3, 4].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </label>
+            <MarketingSelect
+              value={String(bathrooms)}
+              onChange={(next) => setBathrooms(Number(next))}
+              options={BATHROOM_OPTIONS}
+              ariaLabel="Bathrooms"
+            />
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className={labelClass}>Select Date</span>
-            <div className="relative">
-              <IconCalendar className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
-                type="date"
-                min={minDate || undefined}
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className={`${fieldClass} pl-10`}
-                autoComplete="off"
-              />
-            </div>
-          </label>
-          <label className="block">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div className="block">
+            <span className={labelClass}>Date</span>
+            <MarketingDatePicker
+              value={date}
+              onChange={setDate}
+              minDate={minDate}
+              ariaLabel="Date"
+            />
+          </div>
+          <div className="block">
             <span className={labelClass}>Location</span>
-            <div className="relative">
-              <IconMapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <select
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className={`${fieldClass} pl-10`}
-                autoComplete="off"
-              >
-                {LOCATIONS.map((loc) => (
-                  <option key={loc} value={loc}>
-                    {loc}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </label>
+            <MarketingSelect
+              value={location}
+              onChange={setLocation}
+              options={LOCATION_OPTIONS}
+              ariaLabel="Location"
+              iconLeft={
+                <IconMapPin className="h-[1.125rem] w-[1.125rem]" aria-hidden />
+              }
+            />
+          </div>
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-end justify-between gap-4 border-t border-shalean-border pt-5">
-        <div>
-          <p className="text-xs font-medium text-slate-500">Estimated Price</p>
-          <p className="text-[2rem] font-extrabold leading-none text-shalean-primary">
-            {formatZarFromCents(estimatedCents)}
-          </p>
+      <div className="mt-9 border-t border-slate-100 pt-8">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-slate-500">Estimated price</p>
+            <p className="mt-2 text-[2.25rem] font-extrabold leading-none tracking-[-0.02em] text-shalean-primary sm:text-[2.5rem]">
+              {formatZarFromCents(estimatedCents)}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => router.push(marketingBookPath(service))}
+            className="marketing-focus-ring inline-flex h-14 w-full shrink-0 items-center justify-center gap-2.5 rounded-2xl bg-shalean-primary px-8 text-[0.9375rem] font-semibold text-white shadow-[0_4px_14px_rgba(37,99,235,0.28)] transition hover:bg-blue-600 hover:shadow-[0_6px_20px_rgba(37,99,235,0.32)] sm:w-auto sm:min-w-[11.5rem]"
+          >
+            Book Now
+            <IconArrowRight className="h-[1.125rem] w-[1.125rem]" />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => router.push(customerBookServicePath(service))}
-          className="inline-flex h-12 min-w-[9.5rem] items-center justify-center gap-2 rounded-xl bg-shalean-primary px-6 text-sm font-bold text-white shadow-md shadow-blue-500/25 transition hover:bg-blue-600"
-        >
-          Book Now
-          <IconArrowRight className="h-4 w-4" />
-        </button>
       </div>
     </div>
   );

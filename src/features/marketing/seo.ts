@@ -19,7 +19,7 @@ export function buildHomePageJsonLd() {
     "@type": "LocalBusiness",
     name: "Shalean Cleaning Services",
     description:
-      "Professional home and office cleaning services in Cape Town, South Africa. Vetted cleaners, online booking, and satisfaction guarantee.",
+      "Professional home cleaning, deep cleaning, and Airbnb cleaning in Cape Town. Vetted, insured cleaners with online booking and transparent pricing.",
     url: "https://shalean.co.za",
     telephone: SHALEAN_CONTACT.phoneE164,
     email: SHALEAN_CONTACT.email,
@@ -34,12 +34,6 @@ export function buildHomePageJsonLd() {
       name: "Cape Town",
     },
     priceRange: "R$$",
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      reviewCount: "1200",
-      bestRating: "5",
-    },
   };
 
   return [localBusiness, faqPage];

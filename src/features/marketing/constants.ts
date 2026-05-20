@@ -1,5 +1,9 @@
 import { SERVICE_CATALOG } from "@/features/pricing/server/catalog";
 import type { ServiceSlug } from "@/features/pricing/server/types";
+import type { MarketingSectionId } from "@/lib/ui/scrollToSection";
+import { SHALEAN_CONTACT } from "./contact";
+
+export { SHALEAN_CONTACT };
 
 export const BRAND = {
   primary: "#2563EB",
@@ -11,41 +15,38 @@ export const BRAND = {
   border: "#E2E8F0",
 } as const;
 
-export const SHALEAN_CONTACT = {
-  phoneE164: "+27211234567",
-  phoneDisplay: "021 123 4567",
-  whatsappNumber: "27211234567",
-  email: "hello@shalean.co.za",
-  address: "Cape Town, Western Cape, South Africa",
-} as const;
+export type NavLink = {
+  href: string;
+  label: string;
+  children?: readonly string[];
+};
 
-export const NAV_LINKS = [
-  { href: "/", label: "Home" },
-  { href: "#services", label: "Services", children: ["Regular Cleaning", "Deep Cleaning", "Airbnb Cleaning", "Office Cleaning"] },
-  { href: "#pricing", label: "Pricing" },
-  { href: "#areas", label: "Locations", children: ["Sea Point", "Claremont", "Camps Bay", "Durbanville"] },
-  { href: "#about", label: "About Us" },
-  { href: "#blog", label: "Blog" },
-  { href: "#contact", label: "Contact" },
-] as const;
+export type FooterQuickLink = {
+  label: string;
+  sectionId: MarketingSectionId;
+};
 
-export const FOOTER_QUICK_LINKS = [
-  { href: "#about", label: "About Us" },
-  { href: "#pricing", label: "Pricing" },
-  { href: "#areas", label: "Locations" },
-  { href: "#blog", label: "Blog" },
-  { href: "#contact", label: "Careers" },
-  { href: "#contact", label: "Contact" },
-] as const;
+export const FOOTER_QUICK_LINKS: readonly FooterQuickLink[] = [
+  { sectionId: "about", label: "About Us" },
+  { sectionId: "pricing", label: "Pricing" },
+  { sectionId: "areas", label: "Locations" },
+  { sectionId: "faq", label: "FAQ" },
+  { sectionId: "contact", label: "Contact" },
+];
 
-export const FOOTER_SUPPORT_LINKS = [
-  { href: "#faq", label: "FAQ" },
-  { href: "#", label: "Terms & Conditions" },
-  { href: "#", label: "Privacy Policy" },
-  { href: "#", label: "Refund Policy" },
-] as const;
+export type FooterSupportLink = {
+  label: string;
+  sectionId?: MarketingSectionId;
+};
 
-export const BUSINESS_HOURS = "Mon – Sat: 7:00 AM – 7:00 PM";
+export const FOOTER_SUPPORT_LINKS: readonly FooterSupportLink[] = [
+  { sectionId: "faq", label: "FAQ" },
+  { label: "Terms & Conditions" },
+  { label: "Privacy Policy" },
+  { label: "Refund Policy" },
+];
+
+export const BUSINESS_HOURS = "Mon to Sat: 7:00 AM to 7:00 PM";
 
 export function formatZarFromCents(cents: number): string {
   const amount = cents / 100;
@@ -73,11 +74,30 @@ export function estimateBasePriceCents(
 }
 
 export const HERO_TRUST_ITEMS = [
-  { id: "vetted", label: "Background Checked", icon: "shield" as const },
-  { id: "same-day", label: "Same-Day Availability", icon: "clock" as const },
-  { id: "eco", label: "Eco-Friendly Products", icon: "leaf" as const },
-  { id: "guarantee", label: "Satisfaction Guarantee", icon: "sparkle" as const },
+  {
+    id: "vetted",
+    lines: ["Background", "Checked"] as const,
+    icon: "shield" as const,
+  },
+  {
+    id: "same-day",
+    lines: ["Same-Day", "Availability"] as const,
+    icon: "clock" as const,
+  },
+  {
+    id: "eco",
+    lines: ["Eco-Friendly", "Products"] as const,
+    icon: "leaf" as const,
+  },
+  {
+    id: "guarantee",
+    lines: ["Satisfaction", "Guarantee"] as const,
+    icon: "sparkle" as const,
+  },
 ] as const;
+
+/** Shown near booking CTAs — sets expectation for sign-up before booking. */
+export const BOOKING_SIGNUP_HINT = "Free account · then book online in minutes";
 
 export const STATS = [
   { value: "5,000+", label: "Homes Cleaned", icon: "home" as const },
@@ -88,17 +108,42 @@ export const STATS = [
 export type MarketingServiceCard = {
   slug: ServiceSlug;
   title: string;
+  /** Short 1–2 line copy for homepage service cards */
+  cardTagline: string;
   description: string;
   image: string;
   imageAlt: string;
 };
 
+/** SEO landing paths for service cards (pages may be added later). */
+export const SERVICE_SEO_PATHS: Record<ServiceSlug, string> = {
+  "regular-cleaning": "/services/regular-cleaning-cape-town",
+  "deep-cleaning": "/services/deep-cleaning-cape-town",
+  "moving-cleaning": "/services/move-in-out-cleaning-cape-town",
+  "airbnb-cleaning": "/services/airbnb-cleaning-cape-town",
+  "office-cleaning": "/services/office-cleaning-cape-town",
+  "carpet-cleaning": "/services/carpet-cleaning-cape-town",
+};
+
+export const SERVICES_SECTION = {
+  eyebrow: "Professional Cleaning Services",
+  heading: "Explore Shalean Cleaning Services",
+  subtitle:
+    "Trusted home and office cleaning solutions across Cape Town — designed for busy homes, Airbnb hosts, and businesses.",
+} as const;
+
+export function serviceFromPrice(slug: ServiceSlug): string {
+  return formatZarFromCents(SERVICE_CATALOG[slug].baseCents);
+}
+
 export const MARKETING_SERVICES: MarketingServiceCard[] = [
   {
     slug: "regular-cleaning",
     title: "Regular Cleaning",
+    cardTagline:
+      "Professional recurring home cleaning tailored for busy households.",
     description:
-      "Routine cleaning for kitchens, bathrooms, and living spaces — perfect for busy households.",
+      "Routine cleaning for kitchens, bathrooms, and living spaces, perfect for busy households.",
     image:
       "https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?w=800&q=80",
     imageAlt: "Regular home cleaning in a modern kitchen",
@@ -106,6 +151,8 @@ export const MARKETING_SERVICES: MarketingServiceCard[] = [
   {
     slug: "deep-cleaning",
     title: "Deep Cleaning",
+    cardTagline:
+      "Intensive top-to-bottom refresh for seasonal cleans and neglected spaces.",
     description:
       "Intensive top-to-bottom clean for seasonal refreshes, spring cleans, and neglected areas.",
     image:
@@ -115,6 +162,8 @@ export const MARKETING_SERVICES: MarketingServiceCard[] = [
   {
     slug: "moving-cleaning",
     title: "Move In/Out Cleaning",
+    cardTagline:
+      "Handover-ready cleaning for tenants, landlords, and property managers.",
     description:
       "Handover-ready cleaning for tenants, landlords, and property managers across Cape Town.",
     image:
@@ -124,6 +173,7 @@ export const MARKETING_SERVICES: MarketingServiceCard[] = [
   {
     slug: "airbnb-cleaning",
     title: "Airbnb Cleaning",
+    cardTagline: "Fast guest turnovers with checklist-ready attention to detail.",
     description:
       "Fast turnover cleans between guests with checklist-ready attention to detail.",
     image:
@@ -133,6 +183,7 @@ export const MARKETING_SERVICES: MarketingServiceCard[] = [
   {
     slug: "office-cleaning",
     title: "Office Cleaning",
+    cardTagline: "Professional workspace cleaning for offices, studios, and teams.",
     description:
       "Professional workspace cleaning tailored to offices, studios, and shared workspaces.",
     image:
@@ -142,6 +193,7 @@ export const MARKETING_SERVICES: MarketingServiceCard[] = [
   {
     slug: "carpet-cleaning",
     title: "Carpet Cleaning",
+    cardTagline: "Targeted carpet and upholstery care for high-traffic areas.",
     description:
       "Targeted carpet and upholstery refresh for high-traffic rooms and marked areas.",
     image:
@@ -162,6 +214,15 @@ export const MARKETING_SERVICES_HOMEPAGE = MARKETING_SERVICES.filter((service) =
   HOMEPAGE_SERVICE_SLUGS.includes(service.slug),
 );
 
+export const SERVICES_SECTION_INTRO =
+  "From weekly home care and deep refreshes to move handovers and guest-ready turnovers, book insured cleaners across Cape Town in minutes. Office and carpet cleaning are available in the same flow when you need them.";
+
+export const HOW_IT_WORKS_SECTION = {
+  eyebrow: "How It Works",
+  heading: "Simple. Fast. Hassle-Free.",
+  subtitle: "Book trusted professional cleaners in just a few easy steps.",
+} as const;
+
 export const HOW_IT_WORKS = [
   {
     step: 1,
@@ -175,24 +236,72 @@ export const HOW_IT_WORKS = [
   },
   {
     step: 3,
+    title: "We Clean",
+    description: "We deliver a thorough, high-quality clean throughout your home.",
+  },
+  {
+    step: 4,
     title: "Enjoy Your Clean Home",
     description: "Relax and enjoy a spotless home or office.",
   },
 ] as const;
 
+export const WHY_CHOOSE_SECTION = {
+  eyebrow: "Why Choose Shalean?",
+  heading: "Trusted by Thousands of Happy Customers",
+  subtitle:
+    "Professional cleaners, secure booking, and premium service quality trusted across Cape Town.",
+} as const;
+
 export const WHY_CHOOSE = [
-  { id: "vetted", title: "Vetted Cleaners", description: "Background checked\nand trained." },
-  { id: "insured", title: "Insured Service", description: "Full professional coverage." },
-  { id: "eco", title: "Eco-Friendly", description: "Safe products for your home." },
-  { id: "payments", title: "Secure Payments", description: "Encrypted online checkout." },
-  { id: "flexible", title: "Flexible Scheduling", description: "One-off or recurring bookings." },
-  { id: "guarantee", title: "Satisfaction Guarantee", description: "We stand behind every clean." },
+  {
+    id: "vetted",
+    title: "Vetted Cleaners",
+    description: "Background-checked and professionally trained cleaners.",
+  },
+  {
+    id: "insured",
+    title: "Insured Service",
+    description: "Full professional coverage for your peace of mind.",
+  },
+  {
+    id: "eco",
+    title: "Eco-Friendly",
+    description: "Safe, eco-friendly products for your home.",
+  },
+  {
+    id: "payments",
+    title: "Secure Payments",
+    description: "Encrypted online checkout you can trust.",
+  },
+  {
+    id: "flexible",
+    title: "Flexible Scheduling",
+    description: "One-off or recurring bookings that fit your schedule.",
+  },
+  {
+    id: "guarantee",
+    title: "Satisfaction Guarantee",
+    description: "We stand behind every clean with our guarantee.",
+  },
 ] as const;
+
+export const REVIEWS_SECTION = {
+  eyebrow: "What Our Clients Say",
+  heading: "Real Reviews from Real Customers",
+  subtitle:
+    "Cape Town homeowners, Airbnb hosts, and businesses trust Shalean for reliable, high-quality cleaning services.",
+  ratingValue: "4.9",
+  ratingLabel: "4.9 out of 5",
+  reviewCountLabel: "Based on 1,200+ reviews",
+  excellentLabel: "Excellent",
+} as const;
 
 export const REVIEWS = [
   {
     name: "Thandi M.",
     suburb: "Sea Point",
+    context: "Regular cleaning",
     rating: 5,
     text: "Booking was effortless and our apartment looked brand new. The team was punctual, friendly, and thorough.",
     image:
@@ -201,14 +310,16 @@ export const REVIEWS = [
   {
     name: "James K.",
     suburb: "Claremont",
+    context: "Airbnb host",
     rating: 5,
-    text: "We use Shalean for our Airbnb turnovers. Consistent quality every time — guests always comment on how clean the place is.",
+    text: "We use Shalean for our Airbnb turnovers. Consistent quality every time, and guests always comment on how clean the place is.",
     image:
       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80",
   },
   {
     name: "Sarah L.",
     suburb: "Durbanville",
+    context: "Deep cleaning",
     rating: 5,
     text: "Deep clean before moving in was exceptional. Transparent pricing and no surprises on the day.",
     image:
@@ -217,6 +328,7 @@ export const REVIEWS = [
   {
     name: "David P.",
     suburb: "Camps Bay",
+    context: "Same-day booking",
     rating: 5,
     text: "Same-day booking saved us before guests arrived. Professional, insured, and worth every rand.",
     image:
@@ -224,12 +336,75 @@ export const REVIEWS = [
   },
 ] as const;
 
+/** Concise crawlable copy for homepage topical authority (not a separate page). */
+export const HOMEPAGE_LOCAL_SEO = {
+  eyebrow: "Cape Town cleaning specialists",
+  title: "Professional home cleaning you can trust",
+  paragraphs: [
+    "Shalean connects Cape Town homeowners, landlords, and hosts with vetted, insured cleaning professionals, from regular home cleaning and deep cleans to Airbnb turnovers and move-in/out services.",
+    "Book online in minutes, see transparent pricing upfront, and enjoy the same high standards whether you are in Sea Point, Claremont, Camps Bay, or across the metro.",
+  ],
+} as const;
+
+export type FooterTrustPoint = {
+  id: string;
+  label: string;
+  icon: "shield" | "map" | "clock" | "sparkle";
+};
+
+export const FOOTER_TRUST_POINTS: readonly FooterTrustPoint[] = [
+  { id: "vetted", label: "Vetted & insured cleaners", icon: "shield" },
+  { id: "coverage", label: "Cape Town metro coverage", icon: "map" },
+  { id: "support", label: "Mon–Sat support", icon: "clock" },
+  { id: "guarantee", label: "Satisfaction guarantee", icon: "sparkle" },
+];
+
+export const FOOTER_BRAND = {
+  description:
+    "Premium home and office cleaning services trusted across Cape Town.",
+  microcopy: "Professional cleaners. Transparent pricing. Exceptional results.",
+  trustStatement: "Insured professionals · Secure online booking · Cape Town metro",
+} as const;
+
+export const FOOTER_LEGAL_LINKS: readonly FooterSupportLink[] = [
+  { label: "Terms" },
+  { label: "Privacy" },
+  { label: "Refund Policy" },
+];
+
 /** Homepage pricing card — same four services as MARKETING_SERVICES_HOMEPAGE. */
 export const PRICING_PREVIEW = HOMEPAGE_SERVICE_SLUGS.map((slug) => ({
   slug,
   name: SERVICE_CATALOG[slug].label,
   fromPrice: formatZarFromCents(SERVICE_CATALOG[slug].baseCents),
 }));
+
+export const PRICING_PANEL = {
+  eyebrow: "Pricing",
+  heading: "Affordable. Transparent. Fair.",
+  subtitle: "Simple pricing for homes, Airbnb properties, and offices across Cape Town.",
+  microcopy: "No hidden costs.",
+  ctaLabel: "View Full Pricing",
+} as const;
+
+/** SEO pricing hub (page may be added later). */
+export const PRICING_AUTHORITY_PATH = "/pricing-cape-town" as const;
+
+export const AREAS_PANEL = {
+  eyebrow: "Areas We Serve",
+  heading: "Proudly Serving Cape Town",
+  subtitle: "Trusted cleaning services across Cape Town suburbs and surrounding areas.",
+  ctaLabel: "View All Areas",
+} as const;
+
+/** SEO locations hub (page may be added later). */
+export const AREAS_HUB_PATH = "/locations/cape-town" as const;
+
+/** SEO suburb landing path pattern. */
+export function areaLocationPath(area: string): string {
+  const slug = area.toLowerCase().replace(/\s+/g, "-");
+  return `/locations/${slug}-cape-town`;
+}
 
 export const CAPE_TOWN_AREAS = [
   "Sea Point",
@@ -248,6 +423,67 @@ export const CAPE_TOWN_AREAS = [
 
 export const BOOKING_PATH = "/sign-up?redirectedFrom=/customer/book" as const;
 
+/** Sign-up entry with optional post-auth redirect to a specific service booking flow. */
+export function marketingBookPath(serviceSlug?: ServiceSlug): string {
+  const redirect = serviceSlug ? `/customer/book/${serviceSlug}` : "/customer/book";
+  return `/sign-up?redirectedFrom=${encodeURIComponent(redirect)}`;
+}
+
+export type HeaderNavLink = {
+  label: string;
+  href?: string;
+  sectionId?: MarketingSectionId;
+  /** When false, rendered as non-interactive copy (no misleading href). */
+  enabled?: boolean;
+};
+
+/** Homepage FAQ section — used for Help nav (no URL hash). */
+export const HEADER_HELP_SECTION = "faq" as const satisfies MarketingSectionId;
+
+export const SIGN_IN_PATH = "/sign-in" as const;
+export const SIGN_UP_PATH = "/sign-up" as const;
+
+export const CLEANER_SIGN_IN_PATH =
+  `/sign-in?redirectedFrom=${encodeURIComponent("/cleaner/offers")}` as const;
+
+/** Product-first platform navigation (desktop center + mobile primary). */
+export const HEADER_PRIMARY_NAV: readonly HeaderNavLink[] = [
+  { href: BOOKING_PATH, label: "Book Cleaning" },
+  { sectionId: "services", label: "Services" },
+  { sectionId: "about", label: "Shalean" },
+  { href: CLEANER_SIGN_IN_PATH, label: "Apply" },
+  { sectionId: "areas", label: "Locations" },
+];
+
+/** Lower-priority links — mobile drawer & footer-style discovery. */
+export const HEADER_SECONDARY_NAV: readonly HeaderNavLink[] = [
+  { sectionId: HEADER_HELP_SECTION, label: "Help" },
+  { sectionId: "contact", label: "Contact" },
+  { label: "Blog", enabled: false },
+];
+
+/** @deprecated Use HEADER_PRIMARY_NAV */
+export const NAV_LINKS: readonly HeaderNavLink[] = HEADER_PRIMARY_NAV;
+
+export const FAQ_SECTION = {
+  eyebrow: "FAQs",
+  heading: "Frequently Asked Questions",
+  subtitle: "Everything you need to know before booking with Shalean.",
+  helpText: "Still have questions? Our team is here to help.",
+} as const;
+
+export const FINAL_CTA_SECTION = {
+  eyebrow: "Get started",
+  heading: "Ready for a Cleaner Home?",
+  subtitle: "Book trusted professional cleaners online in less than 2 minutes.",
+  trustPoints: [
+    "Same-Day Service",
+    "Trusted Cleaners",
+    "Satisfaction Guarantee",
+    "Secure Booking",
+  ] as const,
+} as const;
+
 export const FAQ_ITEMS = [
   {
     question: "How much does cleaning cost?",
@@ -262,7 +498,17 @@ export const FAQ_ITEMS = [
   {
     question: "Can I book same-day cleaning?",
     answer:
-      "Same-day slots are available in many Cape Town areas subject to cleaner availability. Book online and select today's date — we'll confirm your slot immediately.",
+      "Same-day slots are available in many Cape Town areas subject to cleaner availability. Book online and select today's date, and we'll confirm your slot immediately.",
+  },
+  {
+    question: "What areas in Cape Town do you cover?",
+    answer:
+      "We serve Sea Point, Claremont, Camps Bay, Century City, Bellville, Durbanville, Table View, Observatory, Rondebosch, Wynberg, Green Point, Milnerton, and surrounding suburbs. Contact us if your area is not listed.",
+  },
+  {
+    question: "How do I book deep cleaning in Cape Town?",
+    answer:
+      "Choose Deep Cleaning in the quote widget or booking flow, select your home size, and get an instant estimate. Deep cleans include intensive kitchen, bathroom, and living-area attention, ideal before events or seasonal refreshes.",
   },
 ] as const;
 
@@ -271,13 +517,14 @@ export const MARKETING_IMAGES = {
   heroAlt:
     "Shalean cleaning professionals in blue uniforms cleaning a modern Cape Town kitchen",
   beforeAfterBefore:
-    "https://images.unsplash.com/photo-1556911220-bff31c812dba?w=900&q=80",
+    "https://images.unsplash.com/photo-1556911220-bff31c812dba?w=1200&q=85",
   beforeAfterAfter:
-    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80",
+    "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1200&q=85",
   pricingLifestyle:
-    "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800&q=80",
+    "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1200&q=85",
   capeTownAerial:
-    "https://images.unsplash.com/photo-1770988966522-4eea7f83dbe9?w=900&q=80",
+    "https://images.unsplash.com/photo-1770988966522-4eea7f83dbe9?w=1200&q=85",
   finalCta:
-    "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=900&q=80",
+    "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1200&q=85",
+  finalCtaAlt: "Professional Shalean cleaner in a bright, modern home",
 } as const;

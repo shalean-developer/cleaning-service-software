@@ -25,7 +25,7 @@ export function MarketingButton({
   className = "",
   external = false,
 }: MarketingButtonProps) {
-  const classes = `inline-flex items-center justify-center gap-2 rounded-[13px] px-6 py-3 text-sm font-bold transition-all duration-200 ${variantClasses[variant]} ${className}`;
+  const classes = `marketing-focus-ring inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold transition-all duration-200 ${variantClasses[variant]} ${className}`;
 
   if (external) {
     return (

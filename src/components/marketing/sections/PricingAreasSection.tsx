@@ -1,140 +1,183 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { CSSProperties, ReactNode } from "react";
 import {
+  AREAS_HUB_PATH,
+  AREAS_PANEL,
   CAPE_TOWN_AREAS,
   MARKETING_IMAGES,
+  PRICING_AUTHORITY_PATH,
+  PRICING_PANEL,
   PRICING_PREVIEW,
+  areaLocationPath,
 } from "@/features/marketing/constants";
 import { MarketingContainer } from "../MarketingContainer";
+import { MarketingPanelCta } from "../MarketingPanelCta";
 import { SectionEyebrow } from "../SectionEyebrow";
+
+type FeaturePanelProps = {
+  id: string;
+  eyebrow: string;
+  heading: string;
+  subtitle: string;
+  imageSrc: string;
+  imageAlt: string;
+  children: ReactNode;
+  ctaHref: string;
+  ctaLabel: string;
+  panelIndex: number;
+  /** Desktop: image on left (Areas) or right (Pricing). */
+  imagePosition: "left" | "right";
+};
+
+function FeaturePanel({
+  id,
+  eyebrow,
+  heading,
+  subtitle,
+  imageSrc,
+  imageAlt,
+  children,
+  ctaHref,
+  ctaLabel,
+  panelIndex,
+  imagePosition,
+}: FeaturePanelProps) {
+  const imageFirst = imagePosition === "left";
+
+  return (
+    <article
+      id={id}
+      className={`pricing-areas-panel group/panel relative flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_4px_24px_rgba(15,23,42,0.04)] lg:items-stretch ${
+        imageFirst ? "flex-col-reverse lg:flex-row-reverse" : "lg:flex-row"
+      }`}
+      style={{ "--panel-index": panelIndex } as CSSProperties}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-shalean-soft-blue/20 via-transparent to-transparent opacity-60"
+        aria-hidden
+      />
+
+      <div className="relative z-10 flex flex-1 flex-col justify-between p-6 sm:p-7 lg:p-8">
+        <div>
+          <SectionEyebrow className="tracking-[0.12em] text-shalean-primary">
+            {eyebrow}
+          </SectionEyebrow>
+          <h3 className="mt-2 text-xl font-bold tracking-tight text-shalean-navy sm:text-2xl">
+            {heading}
+          </h3>
+          <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-600">
+            {subtitle}
+          </p>
+          <div className="mt-4">{children}</div>
+        </div>
+
+        <div className="mt-6">
+          <MarketingPanelCta href={ctaHref}>{ctaLabel}</MarketingPanelCta>
+        </div>
+      </div>
+
+      <div
+        className={`relative z-10 h-36 shrink-0 overflow-hidden sm:h-40 lg:h-auto lg:min-h-0 lg:w-[42%] lg:self-stretch ${
+          imageFirst ? "lg:border-r lg:border-slate-100/80" : "lg:border-l lg:border-slate-100/80"
+        }`}
+      >
+        <Image
+          src={imageSrc}
+          alt={imageAlt}
+          fill
+          sizes="(max-width: 1024px) 100vw, 50vw"
+          className="object-cover object-center transition duration-[1.1s] ease-out group-hover/panel:scale-[1.04]"
+          loading="lazy"
+        />
+        <div
+          className={`pointer-events-none absolute inset-0 ${
+            imageFirst
+              ? "bg-gradient-to-r from-white/25 via-transparent to-transparent lg:from-white/40"
+              : "bg-gradient-to-l from-white/25 via-transparent to-transparent lg:from-white/40"
+          }`}
+          aria-hidden
+        />
+      </div>
+    </article>
+  );
+}
 
 export function PricingAreasSection() {
   return (
-    <section className="marketing-section bg-white" aria-labelledby="pricing-areas-heading">
-      <MarketingContainer>
+    <section
+      className="marketing-section relative overflow-hidden bg-shalean-surface !py-10 sm:!py-12"
+      aria-labelledby="pricing-areas-heading"
+    >
+      <div
+        className="pointer-events-none absolute inset-x-0 top-1/3 h-64 bg-[radial-gradient(ellipse_at_center,rgba(219,234,254,0.35)_0%,transparent_70%)]"
+        aria-hidden
+      />
+
+      <MarketingContainer className="relative">
         <h2 id="pricing-areas-heading" className="sr-only">
-          Pricing and service areas
+          Pricing and service areas in Cape Town
         </h2>
 
-        <div className="grid gap-1 lg:grid-cols-2 lg:gap-1">
-          {/* Pricing row */}
-          <div className="flex flex-col gap-6 sm:flex-row sm:gap-0">
-            <div
-              id="pricing"
-              className="flex min-h-[22.5rem] flex-1 flex-col rounded-3xl border border-shalean-border bg-white p-8 marketing-card-shadow sm:rounded-r-none sm:border-r-0"
-            >
-              <SectionEyebrow>Pricing</SectionEyebrow>
-              <h3 className="mt-3 text-xl font-bold text-shalean-navy md:text-2xl">
-                Affordable. Transparent. Fair.
-              </h3>
+        <div className="flex flex-col gap-8 lg:gap-10">
+          <FeaturePanel
+            id="pricing"
+            eyebrow={PRICING_PANEL.eyebrow}
+            heading={PRICING_PANEL.heading}
+            subtitle={PRICING_PANEL.subtitle}
+            imageSrc={MARKETING_IMAGES.pricingLifestyle}
+            imageAlt="Bright, premium modern home interior after professional cleaning"
+            ctaHref={PRICING_AUTHORITY_PATH}
+            ctaLabel={PRICING_PANEL.ctaLabel}
+            panelIndex={0}
+            imagePosition="right"
+          >
+            <ul className="divide-y divide-slate-200/90">
+              {PRICING_PREVIEW.map((item) => (
+                <li
+                  key={item.slug}
+                  className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 py-2.5 first:pt-0 last:pb-0"
+                >
+                  <span className="text-sm font-medium text-shalean-navy sm:text-[0.9375rem]">
+                    {item.name}
+                  </span>
+                  <span className="text-sm text-slate-600">
+                    From{" "}
+                    <span className="font-bold text-shalean-primary">{item.fromPrice}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-xs font-medium text-slate-500">
+              {PRICING_PANEL.microcopy}
+            </p>
+          </FeaturePanel>
 
-              <ul className="mt-6 flex-1 space-y-3">
-                {PRICING_PREVIEW.map((item) => (
-                  <li
-                    key={item.slug}
-                    className="flex items-center justify-between border-b border-shalean-border/80 pb-3 text-sm last:border-0"
+          <FeaturePanel
+            id="areas"
+            eyebrow={AREAS_PANEL.eyebrow}
+            heading={AREAS_PANEL.heading}
+            subtitle={AREAS_PANEL.subtitle}
+            imageSrc={MARKETING_IMAGES.capeTownAerial}
+            imageAlt="Aerial view of Cape Town with Table Mountain and the Atlantic coastline"
+            ctaHref={AREAS_HUB_PATH}
+            ctaLabel={AREAS_PANEL.ctaLabel}
+            panelIndex={1}
+            imagePosition="left"
+          >
+            <ul className="flex flex-wrap gap-2">
+              {CAPE_TOWN_AREAS.map((area) => (
+                <li key={area}>
+                  <Link
+                    href={areaLocationPath(area)}
+                    className="marketing-focus-ring inline-flex min-h-9 items-center justify-center rounded-full border border-shalean-soft-blue/80 bg-shalean-soft-blue/50 px-3.5 py-1.5 text-xs font-medium text-shalean-primary transition duration-200 hover:border-shalean-primary/35 hover:bg-shalean-soft-blue sm:text-sm"
                   >
-                    <span className="font-medium text-shalean-navy">{item.name}</span>
-                    <span className="text-slate-600">
-                      Starting from{" "}
-                      <span className="font-bold text-shalean-primary">{item.fromPrice}</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <Link
-                href="#pricing"
-                className="mt-6 inline-flex items-center text-sm font-semibold text-shalean-primary hover:text-blue-600"
-              >
-                View Full Pricing
-                <span className="ml-1" aria-hidden>
-                  →
-                </span>
-              </Link>
-            </div>
-
-            <div className="relative hidden w-[12.5rem] shrink-0 overflow-hidden rounded-3xl rounded-l-none sm:block marketing-card-shadow">
-              <Image
-                src={MARKETING_IMAGES.pricingLifestyle}
-                alt="Smiling professional cleaner in blue uniform holding cleaning supplies"
-                fill
-                sizes="200px"
-                className="object-cover"
-              />
-            </div>
-          </div>
-
-          {/* Areas row */}
-          <div className="flex flex-col gap-6 sm:flex-row sm:gap-0">
-            <div
-              id="areas"
-              className="flex min-h-[22.5rem] flex-1 flex-col rounded-3xl border border-shalean-border bg-white p-8 marketing-card-shadow sm:rounded-r-none sm:border-r-0"
-            >
-              <SectionEyebrow>Areas We Serve</SectionEyebrow>
-              <h3 className="mt-3 text-xl font-bold text-shalean-navy md:text-2xl">
-                Proudly Serving Cape Town
-              </h3>
-
-              <ul className="mt-6 grid grid-cols-3 gap-2.5">
-                {CAPE_TOWN_AREAS.map((area) => (
-                  <li key={area}>
-                    <Link
-                      href="#contact"
-                      className="flex h-9 min-w-0 items-center justify-center rounded-full border border-shalean-border bg-shalean-surface px-2 text-center text-xs font-medium text-shalean-primary transition hover:border-shalean-primary hover:bg-shalean-soft-blue sm:text-sm"
-                    >
-                      {area}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-
-              <Link
-                href="#areas"
-                className="mt-6 inline-flex items-center text-sm font-semibold text-shalean-primary hover:text-blue-600"
-              >
-                View All Areas
-                <span className="ml-1" aria-hidden>
-                  →
-                </span>
-              </Link>
-            </div>
-
-            <div className="relative hidden w-[12.5rem] shrink-0 overflow-hidden rounded-3xl rounded-l-none sm:block marketing-card-shadow">
-              <Image
-                src={MARKETING_IMAGES.capeTownAerial}
-                alt="Aerial view of Cape Town coastline with Table Mountain"
-                fill
-                sizes="200px"
-                loading="lazy"
-                className="object-cover"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile / tablet companion images when side images are hidden */}
-        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:hidden">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-3xl">
-            <Image
-              src={MARKETING_IMAGES.pricingLifestyle}
-              alt="Professional cleaner with supplies"
-              fill
-              sizes="50vw"
-              loading="lazy"
-              className="object-cover"
-            />
-          </div>
-          <div className="relative aspect-[4/3] overflow-hidden rounded-3xl">
-            <Image
-              src={MARKETING_IMAGES.capeTownAerial}
-              alt="Cape Town coastline and Table Mountain"
-              fill
-              sizes="50vw"
-              loading="lazy"
-              className="object-cover"
-            />
-          </div>
+                    {area}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </FeaturePanel>
         </div>
       </MarketingContainer>
     </section>

@@ -11,6 +11,7 @@ describe("useSectionScrollSpy", () => {
     const source = readSource("src/lib/ui/useSectionScrollSpy.ts");
     expect(source).toContain("IntersectionObserver");
     expect(source).not.toContain("addEventListener(\"scroll\"");
-    expect(source).toContain("hashchange");
+    expect(source).not.toContain("hashchange");
+    expect(source).not.toContain("location.hash");
   });
 });

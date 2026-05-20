@@ -1,68 +1,89 @@
-import Image from "next/image";
 import Link from "next/link";
-import { MARKETING_SERVICES_HOMEPAGE } from "@/features/marketing/constants";
-import { customerBookServicePath } from "@/features/booking-wizard/bookServiceRoute";
-import { MarketingButton } from "../MarketingButton";
+import {
+  MARKETING_SERVICES,
+  SERVICES_SECTION,
+  SERVICE_SEO_PATHS,
+  marketingBookPath,
+  serviceFromPrice,
+} from "@/features/marketing/constants";
 import { MarketingContainer } from "../MarketingContainer";
 import { SectionEyebrow } from "../SectionEyebrow";
+import { ServiceCardIcon } from "../ServiceCardIcon";
 
 export function ServicesSection() {
   return (
-    <section id="services" className="marketing-section !pb-8 bg-white lg:!pb-10" aria-labelledby="services-heading">
+    <section
+      id="services"
+      className="marketing-section relative bg-shalean-surface !pt-8 sm:!pt-10 lg:!pt-12"
+      aria-labelledby="services-heading"
+    >
       <MarketingContainer>
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <SectionEyebrow>Our Services</SectionEyebrow>
-            <h2
-              id="services-heading"
-              className="mt-3 text-3xl font-bold tracking-tight text-shalean-navy md:text-4xl"
-            >
-              Cleaning Services Tailored to Your Needs
-            </h2>
-          </div>
-          <MarketingButton
-            href="#services"
-            variant="secondary"
-            className="!h-12 !shrink-0 !self-start !rounded-[13px] lg:self-auto"
+        <header className="mx-auto max-w-3xl text-center">
+          <SectionEyebrow className="tracking-[0.12em] text-shalean-primary">
+            {SERVICES_SECTION.eyebrow}
+          </SectionEyebrow>
+          <h2
+            id="services-heading"
+            className="mt-4 text-3xl font-bold tracking-tight text-shalean-navy sm:text-4xl lg:text-[2.5rem] lg:leading-[1.15]"
           >
-            View All Services
-          </MarketingButton>
-        </div>
+            {SERVICES_SECTION.heading}
+          </h2>
+          <p className="mt-5 text-base leading-relaxed text-slate-600 sm:text-lg sm:leading-relaxed">
+            {SERVICES_SECTION.subtitle}
+          </p>
+        </header>
 
-        <ul className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-          {MARKETING_SERVICES_HOMEPAGE.map((service) => (
-            <li key={service.slug} className="min-w-0">
-              <article className="group flex h-full min-h-[21.5rem] flex-col overflow-hidden rounded-[1.375rem] border border-shalean-border bg-white transition hover:-translate-y-0.5 hover:marketing-card-shadow xl:min-h-[22.5rem]">
-                <div className="relative h-[10.5rem] overflow-hidden xl:h-[11.5rem]">
-                  <Image
-                    src={service.image}
-                    alt={service.imageAlt}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    className="object-cover transition duration-500 group-hover:scale-105"
-                  />
-                  <span className="absolute bottom-3 left-3 flex h-11 w-11 items-center justify-center rounded-full bg-shalean-soft-blue text-sm font-bold text-shalean-primary ring-4 ring-white xl:h-12 xl:w-12">
-                    {service.title.charAt(0)}
-                  </span>
-                </div>
-                <div className="flex flex-1 flex-col p-5 xl:p-6">
-                  <h3 className="text-lg font-bold text-shalean-navy">{service.title}</h3>
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">
-                    {service.description}
-                  </p>
+        <ul className="mt-14 grid auto-rows-fr grid-cols-1 gap-6 sm:mt-16 sm:grid-cols-2 sm:gap-7 lg:mt-20 lg:grid-cols-3 lg:gap-8">
+          {MARKETING_SERVICES.map((service) => {
+            const seoHref = SERVICE_SEO_PATHS[service.slug];
+            const bookHref = marketingBookPath(service.slug);
+            const fromPrice = serviceFromPrice(service.slug);
+
+            return (
+              <li key={service.slug} className="min-w-0">
+                <article className="group marketing-card-hover relative flex h-full min-h-[17.5rem] flex-col overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-7 sm:min-h-[18rem] sm:p-8">
                   <Link
-                    href={customerBookServicePath(service.slug)}
-                    className="mt-4 inline-flex items-center text-sm font-semibold text-shalean-primary hover:text-blue-600"
-                  >
-                    Learn More
-                    <span className="ml-1" aria-hidden>
-                      →
-                    </span>
-                  </Link>
-                </div>
-              </article>
-            </li>
-          ))}
+                    href={seoHref}
+                    className="marketing-focus-ring absolute inset-0 z-0 rounded-3xl"
+                    aria-label={`Learn more about ${service.title} in Cape Town`}
+                  />
+
+                  <div className="relative z-10 flex flex-1 flex-col pr-20 sm:pr-24">
+                    <h3 className="text-xl font-bold tracking-tight text-shalean-navy sm:text-[1.375rem]">
+                      {service.title}
+                    </h3>
+                    <p className="mt-3 line-clamp-2 text-[0.9375rem] leading-relaxed text-slate-600">
+                      {service.cardTagline}
+                    </p>
+
+                    <div className="mt-auto pt-8">
+                      <p className="text-xs font-medium text-slate-500">
+                        From {fromPrice}
+                      </p>
+                      <div className="mt-4 flex flex-wrap items-center gap-3">
+                        <Link
+                          href={bookHref}
+                          className="marketing-focus-ring pointer-events-auto relative inline-flex h-10 items-center justify-center rounded-full bg-shalean-primary px-5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-600"
+                        >
+                          Book Now
+                        </Link>
+                        <Link
+                          href={seoHref}
+                          className="marketing-focus-ring pointer-events-auto relative text-sm font-medium text-slate-600 transition-colors hover:text-shalean-primary"
+                        >
+                          Learn more
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pointer-events-none absolute bottom-6 right-6 z-10 sm:bottom-7 sm:right-7">
+                    <ServiceCardIcon slug={service.slug} />
+                  </div>
+                </article>
+              </li>
+            );
+          })}
         </ul>
       </MarketingContainer>
     </section>

@@ -2,6 +2,10 @@
 
 @source "../../src/**/*.{ts,tsx}";
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
@@ -11,6 +15,26 @@
   --shalean-sky: #38bdf8;
   --shalean-surface: #f8fafc;
   --shalean-border: #e2e8f0;
+  --marketing-header-height: 4.75rem;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --marketing-header-height: 5rem;
+  }
+}
+
+.marketing-header {
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  background: #ffffff;
+  transition:
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.marketing-header--scrolled {
+  border-color: rgba(226, 232, 240, 0.75);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 }
 
 @theme inline {
@@ -71,17 +95,401 @@ body {
 }
 
 .marketing-section {
-  padding-top: 6rem;
-  padding-bottom: 6rem;
+  padding-top: 4.5rem;
+  padding-bottom: 4.5rem;
+}
+
+@media (min-width: 640px) {
+  .marketing-section {
+    padding-top: 5.5rem;
+    padding-bottom: 5.5rem;
+  }
 }
 
 @media (min-width: 1024px) {
+  .marketing-section {
+    padding-top: 7rem;
+    padding-bottom: 7rem;
+  }
+}
+
+@media (min-width: 1280px) {
   .marketing-section {
     padding-top: 8rem;
     padding-bottom: 8rem;
   }
 }
 
+/* Luxury typography rhythm — calm, readable, not oversized */
+.marketing-prose {
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: #4b5563;
+}
+
+@media (min-width: 640px) {
+  .marketing-prose {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+}
+
+.marketing-prose-sm {
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  color: #64748b;
+}
+
+.marketing-prose-muted {
+  color: #5c6578;
+}
+
+/* Subtle alternating section atmosphere — blue-tinted, not heavy */
+.marketing-section-tint {
+  background: linear-gradient(180deg, #fafbfc 0%, #f3f7fd 46%, #fafbfc 100%);
+}
+
+.marketing-section-warm {
+  background: linear-gradient(180deg, #ffffff 0%, #fafbfd 50%, #ffffff 100%);
+}
+
+.marketing-section-white {
+  background: #ffffff;
+}
+
+.marketing-section-separator::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(37, 99, 235, 0.08) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.marketing-hero-quote-card {
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 8px 24px rgba(15, 23, 42, 0.06),
+    0 24px 64px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(226, 232, 240, 0.65);
+}
+
+/* CTA panel — mockup-aligned royal blue, still accessible */
+.marketing-cta-panel {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 52%, #1e40af 100%);
+}
+
+.marketing-cta-panel-overlay {
+  background: linear-gradient(
+    to left,
+    transparent 0%,
+    rgba(29, 78, 216, 0.4) 48%,
+    rgba(30, 64, 175, 0.88) 100%
+  );
+}
+
+.marketing-cta-panel-image-overlay {
+  background: linear-gradient(
+    to left,
+    transparent 0%,
+    rgba(37, 99, 235, 0.25) 40%,
+    rgba(29, 78, 216, 0.55) 100%
+  );
+}
+
+.marketing-card-shadow-warm {
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 4px 14px rgba(15, 23, 42, 0.04),
+    0 12px 28px rgba(37, 99, 235, 0.04);
+}
+
+.marketing-glow-accent {
+  position: relative;
+}
+
+.marketing-glow-accent::after {
+  content: "";
+  position: absolute;
+  inset: -12% -8% auto -8%;
+  height: 55%;
+  background: radial-gradient(
+    ellipse 70% 60% at 50% 0%,
+    rgba(37, 99, 235, 0.08) 0%,
+    transparent 72%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
 .marketing-card-shadow {
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 6px 20px rgba(15, 23, 42, 0.05),
+    0 18px 40px rgba(15, 23, 42, 0.04);
+}
+
+.marketing-card-shadow-sm {
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.marketing-card-hover {
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.marketing-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 4px rgba(15, 23, 42, 0.05),
+    0 12px 32px rgba(37, 99, 235, 0.1),
+    0 24px 56px rgba(15, 23, 42, 0.08);
+}
+
+.marketing-image-overlay {
+  background: linear-gradient(
+    180deg,
+    transparent 35%,
+    rgba(15, 23, 42, 0.03) 100%
+  );
+}
+
+.marketing-footer-surface {
+  background: linear-gradient(180deg, #071126 0%, #08142d 45%, #050b18 100%);
+  color: #94a3b8;
+}
+
+.marketing-footer-glow {
+  background: radial-gradient(
+    ellipse 80% 50% at 50% -20%,
+    rgba(37, 99, 235, 0.14) 0%,
+    transparent 70%
+  );
+}
+
+.marketing-footer-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+}
+
+.marketing-footer-trust-pill {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset,
+    0 4px 24px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.35s ease,
+    background 0.35s ease;
+}
+
+.marketing-footer-trust-pill:hover {
+  transform: translateY(-2px);
+  border-color: rgba(37, 99, 235, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 8px 32px rgba(37, 99, 235, 0.12),
+    0 0 24px rgba(37, 99, 235, 0.08);
+}
+
+.marketing-footer-link {
+  position: relative;
+  display: inline-block;
+  color: #94a3b8;
+  transition: color 0.25s ease;
+}
+
+.marketing-footer-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.6), rgba(248, 250, 252, 0.5));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.marketing-footer-link:hover {
+  color: #f8fafc;
+}
+
+.marketing-footer-link:hover::after {
+  transform: scaleX(1);
+}
+
+.marketing-footer-social {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s ease,
+    background 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.marketing-footer-social:hover {
+  transform: translateY(-1px);
+  border-color: rgba(37, 99, 235, 0.35);
+  background: rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.15);
+}
+
+.marketing-footer-whatsapp {
+  border: 1px solid rgba(37, 99, 235, 0.4);
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.95) 0%, rgba(29, 78, 216, 0.95) 100%);
+  box-shadow:
+    0 4px 24px rgba(37, 99, 235, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.3s ease,
+    background 0.3s ease;
+}
+
+.marketing-footer-whatsapp:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow:
+    0 8px 32px rgba(37, 99, 235, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+}
+
+.marketing-focus-ring {
+  outline: none;
+}
+
+.marketing-focus-ring:focus-visible {
+  outline: 2px solid var(--shalean-primary);
+  outline-offset: 2px;
+}
+
+.skip-to-main {
+  position: absolute;
+  left: 1rem;
+  top: 0.75rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  border: none;
+  border-radius: 0.5rem;
+  background: var(--shalean-navy);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.skip-to-main:focus {
+  transform: translateY(0);
+}
+
+/* How It Works — mobile timeline + subtle step reveal */
+.how-it-works-timeline::before {
+  content: "";
+  position: absolute;
+  left: 0.1875rem;
+  top: 1.25rem;
+  bottom: 1.25rem;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(37, 99, 235, 0.08) 0%,
+    rgba(37, 99, 235, 0.28) 50%,
+    rgba(37, 99, 235, 0.08) 100%
+  );
+}
+
+.how-it-works-connector {
+  background: linear-gradient(
+    90deg,
+    rgba(37, 99, 235, 0.06) 0%,
+    rgba(37, 99, 235, 0.22) 50%,
+    rgba(37, 99, 235, 0.06) 100%
+  );
+  border: none;
+  height: 1px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .how-it-works-step {
+    animation: how-it-works-fade-up 0.55s ease backwards;
+    animation-delay: calc(var(--step-index, 0) * 0.08s + 0.05s);
+  }
+
+  .how-it-works-connector {
+    animation: how-it-works-line-in 0.7s ease backwards;
+    animation-delay: calc(var(--step-index, 0) * 0.08s + 0.2s);
+  }
+}
+
+@keyframes how-it-works-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes how-it-works-line-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+/* Why Choose — staggered trust cards */
+@media (prefers-reduced-motion: no-preference) {
+  .why-choose-feature {
+    animation: how-it-works-fade-up 0.5s ease backwards;
+    animation-delay: calc(var(--feature-index, 0) * 0.06s + 0.08s);
+  }
+
+  .before-after-slider {
+    animation: how-it-works-fade-up 0.65s ease backwards;
+    animation-delay: 0.12s;
+  }
+
+  .reviews-trust-bar {
+    animation: how-it-works-fade-up 0.55s ease backwards;
+    animation-delay: 0.05s;
+  }
+
+  .reviews-card {
+    animation: how-it-works-fade-up 0.5s ease backwards;
+    animation-delay: calc(var(--review-index, 0) * 0.07s + 0.12s);
+  }
+
+  .pricing-areas-panel {
+    animation: how-it-works-fade-up 0.6s ease backwards;
+    animation-delay: calc(var(--panel-index, 0) * 0.1s + 0.08s);
+  }
 }

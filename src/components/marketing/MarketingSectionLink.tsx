@@ -1,0 +1,78 @@
+"use client";
+
+import Link from "next/link";
+import type { MouseEvent, ReactNode } from "react";
+import type { MarketingSectionId } from "@/lib/ui/scrollToSection";
+import { scrollToSection } from "@/lib/ui/scrollToSection";
+
+type MarketingSectionLinkProps = {
+  sectionId: MarketingSectionId;
+  children: ReactNode;
+  className?: string;
+  onNavigate?: () => void;
+};
+
+/**
+ * In-page section navigation without hash URLs.
+ * Renders a button on the homepage; falls back to `/` for other routes.
+ */
+export function MarketingSectionLink({
+  sectionId,
+  children,
+  className = "",
+  onNavigate,
+}: MarketingSectionLinkProps) {
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (scrollToSection(sectionId)) {
+      onNavigate?.();
+      return;
+    }
+    onNavigate?.();
+  };
+
+  return (
+    <button type="button" className={className} onClick={handleClick}>
+      {children}
+    </button>
+  );
+}
+
+type MarketingSectionOrRouteLinkProps = {
+  children: ReactNode;
+  className?: string;
+  sectionId?: MarketingSectionId;
+  href?: string;
+  onNavigate?: () => void;
+};
+
+/** Header/footer nav item: route Link or hashless section scroll. */
+export function MarketingSectionOrRouteLink({
+  sectionId,
+  href,
+  children,
+  className = "",
+  onNavigate,
+}: MarketingSectionOrRouteLinkProps) {
+  if (sectionId) {
+    return (
+      <MarketingSectionLink
+        sectionId={sectionId}
+        className={className}
+        onNavigate={onNavigate}
+      >
+        {children}
+      </MarketingSectionLink>
+    );
+  }
+
+  if (!href) {
+    return <span className={className}>{children}</span>;
+  }
+
+  return (
+    <Link href={href} className={className} onClick={onNavigate}>
+      {children}
+    </Link>
+  );
+}

@@ -8,8 +8,8 @@ type ShaleanLogoProps = {
 function LogoWordmark({ variant }: { variant: "header" | "footer" }) {
   const isFooter = variant === "footer";
 
-  const bottomSize = isFooter ? "text-[10px]" : "text-[9px] sm:text-[10px]";
-  const topSize = isFooter ? "text-sm" : "text-[13px] sm:text-sm";
+  const bottomSize = isFooter ? "text-[10px]" : "text-[8px] sm:text-[9px]";
+  const topSize = isFooter ? "text-sm" : "text-xs sm:text-[13px]";
   const topColor = isFooter ? "text-white" : "text-shalean-navy";
   const bottomColor = isFooter ? "text-slate-400" : "text-shalean-navy/70";
 
@@ -41,17 +41,19 @@ export function ShaleanLogo({ variant = "header" }: ShaleanLogoProps) {
   return (
     <Link
       href="/"
-      className="group flex items-center gap-2.5"
+      className={`group flex items-center ${
+        isFooter ? "gap-2 sm:gap-2.5" : "gap-2.5 sm:gap-3"
+      }`}
       aria-label="Shalean Cleaning Services home"
     >
       <span
         className={`flex shrink-0 items-center justify-center ${
           isFooter
-            ? "h-10 w-10 rounded-lg bg-shalean-primary text-white"
-            : "h-9 w-9 text-shalean-primary"
+            ? "h-11 w-11 rounded-xl bg-shalean-primary text-white shadow-[0_4px_20px_rgba(37,99,235,0.35)] ring-1 ring-white/10"
+            : "h-8 w-8 text-shalean-primary sm:h-9 sm:w-9"
         }`}
       >
-        <svg viewBox="0 0 24 24" className="h-7 w-7 fill-current" aria-hidden>
+        <svg viewBox="0 0 24 24" className="h-6 w-6 fill-current sm:h-7 sm:w-7" aria-hidden>
           <path d="M12 2l2.4 6.4H21l-5.2 3.8 2 6.2L12 16l-5.8 4.4 2-6.2L3 8.4h6.6L12 2z" />
         </svg>
       </span>
