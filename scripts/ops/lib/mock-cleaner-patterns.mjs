@@ -53,7 +53,7 @@ export function isMockCleanerPhone(phone) {
 }
 
 /**
- * @param {{ email?: string | null; fullName?: string | null; phone?: string | null }} input
+ * @param {{ email?: string | null; fullName?: string | null; phone?: string | null; linkedProfileMock?: boolean }} input
  * @returns {MockCleanerClassification}
  */
 export function classifyMockCleaner(input) {
@@ -61,5 +61,6 @@ export function classifyMockCleaner(input) {
   if (isMockCleanerEmail(input.email)) reasons.push("email");
   if (isMockCleanerDisplayName(input.fullName)) reasons.push("name");
   if (isMockCleanerPhone(input.phone)) reasons.push("phone");
+  if (input.linkedProfileMock) reasons.push("linked_profile");
   return { mock: reasons.length > 0, reasons };
 }

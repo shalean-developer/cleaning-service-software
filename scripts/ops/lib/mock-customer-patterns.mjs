@@ -5,10 +5,43 @@
 
 import { isE2eCompanyName, isE2eEmail } from "../../e2e/lib/constants.mjs";
 
+/** Shalean production domain — KEEP unless email has explicit test/mock markers. */
+export const SHALEAN_CUSTOMER_DOMAIN = "@shalean.co.za";
+
 /** Never classify or delete these production inboxes. */
 export const PROTECTED_CUSTOMER_EMAILS = new Set([
   "admin@shalean.co.za",
+  "customer@shalean.co.za",
+  "chitekedzaf@gmail.com",
 ]);
+
+const REAL_CUSTOMER_NAME_MARKERS = [/farai\s+chitekedzai/i];
+
+/**
+ * @param {string | null | undefined} email
+ */
+export function isShaleanCoZaCustomerEmail(email) {
+  if (typeof email !== "string" || !email.includes("@")) return false;
+  return email.toLowerCase().trim().endsWith(SHALEAN_CUSTOMER_DOMAIN);
+}
+
+/**
+ * Explicit test/mock signal on the email local-part (required to DELETE @shalean.co.za accounts).
+ * @param {string | null | undefined} email
+ */
+export function hasExplicitMockCustomerEmail(email) {
+  if (!isShaleanCoZaCustomerEmail(email)) return isMockCustomerEmail(email);
+  if (typeof email !== "string") return false;
+  const e = email.toLowerCase().trim();
+  if (PROTECTED_CUSTOMER_EMAILS.has(e)) return false;
+  if (isE2eEmail(e)) return true;
+  if (e.includes("test_")) return true;
+  if (e.includes("e2e")) return true;
+  if (e.includes("phase")) return true;
+  if (e.includes("mock")) return true;
+  if (e.includes("demo")) return true;
+  return false;
+}
 
 /** @typedef {{ mock: boolean; reasons: string[]; strong: boolean }} MockCustomerClassification */
 
@@ -19,6 +52,7 @@ export function isMockCustomerEmail(email) {
   if (typeof email !== "string" || !email.includes("@")) return false;
   const e = email.toLowerCase().trim();
   if (PROTECTED_CUSTOMER_EMAILS.has(e)) return false;
+  if (isShaleanCoZaCustomerEmail(e) && !hasExplicitMockCustomerEmail(e)) return false;
   if (e.startsWith("purged+") && e.endsWith("@invalid.local")) return true;
   if (isE2eEmail(e)) return true;
   if (e.includes("test_")) return true;
@@ -94,30 +128,76 @@ export function isStrongMockCustomerSignal(input) {
 }
 
 /**
+ * @param {{ fullName?: string | null }} input
+ */
+export function isProtectedRealCustomerName(input) {
+  const name = (input.fullName ?? "").trim();
+  if (!name) return false;
+  return REAL_CUSTOMER_NAME_MARKERS.some((re) => re.test(name));
+}
+
+/**
  * @param {{
  *   email?: string | null;
  *   fullName?: string | null;
  *   companyName?: string | null;
  *   phone?: string | null;
  *   hasOnlyPhaseTestBookings?: boolean;
+ *   linkedProfileMock?: boolean;
  * }} input
  * @returns {MockCustomerClassification}
  */
 export function classifyMockCustomer(input) {
   const reasons = [];
-  if (input.email && PROTECTED_CUSTOMER_EMAILS.has(input.email.toLowerCase().trim())) {
+  const email = input.email?.toLowerCase().trim() ?? "";
+  if (email && PROTECTED_CUSTOMER_EMAILS.has(email)) {
     return { mock: false, reasons: ["protected"], strong: false };
   }
+  if (isProtectedRealCustomerName({ fullName: input.fullName })) {
+    return { mock: false, reasons: ["protected"], strong: false };
+  }
+
   if (isMockCustomerEmail(input.email)) reasons.push("email");
-  if (isMockCustomerDisplayName(input.fullName)) reasons.push("name");
   if (isMockCustomerCompanyName(input.companyName)) reasons.push("company");
-  if (isMockCustomerPhone(input.phone)) reasons.push("phone");
+  if (input.linkedProfileMock) reasons.push("linked_profile");
+
+  const shaleanWithoutExplicitEmail =
+    isShaleanCoZaCustomerEmail(email) && !hasExplicitMockCustomerEmail(email);
+
+  if (!shaleanWithoutExplicitEmail) {
+    if (isMockCustomerDisplayName(input.fullName)) reasons.push("name");
+    if (isMockCustomerPhone(input.phone)) reasons.push("phone");
+  } else {
+    const company = (input.companyName ?? "").toLowerCase();
+    if (company.startsWith("test_phase") || isE2eCompanyName(input.companyName)) {
+      /* company / E2E company already counted */
+    } else if (isMockCustomerPhone(input.phone)) {
+      reasons.push("phone");
+    }
+  }
+
   if (input.hasOnlyPhaseTestBookings) reasons.push("phase_bookings");
+
   const strong = isStrongMockCustomerSignal({
     email: input.email,
     companyName: input.companyName,
   });
-  return { mock: reasons.length > 0, reasons, strong };
+
+  if (shaleanWithoutExplicitEmail && reasons.length > 0) {
+    const shaleanSafe =
+      reasons.every((r) => r === "company" || r === "linked_profile" || r === "phase_bookings") &&
+      (reasons.includes("company") || reasons.includes("linked_profile"));
+    if (!shaleanSafe) {
+      const filtered = reasons.filter((r) => r !== "name" && r !== "phone");
+      return {
+        mock: filtered.length > 0,
+        reasons: filtered.length ? filtered : ["shalean_production_email"],
+        strong: filtered.some((r) => r === "company") ? true : strong,
+      };
+    }
+  }
+
+  return { mock: reasons.length > 0, reasons, strong: strong || reasons.includes("company") };
 }
 
 /**
@@ -125,8 +205,15 @@ export function classifyMockCustomer(input) {
  * @param {{ paidProductionBookings: number; customerAuditCount: number }} safety
  * @returns {"DELETE" | "KEEP" | "REVIEW" | "PURGED"}
  */
-export function resolveMockCustomerDecision(classification, safety, alreadyPurged) {
+export function resolveMockCustomerDecision(classification, safety, alreadyPurged, email) {
   if (alreadyPurged) return "PURGED";
+  if (
+    email &&
+    isShaleanCoZaCustomerEmail(email) &&
+    !hasExplicitMockCustomerEmail(email)
+  ) {
+    return "KEEP";
+  }
   if (!classification.mock) return "KEEP";
   if (safety.paidProductionBookings > 0 && !classification.strong) return "REVIEW";
   if (safety.paidProductionBookings > 0 && classification.strong) return "DELETE";

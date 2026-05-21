@@ -22,8 +22,9 @@ export async function listAuthEmailsByProfileId(client) {
 
 /**
  * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {Map<string, { mock: boolean }>} [profileClassById]
  */
-export async function loadCleanerCandidates(client) {
+export async function loadCleanerCandidates(client, profileClassById = new Map()) {
   const { data: profiles, error: profileErr } = await client
     .from("profiles")
     .select("id, role, full_name")
@@ -43,10 +44,12 @@ export async function loadCleanerCandidates(client) {
     const cleaner = cleanerByProfile.get(profile.id);
     if (!cleaner) continue;
     const email = authEmails.get(profile.id) ?? null;
+    const linkedProfile = profileClassById.get(profile.id);
     const classification = classifyMockCleaner({
       email,
       fullName: profile.full_name,
       phone: cleaner.phone,
+      linkedProfileMock: linkedProfile?.mock === true,
     });
     rows.push({
       email: email ?? "(no auth email)",

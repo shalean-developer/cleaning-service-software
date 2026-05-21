@@ -12,8 +12,9 @@ const PURGED_EMAIL_SUFFIX = "@invalid.local";
 
 /**
  * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {Map<string, { mock: boolean }>} [profileClassById]
  */
-export async function loadCustomerCandidates(client) {
+export async function loadCustomerCandidates(client, profileClassById = new Map()) {
   const { data: profiles, error: profileErr } = await client
     .from("profiles")
     .select("id, role, full_name")
@@ -47,11 +48,13 @@ export async function loadCustomerCandidates(client) {
     }
 
     const email = authEmails.get(profile.id) ?? null;
+    const linkedProfile = profileClassById.get(profile.id);
     const classification = classifyMockCustomer({
       email,
       fullName: profile.full_name,
       companyName: customer.company_name,
       phone: customer.phone,
+      linkedProfileMock: linkedProfile?.mock === true,
     });
 
     const alreadyPurged =
@@ -215,10 +218,15 @@ export function enrichCustomerAuditRow(row, related, notificationCount) {
   }
 
   const paidProductionBookings = countPaidProductionBookings(related, row);
-  const decision = resolveMockCustomerDecision(row.classification, {
-    paidProductionBookings,
-    customerAuditCount: related.customerOperationalAudit,
-  }, row.alreadyPurged);
+  const decision = resolveMockCustomerDecision(
+    row.classification,
+    {
+      paidProductionBookings,
+      customerAuditCount: related.customerOperationalAudit,
+    },
+    row.alreadyPurged,
+    row.email,
+  );
 
   return {
     ...row,
