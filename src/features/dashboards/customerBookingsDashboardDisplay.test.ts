@@ -17,6 +17,8 @@ function item(
     scheduledEnd: "",
     priceCents: 0,
     currency: "ZAR",
+    seriesId: null,
+    isSeriesVisit: false,
     display: {
       serviceSlug: null,
       serviceLabel: "Test",

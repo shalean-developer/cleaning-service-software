@@ -78,6 +78,7 @@ type BookingRowSlice = {
   price_cents: number;
   currency: string;
   cleaner_id: string | null;
+  series_id: string | null;
   updated_at: string;
   metadata_raw: import("@/lib/database/types").Json;
 };
@@ -113,6 +114,8 @@ function mapListItem(
     scheduledEnd: booking.scheduled_end,
     priceCents: booking.price_cents,
     currency: booking.currency,
+    seriesId: booking.series_id,
+    isSeriesVisit: Boolean(booking.series_id),
     display,
     scheduleLabel: formatScheduleRange(booking.scheduled_start, booking.scheduled_end),
     assignedCleanerLabel:
@@ -147,7 +150,7 @@ export async function listCustomerBookings(
   const { data: bookings, error } = await client
     .from("bookings")
     .select(
-      "id, status, scheduled_start, scheduled_end, assignment_dispatch_at, price_cents, currency, cleaner_id, metadata, updated_at",
+      "id, status, scheduled_start, scheduled_end, assignment_dispatch_at, price_cents, currency, cleaner_id, series_id, metadata, updated_at",
     )
     .eq("customer_id", ctx.actingCustomerId)
     .order("scheduled_start", { ascending: false });
@@ -191,6 +194,7 @@ export async function listCustomerBookings(
           price_cents: row.price_cents,
           currency: row.currency,
           cleaner_id: row.cleaner_id,
+          series_id: row.series_id ?? null,
           updated_at: row.updated_at,
           metadata_raw: row.metadata,
         },
@@ -228,7 +232,7 @@ export async function getCustomerBookingDetail(
   const { data: row, error } = await client
     .from("bookings")
     .select(
-      "id, status, scheduled_start, scheduled_end, assignment_dispatch_at, price_cents, currency, cleaner_id, metadata, created_at, updated_at, customer_id",
+      "id, status, scheduled_start, scheduled_end, assignment_dispatch_at, price_cents, currency, cleaner_id, series_id, metadata, created_at, updated_at, customer_id",
     )
     .eq("id", bookingId)
     .maybeSingle();
@@ -275,6 +279,7 @@ export async function getCustomerBookingDetail(
       price_cents: row.price_cents,
       currency: row.currency,
       cleaner_id: row.cleaner_id,
+      series_id: row.series_id ?? null,
       updated_at: row.updated_at,
       metadata_raw: row.metadata,
     },

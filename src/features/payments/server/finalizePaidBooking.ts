@@ -16,6 +16,7 @@ import {
   isRecoverableFinalizeCommandFailure,
   tryRecoverAlreadyFinalizedPayment,
 } from "./paymentFinalizeRecovery";
+import { runPostPaymentRecurringMaterialization } from "@/features/recurring/postPaymentRecurringMaterialization";
 import { runPostPaymentAssignmentDispatch } from "./postPaymentAssignmentDispatch";
 
 export type FinalizePaidBookingInput = {
@@ -137,6 +138,14 @@ export async function finalizePaidBookingWithDeps(
           customerId: (await backend.getBooking(input.bookingId))?.customer_id ?? null,
           charge: input.charge,
         });
+        const recoveredBooking = await backend.getBooking(input.bookingId);
+        if (recoveredBooking) {
+          try {
+            await runPostPaymentRecurringMaterialization(client, backend, recoveredBooking);
+          } catch {
+            // best-effort on recovery path
+          }
+        }
         return {
           ok: true,
           bookingId: recovered.bookingId,
@@ -165,6 +174,12 @@ export async function finalizePaidBookingWithDeps(
       });
     } catch {
       // Observability recorded inside runPostPaymentAssignmentDispatch; payment stays finalized.
+    }
+
+    try {
+      await runPostPaymentRecurringMaterialization(client, backend, bookingAfterFinalize);
+    } catch {
+      // Recurring materialization is best-effort; payment stays finalized.
     }
   }
 

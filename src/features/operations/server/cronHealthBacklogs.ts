@@ -133,6 +133,73 @@ export type DeferredDispatchCronRunSummary = {
   recentFailureCount24h: number;
 };
 
+export type RecurringGenerationCronRunSummary = {
+  lastSuccessfulRunAt: string | null;
+  lastFailureRunAt: string | null;
+  recentFailureCount24h: number;
+};
+
+export async function loadRecurringGenerationCronRunSummary(
+  client: SupabaseClient<Database>,
+  options: { now?: Date } = {},
+): Promise<RecurringGenerationCronRunSummary> {
+  const now = options.now ?? new Date();
+  const sinceIso = new Date(now.getTime() - 24 * 60 * 60_000).toISOString();
+
+  const { data: lastSuccess, error: successErr } = await client
+    .from("recurring_generation_runs")
+    .select("completed_at")
+    .in("status", ["success", "partial"])
+    .order("completed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (successErr) throw new Error(successErr.message);
+
+  const { data: lastFailure, error: failureErr } = await client
+    .from("recurring_generation_runs")
+    .select("completed_at")
+    .eq("status", "failed")
+    .order("completed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (failureErr) throw new Error(failureErr.message);
+
+  const { count: recentFailures, error: recentErr } = await client
+    .from("recurring_generation_runs")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "failed")
+    .gte("completed_at", sinceIso);
+
+  if (recentErr) throw new Error(recentErr.message);
+
+  return {
+    lastSuccessfulRunAt: lastSuccess?.completed_at ?? null,
+    lastFailureRunAt: lastFailure?.completed_at ?? null,
+    recentFailureCount24h: recentFailures ?? 0,
+  };
+}
+
+/** Active series with next_occurrence_at more than 24h in the past. */
+export async function countStaleRecurringNextOccurrenceBacklog(
+  client: SupabaseClient<Database>,
+  options: { now?: Date } = {},
+): Promise<number> {
+  const now = options.now ?? new Date();
+  const cutoff = new Date(now.getTime() - 24 * 60 * 60_000).toISOString();
+
+  const { count, error } = await client
+    .from("booking_series")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "active")
+    .not("next_occurrence_at", "is", null)
+    .lt("next_occurrence_at", cutoff);
+
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+
 export async function loadDeferredDispatchCronRunSummary(
   client: SupabaseClient<Database>,
   options: { now?: Date } = {},

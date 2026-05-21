@@ -33,6 +33,7 @@ export const BOOKING_COMMAND_TYPES = [
   "RECORD_ASSIGNMENT_ATTENTION",
   "RECORD_ASSIGNMENT_OFFER_EXPIRED",
   "EXPIRE_ASSIGNMENT_OFFER",
+  "CREATE_RECURRING_OCCURRENCE",
 ] as const;
 
 export type BookingCommandType = (typeof BOOKING_COMMAND_TYPES)[number];
@@ -196,6 +197,19 @@ export type ExpireAssignmentOfferCommand = BaseCommand & {
   expiredAt: string;
 };
 
+/** System/service — unpaid child visit for a materialized series (per-visit payment MVP). */
+export type CreateRecurringOccurrenceCommand = BaseCommand & {
+  type: "CREATE_RECURRING_OCCURRENCE";
+  customerId: string;
+  seriesId: string;
+  scheduledStart: string;
+  scheduledEnd: string;
+  priceCents: number;
+  currency?: string;
+  metadata: Record<string, unknown>;
+  idempotencyKey: string;
+};
+
 export type BookingCommand =
   | CreateBookingDraftCommand
   | MarkPaymentPendingCommand
@@ -216,7 +230,8 @@ export type BookingCommand =
   | AdminOverrideStatusCommand
   | RecordAssignmentAttentionCommand
   | RecordAssignmentOfferExpiredCommand
-  | ExpireAssignmentOfferCommand;
+  | ExpireAssignmentOfferCommand
+  | CreateRecurringOccurrenceCommand;
 
 export type BookingCommandErrorCode =
   | "FORBIDDEN"

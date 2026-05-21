@@ -14,7 +14,9 @@ import {
   countDeferredDispatchOverdueBacklog,
   countPastExpiryOpenOfferBacklog,
   countStalePendingPaymentBacklog,
+  countStaleRecurringNextOccurrenceBacklog,
   loadDeferredDispatchCronRunSummary,
+  loadRecurringGenerationCronRunSummary,
 } from "./cronHealthBacklogs";
 import { REGULAR_CLEANING_CRON_JOBS } from "./cronHealthCatalog";
 import type { CronHealthReadModel, CronJobHealthSnapshot } from "./cronHealthTypes";
@@ -61,6 +63,14 @@ async function buildJobSnapshot(
       recentFailureCount24h = runs.recentFailureCount24h;
       hasRunTelemetry = true;
     }
+  } else if (job.id === "generate-recurring-occurrences") {
+    backlogCount = await countStaleRecurringNextOccurrenceBacklog(client, { now });
+    backlogLabel = "Active series with stale next_occurrence_at (>24h)";
+    const runs = await loadRecurringGenerationCronRunSummary(client, { now });
+    lastSuccessfulRunAt = runs.lastSuccessfulRunAt;
+    lastFailureRunAt = runs.lastFailureRunAt;
+    recentFailureCount24h = runs.recentFailureCount24h;
+    hasRunTelemetry = true;
   }
 
   if (!enabled) {

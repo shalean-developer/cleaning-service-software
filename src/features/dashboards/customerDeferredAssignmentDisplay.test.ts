@@ -17,6 +17,8 @@ function minimalBooking(
     scheduledEnd: new Date(Date.now() + 21 * 24 * 60 * 60_000).toISOString(),
     priceCents: 1000,
     currency: "ZAR",
+    seriesId: null,
+    isSeriesVisit: false,
     display: {
       serviceSlug: "regular-cleaning",
       serviceLabel: "Regular cleaning",

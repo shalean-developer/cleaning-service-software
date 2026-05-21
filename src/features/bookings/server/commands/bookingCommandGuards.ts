@@ -75,6 +75,7 @@ function commandActorPolicy(
     case "RECORD_ASSIGNMENT_ATTENTION":
     case "RECORD_ASSIGNMENT_OFFER_EXPIRED":
     case "EXPIRE_ASSIGNMENT_OFFER":
+    case "CREATE_RECURRING_OCCURRENCE":
       return systemish;
   }
 }
@@ -148,6 +149,7 @@ export function nextStatusForCommand(
     case "RECORD_ASSIGNMENT_ATTENTION":
     case "RECORD_ASSIGNMENT_OFFER_EXPIRED":
     case "EXPIRE_ASSIGNMENT_OFFER":
+    case "CREATE_RECURRING_OCCURRENCE":
       return null;
     default: {
       const _exhaustive: never = cmd;
@@ -164,7 +166,8 @@ export function assertTransitionShape(
     cmd.type === "ADMIN_OVERRIDE_STATUS" ||
     cmd.type === "RECORD_ASSIGNMENT_ATTENTION" ||
     cmd.type === "RECORD_ASSIGNMENT_OFFER_EXPIRED" ||
-    cmd.type === "EXPIRE_ASSIGNMENT_OFFER"
+    cmd.type === "EXPIRE_ASSIGNMENT_OFFER" ||
+    cmd.type === "CREATE_RECURRING_OCCURRENCE"
   ) {
     return null;
   }

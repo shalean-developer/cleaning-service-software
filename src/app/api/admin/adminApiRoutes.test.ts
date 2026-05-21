@@ -20,6 +20,11 @@ const ALLOWED_ADMIN_POST_ROUTES = new Set([
   "cleaners/[cleanerId]/unsuspend/route.ts",
   "cleaners/[cleanerId]/archive/route.ts",
   "notifications/[outboxId]/requeue/route.ts",
+  "recurring/[seriesId]/pause/route.ts",
+  "recurring/[seriesId]/resume/route.ts",
+  "recurring/[seriesId]/cancel/route.ts",
+  "recurring/[seriesId]/skip-next/route.ts",
+  "recurring/[seriesId]/reschedule-next/route.ts",
 ]);
 
 function collectRouteFiles(dir: string, prefix = ""): string[] {

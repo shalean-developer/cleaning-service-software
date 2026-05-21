@@ -971,6 +971,50 @@ export async function executeBookingCommand(
       }
     }
 
+    case "CREATE_RECURRING_OCCURRENCE": {
+      if (!cmd.idempotencyKey?.trim()) {
+        return fail(
+          "IDEMPOTENCY_REQUIRED",
+          "CREATE_RECURRING_OCCURRENCE requires idempotencyKey.",
+        );
+      }
+      const bid = crypto.randomUUID();
+      const ts = new Date().toISOString();
+      try {
+        await backend.insertBooking({
+          id: bid,
+          customer_id: cmd.customerId,
+          cleaner_id: null,
+          service_id: null,
+          status: "pending_payment",
+          scheduled_start: cmd.scheduledStart,
+          scheduled_end: cmd.scheduledEnd,
+          assignment_dispatch_at: null,
+          price_cents: cmd.priceCents,
+          currency: cmd.currency ?? "ZAR",
+          series_id: cmd.seriesId,
+          metadata: {
+            ...cmd.metadata,
+            recurring: {
+              generated: true,
+              seriesId: cmd.seriesId,
+              occurrenceKey: cmd.idempotencyKey,
+            },
+          } as BookingRow["metadata"],
+          created_at: ts,
+          updated_at: ts,
+        });
+        await backend.appendAudit(cmd, bid, null, "pending_payment");
+        return ok(bid, "pending_payment", false);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Could not create recurring occurrence.";
+        if (msg.toLowerCase().includes("duplicate") || msg.includes("23505")) {
+          return fail("PERSISTENCE_ERROR", "Recurring occurrence already exists for this slot.");
+        }
+        return fail("PERSISTENCE_ERROR", "Could not create recurring occurrence.");
+      }
+    }
+
     case "RECORD_ASSIGNMENT_OFFER_EXPIRED": {
       if (!cmd.idempotencyKey?.trim()) {
         return fail(

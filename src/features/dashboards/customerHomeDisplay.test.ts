@@ -21,6 +21,8 @@ function item(
     scheduledEnd: overrides.scheduledEnd ?? "2026-05-21T10:00:00.000Z",
     priceCents: 12000,
     currency: "ZAR",
+    seriesId: null,
+    isSeriesVisit: false,
     display: {
       serviceSlug: "regular-cleaning",
       serviceLabel: "Regular Cleaning",

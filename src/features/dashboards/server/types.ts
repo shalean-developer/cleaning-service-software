@@ -48,6 +48,9 @@ export type CustomerBookingListItem = {
   scheduledEnd: string;
   priceCents: number;
   currency: string;
+  seriesId: string | null;
+  /** True when booking is linked to a materialized recurring series. */
+  isSeriesVisit: boolean;
   display: BookingDisplayFields;
   scheduleLabel: string;
   assignedCleanerLabel: string | null;

@@ -84,6 +84,10 @@ export const PRESERVED_APPEND_ONLY_TABLES = [
     reason: "append-only deferred dispatch cron log",
   },
   {
+    table: "recurring_generation_runs",
+    reason: "append-only recurring generation cron log",
+  },
+  {
     table: "assignment_metrics_hourly",
     reason: "hourly assignment analytics rollup",
   },

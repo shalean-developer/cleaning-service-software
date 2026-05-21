@@ -43,4 +43,14 @@ export const REGULAR_CLEANING_CRON_JOBS: CronJobDefinition[] = [
     launchRequired: false,
     featureFlagEnv: "DEFERRED_ASSIGNMENT_ENABLED",
   },
+  {
+    id: "generate-recurring-occurrences",
+    name: "Generate recurring occurrences",
+    routePath: "/api/cron/generate-recurring-occurrences",
+    scheduleSource: "ops_configured",
+    scheduleHint: "Hourly or every 6h UTC (see generate-recurring-occurrences-cron.md)",
+    expectedFrequencyMinutes: 360,
+    docPath: "docs/operations/generate-recurring-occurrences-cron.md",
+    launchRequired: true,
+  },
 ];

@@ -34,4 +34,13 @@ describe("adminBookingRecurring", () => {
     expect(computeRecurringActiveCount(0)).toBe(0);
     expect(computeRecurringActiveCount(3)).toBe(3);
   });
+
+  it("metadata-only weekly bookings are not recurring admin flags", () => {
+    expect(
+      isRecurringAdminBooking({
+        seriesId: null,
+        metadata: { quote: { input: { frequency: "weekly" } } },
+      }),
+    ).toBe(false);
+  });
 });

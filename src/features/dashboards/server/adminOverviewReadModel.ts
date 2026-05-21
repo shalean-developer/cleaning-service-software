@@ -4,7 +4,7 @@ import type { CurrentUser } from "@/lib/auth/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { AdminOperationalAuditRow, BookingStateAuditRow } from "@/lib/database/types";
 import type { BookingStatus } from "@/features/bookings/server/types";
-import { computeRecurringActiveCount } from "./adminBookingRecurring";
+import { countActiveBookingSeries } from "@/features/recurring/bookingSeriesRepository";
 import { getDeferredAssignmentConfig } from "@/features/assignments/server/assignmentDispatchConfig";
 import { getDeferredAssignmentDiagnostics } from "@/features/assignments/server/deferredAssignmentDiagnostics";
 import { getAdminPayoutSummary } from "@/features/earnings/server/payoutReadModel";
@@ -279,12 +279,8 @@ export async function loadAdminOverviewRhythmCounts(
 ): Promise<AdminOverviewRhythmCounts> {
   const { startIso, endExclusiveIso } = johannesburgDayUtcBounds(dayKey);
 
-  const [{ count: seriesRecurring }, { data: todayRows, error: todayError }] = await Promise.all([
-    client
-      .from("bookings")
-      .select("*", { count: "exact", head: true })
-      .not("series_id", "is", null)
-      .in("status", [...RECURRING_ACTIVE_STATUSES]),
+  const [activeSeriesCount, { data: todayRows, error: todayError }] = await Promise.all([
+    countActiveBookingSeries(client),
     client
       .from("bookings")
       .select("id, status")
@@ -302,7 +298,7 @@ export async function loadAdminOverviewRhythmCounts(
     ).length ?? 0;
 
   return {
-    recurringActive: computeRecurringActiveCount(seriesRecurring),
+    recurringActive: activeSeriesCount,
     confirmedToday,
     attentionNeeded,
     completedVisitsToday,

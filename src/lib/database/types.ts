@@ -154,6 +154,23 @@ export type BookingRow = {
   updated_at: string;
 };
 
+export type BookingSeriesRow = {
+  id: string;
+  customer_id: string;
+  user_id: string | null;
+  created_from_booking_id: string;
+  frequency: "weekly" | "biweekly" | "monthly";
+  timezone: string;
+  anchor_scheduled_start: string;
+  next_occurrence_at: string | null;
+  status: "active" | "paused" | "cancelled";
+  template_metadata: Json;
+  service_slug: string;
+  price_cents: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type PaymentRow = {
   id: string;
   booking_id: string;
@@ -294,6 +311,25 @@ export type DeferredDispatchCronRunRow = {
   skipped_count: number;
   failed_count: number;
   failed: Json;
+  created_at: string;
+};
+
+export type RecurringGenerationRunStatus = "success" | "partial" | "failed";
+
+export type RecurringGenerationRunRow = {
+  id: string;
+  run_id: string;
+  started_at: string;
+  completed_at: string;
+  duration_ms: number;
+  status: RecurringGenerationRunStatus;
+  active_series_scanned: number;
+  children_generated: number;
+  duplicates_skipped: number;
+  skipped_paused: number;
+  skipped_cancelled: number;
+  failures_count: number;
+  error_summary: Json;
   created_at: string;
 };
 
@@ -474,6 +510,7 @@ export type Database = {
       cleaner_time_off: PublicTable<CleanerTimeOffRow>;
       services: PublicTable<ServiceRow>;
       bookings: PublicTable<BookingRow>;
+      booking_series: PublicTable<BookingSeriesRow>;
       booking_locks: PublicTable<BookingLockRow>;
       payments: PublicTable<PaymentRow>;
       payment_events: PublicTable<PaymentEventRow>;
@@ -484,6 +521,7 @@ export type Database = {
       notification_outbox: PublicTable<NotificationOutboxRow>;
       notification_worker_runs: PublicTable<NotificationWorkerRunRow>;
       deferred_dispatch_cron_runs: PublicTable<DeferredDispatchCronRunRow>;
+      recurring_generation_runs: PublicTable<RecurringGenerationRunRow>;
       notification_metrics_hourly: PublicTable<NotificationMetricsHourlyRow>;
       assignment_metrics_hourly: PublicTable<AssignmentMetricsHourlyRow>;
       booking_state_audit: PublicTable<BookingStateAuditRow>;
