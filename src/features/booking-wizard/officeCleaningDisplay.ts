@@ -4,6 +4,11 @@
  */
 
 import type { AddonSlug, PricingFrequency, ServiceSlug } from "@/features/pricing/server/types";
+import {
+  getPreferredCadenceReviewNote,
+  getPreferredCadenceScheduleExplanation,
+  PREFERRED_SCHEDULE_PAYMENT_EXPLANATION,
+} from "./preferredScheduleCopy";
 import type { OfficeSizeTier, OfficeWorkstationTier } from "./officeSizing";
 import {
   formatOfficeSizingSummary,
@@ -40,9 +45,21 @@ export const OFFICE_SERVICE_STEP_DESCRIPTION_DESKTOP =
 /** Commercial cadence — frequency values unchanged. */
 export const OFFICE_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
   { value: "once", label: "One-time office clean", description: "Single workspace visit" },
-  { value: "weekly", label: "Weekly", description: "Recurring workspace maintenance" },
-  { value: "biweekly", label: "Bi-weekly", description: "Every two weeks" },
-  { value: "monthly", label: "Monthly", description: "Scheduled office upkeep" },
+  {
+    value: "weekly",
+    label: "Weekly",
+    description: "First-booking preference — follow-ups arranged after",
+  },
+  {
+    value: "biweekly",
+    label: "Bi-weekly",
+    description: "First-booking preference — follow-ups arranged after",
+  },
+  {
+    value: "monthly",
+    label: "Monthly",
+    description: "First-booking preference — follow-ups arranged after",
+  },
 ];
 
 export type OfficeAddonStepGroup = {
@@ -251,36 +268,18 @@ export function buildOfficeReviewHeroSegments(input: {
 function getOfficeRecurringScheduleReviewNote(
   frequency: PricingFrequency,
 ): string | null {
-  switch (frequency) {
-    case "weekly":
-      return "Repeats weekly on this office service day and time.";
-    case "biweekly":
-      return "Repeats every 2 weeks on this workspace schedule.";
-    case "monthly":
-      return "Repeats monthly on this workspace schedule.";
-    default:
-      return null;
-  }
+  return getPreferredCadenceReviewNote(frequency);
 }
 
 function getOfficeRecurringScheduleExplanation(
   frequency: PricingFrequency,
 ): string | null {
-  switch (frequency) {
-    case "weekly":
-      return "Repeats every week on the day and time you selected.";
-    case "biweekly":
-      return "Repeats every two weeks on the day and time you selected.";
-    case "monthly":
-      return "Repeats monthly on the day and time you selected.";
-    default:
-      return null;
-  }
+  return getPreferredCadenceScheduleExplanation(frequency);
 }
 
 function getOfficeRecurringPaymentExplanation(frequency: PricingFrequency): string | null {
   if (frequency === "once") return null;
-  return "Today's payment secures this office visit only. We'll confirm any recurring workspace schedule after payment; future visits are arranged in your account.";
+  return PREFERRED_SCHEDULE_PAYMENT_EXPLANATION;
 }
 
 export type OfficeCleaningCheckoutCopy = {

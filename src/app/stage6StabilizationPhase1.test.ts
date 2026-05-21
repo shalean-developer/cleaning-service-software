@@ -56,11 +56,12 @@ describe("Stage 6 stabilization Phase 1 presentation fixes", () => {
     expect(isAdminBookingSearchIgnored("")).toBe(false);
   });
 
-  it("admin list hides generic payment badge when status is payment_failed", () => {
+  it("admin bookings operations list uses ops card builder", () => {
     const listPage = readPage("src/app/(admin)/admin/bookings/page.tsx");
     const badges = readComponent("src/features/dashboards/adminBookingListBadges.ts");
 
-    expect(listPage).toContain("adminBookingListBadges(b)");
+    expect(listPage).toContain("buildAdminBookingOpsCardModel");
+    expect(listPage).toContain("<AdminBookingsOperationsList");
     expect(badges).toContain('b.status !== "payment_failed"');
     expect(badges).toContain("labelForAdminPaymentFailureAttention");
   });

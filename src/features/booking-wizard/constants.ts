@@ -186,9 +186,21 @@ export const CLEANING_INTENSITY_STEP_OPTIONS: CleaningIntensityStepOption[] = [
 
 export const FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
   { value: "once", label: "Once-off", description: "One visit" },
-  { value: "weekly", label: "Weekly", description: "Best for routine upkeep" },
-  { value: "biweekly", label: "Bi-weekly", description: "Every 2 weeks" },
-  { value: "monthly", label: "Monthly", description: "Light maintenance" },
+  {
+    value: "weekly",
+    label: "Weekly",
+    description: "First-booking preference — follow-ups arranged after",
+  },
+  {
+    value: "biweekly",
+    label: "Bi-weekly",
+    description: "First-booking preference — follow-ups arranged after",
+  },
+  {
+    value: "monthly",
+    label: "Monthly",
+    description: "First-booking preference — follow-ups arranged after",
+  },
 ];
 
 export const WIZARD_SERVICE_OPTIONS: WizardServiceOption[] = (

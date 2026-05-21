@@ -134,7 +134,7 @@ describe("adminHomeOperationsDisplay", () => {
     expect(presentation.summarySuffix).toContain("tomorrow");
     expect(presentation.bookingsFooter).toBe("0 confirmed · 0 done");
     expect(presentation.cleanersFooter).toBe("Assigned on today's schedule");
-    expect(presentation.revenueFooter).toBe("0 recurring active");
+    expect(presentation.revenueFooter).toBe("0 series active");
     expect(presentation.issuesFooter).toBe("Queues clear");
   });
 

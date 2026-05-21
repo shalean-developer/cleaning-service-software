@@ -141,10 +141,14 @@ describe("ScheduleStepPanel", () => {
       />,
     );
 
-    expect(html).toContain("Visit frequency");
+    expect(html).toContain("Preferred cleaning schedule");
     expect(html).toContain("Weekly");
-    expect(html.indexOf("Arrival time")).toBeLessThan(html.indexOf("Visit frequency"));
-    expect(html.indexOf("Visit frequency")).toBeLessThan(html.indexOf("Once-off"));
+    expect(html.indexOf("Arrival time")).toBeLessThan(
+      html.indexOf("Preferred cleaning schedule"),
+    );
+    expect(html.indexOf("Preferred cleaning schedule")).toBeLessThan(
+      html.indexOf("Once-off"),
+    );
   });
 
   it("renders frequency below arrival time for airbnb cleaning", () => {
@@ -161,8 +165,10 @@ describe("ScheduleStepPanel", () => {
       />,
     );
 
-    expect(html).toContain("Turnover cadence");
-    expect(html.indexOf("Arrival time")).toBeLessThan(html.indexOf("Turnover cadence"));
+    expect(html).toContain("Preferred turnover schedule");
+    expect(html.indexOf("Arrival time")).toBeLessThan(
+      html.indexOf("Preferred turnover schedule"),
+    );
   });
 
   it("hides frequency for deep cleaning", () => {
@@ -179,7 +185,7 @@ describe("ScheduleStepPanel", () => {
       />,
     );
 
-    expect(html).not.toContain("Visit frequency");
+    expect(html).not.toContain("Preferred cleaning schedule");
   });
 
   it("hides frequency for move in/out cleaning", () => {
@@ -196,7 +202,7 @@ describe("ScheduleStepPanel", () => {
       />,
     );
 
-    expect(html).not.toContain("Visit frequency");
+    expect(html).not.toContain("Preferred cleaning schedule");
   });
 
   it("hides frequency for carpet cleaning", () => {
@@ -214,7 +220,7 @@ describe("ScheduleStepPanel", () => {
     );
 
     expect(html).not.toContain("Visit timing");
-    expect(html).not.toContain("Visit frequency");
+    expect(html).not.toContain("Preferred cleaning schedule");
   });
 
   it("shows frequency for office cleaning", () => {

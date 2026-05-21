@@ -7,10 +7,21 @@ import {
 } from "./airbnbCleaningDisplay";
 import { getCarpetCleaningReviewCopy } from "./carpetCleaningDisplay";
 import { getMovingCleaningReviewCopy } from "./movingCleaningDisplay";
+import {
+  getPreferredCadenceReviewNote,
+  getPreferredCadenceScheduleExplanation,
+  isPreferredCadenceFrequency,
+  PREFERRED_SCHEDULE_PAYMENT_EXPLANATION,
+} from "./preferredScheduleCopy";
 
-export function isRecurringFrequency(frequency: PricingFrequency): boolean {
-  return frequency !== "once";
-}
+export {
+  isPreferredCadenceFrequency,
+  PREFERRED_SCHEDULE_PAYMENT_EXPLANATION,
+  PREFERRED_SCHEDULE_SECTION_TITLE,
+} from "./preferredScheduleCopy";
+
+/** @deprecated Use {@link isPreferredCadenceFrequency}. */
+export const isRecurringFrequency = isPreferredCadenceFrequency;
 
 /** Display-only copy for review / checkout — no billing logic. */
 export function getRecurringScheduleExplanation(
@@ -24,16 +35,7 @@ export function getRecurringScheduleExplanation(
   const airbnb = getAirbnbRecurringScheduleExplanation(frequency, serviceSlug);
   if (airbnb) return airbnb;
   if (isAirbnbCleaningSlug(serviceSlug)) return null;
-  switch (frequency) {
-    case "weekly":
-      return "Repeats every week on the day and arrival time you selected.";
-    case "biweekly":
-      return "Repeats every two weeks on the day and arrival time you selected.";
-    case "monthly":
-      return "Repeats monthly on the day and arrival time you selected.";
-    default:
-      return null;
-  }
+  return getPreferredCadenceScheduleExplanation(frequency);
 }
 
 /** Shorter review-step note — frequency label already appears in the summary strip. */
@@ -48,24 +50,15 @@ export function getRecurringScheduleReviewNote(
   const airbnb = getAirbnbRecurringScheduleReviewNote(frequency, serviceSlug);
   if (airbnb) return airbnb;
   if (isAirbnbCleaningSlug(serviceSlug)) return null;
-  switch (frequency) {
-    case "weekly":
-      return "Repeats weekly on this day and time.";
-    case "biweekly":
-      return "Repeats every 2 weeks on this day and time.";
-    case "monthly":
-      return "Repeats monthly on this day and time.";
-    default:
-      return null;
-  }
+  return getPreferredCadenceReviewNote(frequency);
 }
 
-/** Display-only — clarifies today's charge vs future visits. */
+/** Display-only — clarifies today's charge vs follow-up visits. */
 export function getRecurringPaymentExplanation(
   frequency: PricingFrequency,
   serviceSlug: ServiceSlug | null = null,
 ): string | null {
-  if (!isRecurringFrequency(frequency)) return null;
+  if (!isPreferredCadenceFrequency(frequency)) return null;
 
   const moving = getMovingCleaningReviewCopy(serviceSlug);
   if (moving) return moving.recurringPaymentExplanation(frequency);
@@ -74,5 +67,5 @@ export function getRecurringPaymentExplanation(
   const airbnb = getAirbnbRecurringPaymentExplanation(frequency, serviceSlug);
   if (airbnb) return airbnb;
 
-  return "Today's payment secures this booking only. We will confirm your recurring schedule after payment; future visits are arranged in your account without charging again at checkout.";
+  return PREFERRED_SCHEDULE_PAYMENT_EXPLANATION;
 }

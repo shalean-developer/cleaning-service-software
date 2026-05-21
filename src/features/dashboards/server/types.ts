@@ -142,6 +142,9 @@ export type AdminBookingListItem = {
   createdAt?: string;
   suburb?: string | null;
   city?: string | null;
+  addressLine?: string | null;
+  homeSizeSummary?: string | null;
+  isRecurring?: boolean;
   priceLabel: string;
   priceCents: number;
   observation: AdminBookingObservation;

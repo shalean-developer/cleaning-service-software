@@ -60,8 +60,9 @@ describe("ReviewStepPanel", () => {
     expect(html).toContain("Cleaner preference");
     expect(html).toContain("Price breakdown");
     expect(html).toContain("2 beds");
-    expect(html).toContain("Recurring");
-    expect(html).toContain("Repeats weekly");
+    expect(html).toContain("Preferred schedule");
+    expect(html).toContain("Preferred weekly");
+    expect(html).not.toContain("Repeats weekly");
     expect(html).toContain("secure Paystack checkout");
     expect(html).not.toMatch(/Property details[\s\S]*Frequency/);
     expect(html).toContain("Laundry");

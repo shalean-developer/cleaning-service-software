@@ -4,6 +4,11 @@
  */
 
 import type { AddonSlug, PricingFrequency, ServiceSlug } from "@/features/pricing/server/types";
+import {
+  getPreferredCadenceReviewNote,
+  getPreferredCadenceScheduleExplanation,
+  PREFERRED_SCHEDULE_PAYMENT_EXPLANATION,
+} from "./preferredScheduleCopy";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { FrequencyStepOption } from "./constants";
 import { FREQUENCY_STEP_OPTIONS } from "./constants";
@@ -142,7 +147,9 @@ export function getFrequencySectionTitle(serviceSlug: ServiceSlug | null): strin
   if (deep) return deep;
   const carpet = getCarpetFrequencySectionTitle(serviceSlug);
   if (carpet) return carpet;
-  return isAirbnbCleaningSlug(serviceSlug) ? "Turnover cadence" : "Visit frequency";
+  return isAirbnbCleaningSlug(serviceSlug)
+    ? "Preferred turnover schedule"
+    : "Preferred cleaning schedule";
 }
 
 /** Airbnb add-on order — turnover and guest-readiness first. */
@@ -470,16 +477,7 @@ export function getRecurringScheduleReviewNote(
   const carpetReview = getCarpetCleaningReviewCopy(serviceSlug);
   if (carpetReview) return carpetReview.recurringScheduleReviewNote(frequency);
   if (!isAirbnbCleaningSlug(serviceSlug)) return null;
-  switch (frequency) {
-    case "weekly":
-      return "Repeats weekly on this turnover day and arrival window.";
-    case "biweekly":
-      return "Repeats every 2 weeks on this turnover schedule.";
-    case "monthly":
-      return "Repeats monthly on this turnover schedule.";
-    default:
-      return null;
-  }
+  return getPreferredCadenceReviewNote(frequency);
 }
 
 export function getRecurringScheduleExplanation(
@@ -495,16 +493,7 @@ export function getRecurringScheduleExplanation(
   const carpetReview = getCarpetCleaningReviewCopy(serviceSlug);
   if (carpetReview) return carpetReview.recurringScheduleExplanation(frequency);
   if (!isAirbnbCleaningSlug(serviceSlug)) return null;
-  switch (frequency) {
-    case "weekly":
-      return "Repeats every week on the turnover day and arrival time you selected.";
-    case "biweekly":
-      return "Repeats every two weeks on the turnover day and arrival time you selected.";
-    case "monthly":
-      return "Repeats monthly on the turnover day and arrival time you selected.";
-    default:
-      return null;
-  }
+  return getPreferredCadenceScheduleExplanation(frequency);
 }
 
 export function getRecurringPaymentExplanation(
@@ -521,7 +510,7 @@ export function getRecurringPaymentExplanation(
   const carpetReview = getCarpetCleaningReviewCopy(serviceSlug);
   if (carpetReview) return carpetReview.recurringPaymentExplanation(frequency);
   if (isAirbnbCleaningSlug(serviceSlug)) {
-    return "Today's payment secures this turnover only. We'll confirm your recurring host schedule after payment; future visits are arranged in your account.";
+    return PREFERRED_SCHEDULE_PAYMENT_EXPLANATION;
   }
   return null;
 }
@@ -589,7 +578,7 @@ export function getWizardSummaryFrequencyLabel(serviceSlug: ServiceSlug | null):
   if (deep) return deep;
   const carpet = getCarpetWizardSummaryFrequencyLabel(serviceSlug);
   if (carpet) return carpet;
-  return isAirbnbCleaningSlug(serviceSlug) ? "Turnover cadence" : "Frequency";
+  return isAirbnbCleaningSlug(serviceSlug) ? "Preferred turnover schedule" : "Preferred schedule";
 }
 
 export function getWizardSummaryAddonsLabel(serviceSlug: ServiceSlug | null): string {

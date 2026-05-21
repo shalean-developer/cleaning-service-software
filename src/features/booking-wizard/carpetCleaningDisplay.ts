@@ -4,6 +4,11 @@
  */
 
 import type { AddonSlug, PricingFrequency, ServiceSlug } from "@/features/pricing/server/types";
+import {
+  getPreferredCadenceReviewNote,
+  getPreferredCadenceScheduleExplanation,
+  PREFERRED_SCHEDULE_PAYMENT_EXPLANATION,
+} from "./preferredScheduleCopy";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { FrequencyStepOption } from "./constants";
 import { FREQUENCY_STEP_OPTIONS } from "./constants";
@@ -325,36 +330,18 @@ export function buildCarpetReviewHeroSegments(input: {
 function getCarpetRecurringScheduleReviewNote(
   frequency: PricingFrequency,
 ): string | null {
-  switch (frequency) {
-    case "weekly":
-      return "Repeats weekly on this carpet cleaning day and time.";
-    case "biweekly":
-      return "Repeats every 2 weeks on this schedule.";
-    case "monthly":
-      return "Repeats monthly on this schedule.";
-    default:
-      return null;
-  }
+  return getPreferredCadenceReviewNote(frequency);
 }
 
 function getCarpetRecurringScheduleExplanation(
   frequency: PricingFrequency,
 ): string | null {
-  switch (frequency) {
-    case "weekly":
-      return "Repeats every week on the day and time you selected.";
-    case "biweekly":
-      return "Repeats every two weeks on the day and time you selected.";
-    case "monthly":
-      return "Repeats monthly on the day and time you selected.";
-    default:
-      return null;
-  }
+  return getPreferredCadenceScheduleExplanation(frequency);
 }
 
 function getCarpetRecurringPaymentExplanation(frequency: PricingFrequency): string | null {
   if (frequency === "once") return null;
-  return "Today's payment secures this carpet clean only. We'll confirm any recurring floor-care schedule after payment; future visits are arranged in your account.";
+  return PREFERRED_SCHEDULE_PAYMENT_EXPLANATION;
 }
 
 export type CarpetCleaningCheckoutCopy = {

@@ -1,2 +1,2 @@
-/** Recurring bookings / series materialization (later). */
+/** Series materialization and occurrence engine (later). Cadence preference UI lives in booking-wizard. */
 export {};

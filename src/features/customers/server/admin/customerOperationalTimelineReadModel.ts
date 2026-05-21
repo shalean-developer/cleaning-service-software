@@ -9,7 +9,7 @@ import type {
   PaymentStatus,
 } from "@/lib/database/types";
 import type { BookingStatus } from "@/features/bookings/server/types";
-import { isRecurringFrequency } from "@/features/booking-wizard/recurringDisplay";
+import { isSeriesLinkedAdminBooking } from "@/features/dashboards/server/adminBookingRecurring";
 import { PRICING_FREQUENCIES, type PricingFrequency } from "@/features/pricing/server/types";
 import { humanPaymentEventTitle } from "@/features/dashboards/server/lifecycleTimelinePresentation";
 import { labelForBookingStatus } from "@/features/bookings/server/statusLabels";
@@ -56,9 +56,8 @@ function readBookingFrequency(metadata: Json): PricingFrequency {
   return "once";
 }
 
-function isRecurringBooking(booking: Pick<BookingTimelineSlice, "metadata" | "series_id">): boolean {
-  if (booking.series_id) return true;
-  return isRecurringFrequency(readBookingFrequency(booking.metadata));
+function isRecurringBooking(booking: Pick<BookingTimelineSlice, "series_id">): boolean {
+  return isSeriesLinkedAdminBooking(booking.series_id);
 }
 
 function formatEventTime(iso: string): string {
@@ -141,8 +140,8 @@ function mapBookingCreatedEvent(booking: BookingTimelineSlice): CustomerOperatio
     labelForBookingStatus(status),
     `Scheduled ${formatSchedule(booking.scheduled_start)}`,
   ];
-  if (recurring) {
-    details.push(booking.series_id ? "Recurring series" : "Recurring booking");
+  if (recurring && booking.series_id) {
+    details.push("Series-linked booking");
   }
 
   return {

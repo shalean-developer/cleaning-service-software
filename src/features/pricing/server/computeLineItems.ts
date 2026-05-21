@@ -1,3 +1,4 @@
+import { buildFirstBookingCadenceDiscountLabel } from "@/features/booking-wizard/preferredScheduleCopy";
 import {
   ADDON_CATALOG,
   CLEANING_EQUIPMENT_FEE_CENTS,
@@ -199,7 +200,7 @@ export function buildFrequencyLineItem(
 
   return {
     code: "frequency_discount",
-    label: `Recurring discount (${frequency})`,
+    label: buildFirstBookingCadenceDiscountLabel(frequency),
     amountCents: -discountCents,
   };
 }

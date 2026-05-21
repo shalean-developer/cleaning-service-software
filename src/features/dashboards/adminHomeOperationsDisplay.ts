@@ -257,7 +257,7 @@ export function buildAdminHomeSnapshotPresentation(input: {
       ? `${matchingPending} matching pending`
       : "Assigned on today's schedule";
 
-  const revenueFooter = `${recurringActive} recurring active`;
+  const revenueFooter = `${recurringActive} series active`;
 
   const issuesFooter = snapshot.activeIssues > 0 ? "Dispatch & SLA review" : "Queues clear";
 
@@ -594,9 +594,9 @@ export function buildAdminHomeRhythmMetricsFromCounts(
   return [
     {
       id: "recurring",
-      label: "Recurring active",
+      label: "Series active",
       value: String(counts.recurringActive),
-      hint: "Series or recurring frequency",
+      hint: "Bookings with series_id only",
     },
     {
       id: "confirmed-today",

@@ -80,7 +80,7 @@ export function AdminCustomerListTable({ items }: Props) {
                   <span className="font-medium text-zinc-900">{item.bookingCount}</span>
                   {item.recurringCount > 0 ? (
                     <span className="block text-xs text-zinc-500">
-                      {item.recurringCount} recurring
+                      {item.recurringCount} series
                     </span>
                   ) : null}
                 </div>

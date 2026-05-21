@@ -2,7 +2,7 @@ import "server-only";
 
 import type { CurrentUser } from "@/lib/auth/types";
 import type { Json, PaymentStatus } from "@/lib/database/types";
-import { isRecurringFrequency } from "@/features/booking-wizard/recurringDisplay";
+import { isSeriesLinkedAdminBooking } from "@/features/dashboards/server/adminBookingRecurring";
 import { PRICING_FREQUENCIES, type PricingFrequency } from "@/features/pricing/server/types";
 import { resolveCustomerEmailOrNull } from "@/features/notifications/server/resolveCustomerEmailOrNull";
 import { resolveCustomerEmailsOrNull } from "@/features/notifications/server/resolveCustomerEmailOrNull";
@@ -128,10 +128,9 @@ function readBookingFrequency(metadata: Json): PricingFrequency {
 }
 
 function isRecurringBooking(
-  booking: Pick<BookingListRowSlice | BookingRowSlice, "metadata" | "series_id">,
+  booking: Pick<BookingListRowSlice | BookingRowSlice, "series_id">,
 ): boolean {
-  if (booking.series_id) return true;
-  return isRecurringFrequency(readBookingFrequency(booking.metadata));
+  return isSeriesLinkedAdminBooking(booking.series_id);
 }
 
 function displayCompanyName(

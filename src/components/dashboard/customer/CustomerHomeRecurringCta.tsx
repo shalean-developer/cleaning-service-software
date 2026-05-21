@@ -2,7 +2,7 @@ import Link from "next/link";
 import { customerBookServicePath } from "@/features/booking-wizard/bookServiceRoute";
 import { UI_CARD_SHELL_SOFT_BORDER_CLASS } from "@/lib/ui/productUiTokens";
 
-/** Subtle recurring / rebook prompt when the customer has history but nothing upcoming. */
+/** Rebook prompt when the customer has history but nothing upcoming. */
 export function CustomerHomeRecurringCta() {
   return (
     <section
@@ -11,7 +11,8 @@ export function CustomerHomeRecurringCta() {
       <div className="min-w-0">
         <p className="text-sm font-semibold text-zinc-900">Keep your home consistently clean</p>
         <p className="mt-0.5 text-sm text-zinc-600">
-          Book monthly recurring cleaning or rebook your last service in one tap.
+          Book your next visit in one tap. We can help arrange follow-up cleans after your first
+          booking.
         </p>
       </div>
       <Link

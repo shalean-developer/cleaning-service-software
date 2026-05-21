@@ -172,7 +172,7 @@ export function getRegularCustomerBookingDetailCopy(): RegularCustomerBookingDet
     detailsSectionTitle: "Booking details",
     activitySectionTitle: "Activity",
     homeSizeLabel: "Home size",
-    frequencyLabel: "Visit frequency",
+    frequencyLabel: "Preferred schedule",
     addonsLabel: "Extras",
     notesLabel: "Special instructions",
     cleanerPreferenceLabel: "Cleaner preference",

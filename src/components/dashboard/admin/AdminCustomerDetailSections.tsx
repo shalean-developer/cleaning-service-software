@@ -365,12 +365,12 @@ export function AdminCustomerDetailSections({
       </AdminDetailSection>
 
       <AdminDetailSection
-        title="Recurring bookings"
-        description={`${detail.recurringCount} recurring or series-linked booking(s).`}
+        title="Series-linked bookings"
+        description={`${detail.recurringCount} booking(s) linked to a series.`}
         collapsible
       >
         {detail.recurringBookings.length === 0 ? (
-          <p className={ADMIN_SECTION_MUTED_CLASS}>No recurring bookings.</p>
+          <p className={ADMIN_SECTION_MUTED_CLASS}>No series-linked bookings.</p>
         ) : (
           <ul className="divide-y divide-zinc-100 rounded-lg border border-zinc-200">
             {detail.recurringBookings.map((booking) => (
@@ -382,7 +382,7 @@ export function AdminCustomerDetailSections({
                   {booking.bookingReference}
                 </Link>
                 <p className="text-zinc-600">
-                  {booking.frequencyLabel ?? "Recurring"}
+                  {booking.frequencyLabel ?? "Series"}
                   {booking.seriesId ? ` · series ${booking.seriesId.slice(0, 8)}…` : ""}
                 </p>
               </li>

@@ -173,7 +173,9 @@ describe("Airbnb Cleaning launch readiness", () => {
         addons: ["balcony"],
       });
 
-      expect(snapshot.secondaryRows.some((r) => r.label === "Turnover cadence")).toBe(true);
+      expect(
+        snapshot.secondaryRows.some((r) => r.label === "Preferred turnover schedule"),
+      ).toBe(true);
       expect(snapshot.secondaryRows.some((r) => r.label === "Turnover extras")).toBe(true);
       expect(snapshot.secondaryRows.some((r) => r.label === "Property")).toBe(true);
       expect(snapshot.secondaryRows.some((r) => r.label === "Intensity")).toBe(false);

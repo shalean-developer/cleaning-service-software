@@ -68,7 +68,7 @@ describe("wizardBookingSummaryDisplay", () => {
 
     expect(
       snapshot.secondaryRows.some(
-        (r) => r.label === "Turnover cadence" && r.value.includes("Weekly"),
+        (r) => r.label === "Preferred turnover schedule" && r.value.includes("Weekly"),
       ),
     ).toBe(true);
     expect(snapshot.secondaryRows.some((r) => r.label === "Turnover extras")).toBe(true);
@@ -90,7 +90,9 @@ describe("wizardBookingSummaryDisplay", () => {
     expect(snapshot.secondaryRows.some((r) => r.label === "Property")).toBe(true);
     expect(snapshot.secondaryRows.some((r) => r.label === "Visit timing")).toBe(false);
     expect(snapshot.secondaryRows.some((r) => r.label === "Inspection extras")).toBe(true);
-    expect(snapshot.secondaryRows.some((r) => r.label === "Turnover cadence")).toBe(false);
+    expect(snapshot.secondaryRows.some((r) => r.label === "Preferred turnover schedule")).toBe(
+      false,
+    );
   });
 
   it("includes home location, extra rooms, and detailed extras for deep-cleaning", () => {

@@ -2,14 +2,9 @@ import "server-only";
 
 import type { CurrentUser } from "@/lib/auth/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type {
-  AdminOperationalAuditRow,
-  BookingStateAuditRow,
-  Json,
-} from "@/lib/database/types";
+import type { AdminOperationalAuditRow, BookingStateAuditRow } from "@/lib/database/types";
 import type { BookingStatus } from "@/features/bookings/server/types";
-import { isRecurringFrequency } from "@/features/booking-wizard/recurringDisplay";
-import { PRICING_FREQUENCIES, type PricingFrequency } from "@/features/pricing/server/types";
+import { computeRecurringActiveCount } from "./adminBookingRecurring";
 import { getDeferredAssignmentConfig } from "@/features/assignments/server/assignmentDispatchConfig";
 import { getDeferredAssignmentDiagnostics } from "@/features/assignments/server/deferredAssignmentDiagnostics";
 import { getAdminPayoutSummary } from "@/features/earnings/server/payoutReadModel";
@@ -130,33 +125,6 @@ type TodayBookingRow = {
   price_cents: number;
   scheduled_start: string;
 };
-
-function readBookingFrequency(metadata: Json): PricingFrequency {
-  const record =
-    metadata != null && typeof metadata === "object" && !Array.isArray(metadata)
-      ? (metadata as Record<string, unknown>)
-      : {};
-  const raw =
-    (typeof record.frequency === "string" ? record.frequency : null) ??
-    (typeof record.quote === "object" &&
-    record.quote !== null &&
-    !Array.isArray(record.quote) &&
-    typeof (record.quote as Record<string, unknown>).frequency === "string"
-      ? ((record.quote as Record<string, unknown>).frequency as string)
-      : null);
-  if (raw && (PRICING_FREQUENCIES as readonly string[]).includes(raw)) {
-    return raw as PricingFrequency;
-  }
-  return "once";
-}
-
-function isRecurringBookingRow(row: {
-  series_id: string | null;
-  metadata: Json;
-}): boolean {
-  if (row.series_id) return true;
-  return isRecurringFrequency(readBookingFrequency(row.metadata));
-}
 
 async function resolveCustomerLabel(
   client: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
@@ -311,36 +279,20 @@ export async function loadAdminOverviewRhythmCounts(
 ): Promise<AdminOverviewRhythmCounts> {
   const { startIso, endExclusiveIso } = johannesburgDayUtcBounds(dayKey);
 
-  const [{ count: seriesRecurring }, { data: metadataRows, error: metadataError }, { data: todayRows, error: todayError }] =
-    await Promise.all([
-      client
-        .from("bookings")
-        .select("*", { count: "exact", head: true })
-        .not("series_id", "is", null)
-        .in("status", [...RECURRING_ACTIVE_STATUSES]),
-      client
-        .from("bookings")
-        .select("id, metadata, series_id, status")
-        .in("status", [...RECURRING_ACTIVE_STATUSES])
-        .is("series_id", null)
-        .order("updated_at", { ascending: false })
-        .limit(300),
-      client
-        .from("bookings")
-        .select("id, status")
-        .gte("scheduled_start", startIso)
-        .lt("scheduled_start", endExclusiveIso),
-    ]);
+  const [{ count: seriesRecurring }, { data: todayRows, error: todayError }] = await Promise.all([
+    client
+      .from("bookings")
+      .select("*", { count: "exact", head: true })
+      .not("series_id", "is", null)
+      .in("status", [...RECURRING_ACTIVE_STATUSES]),
+    client
+      .from("bookings")
+      .select("id, status")
+      .gte("scheduled_start", startIso)
+      .lt("scheduled_start", endExclusiveIso),
+  ]);
 
-  if (metadataError) throw new Error(metadataError.message);
   if (todayError) throw new Error(todayError.message);
-
-  const metadataRecurring = (metadataRows ?? []).filter((row) =>
-    isRecurringBookingRow({
-      series_id: row.series_id,
-      metadata: row.metadata,
-    }),
-  ).length;
 
   const confirmedToday =
     (todayRows ?? []).filter((row) => row.status === "confirmed").length ?? 0;
@@ -350,7 +302,7 @@ export async function loadAdminOverviewRhythmCounts(
     ).length ?? 0;
 
   return {
-    recurringActive: (seriesRecurring ?? 0) + metadataRecurring,
+    recurringActive: computeRecurringActiveCount(seriesRecurring),
     confirmedToday,
     attentionNeeded,
     completedVisitsToday,

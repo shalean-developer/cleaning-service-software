@@ -311,8 +311,8 @@ export function ReviewStepPanel({
         </div>
         {showFrequency && isRecurringFrequency(frequency) ? (
           <p className="mt-1.5 text-xs leading-snug text-zinc-500">
-            {recurringScheduleNote ?? "Recurring booking."} Today&apos;s total is for this visit
-            only.
+            {recurringScheduleNote ?? "Preferred cleaning schedule for this first booking."}{" "}
+            Today&apos;s total is for this visit only.
           </p>
         ) : null}
       </section>
@@ -350,7 +350,7 @@ export function ReviewStepPanel({
                 <div className="flex flex-wrap items-center justify-end gap-2 sm:justify-between">
                   <span className="text-xs text-zinc-500 sm:sr-only">Cadence</span>
                   <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-white">
-                    Recurring
+                    Preferred schedule
                   </span>
                 </div>
               ) : null}

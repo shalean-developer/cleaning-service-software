@@ -7,18 +7,22 @@ function readPage(relativePath: string): string {
 }
 
 describe("admin bookings page (2C-5)", () => {
-  it("orders command-center-style surfaces before the list", () => {
+  it("orders operations toolbar before list and keeps advanced surfaces in extras", () => {
     const source = readPage("src/app/(admin)/admin/bookings/page.tsx");
     const body = source.slice(source.indexOf("return ("));
 
-    const queuesIndex = body.indexOf("<AdminBookingsQueuesSummary");
-    const filtersIndex = body.indexOf("<AdminBookingsFilters");
-    const rowIndex = body.indexOf("<AdminBookingListRow");
+    const toolbarIndex = body.indexOf("<AdminBookingsOperationsToolbar");
+    const listIndex = body.indexOf("<AdminBookingsOperationsList");
+    const extrasIndex = body.indexOf("<AdminBookingsOperationsExtras");
 
-    expect(queuesIndex).toBeGreaterThan(-1);
-    expect(filtersIndex).toBeGreaterThan(queuesIndex);
-    expect(rowIndex).toBeGreaterThan(filtersIndex);
+    expect(toolbarIndex).toBeGreaterThan(-1);
+    expect(listIndex).toBeGreaterThan(toolbarIndex);
+    expect(extrasIndex).toBeGreaterThan(listIndex);
     expect(source).not.toContain("<AdminOperationalQueueStrip");
+    expect(source).not.toContain("<AdminBookingListRow");
+    expect(readPage("src/components/dashboard/admin/bookings/AdminBookingsOperationsExtras.tsx")).toContain(
+      "AdminBookingsFilterPresets",
+    );
     expect(readPage("src/components/dashboard/AdminBookingsFilters.tsx")).toContain(
       "AdminBookingsFilterPresets",
     );

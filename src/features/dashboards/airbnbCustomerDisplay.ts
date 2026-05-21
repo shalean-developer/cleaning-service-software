@@ -210,7 +210,7 @@ export function getAirbnbCustomerBookingDetailCopy(): AirbnbCustomerBookingDetai
     detailsSectionTitle: "Turnover details",
     activitySectionTitle: "Activity",
     homeSizeLabel: "Property size",
-    frequencyLabel: "Turnover cadence",
+    frequencyLabel: "Preferred turnover schedule",
     addonsLabel: "Turnover extras",
     notesLabel: "Host instructions",
     cleanerPreferenceLabel: "Cleaner preference",

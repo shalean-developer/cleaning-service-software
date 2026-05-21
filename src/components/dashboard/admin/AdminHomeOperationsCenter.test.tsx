@@ -213,7 +213,7 @@ describe("AdminHomeOperationsCenter", () => {
     );
 
     expect(html).toContain("0 confirmed · 0 done");
-    expect(html).toContain("0 recurring active");
+    expect(html).toContain("0 series active");
     expect(html).toContain("1 upcoming tomorrow");
     expect(html).toContain("Dispatch queue is clear");
     expect(html).toContain("No open customer support signals");

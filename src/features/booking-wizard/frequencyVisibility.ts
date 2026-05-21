@@ -1,6 +1,6 @@
 import type { ServiceSlug } from "@/features/pricing/server/types";
 
-/** Services where customers may choose recurring visit cadence in the wizard UI. */
+/** Services where customers may choose preferred visit cadence in the wizard UI. */
 const FREQUENCY_VISIBLE_SERVICE_SLUGS = new Set<ServiceSlug>([
   "regular-cleaning",
   "airbnb-cleaning",

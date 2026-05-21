@@ -37,6 +37,7 @@ import {
   renderAdminBookingsCsv,
   resolveBookingsExportScope,
 } from "./adminBookingsExport";
+import { isRecurringAdminBooking } from "./adminBookingRecurring";
 import {
   ADMIN_ASSIGNMENT_QUEUE_LIMIT,
   ADMIN_BOOKINGS_LIST_LIMIT,
@@ -218,6 +219,7 @@ type BookingListRow = {
   assignment_dispatch_at: string | null;
   price_cents: number;
   currency: string;
+  series_id: string | null;
   metadata: import("@/lib/database/types").Json;
   created_at: string;
   updated_at: string;
@@ -301,6 +303,14 @@ async function buildAdminBookingListItem(
     createdAt: row.created_at,
     suburb: display.suburb,
     city: display.city,
+    addressLine: display.addressLine,
+    homeSizeSummary: display.homeSizeSummary,
+    isRecurring: Boolean(
+      isRecurringAdminBooking({
+        seriesId: row.series_id,
+        metadata: row.metadata,
+      }),
+    ),
     priceLabel: formatZar(row.price_cents, row.currency),
     priceCents: row.price_cents,
     observation,
@@ -360,7 +370,7 @@ export async function listAdminBookings(
   }
 
   const bookingColumns =
-    "id, status, customer_id, cleaner_id, scheduled_start, scheduled_end, assignment_dispatch_at, price_cents, currency, metadata, created_at, updated_at";
+    "id, status, customer_id, cleaner_id, scheduled_start, scheduled_end, assignment_dispatch_at, price_cents, currency, series_id, metadata, created_at, updated_at";
 
   let listQuery = client.from("bookings").select(bookingColumns);
   if (applySql) {
@@ -496,7 +506,7 @@ export async function exportAdminBookingsCsv(
   }
 
   const bookingColumns =
-    "id, status, customer_id, cleaner_id, scheduled_start, scheduled_end, assignment_dispatch_at, price_cents, currency, metadata, created_at, updated_at";
+    "id, status, customer_id, cleaner_id, scheduled_start, scheduled_end, assignment_dispatch_at, price_cents, currency, series_id, metadata, created_at, updated_at";
 
   let listQuery = client.from("bookings").select(bookingColumns);
   if (applySql) {
