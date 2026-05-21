@@ -47,6 +47,7 @@ import {
 } from "../wizardLayout";
 import { showWizardContextStripForService } from "../officeCleaningDisplay";
 import { showFrequencyForService } from "../frequencyVisibility";
+import { defaultRecurringDaysForDate } from "../recurringDaysWizard";
 import { patchOfficeSizing } from "../officeSizing";
 import { buildWizardBookingSummarySnapshot } from "../wizardBookingSummaryDisplay";
 import { WizardBookingSummaryLayout } from "./WizardBookingSummaryLayout";
@@ -517,15 +518,31 @@ export function BookingWizard({
             date={state.date}
             time={state.time}
             frequency={state.frequency}
+            recurringDays={state.recurringDays}
             minDate={minDate}
             bookingBounds={bookingWindowBounds}
             envMismatchWarning={bookingWindowEnvMismatchWarning}
             dateError={stepErrors.date}
             timeError={stepErrors.time}
             frequencyError={stepErrors.frequency}
-            onDateChange={(date) => patch({ date })}
+            recurringDaysError={stepErrors.recurringDays}
+            onDateChange={(date) =>
+              patch({
+                date,
+                recurringDays: defaultRecurringDaysForDate(date, state.recurringDays),
+              })
+            }
             onTimeChange={(time) => patch({ time })}
-            onFrequencyChange={(frequency) => patch({ frequency })}
+            onFrequencyChange={(frequency) =>
+              patch({
+                frequency,
+                recurringDays:
+                  frequency === "weekly" || frequency === "biweekly"
+                    ? defaultRecurringDaysForDate(state.date, state.recurringDays)
+                    : [],
+              })
+            }
+            onRecurringDaysChange={(recurringDays) => patch({ recurringDays })}
           />
           </>
         ) : null}
@@ -722,6 +739,7 @@ export function BookingWizard({
                   officeSizeTier={state.officeSizeTier}
                   officeWorkstations={state.officeWorkstations}
                   frequency={state.frequency}
+                  recurringDays={state.recurringDays}
                   addons={state.addons}
                   cleanerPreferenceMode={state.cleanerPreferenceMode}
                   selectedCleanerDisplayName={state.selectedCleanerDisplayName}

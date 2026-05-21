@@ -6,6 +6,7 @@ import { CustomerDashboardHeaderEndLoader } from "@/components/dashboard/custome
 import { CUSTOMER_DASHBOARD_NAV } from "@/features/dashboards/customerNav";
 import { listCustomerRecurringSeries } from "@/features/recurring/server/customerRecurringSeriesReadModel";
 import { CustomerRecurringSeriesCard } from "@/components/dashboard/customer/CustomerRecurringSeriesCard";
+import { CustomerRecurringScheduleGroupCard } from "@/components/dashboard/customer/CustomerRecurringScheduleGroupCard";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 
 export const metadata: Metadata = {
@@ -21,7 +22,7 @@ export default async function CustomerRecurringListPage() {
   return (
     <DashboardShell
       title="Recurring cleans"
-      subtitle="Your active schedules and upcoming visits"
+      subtitle="Recurring visits — pay each visit to confirm before we assign your cleaner"
       nav={[...CUSTOMER_DASHBOARD_NAV]}
       headerEnd={<CustomerDashboardHeaderEndLoader />}
     >
@@ -34,7 +35,7 @@ export default async function CustomerRecurringListPage() {
 
       {!result.ok ? (
         <p className="mt-4 text-sm text-red-800">{result.message}</p>
-      ) : result.series.length === 0 ? (
+      ) : result.groups.length === 0 && result.standaloneSeries.length === 0 ? (
         <div className="mt-6">
           <EmptyState
             title={
@@ -59,7 +60,10 @@ export default async function CustomerRecurringListPage() {
         </div>
       ) : (
         <div className="mt-6 space-y-4">
-          {result.series.map((item) => (
+          {result.groups.map((group) => (
+            <CustomerRecurringScheduleGroupCard key={group.groupId} item={group} />
+          ))}
+          {result.standaloneSeries.map((item) => (
             <CustomerRecurringSeriesCard key={item.seriesId} item={item} />
           ))}
         </div>

@@ -52,6 +52,8 @@ export type BookingWizardState = {
   officeSizeTier: OfficeSizeTier | null;
   officeWorkstations: OfficeWorkstationTier | null;
   frequency: PricingFrequency;
+  /** 0=Sun … 6=Sat — weekly/biweekly multi-day schedules only. */
+  recurringDays: number[];
   addons: AddonSlug[];
   /** Carpet cleaning only — display/metadata; does not affect quote. */
   carpetStainSeverity: CarpetStainSeverity | null;
@@ -97,6 +99,7 @@ export const INITIAL_WIZARD_STATE: BookingWizardState = {
   officeSizeTier: null,
   officeWorkstations: null,
   frequency: "once",
+  recurringDays: [],
   addons: [],
   carpetStainSeverity: null,
   carpetPetStains: false,

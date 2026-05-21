@@ -149,6 +149,7 @@ export type BookingRow = {
   price_cents: number;
   currency: string;
   series_id: string | null;
+  synthetic_anchor: boolean;
   metadata: Json;
   created_at: string;
   updated_at: string;
@@ -167,6 +168,23 @@ export type BookingSeriesRow = {
   template_metadata: Json;
   service_slug: string;
   price_cents: number;
+  group_id: string | null;
+  weekday: number | null;
+  slot_label: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RecurringScheduleGroupRow = {
+  id: string;
+  customer_id: string;
+  service_slug: string;
+  status: "active" | "paused" | "cancelled";
+  frequency: "weekly" | "biweekly";
+  timezone: string;
+  label: string | null;
+  selected_days: number[];
+  anchor_booking_id: string;
   created_at: string;
   updated_at: string;
 };
@@ -315,6 +333,22 @@ export type DeferredDispatchCronRunRow = {
 };
 
 export type RecurringGenerationRunStatus = "success" | "partial" | "failed";
+
+export type RecurringSeriesRequestType = "pause" | "cancel" | "reschedule";
+export type RecurringSeriesRequestStatus = "open" | "acknowledged" | "resolved";
+
+export type RecurringSeriesRequestRow = {
+  id: string;
+  series_id: string;
+  customer_id: string;
+  request_type: RecurringSeriesRequestType;
+  note: string | null;
+  status: RecurringSeriesRequestStatus;
+  created_at: string;
+  resolved_at: string | null;
+  resolved_by: string | null;
+  metadata: Json;
+};
 
 export type RecurringGenerationRunRow = {
   id: string;
@@ -511,6 +545,7 @@ export type Database = {
       services: PublicTable<ServiceRow>;
       bookings: PublicTable<BookingRow>;
       booking_series: PublicTable<BookingSeriesRow>;
+      recurring_schedule_groups: PublicTable<RecurringScheduleGroupRow>;
       booking_locks: PublicTable<BookingLockRow>;
       payments: PublicTable<PaymentRow>;
       payment_events: PublicTable<PaymentEventRow>;
@@ -522,6 +557,7 @@ export type Database = {
       notification_worker_runs: PublicTable<NotificationWorkerRunRow>;
       deferred_dispatch_cron_runs: PublicTable<DeferredDispatchCronRunRow>;
       recurring_generation_runs: PublicTable<RecurringGenerationRunRow>;
+      recurring_series_requests: PublicTable<RecurringSeriesRequestRow>;
       notification_metrics_hourly: PublicTable<NotificationMetricsHourlyRow>;
       assignment_metrics_hourly: PublicTable<AssignmentMetricsHourlyRow>;
       booking_state_audit: PublicTable<BookingStateAuditRow>;

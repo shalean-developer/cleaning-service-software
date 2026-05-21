@@ -13,6 +13,7 @@ import {
   skipNextRecurringOccurrence,
 } from "../seriesActions";
 import { recordRecurringSeriesAudit } from "./recordRecurringSeriesAudit";
+import { insertRecurringSeriesRequest } from "./recurringSeriesRequestsService";
 import { generateRecurringOccurrencesForSeries } from "../generateRecurringOccurrences";
 
 export type RecurringCommandResult =
@@ -277,19 +278,27 @@ export async function customerRequestRecurringSeriesChange(
   if (!loaded.ok) return loaded.result;
   const { client, series } = loaded;
 
-  await recordRecurringSeriesAudit(client, {
-    anchorBookingId: series.created_from_booking_id,
-    action: "RECURRING_CUSTOMER_REQUEST",
+  const inserted = await insertRecurringSeriesRequest(client, {
     seriesId,
-    actorType: "customer",
+    customerId: series.customer_id,
+    requestType,
+    note,
+    anchorBookingId: series.created_from_booking_id,
     actorProfileId: user.profileId,
-    reason: note?.trim() || null,
-    metadata: { requestType },
   });
+
+  if (!inserted.ok) {
+    return {
+      ok: false,
+      code: "PERSISTENCE_ERROR",
+      message: inserted.message,
+      httpStatus: 500,
+    };
+  }
 
   return {
     ok: true,
     message:
-      "Request received. Our team will confirm changes to your recurring schedule shortly.",
+      "Request received. Our team will review your pause, reschedule, or cancellation request and confirm before any change is made.",
   };
 }

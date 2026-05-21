@@ -13,6 +13,7 @@ import { parseAdminRecurringListQuery } from "@/features/recurring/adminRecurrin
 import { AdminRecurringSummaryCards } from "@/components/dashboard/admin/recurring/AdminRecurringSummaryCards";
 import { AdminRecurringToolbar } from "@/components/dashboard/admin/recurring/AdminRecurringToolbar";
 import { AdminRecurringSeriesCard } from "@/components/dashboard/admin/recurring/AdminRecurringSeriesCard";
+import { AdminRecurringScheduleGroupCard } from "@/components/dashboard/admin/recurring/AdminRecurringScheduleGroupCard";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 
 export const metadata: Metadata = {
@@ -41,12 +42,23 @@ export default async function AdminRecurringPage({ searchParams }: PageProps) {
         <p className={ADMIN_OVERVIEW_MUTED_CLASS}>
           Materialized weekly, bi-weekly, and monthly schedules after first payment.
         </p>
-        <Link
-          href="/admin/recurring/health"
-          className="inline-block text-sm font-medium text-blue-700 hover:text-blue-900"
-        >
-          Recurring health dashboard →
-        </Link>
+        <div className="flex flex-wrap gap-4">
+          <Link
+            href="/admin/recurring/health"
+            className="text-sm font-medium text-blue-700 hover:text-blue-900"
+          >
+            Recurring health dashboard →
+          </Link>
+          {result.ok && result.summary.openSupportRequestsCount > 0 ? (
+            <Link
+              href="/admin/recurring?requests=open"
+              className="text-sm font-semibold text-violet-800 hover:text-violet-950"
+            >
+              {result.summary.openSupportRequestsCount} open customer request
+              {result.summary.openSupportRequestsCount === 1 ? "" : "s"} →
+            </Link>
+          ) : null}
+        </div>
       </header>
 
       {!result.ok ? (
@@ -58,7 +70,7 @@ export default async function AdminRecurringPage({ searchParams }: PageProps) {
             <AdminRecurringToolbar query={query} />
           </div>
           <div className="mt-6 space-y-3">
-            {result.series.length === 0 ? (
+            {result.groups.length === 0 && result.standaloneSeries.length === 0 ? (
               <EmptyState
                 title="No recurring series"
                 description="Series appear after a customer pays for a weekly, bi-weekly, or monthly first visit."
@@ -72,9 +84,14 @@ export default async function AdminRecurringPage({ searchParams }: PageProps) {
                 }
               />
             ) : (
-              result.series.map((item) => (
-                <AdminRecurringSeriesCard key={item.seriesId} item={item} />
-              ))
+              <>
+                {result.groups.map((group) => (
+                  <AdminRecurringScheduleGroupCard key={group.groupId} item={group} />
+                ))}
+                {result.standaloneSeries.map((item) => (
+                  <AdminRecurringSeriesCard key={item.seriesId} item={item} />
+                ))}
+              </>
             )}
           </div>
         </>

@@ -9,14 +9,17 @@ export type RecurringSeriesAuditAction =
   | "RECURRING_SERIES_CANCEL"
   | "RECURRING_SERIES_SKIP_NEXT"
   | "RECURRING_SERIES_RESCHEDULE_NEXT"
-  | "RECURRING_CUSTOMER_REQUEST";
+  | "RECURRING_CUSTOMER_REQUEST"
+  | "RECURRING_SCHEDULE_GROUP_PAUSE"
+  | "RECURRING_SCHEDULE_GROUP_RESUME"
+  | "RECURRING_SCHEDULE_GROUP_CANCEL";
 
 export async function recordRecurringSeriesAudit(
   client: SupabaseClient<Database>,
   input: {
     anchorBookingId: string;
     action: RecurringSeriesAuditAction;
-    seriesId: string;
+    seriesId: string | null;
     actorType: "admin" | "customer";
     actorProfileId: string | null;
     metadata?: Record<string, unknown>;
@@ -25,7 +28,7 @@ export async function recordRecurringSeriesAudit(
 ): Promise<void> {
   const metadata: Json = {
     recurringSeries: {
-      seriesId: input.seriesId,
+      seriesId: input.seriesId ?? undefined,
       action: input.action,
       ...(input.metadata ?? {}),
     },

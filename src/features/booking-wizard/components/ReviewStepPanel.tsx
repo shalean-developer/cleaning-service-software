@@ -142,6 +142,7 @@ type Props = {
   officeSizeTier: OfficeSizeTier | null;
   officeWorkstations: OfficeWorkstationTier | null;
   frequency: PricingFrequency;
+  recurringDays: number[];
   addons: AddonSlug[];
   cleanerPreferenceMode: CleanerPreferenceMode;
   selectedCleanerDisplayName: string | null;
@@ -173,6 +174,7 @@ export function ReviewStepPanel({
   officeSizeTier,
   officeWorkstations,
   frequency,
+  recurringDays,
   addons,
   cleanerPreferenceMode,
   selectedCleanerDisplayName,
@@ -214,7 +216,10 @@ export function ReviewStepPanel({
       ? getTeamSupportReviewSummaryLabel(requestedTeamSize) ??
         (requestedTeamSize === 1 ? "1 cleaner" : null)
       : null;
-  const recurringScheduleNote = getRecurringScheduleReviewNote(frequency, serviceSlug);
+  const recurringScheduleNote = getRecurringScheduleReviewNote(frequency, serviceSlug, {
+    selectedDays: recurringDays,
+    time,
+  });
   const bedBathSummary = formatCompactBedBathSummary(
     serviceSlug,
     bedrooms,

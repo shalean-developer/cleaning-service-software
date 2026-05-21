@@ -153,6 +153,7 @@ export async function listCustomerBookings(
       "id, status, scheduled_start, scheduled_end, assignment_dispatch_at, price_cents, currency, cleaner_id, series_id, metadata, updated_at",
     )
     .eq("customer_id", ctx.actingCustomerId)
+    .eq("synthetic_anchor", false)
     .order("scheduled_start", { ascending: false });
 
   if (error) {

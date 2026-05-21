@@ -91,6 +91,20 @@ function createClient(fixture: Fixture) {
           }),
         };
       }
+      if (table === "recurring_series_requests") {
+        const emptyRequests = { data: [], error: null, count: 0 };
+        const chain = {
+          in: () => chain,
+          order: async () => emptyRequests,
+          eq: () => chain,
+          limit: () => chain,
+          maybeSingle: async () => ({ data: null, error: null }),
+          then(resolve: (v: { data: unknown[]; error: null; count: number }) => void) {
+            resolve(emptyRequests);
+          },
+        };
+        return { select: () => chain };
+      }
       throw new Error(`unexpected table ${table}`);
     },
   };
@@ -155,6 +169,6 @@ describe("listAdminRecurringSeries", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.message).toMatch(/not readable/i);
-    expect(result.series).toBeUndefined();
+    expect("series" in result ? result.series : undefined).toBeUndefined();
   });
 });

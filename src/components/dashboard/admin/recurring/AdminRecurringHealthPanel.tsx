@@ -65,6 +65,12 @@ function AlertList({ alerts, emptyLabel }: { alerts: RecurringHealthAlert[]; emp
   );
 }
 
+function launchBadgeClass(level: string): string {
+  if (level === "green") return "bg-emerald-50 text-emerald-800 ring-emerald-200";
+  if (level === "amber") return "bg-amber-50 text-amber-900 ring-amber-200";
+  return "bg-red-50 text-red-800 ring-red-200";
+}
+
 export function AdminRecurringHealthPanel({ model }: Props) {
   const generationAlerts = model.alerts.filter((a) =>
     ["STALE_NEXT_OCCURRENCE", "PAUSED_SERIES_NEW_CHILD", "DUPLICATE_OCCURRENCE"].includes(a.code),
@@ -81,6 +87,54 @@ export function AdminRecurringHealthPanel({ model }: Props) {
   return (
     <div className="mt-8 space-y-6">
       <section className={ADMIN_DETAIL_CARD_CLASS}>
+        <h2 className={ADMIN_SECTION_TITLE_CLASS}>Launch readiness</h2>
+        <p className={ADMIN_SECTION_MUTED_CLASS}>
+          <span
+            className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold uppercase ring-1 ring-inset ${launchBadgeClass(model.summary.launchReadiness)}`}
+          >
+            {model.summary.launchReadiness}
+          </span>{" "}
+          — green = launch safe, amber = watch, red = blocker
+        </p>
+        {model.launchBlockers.length > 0 ? (
+          <div className="mt-3">
+            <p className="text-sm font-medium text-red-800">Blockers</p>
+            <ul className="mt-1 list-inside list-disc text-sm text-red-800">
+              {model.launchBlockers.map((b) => (
+                <li key={b}>{b}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {model.launchRecommendations.length > 0 ? (
+          <div className="mt-3">
+            <p className="text-sm font-medium text-amber-900">Recommendations</p>
+            <ul className="mt-1 list-inside list-disc text-sm text-amber-900">
+              {model.launchRecommendations.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        <div className="mt-4">
+          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+            Environment
+          </p>
+          <ul className="mt-2 space-y-1 text-sm">
+            {model.summary.envReadiness.map((e) => (
+              <li key={e.key} className={e.ok ? "text-emerald-800" : "text-red-800"}>
+                {e.ok ? "✓" : "✗"} {e.key}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs text-zinc-500">
+            RLS visibility: {model.summary.rlsVisibilityStatus} · Run{" "}
+            <code className="text-[11px]">npm run ops:audit:recurring-launch</code>
+          </p>
+        </div>
+      </section>
+
+      <section className={ADMIN_DETAIL_CARD_CLASS}>
         <h2 className={ADMIN_SECTION_TITLE_CLASS}>Actions</h2>
         <div className="mt-3 flex flex-wrap gap-3">
           <Link
@@ -90,7 +144,11 @@ export function AdminRecurringHealthPanel({ model }: Props) {
             Open recurring list
           </Link>
           <span className="inline-flex min-h-10 items-center rounded-xl border border-dashed border-zinc-300 px-4 text-sm text-zinc-600">
-            Run audit: <code className="ml-1 text-xs">npm run ops:audit:recurring-bookings</code>
+            Launch audit:{" "}
+            <code className="ml-1 text-xs">npm run ops:audit:recurring-launch</code>
+          </span>
+          <span className="inline-flex min-h-10 items-center rounded-xl border border-dashed border-zinc-300 px-4 text-sm text-zinc-600">
+            Integrity: <code className="ml-1 text-xs">npm run ops:audit:recurring-bookings</code>
           </span>
           <span className="inline-flex min-h-10 items-center rounded-xl border border-dashed border-zinc-300 px-4 text-sm text-zinc-600">
             Soak test: <code className="ml-1 text-xs">npm run ops:soak:recurring-bookings</code>

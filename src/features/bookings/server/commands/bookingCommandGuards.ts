@@ -76,6 +76,7 @@ function commandActorPolicy(
     case "RECORD_ASSIGNMENT_OFFER_EXPIRED":
     case "EXPIRE_ASSIGNMENT_OFFER":
     case "CREATE_RECURRING_OCCURRENCE":
+    case "CREATE_SYNTHETIC_SERIES_ANCHOR":
       return systemish;
   }
 }
@@ -150,6 +151,7 @@ export function nextStatusForCommand(
     case "RECORD_ASSIGNMENT_OFFER_EXPIRED":
     case "EXPIRE_ASSIGNMENT_OFFER":
     case "CREATE_RECURRING_OCCURRENCE":
+    case "CREATE_SYNTHETIC_SERIES_ANCHOR":
       return null;
     default: {
       const _exhaustive: never = cmd;
@@ -167,7 +169,8 @@ export function assertTransitionShape(
     cmd.type === "RECORD_ASSIGNMENT_ATTENTION" ||
     cmd.type === "RECORD_ASSIGNMENT_OFFER_EXPIRED" ||
     cmd.type === "EXPIRE_ASSIGNMENT_OFFER" ||
-    cmd.type === "CREATE_RECURRING_OCCURRENCE"
+    cmd.type === "CREATE_RECURRING_OCCURRENCE" ||
+    cmd.type === "CREATE_SYNTHETIC_SERIES_ANCHOR"
   ) {
     return null;
   }

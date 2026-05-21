@@ -4,7 +4,7 @@ import type { CurrentUser } from "@/lib/auth/types";
 import { customerProvisioningApiFailure } from "@/lib/auth/customerReadiness";
 import { resolveActorScope } from "@/lib/auth/resolveActorScope";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { BookingSeriesRow, PaymentRow } from "@/lib/database/types";
+import type { BookingSeriesRow, PaymentRow, RecurringScheduleGroupRow } from "@/lib/database/types";
 import { formatScheduleRange, serviceLabelFromSlug } from "@/features/dashboards/server/parseBookingDisplay";
 import { recurringFrequencyLabel, recurringSeriesStatusLabel } from "../recurringDisplay";
 import {
@@ -15,11 +15,13 @@ import {
   resolveSeriesActionsAllowed,
 } from "./recurringSeriesHelpers";
 import type {
+  CustomerRecurringScheduleGroupListItem,
   CustomerRecurringSeriesDetail,
   CustomerRecurringSeriesDetailResult,
   CustomerRecurringSeriesListItem,
   CustomerRecurringSeriesListResult,
 } from "./recurringManagementTypes";
+import { formatSelectedDaysShort } from "../recurringScheduleDays";
 
 function isSupabaseReadBlocked(error: { code?: string; message?: string } | null): boolean {
   if (!error) return false;
@@ -186,6 +188,8 @@ export async function listCustomerRecurringSeries(
     if (seriesIds.length === 0) {
       return {
         ok: true,
+        groups: [],
+        standaloneSeries: [],
         series: [],
         emptyReason: "none_for_account",
       };
@@ -211,7 +215,54 @@ export async function listCustomerRecurringSeries(
     const items = seriesList.map((s) =>
       mapCustomerListItem(s, bySeries.get(s.id) ?? []),
     );
-    return { ok: true, series: items, emptyReason: undefined };
+
+    const groupIds = [
+      ...new Set(seriesList.map((s) => s.group_id).filter((id): id is string => Boolean(id))),
+    ];
+    const groups: CustomerRecurringScheduleGroupListItem[] = [];
+    const seriesInGroups = new Set<string>();
+
+    if (groupIds.length > 0) {
+      const { data: groupRows, error: groupErr } = await client
+        .from("recurring_schedule_groups")
+        .select("*")
+        .in("id", groupIds);
+      if (groupErr) throw new Error(groupErr.message);
+
+      for (const group of (groupRows ?? []) as RecurringScheduleGroupRow[]) {
+        const groupItems = items.filter((i) => {
+          const row = seriesList.find((s) => s.id === i.seriesId);
+          return row?.group_id === group.id;
+        });
+        for (const item of groupItems) seriesInGroups.add(item.seriesId);
+        if (groupItems.length === 0) continue;
+        const unpaidUpcomingCount = groupItems.reduce((n, s) => n + s.unpaidChildCount, 0);
+        const nextLabels = groupItems
+          .map((s) => s.nextOccurrenceScheduleLabel)
+          .filter((l): l is string => Boolean(l))
+          .slice(0, 3);
+        groups.push({
+          groupId: group.id,
+          frequencyLabel: recurringFrequencyLabel(group.frequency),
+          statusLabel: recurringSeriesStatusLabel(group.status),
+          serviceLabel: serviceLabelFromSlug(group.service_slug),
+          selectedDaysLabel: formatSelectedDaysShort(group.selected_days),
+          nextVisitsSummary:
+            nextLabels.length > 0 ? nextLabels.join(" · ") : "To be scheduled",
+          unpaidUpcomingCount,
+          series: groupItems,
+        });
+      }
+    }
+
+    const standaloneSeries = items.filter((i) => !seriesInGroups.has(i.seriesId));
+    return {
+      ok: true,
+      groups,
+      standaloneSeries,
+      series: items,
+      emptyReason: undefined,
+    };
   } catch (e) {
     return {
       ok: false,

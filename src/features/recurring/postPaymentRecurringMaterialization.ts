@@ -16,11 +16,23 @@ export async function runPostPaymentRecurringMaterialization(
   booking: BookingRow,
 ): Promise<void> {
   try {
-    const materialized = await materializeRecurringSeriesFromBooking(client, booking);
-    if (!materialized.ok || !materialized.materialized || !("seriesId" in materialized)) {
+    const materialized = await materializeRecurringSeriesFromBooking(client, booking, {
+      backend,
+    });
+    if (!materialized.ok || !materialized.materialized) {
       return;
     }
-    await generateRecurringOccurrencesForSeries(client, backend, materialized.seriesId);
+    if (materialized.groupId) {
+      const { listSeriesIdsForGroup } = await import("./recurringScheduleGroupRepository");
+      const seriesIds = await listSeriesIdsForGroup(client, materialized.groupId);
+      for (const seriesId of seriesIds) {
+        await generateRecurringOccurrencesForSeries(client, backend, seriesId);
+      }
+      return;
+    }
+    if ("seriesId" in materialized && materialized.seriesId) {
+      await generateRecurringOccurrencesForSeries(client, backend, materialized.seriesId);
+    }
   } catch {
     // Payment and assignment remain finalized; recurring is best-effort here.
   }

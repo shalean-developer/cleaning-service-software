@@ -9,6 +9,7 @@ import { getAdminRecurringSeriesDetail } from "@/features/recurring/server/admin
 import { AdminRecurringSeriesActions } from "@/components/dashboard/admin/recurring/AdminRecurringSeriesActions";
 import { AdminRecurringSeriesTimeline } from "@/components/dashboard/admin/recurring/AdminRecurringSeriesTimeline";
 import { AdminRecurringRescheduleForm } from "@/components/dashboard/admin/recurring/AdminRecurringRescheduleForm";
+import { AdminRecurringSupportRequestPanel } from "@/components/dashboard/admin/recurring/AdminRecurringSupportRequestPanel";
 
 type PageProps = { params: Promise<{ seriesId: string }> };
 
@@ -44,6 +45,15 @@ export default async function AdminRecurringDetailPage({ params }: PageProps) {
           {s.frequencyLabel} · {s.statusLabel} · {s.priceLabel} per visit
         </p>
       </header>
+
+      {s.openSupportRequest ? (
+        <div className="mt-6">
+          <AdminRecurringSupportRequestPanel
+            seriesId={s.seriesId}
+            request={s.openSupportRequest}
+          />
+        </div>
+      ) : null}
 
       <section className={`mt-6 ${ADMIN_DETAIL_CARD_CLASS} space-y-4 p-5`}>
         <dl className="grid gap-3 text-sm sm:grid-cols-2">

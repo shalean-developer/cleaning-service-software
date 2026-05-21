@@ -74,10 +74,18 @@ async function main() {
     process.exit(1);
   }
 
+  const { data: groupRows, error: groupError } = await client
+    .from("recurring_schedule_groups")
+    .select("id, customer_id, status, frequency, selected_days");
+  if (groupError) {
+    console.error(groupError.message);
+    process.exit(1);
+  }
+
   const { data: bookings, error: bookingsError } = await client
     .from("bookings")
     .select(
-      "id, customer_id, series_id, status, scheduled_start, price_cents, metadata, created_at",
+      "id, customer_id, series_id, status, scheduled_start, price_cents, metadata, created_at, synthetic_anchor",
     )
     .not("series_id", "is", null);
   if (bookingsError) {
@@ -92,6 +100,7 @@ async function main() {
     seriesRows: seriesRows ?? [],
     bookings: bookingList,
     paidBookingIds,
+    groupRows: groupRows ?? [],
   });
 
   const activeSeries = (seriesRows ?? []).filter((s) => s.status === "active");

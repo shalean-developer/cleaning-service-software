@@ -19,13 +19,26 @@ const FILTER_CHIPS: { label: string; patch: Partial<AdminRecurringListQuery> }[]
   { label: "Bi-weekly", patch: { frequency: "biweekly" } },
   { label: "Monthly", patch: { frequency: "monthly" } },
   { label: "Payment required", patch: { paymentRequired: true } },
+  { label: "Overdue unpaid", patch: { overdueUnpaid: true } },
+  { label: "Open requests", patch: { openRequests: true } },
+  { label: "Next 7 days", patch: { nextSevenDays: true } },
 ];
 
 function chipActive(query: AdminRecurringListQuery, patch: Partial<AdminRecurringListQuery>): boolean {
   if (patch.status) return query.status === patch.status;
   if (patch.frequency) return query.frequency === patch.frequency;
   if (patch.paymentRequired) return query.paymentRequired === true;
-  return !query.status && !query.frequency && !query.paymentRequired;
+  if (patch.overdueUnpaid) return query.overdueUnpaid === true;
+  if (patch.openRequests) return query.openRequests === true;
+  if (patch.nextSevenDays) return query.nextSevenDays === true;
+  return (
+    !query.status &&
+    !query.frequency &&
+    !query.paymentRequired &&
+    !query.overdueUnpaid &&
+    !query.openRequests &&
+    !query.nextSevenDays
+  );
 }
 
 export function AdminRecurringToolbar({ query }: Props) {

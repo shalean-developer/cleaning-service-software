@@ -15,6 +15,9 @@ export type InsertBookingSeriesInput = {
   templateMetadata: Json;
   serviceSlug: string;
   priceCents: number;
+  groupId?: string | null;
+  weekday?: number | null;
+  slotLabel?: string | null;
 };
 
 export async function findSeriesByCreatedFromBookingId(
@@ -60,6 +63,9 @@ export async function insertBookingSeries(
     template_metadata: input.templateMetadata,
     service_slug: input.serviceSlug,
     price_cents: input.priceCents,
+    group_id: input.groupId ?? null,
+    weekday: input.weekday ?? null,
+    slot_label: input.slotLabel ?? null,
     created_at: now,
     updated_at: now,
   };

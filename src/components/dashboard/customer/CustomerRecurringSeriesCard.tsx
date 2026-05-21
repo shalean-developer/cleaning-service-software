@@ -16,12 +16,14 @@ export function CustomerRecurringSeriesCard({ item }: Props) {
         </div>
         {item.nextOccurrencePaymentRequired ? (
           <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900">
-            Payment required
+            Pay to confirm
           </span>
         ) : null}
       </div>
       <p className="mt-3 text-sm text-zinc-700">
-        Next visit:{" "}
+        {item.nextOccurrencePaymentRequired
+          ? "Your next recurring visit is ready for payment"
+          : "Next visit:"}{" "}
         <span className="font-medium">{item.nextOccurrenceScheduleLabel ?? "To be scheduled"}</span>
       </p>
       <p className="mt-1 text-xs text-zinc-500">

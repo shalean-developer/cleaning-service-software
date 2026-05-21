@@ -6,7 +6,9 @@ const noop = () => {};
 
 const scheduleFrequencyProps = {
   frequency: "once" as const,
+  recurringDays: [] as number[],
   onFrequencyChange: noop,
+  onRecurringDaysChange: noop,
 };
 
 describe("ScheduleStepPanel", () => {
@@ -137,7 +139,7 @@ describe("ScheduleStepPanel", () => {
         minDate="2026-05-18"
         onDateChange={() => {}}
         onTimeChange={() => {}}
-        onFrequencyChange={() => {}}
+        {...scheduleFrequencyProps}
       />,
     );
 
@@ -161,7 +163,8 @@ describe("ScheduleStepPanel", () => {
         minDate="2026-05-18"
         onDateChange={() => {}}
         onTimeChange={() => {}}
-        onFrequencyChange={() => {}}
+        {...scheduleFrequencyProps}
+        frequency="weekly"
       />,
     );
 
@@ -181,7 +184,8 @@ describe("ScheduleStepPanel", () => {
         minDate="2026-05-18"
         onDateChange={() => {}}
         onTimeChange={() => {}}
-        onFrequencyChange={() => {}}
+        {...scheduleFrequencyProps}
+        frequency="weekly"
       />,
     );
 
@@ -198,7 +202,8 @@ describe("ScheduleStepPanel", () => {
         minDate="2026-05-18"
         onDateChange={() => {}}
         onTimeChange={() => {}}
-        onFrequencyChange={() => {}}
+        {...scheduleFrequencyProps}
+        frequency="weekly"
       />,
     );
 
@@ -215,7 +220,8 @@ describe("ScheduleStepPanel", () => {
         minDate="2026-05-18"
         onDateChange={() => {}}
         onTimeChange={() => {}}
-        onFrequencyChange={() => {}}
+        {...scheduleFrequencyProps}
+        frequency="weekly"
       />,
     );
 
@@ -233,7 +239,8 @@ describe("ScheduleStepPanel", () => {
         minDate="2026-05-18"
         onDateChange={() => {}}
         onTimeChange={() => {}}
-        onFrequencyChange={() => {}}
+        {...scheduleFrequencyProps}
+        frequency="weekly"
       />,
     );
 
@@ -252,7 +259,8 @@ describe("ScheduleStepPanel", () => {
         frequencyError="Invalid frequency."
         onDateChange={() => {}}
         onTimeChange={() => {}}
-        onFrequencyChange={() => {}}
+        {...scheduleFrequencyProps}
+        frequency="once"
       />,
     );
 

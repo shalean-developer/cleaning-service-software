@@ -30,16 +30,26 @@ async function main() {
 
   const { data: seriesRows, error: seriesError } = await client
     .from("booking_series")
-    .select("id, customer_id, status, next_occurrence_at, created_from_booking_id, frequency, updated_at");
+    .select(
+      "id, customer_id, status, next_occurrence_at, created_from_booking_id, frequency, updated_at, group_id, weekday",
+    );
   if (seriesError) {
     console.error(seriesError.message);
+    process.exit(1);
+  }
+
+  const { data: groupRows, error: groupError } = await client
+    .from("recurring_schedule_groups")
+    .select("id, customer_id, status, frequency, selected_days");
+  if (groupError) {
+    console.error(groupError.message);
     process.exit(1);
   }
 
   const { data: bookings, error: bookingsError } = await client
     .from("bookings")
     .select(
-      "id, customer_id, series_id, status, scheduled_start, price_cents, metadata, created_at",
+      "id, customer_id, series_id, status, scheduled_start, price_cents, metadata, created_at, synthetic_anchor",
     );
   if (bookingsError) {
     console.error(bookingsError.message);
@@ -57,6 +67,7 @@ async function main() {
     seriesRows: seriesRows ?? [],
     bookings: bookingList,
     paidBookingIds,
+    groupRows: groupRows ?? [],
   });
 
   const paidStatuses = new Set([

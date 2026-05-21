@@ -171,6 +171,112 @@ export function buildRecurringIntegrityIssues(input) {
     }
   }
 
+  const groupIds = new Set((input.groupRows ?? []).map((g) => g.id));
+  const seriesByGroup = new Map();
+  for (const s of input.seriesRows ?? []) {
+    if (!s.group_id) continue;
+    const list = seriesByGroup.get(s.group_id) ?? [];
+    list.push(s);
+    seriesByGroup.set(s.group_id, list);
+  }
+
+  for (const s of input.seriesRows ?? []) {
+    if (s.group_id && !groupIds.has(s.group_id)) {
+      report("ORPHAN_SERIES_GROUP", "critical", `series ${s.id} missing group ${s.group_id}`, {
+        seriesId: s.id,
+      });
+    }
+  }
+
+  for (const g of input.groupRows ?? []) {
+    const children = seriesByGroup.get(g.id) ?? [];
+    if (children.length === 0) {
+      report("GROUP_NO_ACTIVE_SERIES", "warning", `group ${g.id} has no series`, {
+        seriesId: g.id,
+      });
+    }
+    const weekdays = children.map((c) => c.weekday).filter((w) => w != null);
+    const seen = new Set();
+    for (const w of weekdays) {
+      if (seen.has(w)) {
+        report("GROUP_DUPLICATE_WEEKDAY", "critical", `group ${g.id} duplicate weekday ${w}`, {
+          seriesId: g.id,
+        });
+      }
+      seen.add(w);
+    }
+    if (g.status === "paused" && children.some((c) => c.status === "active")) {
+      report(
+        "GROUP_PAUSED_WITH_ACTIVE_SERIES",
+        "warning",
+        `paused group ${g.id} still has active series`,
+        { seriesId: g.id },
+      );
+    }
+    if (
+      g.status === "cancelled" &&
+      children.some((c) => c.status === "active" || c.status === "paused")
+    ) {
+      report(
+        "GROUP_CANCELLED_WITH_ACTIVE_SERIES",
+        "critical",
+        `cancelled group ${g.id} still has active or paused series`,
+        { seriesId: g.id },
+      );
+    }
+    for (const s of children) {
+      if (s.frequency !== g.frequency) {
+        report("GROUP_FREQUENCY_MISMATCH", "critical", `series ${s.id} freq mismatch group ${g.id}`, {
+          seriesId: s.id,
+        });
+      }
+    }
+  }
+
+  const groupSeriesIds = new Set(
+    (input.seriesRows ?? []).filter((s) => s.group_id).map((s) => s.id),
+  );
+
+  for (const s of input.seriesRows ?? []) {
+    if (!s.group_id) continue;
+    const anchor = (input.bookings ?? []).find((b) => b.id === s.created_from_booking_id);
+    if (anchor && !anchor.series_id) {
+      report(
+        "GROUP_CHILD_MISSING_SERIES_ID",
+        "warning",
+        `group series ${s.id} anchor booking ${anchor.id} missing series_id`,
+        { seriesId: s.id, bookingId: anchor.id },
+      );
+    }
+  }
+
+  for (const b of input.bookings ?? []) {
+    if (b.synthetic_anchor === true && b.series_id && groupSeriesIds.has(b.series_id)) {
+      report(
+        "SYNTHETIC_ANCHOR_IN_CHILD_TIMELINE",
+        "critical",
+        `booking ${b.id} synthetic_anchor under group series ${b.series_id}`,
+        { bookingId: b.id, seriesId: b.series_id },
+      );
+    }
+    if (
+      b.series_id &&
+      groupSeriesIds.has(b.series_id) &&
+      CLEANER_VISIBLE.has(b.status) &&
+      !input.paidBookingIds.has(b.id)
+    ) {
+      const meta = b.metadata ?? {};
+      if (meta.recurring?.generated === true) {
+        report(
+          "UNPAID_GROUP_CHILD_CLEANER_VISIBLE",
+          "critical",
+          `group child booking ${b.id} cleaner-visible without payment`,
+          { bookingId: b.id, seriesId: b.series_id },
+        );
+      }
+    }
+  }
+
   return issues;
 }
 

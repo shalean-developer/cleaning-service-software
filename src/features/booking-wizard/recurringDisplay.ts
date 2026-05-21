@@ -13,6 +13,7 @@ import {
   isPreferredCadenceFrequency,
   PREFERRED_SCHEDULE_PAYMENT_EXPLANATION,
 } from "./preferredScheduleCopy";
+import { buildRecurringScheduleReviewLine } from "./recurringDaysWizard";
 
 export {
   isPreferredCadenceFrequency,
@@ -42,7 +43,15 @@ export function getRecurringScheduleExplanation(
 export function getRecurringScheduleReviewNote(
   frequency: PricingFrequency,
   serviceSlug: ServiceSlug | null = null,
+  options?: { selectedDays?: number[]; time?: string },
 ): string | null {
+  const multiDayLine = buildRecurringScheduleReviewLine({
+    frequency,
+    selectedDays: options?.selectedDays ?? [],
+    time: options?.time ?? "",
+  });
+  if (multiDayLine) return multiDayLine;
+
   const moving = getMovingCleaningReviewCopy(serviceSlug);
   if (moving) return moving.recurringScheduleReviewNote(frequency);
   const carpet = getCarpetCleaningReviewCopy(serviceSlug);

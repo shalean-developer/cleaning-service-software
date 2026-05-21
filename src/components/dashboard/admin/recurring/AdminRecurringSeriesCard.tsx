@@ -27,9 +27,19 @@ export function AdminRecurringSeriesCard({ item }: Props) {
           >
             {item.statusLabel}
           </span>
+          {item.openSupportRequest ? (
+            <span className="inline-flex rounded-full bg-violet-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-900">
+              {item.openSupportRequest.requestTypeLabel} request
+            </span>
+          ) : null}
           {item.nextOccurrencePaymentRequired ? (
             <span className="inline-flex rounded-full bg-orange-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-900">
               Payment required
+            </span>
+          ) : null}
+          {item.hasOverdueUnpaidChild ? (
+            <span className="inline-flex rounded-full bg-red-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-900">
+              Overdue payment
             </span>
           ) : null}
         </div>
@@ -45,6 +55,36 @@ export function AdminRecurringSeriesCard({ item }: Props) {
         {item.suburb ? <span>{item.suburb}</span> : null}
       </div>
       <div className="border-t border-slate-100 px-4 py-3 sm:px-5">
+        <div className="flex flex-wrap gap-3 text-xs">
+          <Link
+            href={`/admin/customers/${item.customerId}`}
+            className="font-medium text-blue-700 hover:text-blue-900"
+          >
+            Customer
+          </Link>
+          {item.nextOccurrenceBookingId ? (
+            <Link
+              href={`/admin/bookings/${item.nextOccurrenceBookingId}`}
+              className="font-medium text-blue-700 hover:text-blue-900"
+            >
+              Payment visit
+            </Link>
+          ) : null}
+          {item.latestChildBookingId ? (
+            <Link
+              href={`/admin/bookings/${item.latestChildBookingId}`}
+              className="font-medium text-blue-700 hover:text-blue-900"
+            >
+              Latest booking
+            </Link>
+          ) : null}
+          <Link
+            href="/admin/recurring/health"
+            className="font-medium text-blue-700 hover:text-blue-900"
+          >
+            Health
+          </Link>
+        </div>
         <AdminRecurringSeriesActions seriesId={item.seriesId} actions={item.actions} compact />
         <p className="mt-2">
           <Link

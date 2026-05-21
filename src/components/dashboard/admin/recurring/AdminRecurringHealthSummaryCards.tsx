@@ -1,4 +1,7 @@
-import type { RecurringHealthSummary } from "@/features/recurring/server/recurringHealthTypes";
+import type {
+  LaunchReadinessLevel,
+  RecurringHealthSummary,
+} from "@/features/recurring/server/recurringHealthTypes";
 import { AdminMetricCard } from "@/components/dashboard/admin/overview/AdminMetricCard";
 import { ADMIN_OVERVIEW_SNAPSHOT_SHELL_CLASS } from "@/components/dashboard/admin/overview/adminOverviewStyles";
 import {
@@ -12,6 +15,12 @@ import {
 
 type Props = { summary: RecurringHealthSummary };
 
+function launchFooter(level: LaunchReadinessLevel): string {
+  if (level === "green") return "Launch safe";
+  if (level === "amber") return "Watch — review warnings";
+  return "Blocker — do not launch";
+}
+
 function statusFooter(status: RecurringHealthSummary["overallStatus"]): string {
   if (status === "healthy") return "No critical alerts";
   if (status === "warning") return "Review warnings below";
@@ -22,6 +31,15 @@ export function AdminRecurringHealthSummaryCards({ summary }: Props) {
   return (
     <section className={ADMIN_OVERVIEW_SNAPSHOT_SHELL_CLASS} aria-label="Recurring health summary">
       <ul className="grid list-none gap-4 p-0 sm:grid-cols-2 xl:grid-cols-4">
+        <li className="sm:col-span-2 xl:col-span-4">
+          <AdminMetricCard
+            label="Launch readiness"
+            value={summary.launchReadiness.toUpperCase()}
+            footer={launchFooter(summary.launchReadiness)}
+            icon={summary.launchReadiness === "green" ? Repeat : AlertTriangle}
+            emphasize={summary.launchReadiness === "red"}
+          />
+        </li>
         <li>
           <AdminMetricCard
             label="Active series"
@@ -84,9 +102,41 @@ export function AdminRecurringHealthSummaryCards({ summary }: Props) {
         </li>
         <li>
           <AdminMetricCard
-            label="Overall"
+            label="Open requests"
+            value={String(summary.openSupportRequestsCount)}
+            footer="Customer pause / cancel / reschedule"
+            icon={AlertTriangle}
+          />
+        </li>
+        <li>
+          <AdminMetricCard
+            label="Cleaner visibility risk"
+            value={String(summary.cleanerVisibilityRiskCount)}
+            footer="Unpaid children visible to cleaners"
+            icon={XCircle}
+          />
+        </li>
+        <li>
+          <AdminMetricCard
+            label="Cron last run"
+            value={
+              summary.cronLastRunAgeHours != null
+                ? `${summary.cronLastRunAgeHours}h`
+                : "—"
+            }
+            footer={
+              summary.cronLastRunStatus
+                ? `Status: ${summary.cronLastRunStatus}`
+                : "No run logged"
+            }
+            icon={CalendarClock}
+          />
+        </li>
+        <li>
+          <AdminMetricCard
+            label="Overall alerts"
             value={summary.overallStatus.toUpperCase()}
-            footer="PASS / WARN / FAIL from alert rules"
+            footer={statusFooter(summary.overallStatus)}
             icon={summary.overallStatus === "healthy" ? Repeat : AlertTriangle}
           />
         </li>

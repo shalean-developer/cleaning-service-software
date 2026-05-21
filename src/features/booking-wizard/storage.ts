@@ -26,6 +26,7 @@ const PERSIST_KEYS: (keyof BookingWizardState)[] = [
   "officeSizeTier",
   "officeWorkstations",
   "frequency",
+  "recurringDays",
   "addons",
   "carpetStainSeverity",
   "carpetPetStains",

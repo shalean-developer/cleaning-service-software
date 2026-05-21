@@ -2,7 +2,7 @@ import type { PricingFrequency } from "@/features/pricing/server/types";
 
 /** Customer-facing payment note when cadence is not once-off (first booking only). */
 export const PREFERRED_SCHEDULE_PAYMENT_EXPLANATION =
-  "Today's payment covers this visit only. We'll help arrange follow-up visits after your first booking.";
+  "Your first payment confirms your first visit only. Future recurring visits are paid individually.";
 
 /** Wizard step section title for cadence selection (regular / default). */
 export const PREFERRED_SCHEDULE_SECTION_TITLE = "Preferred cleaning schedule";

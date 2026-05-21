@@ -34,6 +34,7 @@ export const BOOKING_COMMAND_TYPES = [
   "RECORD_ASSIGNMENT_OFFER_EXPIRED",
   "EXPIRE_ASSIGNMENT_OFFER",
   "CREATE_RECURRING_OCCURRENCE",
+  "CREATE_SYNTHETIC_SERIES_ANCHOR",
 ] as const;
 
 export type BookingCommandType = (typeof BOOKING_COMMAND_TYPES)[number];
@@ -210,6 +211,18 @@ export type CreateRecurringOccurrenceCommand = BaseCommand & {
   idempotencyKey: string;
 };
 
+/** System/service — cadence anchor only; cancelled + synthetic_anchor, never dispatched. */
+export type CreateSyntheticSeriesAnchorCommand = BaseCommand & {
+  type: "CREATE_SYNTHETIC_SERIES_ANCHOR";
+  customerId: string;
+  scheduledStart: string;
+  scheduledEnd: string;
+  priceCents: number;
+  currency?: string;
+  metadata?: Record<string, unknown>;
+  idempotencyKey: string;
+};
+
 export type BookingCommand =
   | CreateBookingDraftCommand
   | MarkPaymentPendingCommand
@@ -231,7 +244,8 @@ export type BookingCommand =
   | RecordAssignmentAttentionCommand
   | RecordAssignmentOfferExpiredCommand
   | ExpireAssignmentOfferCommand
-  | CreateRecurringOccurrenceCommand;
+  | CreateRecurringOccurrenceCommand
+  | CreateSyntheticSeriesAnchorCommand;
 
 export type BookingCommandErrorCode =
   | "FORBIDDEN"

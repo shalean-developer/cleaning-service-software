@@ -22,6 +22,7 @@ import {
   resolveScheduleDateTimeValidationMessageForBounds,
 } from "./bookingWindowConfig";
 import { buildWizardSlot, isSlotInPast } from "./slot";
+import { validateRecurringDays } from "./recurringDaysWizard";
 
 function result(valid: boolean, errors: Record<string, string> = {}): StepValidationResult {
   return { valid, errors };
@@ -68,6 +69,11 @@ export function validateDateTimeStep(
     } else if (isSlotInPast(state.date, state.time)) {
       errors.date = "Choose a future date and time (Africa/Johannesburg).";
     }
+  }
+
+  const recurringDaysError = validateRecurringDays(state.frequency, state.recurringDays);
+  if (recurringDaysError) {
+    errors.recurringDays = recurringDaysError;
   }
 
   return result(Object.keys(errors).length === 0, errors);

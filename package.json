@@ -29,6 +29,7 @@
     "ops:audit:admin-overview": "node scripts/ops/audit-admin-overview-page.mjs",
     "ops:audit:clear-operational-data": "node scripts/ops/audit-clear-operational-data.mjs",
     "ops:audit:recurring-bookings": "node scripts/ops/audit-recurring-bookings.mjs",
+    "ops:audit:recurring-launch": "node scripts/ops/audit-recurring-launch-readiness.mjs",
     "ops:audit:recurring-dashboard": "node scripts/ops/audit-recurring-dashboard-read-model.mjs",
     "ops:soak:recurring-bookings": "node scripts/ops/soak-recurring-bookings.mjs",
     "ops:repair:recurring-series": "node scripts/ops/repair-recurring-series-backfill.mjs",

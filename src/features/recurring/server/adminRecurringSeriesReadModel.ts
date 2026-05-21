@@ -18,6 +18,7 @@ import {
   resolveSeriesActionsAllowed,
 } from "./recurringSeriesHelpers";
 import type {
+  AdminRecurringScheduleGroupListItem,
   AdminRecurringSeriesDetail,
   AdminRecurringSeriesDetailResult,
   AdminRecurringSeriesListItem,
@@ -25,7 +26,14 @@ import type {
   AdminRecurringListQuery,
   AdminRecurringSeriesSummary,
 } from "./recurringManagementTypes";
+import { formatSelectedDaysShort } from "../recurringScheduleDays";
+import type { RecurringScheduleGroupRow } from "@/lib/database/types";
 import { ARCHIVED_CUSTOMER_LABEL } from "./recurringReadModelLabels";
+import {
+  countOpenRecurringSeriesRequests,
+  loadLatestRequestForSeries,
+  loadOpenRequestsBySeriesIds,
+} from "./recurringSeriesRequestsService";
 
 function archivedCustomerFallback(customerId: string): {
   name: string;
@@ -54,6 +62,7 @@ function isSupabaseReadBlocked(error: { code?: string; message?: string } | null
 export type { AdminRecurringListQuery } from "./recurringManagementTypes";
 
 const MS_PER_DAY = 86_400_000;
+const OVERDUE_PAYMENT_MS = 48 * 60 * 60 * 1000;
 
 async function loadCustomerLabels(
   client: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
@@ -114,6 +123,21 @@ async function loadSeriesBookings(
   return data ?? [];
 }
 
+function toRequestBadge(
+  open: Awaited<ReturnType<typeof loadLatestRequestForSeries>>,
+): import("./recurringManagementTypes").RecurringSeriesRequestBadge | null {
+  if (!open || (open.status !== "open" && open.status !== "acknowledged")) return null;
+  return {
+    id: open.id,
+    requestType: open.requestType,
+    requestTypeLabel: open.requestTypeLabel,
+    status: open.status,
+    statusLabel: open.statusLabel,
+    createdAt: open.createdAt,
+    note: open.note,
+  };
+}
+
 async function loadPaymentsForBookings(
   client: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
   bookingIds: string[],
@@ -172,6 +196,31 @@ function resolveNextOccurrenceContext(
   return { nextOccurrenceBookingId: null, nextOccurrencePaymentRequired: false };
 }
 
+function seriesHasOverdueUnpaidChild(
+  seriesId: string,
+  bookings: Array<{
+    id: string;
+    status: string;
+    scheduled_start: string;
+    series_id: string | null;
+    created_at?: string;
+    metadata?: unknown;
+  }>,
+  nowMs: number,
+): boolean {
+  return bookings.some((b) => {
+    if (b.series_id !== seriesId) return false;
+    if (!isPaymentRequiredStatus(b.status as import("@/features/bookings/server/types").BookingStatus)) {
+      return false;
+    }
+    const meta = (b.metadata ?? {}) as Record<string, unknown>;
+    const recurring = meta.recurring as Record<string, unknown> | undefined;
+    if (recurring?.generated !== true) return false;
+    if (!b.created_at) return false;
+    return nowMs - new Date(b.created_at).getTime() > OVERDUE_PAYMENT_MS;
+  });
+}
+
 function mapListItem(
   series: BookingSeriesRow,
   bookings: Array<{
@@ -179,8 +228,12 @@ function mapListItem(
     status: string;
     scheduled_start: string;
     series_id: string | null;
+    created_at?: string;
+    metadata?: unknown;
   }>,
   customer: { name: string; email: string | null; phone: string | null },
+  openRequest: import("./recurringManagementTypes").RecurringSeriesRequestBadge | null,
+  nowMs: number,
 ): AdminRecurringSeriesListItem {
   const seriesBookings = bookings.filter((b) => b.series_id === series.id);
   const location = parseSeriesLocation(series.template_metadata);
@@ -219,6 +272,8 @@ function mapListItem(
     createdFromBookingId: series.created_from_booking_id,
     createdAt: series.created_at,
     latestChildBookingId: latestChild?.id ?? null,
+    hasOverdueUnpaidChild: seriesHasOverdueUnpaidChild(series.id, bookings, nowMs),
+    openSupportRequest: openRequest,
     actions: resolveSeriesActionsAllowed({
       status: series.status,
       nextOccurrencePaymentRequired: nextCtx.nextOccurrencePaymentRequired,
@@ -242,11 +297,20 @@ function matchesSearch(item: AdminRecurringSeriesListItem, search: string): bool
 
 function computeSummary(
   items: AdminRecurringSeriesListItem[],
-  allBookings: Array<{ series_id: string | null; scheduled_start: string; status: string }>,
+  allBookings: Array<{
+    series_id: string | null;
+    scheduled_start: string;
+    status: string;
+    created_at?: string;
+    metadata?: unknown;
+  }>,
   now: Date,
+  openSupportRequestsCount: number,
 ): AdminRecurringSeriesSummary {
   const horizon = now.getTime() + 7 * MS_PER_DAY;
+  const nowMs = now.getTime();
   let paymentRequiredChildrenCount = 0;
+  let overdueUnpaidChildrenCount = 0;
   let nextSevenDaysCount = 0;
 
   for (const b of allBookings) {
@@ -257,6 +321,15 @@ function computeSummary(
       )
     ) {
       paymentRequiredChildrenCount += 1;
+      const meta = (b.metadata ?? {}) as Record<string, unknown>;
+      const recurring = meta.recurring as Record<string, unknown> | undefined;
+      if (
+        recurring?.generated === true &&
+        b.created_at &&
+        nowMs - new Date(b.created_at).getTime() > OVERDUE_PAYMENT_MS
+      ) {
+        overdueUnpaidChildrenCount += 1;
+      }
     }
     if (new Date(b.scheduled_start).getTime() <= horizon) {
       nextSevenDaysCount += 1;
@@ -267,8 +340,24 @@ function computeSummary(
     activeCount: items.filter((s) => s.status === "active").length,
     pausedCount: items.filter((s) => s.status === "paused").length,
     paymentRequiredChildrenCount,
+    overdueUnpaidChildrenCount,
+    openSupportRequestsCount,
     nextSevenDaysCount,
   };
+}
+
+function seriesInNextSevenDays(
+  series: BookingSeriesRow,
+  bookings: Array<{ series_id: string | null; scheduled_start: string }>,
+  nowMs: number,
+): boolean {
+  const horizon = nowMs + 7 * MS_PER_DAY;
+  return bookings.some(
+    (b) =>
+      b.series_id === series.id &&
+      new Date(b.scheduled_start).getTime() >= nowMs &&
+      new Date(b.scheduled_start).getTime() <= horizon,
+  );
 }
 
 export async function listAdminRecurringSeries(
@@ -313,29 +402,108 @@ export async function listAdminRecurringSeries(
 
     const seriesList = (seriesRows ?? []) as BookingSeriesRow[];
     const seriesIds = seriesList.map((s) => s.id);
-    const bookings = await loadSeriesBookings(client, seriesIds);
+    const allSeriesBookings = await loadSeriesBookings(client, seriesIds);
+
     const customerMap = await loadCustomerLabels(
       client,
       [...new Set(seriesList.map((s) => s.customer_id))],
     );
+    const openRequestsMap = await loadOpenRequestsBySeriesIds(client, seriesIds);
+    const now = new Date();
+    const nowMs = now.getTime();
+    const openSupportRequestsCount = await countOpenRecurringSeriesRequests(client);
 
-    let items = seriesList.map((s) =>
-      mapListItem(
+    let items = seriesList.map((s) => {
+      const open = openRequestsMap.get(s.id);
+      return mapListItem(
         s,
-        bookings,
+        allSeriesBookings,
         customerMap.get(s.customer_id) ?? archivedCustomerFallback(s.customer_id),
-      ),
-    );
+        open
+          ? {
+              id: open.id,
+              requestType: open.requestType,
+              requestTypeLabel: open.requestTypeLabel,
+              status: open.status,
+              statusLabel: open.statusLabel,
+              createdAt: open.createdAt,
+              note: open.note,
+            }
+          : null,
+        nowMs,
+      );
+    });
 
     if (query.paymentRequired) {
       items = items.filter((i) => i.nextOccurrencePaymentRequired);
+    }
+    if (query.overdueUnpaid) {
+      items = items.filter((i) => i.hasOverdueUnpaidChild);
+    }
+    if (query.openRequests) {
+      items = items.filter((i) => i.openSupportRequest != null);
+    }
+    if (query.nextSevenDays) {
+      items = items.filter((i) => {
+        const series = seriesList.find((s) => s.id === i.seriesId);
+        return series ? seriesInNextSevenDays(series, allSeriesBookings, nowMs) : false;
+      });
     }
     if (query.search?.trim()) {
       items = items.filter((i) => matchesSearch(i, query.search!));
     }
 
-    const summary = computeSummary(items, bookings, new Date());
-    return { ok: true, summary, series: items };
+    const summary = computeSummary(items, allSeriesBookings, now, openSupportRequestsCount);
+
+    const groupIds = [
+      ...new Set(
+        seriesList.map((s) => s.group_id).filter((id): id is string => Boolean(id)),
+      ),
+    ];
+    const groups: AdminRecurringScheduleGroupListItem[] = [];
+    const seriesInGroups = new Set<string>();
+
+    if (groupIds.length > 0) {
+      const { data: groupRows, error: groupError } = await client
+        .from("recurring_schedule_groups")
+        .select("*")
+        .in("id", groupIds);
+      if (groupError) throw new Error(groupError.message);
+
+      for (const group of (groupRows ?? []) as RecurringScheduleGroupRow[]) {
+        const groupSeriesItems = items.filter((i) => {
+          const row = seriesList.find((s) => s.id === i.seriesId);
+          return row?.group_id === group.id;
+        });
+        for (const item of groupSeriesItems) seriesInGroups.add(item.seriesId);
+        if (groupSeriesItems.length === 0) continue;
+        const first = groupSeriesItems[0]!;
+        groups.push({
+          groupId: group.id,
+          frequency: group.frequency,
+          frequencyLabel: recurringFrequencyLabel(group.frequency),
+          status: group.status,
+          statusLabel: recurringSeriesStatusLabel(group.status),
+          serviceLabel: serviceLabelFromSlug(group.service_slug),
+          selectedDaysLabel: formatSelectedDaysShort(group.selected_days),
+          activeSeriesCount: groupSeriesItems.filter((s) => s.status === "active").length,
+          totalUnpaidChildren: groupSeriesItems.reduce(
+            (n, s) => n + (s.nextOccurrencePaymentRequired ? 1 : 0),
+            0,
+          ),
+          customerId: group.customer_id,
+          customerName: first.customerName,
+          customerEmail: first.customerEmail,
+          customerPhone: first.customerPhone,
+          suburb: first.suburb,
+          addressSummary: first.addressSummary,
+          series: groupSeriesItems,
+        });
+      }
+    }
+
+    const standaloneSeries = items.filter((i) => !seriesInGroups.has(i.seriesId));
+    return { ok: true, summary, groups, standaloneSeries, series: items };
   } catch (e) {
     return {
       ok: false,
@@ -383,10 +551,14 @@ export async function getAdminRecurringSeriesDetail(
     const paymentsByBooking = findLatestPaymentByBooking(payments);
 
     const customerMap = await loadCustomerLabels(client, [row.customer_id]);
+    const latestRequest = await loadLatestRequestForSeries(client, seriesId);
+    const nowMs = Date.now();
     const base = mapListItem(
       row,
       bookings ?? [],
       customerMap.get(row.customer_id) ?? archivedCustomerFallback(row.customer_id),
+      toRequestBadge(latestRequest),
+      nowMs,
     );
 
     const { data: audits } = await client

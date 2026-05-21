@@ -182,6 +182,7 @@ export async function executeBookingCommand(
           price_cents: cmd.priceCents,
           currency: cmd.currency ?? "USD",
           series_id: null,
+          synthetic_anchor: false,
           metadata: (cmd.metadata ?? {}) as BookingRow["metadata"],
           created_at: ts,
           updated_at: ts,
@@ -993,6 +994,7 @@ export async function executeBookingCommand(
           price_cents: cmd.priceCents,
           currency: cmd.currency ?? "ZAR",
           series_id: cmd.seriesId,
+          synthetic_anchor: false,
           metadata: {
             ...cmd.metadata,
             recurring: {
@@ -1012,6 +1014,50 @@ export async function executeBookingCommand(
           return fail("PERSISTENCE_ERROR", "Recurring occurrence already exists for this slot.");
         }
         return fail("PERSISTENCE_ERROR", "Could not create recurring occurrence.");
+      }
+    }
+
+    case "CREATE_SYNTHETIC_SERIES_ANCHOR": {
+      if (!cmd.idempotencyKey?.trim()) {
+        return fail(
+          "IDEMPOTENCY_REQUIRED",
+          "CREATE_SYNTHETIC_SERIES_ANCHOR requires idempotencyKey.",
+        );
+      }
+      const bid = crypto.randomUUID();
+      const ts = new Date().toISOString();
+      try {
+        await backend.insertBooking({
+          id: bid,
+          customer_id: cmd.customerId,
+          cleaner_id: null,
+          service_id: null,
+          status: "cancelled",
+          scheduled_start: cmd.scheduledStart,
+          scheduled_end: cmd.scheduledEnd,
+          assignment_dispatch_at: null,
+          price_cents: cmd.priceCents,
+          currency: cmd.currency ?? "ZAR",
+          series_id: null,
+          synthetic_anchor: true,
+          metadata: {
+            ...(cmd.metadata ?? {}),
+            recurring: {
+              syntheticAnchor: true,
+              occurrenceKey: cmd.idempotencyKey,
+            },
+          } as BookingRow["metadata"],
+          created_at: ts,
+          updated_at: ts,
+        });
+        await backend.appendAudit(cmd, bid, null, "cancelled");
+        return ok(bid, "cancelled", false);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Could not create synthetic series anchor.";
+        if (msg.toLowerCase().includes("duplicate") || msg.includes("23505")) {
+          return fail("PERSISTENCE_ERROR", "Synthetic anchor already exists for this slot.");
+        }
+        return fail("PERSISTENCE_ERROR", "Could not create synthetic series anchor.");
       }
     }
 

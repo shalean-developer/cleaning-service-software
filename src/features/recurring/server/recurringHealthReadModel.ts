@@ -9,6 +9,13 @@ import {
   deriveOverallRecurringHealth,
   RECURRING_HEALTH_CONSTANTS,
 } from "./recurringIntegrityChecks";
+import { countOpenRecurringSeriesRequests } from "./recurringSeriesRequestsService";
+import {
+  cronRunAgeWarning,
+  deriveLaunchReadinessLevel,
+  evaluateRequiredEnvForLaunch,
+  RECURRING_LAUNCH_REQUIRED_ENV,
+} from "./recurringLaunchReadiness";
 import type {
   RecurringHealthReadModel,
   RecurringHealthSummary,
@@ -59,7 +66,7 @@ export async function loadRecurringHealthReadModel(
   const { data: seriesRows, error: seriesError } = await client
     .from("booking_series")
     .select(
-      "id, customer_id, status, frequency, next_occurrence_at, created_from_booking_id, updated_at, anchor_scheduled_start",
+      "id, customer_id, status, frequency, next_occurrence_at, created_from_booking_id, updated_at, anchor_scheduled_start, group_id, weekday",
     )
     .order("updated_at", { ascending: false })
     .limit(RECURRING_HEALTH_CONSTANTS.MAX_SERIES_ROWS);
@@ -135,12 +142,23 @@ export async function loadRecurringHealthReadModel(
     created_at: b.created_at as string,
   }));
 
-  const alerts = buildRecurringIntegrityAlerts({
-    seriesRows: series,
-    bookings: bookingsForIntegrity,
-    paidBookingIds,
-    nowMs,
-  });
+  const { data: groupRows } = await client
+    .from("recurring_schedule_groups")
+    .select("id, customer_id, status, frequency, selected_days, anchor_booking_id")
+    .limit(RECURRING_HEALTH_CONSTANTS.MAX_SERIES_ROWS);
+
+  const alerts = [
+    ...buildRecurringIntegrityAlerts({
+      seriesRows: series,
+      bookings: bookingsForIntegrity,
+      paidBookingIds,
+      nowMs,
+    }),
+    ...(await import("./recurringGroupIntegrityChecks")).buildRecurringGroupIntegrityAlerts({
+      groups: (groupRows ?? []) as import("@/lib/database/types").RecurringScheduleGroupRow[],
+      seriesRows: series,
+    }),
+  ];
 
   const staleNextOccurrenceCount = series.filter(
     (s) =>
@@ -152,6 +170,49 @@ export async function loadRecurringHealthReadModel(
   const paymentRequiredChildrenCount = (unpaidBookings ?? []).length;
   const overdueUnpaidChildrenCount = alerts.filter((a) => a.code === "OVERDUE_PAYMENT_REQUIRED").length;
   const failedGenerationRiskCount = staleNextOccurrenceCount + alerts.filter((a) => a.code === "PAUSED_SERIES_NEW_CHILD").length;
+  const cleanerVisibilityRiskCount = alerts.filter(
+    (a) => a.code === "UNPAID_CHILD_CLEANER_VISIBLE",
+  ).length;
+  const openSupportRequestsCount = await countOpenRecurringSeriesRequests(client);
+
+  const latestRun = (runRows ?? [])[0];
+  const cronLastRunAgeHours = latestRun?.completed_at
+    ? Math.round((nowMs - new Date(latestRun.completed_at as string).getTime()) / (60 * 60 * 1000))
+    : null;
+
+  const envReadiness = RECURRING_LAUNCH_REQUIRED_ENV.map((key) => ({
+    key,
+    ok: Boolean(process.env[key]?.trim()),
+  }));
+  const missingRequiredEnv = envReadiness.some((e) => !e.ok);
+  const hasCriticalAlerts = alerts.some((a) => a.severity === "critical");
+  const hasWarnings = alerts.some((a) => a.severity === "warning");
+  const launchReadiness = deriveLaunchReadinessLevel({
+    hasCriticalAlerts: hasCriticalAlerts || cleanerVisibilityRiskCount > 0,
+    hasWarnings: hasWarnings || (cronRunAgeWarning(cronLastRunAgeHours)?.level === "WARN"),
+    missingRequiredEnv,
+  });
+
+  const launchBlockers: string[] = [];
+  const launchRecommendations: string[] = [];
+  for (const e of evaluateRequiredEnvForLaunch(process.env)) {
+    launchBlockers.push(e.message);
+  }
+  for (const a of alerts.filter((x) => x.severity === "critical")) {
+    launchBlockers.push(`${a.code}: ${a.message}`);
+  }
+  const cronWarn = cronRunAgeWarning(cronLastRunAgeHours);
+  if (cronWarn) launchRecommendations.push(cronWarn.message);
+  if (openSupportRequestsCount > 0) {
+    launchRecommendations.push(
+      `${openSupportRequestsCount} open customer recurring request(s) need admin action.`,
+    );
+  }
+  if (overdueUnpaidChildrenCount > 0) {
+    launchRecommendations.push(
+      `${overdueUnpaidChildrenCount} overdue unpaid recurring visit(s) need payment follow-up.`,
+    );
+  }
 
   const summary: RecurringHealthSummary = {
     activeSeriesCount: statusCounts.active,
@@ -168,6 +229,13 @@ export async function loadRecurringHealthReadModel(
     failedGenerationRiskCount,
     auditIssuesCount: alerts.length,
     overallStatus: deriveOverallRecurringHealth(alerts),
+    launchReadiness,
+    openSupportRequestsCount,
+    cleanerVisibilityRiskCount,
+    cronLastRunAgeHours,
+    cronLastRunStatus: (latestRun?.status as string) ?? null,
+    rlsVisibilityStatus: seriesError ? "warn" : "ok",
+    envReadiness,
   };
 
   const childCountBySeries = new Map<string, number>();
@@ -238,6 +306,8 @@ export async function loadRecurringHealthReadModel(
     ok: true,
     model: {
       generatedAt: now.toISOString(),
+      launchBlockers,
+      launchRecommendations,
       summary,
       alerts,
       seriesHealth,

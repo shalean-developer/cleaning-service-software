@@ -14,10 +14,15 @@ import {
   readSeriesFrequencyFromBookingMetadata,
   readServiceSlugFromBookingMetadata,
 } from "./readBookingCadence";
+import {
+  readSelectedDaysFromBookingMetadata,
+  weekdayFromJohannesburgInstant,
+} from "./recurringScheduleDays";
+import { materializeRecurringScheduleGroupFromBooking } from "./materializeRecurringScheduleGroup";
 
 export type MaterializeRecurringSeriesResult =
-  | { ok: true; materialized: false; reason: "once_off" | "already_linked" | "series_exists" }
-  | { ok: true; materialized: true; seriesId: string; idempotent: boolean }
+  | { ok: true; materialized: false; reason: "once_off" | "already_linked" | "series_exists" | "schedule_group" }
+  | { ok: true; materialized: true; seriesId: string; idempotent: boolean; groupId?: string }
   | { ok: false; code: "INVALID_METADATA" | "PERSISTENCE_ERROR"; message: string };
 
 /**
@@ -27,9 +32,33 @@ export type MaterializeRecurringSeriesResult =
 export async function materializeRecurringSeriesFromBooking(
   client: SupabaseClient<Database>,
   booking: BookingRow,
+  options?: { backend?: import("@/features/bookings/server/commands/bookingCommandBackend").BookingCommandBackend },
 ): Promise<MaterializeRecurringSeriesResult> {
   if (booking.series_id) {
     return { ok: true, materialized: false, reason: "already_linked" };
+  }
+
+  if (options?.backend) {
+    const groupAttempt = await materializeRecurringScheduleGroupFromBooking(
+      client,
+      options.backend,
+      booking,
+    );
+    if (groupAttempt.ok && groupAttempt.materialized) {
+      return {
+        ok: true,
+        materialized: true,
+        seriesId: groupAttempt.seriesIds[0] ?? "",
+        idempotent: groupAttempt.idempotent,
+        groupId: groupAttempt.groupId,
+      };
+    }
+    if (groupAttempt.ok && !groupAttempt.materialized && groupAttempt.reason !== "not_multi_day") {
+      return { ok: true, materialized: false, reason: "schedule_group" };
+    }
+    if (!groupAttempt.ok) {
+      return { ok: false, code: groupAttempt.code, message: groupAttempt.message };
+    }
   }
 
   const existing = await findSeriesByCreatedFromBookingId(client, booking.id);
@@ -54,6 +83,9 @@ export async function materializeRecurringSeriesFromBooking(
 
   const userId = await resolveCustomerProfileId(client, booking.customer_id);
   const nextOccurrenceAt = computeNextOccurrenceAfter(frequency, booking.scheduled_start);
+  const selectedDays = readSelectedDaysFromBookingMetadata(booking.metadata);
+  const weekday =
+    selectedDays?.[0] ?? weekdayFromJohannesburgInstant(booking.scheduled_start);
 
   const templateMetadata = {
     ...(booking.metadata != null &&
@@ -76,6 +108,8 @@ export async function materializeRecurringSeriesFromBooking(
       templateMetadata,
       serviceSlug,
       priceCents: booking.price_cents,
+      weekday,
+      slotLabel: frequency === "monthly" ? null : undefined,
     });
     await linkBookingToSeries(client, booking.id, series.id);
     return { ok: true, materialized: true, seriesId: series.id, idempotent: false };

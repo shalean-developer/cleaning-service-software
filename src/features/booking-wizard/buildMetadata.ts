@@ -87,5 +87,15 @@ export function buildWizardBookingMetadata(
       state.cleanerPreferenceMode === "selected" ? state.selectedCleanerId : null,
     cleanerPreferenceMode: state.cleanerPreferenceMode,
     timezone: "Africa/Johannesburg",
+    ...(state.frequency === "weekly" || state.frequency === "biweekly"
+      ? {
+          recurringSchedule: {
+            selectedDays:
+              state.recurringDays.length > 0
+                ? state.recurringDays
+                : undefined,
+          },
+        }
+      : {}),
   };
 }

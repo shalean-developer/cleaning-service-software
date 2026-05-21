@@ -16,7 +16,7 @@ function daysInMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month, 0)).getUTCDate();
 }
 
-function parseJohannesburgParts(instant: Date): JohannesburgParts {
+export function parseJohannesburgParts(instant: Date): JohannesburgParts {
   const formatter = new Intl.DateTimeFormat("en-GB", {
     timeZone: WIZARD_TIMEZONE,
     year: "numeric",

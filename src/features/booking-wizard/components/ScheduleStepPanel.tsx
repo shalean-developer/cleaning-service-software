@@ -40,13 +40,19 @@ import {
 } from "../wizardSelection";
 import { showFrequencyForService } from "../frequencyVisibility";
 import { FrequencyStepPanel } from "./FrequencyStepPanel";
+import { RecurringDaysSelector } from "./RecurringDaysSelector";
 import { WizardStepHeading } from "./WizardStepHeading";
+import {
+  defaultRecurringDaysForDate,
+  showRecurringDaysSelector,
+} from "../recurringDaysWizard";
 
 type Props = {
   serviceSlug?: ServiceSlug | null;
   date: string;
   time: string;
   frequency: PricingFrequency;
+  recurringDays: number[];
   minDate: string;
   /** When set, matches server lock validation (from GET /api/booking/window-bounds). */
   bookingBounds?: BookingWindowBounds | null;
@@ -54,9 +60,11 @@ type Props = {
   dateError?: string;
   timeError?: string;
   frequencyError?: string;
+  recurringDaysError?: string;
   onDateChange: (value: string) => void;
   onTimeChange: (value: string) => void;
   onFrequencyChange: (value: PricingFrequency) => void;
+  onRecurringDaysChange: (days: number[]) => void;
 };
 
 type DateCardProps = {
@@ -365,9 +373,12 @@ export function ScheduleStepPanel({
   dateError,
   timeError,
   frequencyError,
+  recurringDays,
+  recurringDaysError,
   onDateChange,
   onTimeChange,
   onFrequencyChange,
+  onRecurringDaysChange,
 }: Props) {
   const fallbackBounds = useMemo(
     () => resolveBookingWindowBounds(undefined, undefined, { client: true }),
@@ -405,6 +416,8 @@ export function ScheduleStepPanel({
 
   const selectedDateInList = dateOptions.some((o) => o.value === date && !o.disabled);
   const showFrequency = showFrequencyForService(serviceSlug);
+  const showRecurringDays = showRecurringDaysSelector(frequency);
+  const effectiveRecurringDays = defaultRecurringDaysForDate(date, recurringDays);
 
   return (
     <div className="w-full min-w-0">
@@ -541,6 +554,14 @@ export function ScheduleStepPanel({
             error={frequencyError}
           />
         </div>
+      ) : null}
+
+      {showRecurringDays ? (
+        <RecurringDaysSelector
+          selectedDays={effectiveRecurringDays}
+          onChange={onRecurringDaysChange}
+          error={recurringDaysError}
+        />
       ) : null}
     </div>
   );

@@ -4,6 +4,7 @@ import type { BookingStatus } from "@/features/bookings/server/types";
 import type { BookingSeriesRow, Json, PaymentRow } from "@/lib/database/types";
 import { formatScheduleRange, formatZar, parseBookingDisplay } from "@/features/dashboards/server/parseBookingDisplay";
 import type { BookingSeriesStatus } from "../types";
+import { isSyntheticAnchorBooking } from "../syntheticAnchorBooking";
 import type {
   RecurringSeriesActionsAllowed,
   RecurringSeriesTimelineEntry,
@@ -78,6 +79,7 @@ type SeriesBookingRow = {
   scheduled_end: string;
   metadata: Json;
   created_at: string;
+  synthetic_anchor?: boolean;
 };
 
 export function buildSeriesTimeline(input: {
@@ -85,9 +87,15 @@ export function buildSeriesTimeline(input: {
   bookings: SeriesBookingRow[];
   paymentsByBookingId: Map<string, PaymentRow | null>;
 }): RecurringSeriesTimelineEntry[] {
-  const sorted = [...input.bookings].sort((a, b) =>
-    a.scheduled_start.localeCompare(b.scheduled_start),
-  );
+  const sorted = [...input.bookings]
+    .filter(
+      (b) =>
+        !isSyntheticAnchorBooking({
+          synthetic_anchor: b.synthetic_anchor ?? false,
+          metadata: b.metadata,
+        }),
+    )
+    .sort((a, b) => a.scheduled_start.localeCompare(b.scheduled_start));
 
   return sorted.map((b) => {
     const payment = input.paymentsByBookingId.get(b.id) ?? null;
