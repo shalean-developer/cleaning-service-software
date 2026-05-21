@@ -14,10 +14,13 @@ export default function robots(): MetadataRoute.Robots {
         "/cleaner/",
         "/sign-in",
         "/sign-up",
+        "/auth/",
         "/payment/",
         "/reset-password",
+        "/api/",
       ],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
   };
 }

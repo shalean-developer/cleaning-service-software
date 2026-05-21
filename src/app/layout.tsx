@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import {
+  SHALEAN_METADATA_TITLE_DEFAULT,
+  SHALEAN_METADATA_TITLE_TEMPLATE,
+} from "@/features/marketing/metadata";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,10 +18,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Cleaning Services Software",
-    template: "%s | Cleaning Services Software",
+    default: SHALEAN_METADATA_TITLE_DEFAULT,
+    template: SHALEAN_METADATA_TITLE_TEMPLATE,
   },
-  description: "Cleaning services platform foundation (Next.js App Router).",
+  description:
+    "Professional home and office cleaning in Cape Town. Book vetted Shalean cleaners online.",
 };
 
 export default function RootLayout({
@@ -27,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="en-ZA"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>

@@ -37,13 +37,14 @@ export const FOOTER_QUICK_LINKS: readonly FooterQuickLink[] = [
 export type FooterSupportLink = {
   label: string;
   sectionId?: MarketingSectionId;
+  href?: string;
 };
 
 export const FOOTER_SUPPORT_LINKS: readonly FooterSupportLink[] = [
   { sectionId: "faq", label: "FAQ" },
-  { label: "Terms & Conditions" },
-  { label: "Privacy Policy" },
-  { label: "Refund Policy" },
+  { label: "Terms & Conditions", href: "/terms" },
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Refund Policy", href: "/refund-policy" },
 ];
 
 export const BUSINESS_HOURS = "Mon to Sat: 7:00 AM to 7:00 PM";
@@ -129,7 +130,7 @@ export const SERVICES_SECTION = {
   eyebrow: "Professional Cleaning Services",
   heading: "Explore Shalean Cleaning Services",
   subtitle:
-    "Trusted home and office cleaning solutions across Cape Town — designed for busy homes, Airbnb hosts, and businesses.",
+    "House cleaning, deep cleaning, Airbnb turnovers, and office cleaning across Cape Town — trusted by busy homes, hosts, and businesses.",
 } as const;
 
 export function serviceFromPrice(slug: ServiceSlug): string {
@@ -367,9 +368,9 @@ export const FOOTER_BRAND = {
 } as const;
 
 export const FOOTER_LEGAL_LINKS: readonly FooterSupportLink[] = [
-  { label: "Terms" },
-  { label: "Privacy" },
-  { label: "Refund Policy" },
+  { label: "Terms", href: "/terms" },
+  { label: "Privacy", href: "/privacy" },
+  { label: "Refund Policy", href: "/refund-policy" },
 ];
 
 /** Homepage pricing card — same four services as MARKETING_SERVICES_HOMEPAGE. */
@@ -382,13 +383,14 @@ export const PRICING_PREVIEW = HOMEPAGE_SERVICE_SLUGS.map((slug) => ({
 export const PRICING_PANEL = {
   eyebrow: "Pricing",
   heading: "Affordable. Transparent. Fair.",
-  subtitle: "Simple pricing for homes, Airbnb properties, and offices across Cape Town.",
+  subtitle:
+    "Cleaning prices in Cape Town for homes, Airbnb properties, and offices — see starting rates before you book.",
   microcopy: "No hidden costs.",
-  ctaLabel: "View Full Pricing",
+  ctaLabel: "See Cape Town cleaning prices",
 } as const;
 
-/** SEO pricing hub (page may be added later). */
-export const PRICING_AUTHORITY_PATH = "/pricing-cape-town" as const;
+/** Canonical public pricing hub URL. */
+export const PRICING_AUTHORITY_PATH = "/cleaning-prices-cape-town" as const;
 
 export const AREAS_PANEL = {
   eyebrow: "Areas We Serve",
@@ -397,8 +399,8 @@ export const AREAS_PANEL = {
   ctaLabel: "View All Areas",
 } as const;
 
-/** SEO locations hub (page may be added later). */
-export const AREAS_HUB_PATH = "/locations/cape-town" as const;
+/** SEO locations hub. */
+export const AREAS_HUB_PATH = "/locations" as const;
 
 /** SEO suburb landing path pattern. */
 export function areaLocationPath(area: string): string {

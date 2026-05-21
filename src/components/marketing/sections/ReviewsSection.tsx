@@ -108,44 +108,13 @@ function ReviewCard({ review, index }: ReviewCardProps) {
   );
 }
 
-function reviewsJsonLd() {
-  return {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    name: "Shalean Cleaning Services",
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: REVIEWS_SECTION.ratingValue,
-      reviewCount: "1200",
-      bestRating: "5",
-    },
-    review: REVIEWS.map((review) => ({
-      "@type": "Review",
-      author: { "@type": "Person", name: review.name },
-      reviewRating: {
-        "@type": "Rating",
-        ratingValue: String(review.rating),
-        bestRating: "5",
-      },
-      reviewBody: review.text,
-    })),
-  };
-}
-
 export function ReviewsSection() {
-  const jsonLd = reviewsJsonLd();
-
   return (
     <section
       id="reviews"
       className="marketing-section relative bg-white"
       aria-labelledby="reviews-heading"
     >
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
       <MarketingContainer>
         <header className="mx-auto max-w-3xl text-center">
           <SectionEyebrow className="tracking-[0.14em] text-shalean-primary">

@@ -1,26 +1,38 @@
-import { FAQ_ITEMS, SHALEAN_CONTACT } from "./constants";
+import { BUSINESS_HOURS, FAQ_ITEMS, SHALEAN_CONTACT } from "./constants";
+import { getMarketingCanonicalUrl, getMarketingSiteUrl } from "./siteUrl";
+import type { LocationSeoContent, ServiceSeoContent } from "./seo-pages";
 
-export function buildHomePageJsonLd() {
-  const faqPage = {
+type FaqItem = { question: string; answer: string };
+
+const ORGANIZATION_NAME = "Shalean Cleaning Services";
+
+/** Wrap multiple schema nodes in a single JSON-LD graph (one script tag). */
+export function buildJsonLdGraph(nodes: object[]): { "@context": string; "@graph": object[] } {
+  return {
     "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: FAQ_ITEMS.map((item) => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
-    })),
+    "@graph": nodes.map((node) => {
+      const copy = { ...node } as Record<string, unknown>;
+      delete copy["@context"];
+      return copy;
+    }),
   };
+}
 
-  const localBusiness = {
+export function buildLocalBusinessSchema(options?: {
+  name?: string;
+  description?: string;
+  url?: string;
+}) {
+  const siteUrl = getMarketingSiteUrl();
+  return {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    name: "Shalean Cleaning Services",
+    "@id": `${siteUrl}/#localbusiness`,
+    name: options?.name ?? ORGANIZATION_NAME,
     description:
+      options?.description ??
       "Professional home cleaning, deep cleaning, and Airbnb cleaning in Cape Town. Vetted, insured cleaners with online booking and transparent pricing.",
-    url: "https://shalean.co.za",
+    url: options?.url ?? siteUrl,
     telephone: SHALEAN_CONTACT.phoneE164,
     email: SHALEAN_CONTACT.email,
     address: {
@@ -33,8 +45,106 @@ export function buildHomePageJsonLd() {
       "@type": "City",
       name: "Cape Town",
     },
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ],
+        opens: "07:00",
+        closes: "19:00",
+      },
+    ],
+    openingHours: BUSINESS_HOURS,
     priceRange: "R$$",
   };
+}
 
-  return [localBusiness, faqPage];
+export function buildWebSiteSchema() {
+  const siteUrl = getMarketingSiteUrl();
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${siteUrl}/#website`,
+    name: ORGANIZATION_NAME,
+    url: siteUrl,
+    inLanguage: "en-ZA",
+    publisher: {
+      "@type": "LocalBusiness",
+      "@id": `${siteUrl}/#localbusiness`,
+      name: ORGANIZATION_NAME,
+    },
+  };
+}
+
+export function buildFaqPageSchema(items: readonly FaqItem[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+}
+
+export function buildBreadcrumbSchema(
+  items: { name: string; path: string }[],
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: getMarketingCanonicalUrl(item.path),
+    })),
+  };
+}
+
+export function buildServiceSchema(content: ServiceSeoContent) {
+  const siteUrl = getMarketingSiteUrl();
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: content.h1,
+    description: content.intro,
+    provider: {
+      "@type": "LocalBusiness",
+      "@id": `${siteUrl}/#localbusiness`,
+      name: ORGANIZATION_NAME,
+      url: siteUrl,
+    },
+    areaServed: {
+      "@type": "City",
+      name: "Cape Town",
+    },
+    url: getMarketingCanonicalUrl(content.path),
+  };
+}
+
+export function buildLocationBusinessSchema(content: LocationSeoContent) {
+  return buildLocalBusinessSchema({
+    description: `${content.intro} ${content.localNote}`,
+    url: getMarketingCanonicalUrl(content.path),
+  });
+}
+
+/** Homepage: single graph with LocalBusiness, WebSite, and FAQPage only. */
+export function buildHomePageJsonLd() {
+  return buildJsonLdGraph([
+    buildLocalBusinessSchema(),
+    buildWebSiteSchema(),
+    buildFaqPageSchema(FAQ_ITEMS),
+  ]);
 }

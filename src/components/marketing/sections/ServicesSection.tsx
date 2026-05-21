@@ -38,19 +38,19 @@ export function ServicesSection() {
             const seoHref = SERVICE_SEO_PATHS[service.slug];
             const bookHref = marketingBookPath(service.slug);
             const fromPrice = serviceFromPrice(service.slug);
+            const serviceDetailLabel = `View ${service.title} in Cape Town`;
 
             return (
               <li key={service.slug} className="min-w-0">
                 <article className="group marketing-card-hover relative flex h-full min-h-[17.5rem] flex-col overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-7 sm:min-h-[18rem] sm:p-8">
-                  <Link
-                    href={seoHref}
-                    className="marketing-focus-ring absolute inset-0 z-0 rounded-3xl"
-                    aria-label={`Learn more about ${service.title} in Cape Town`}
-                  />
-
                   <div className="relative z-10 flex flex-1 flex-col pr-20 sm:pr-24">
                     <h3 className="text-xl font-bold tracking-tight text-shalean-navy sm:text-[1.375rem]">
-                      {service.title}
+                      <Link
+                        href={seoHref}
+                        className="marketing-focus-ring rounded-sm hover:text-shalean-primary"
+                      >
+                        {service.title}
+                      </Link>
                     </h3>
                     <p className="mt-3 line-clamp-2 text-[0.9375rem] leading-relaxed text-slate-600">
                       {service.cardTagline}
@@ -63,15 +63,17 @@ export function ServicesSection() {
                       <div className="mt-4 flex flex-wrap items-center gap-3">
                         <Link
                           href={bookHref}
-                          className="marketing-focus-ring pointer-events-auto relative inline-flex h-10 items-center justify-center rounded-full bg-shalean-primary px-5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-600"
+                          className="marketing-focus-ring inline-flex h-10 items-center justify-center rounded-full bg-shalean-primary px-5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-600"
+                          aria-label={`Book ${service.title} in Cape Town online`}
                         >
-                          Book Now
+                          Book {service.title}
                         </Link>
                         <Link
                           href={seoHref}
-                          className="marketing-focus-ring pointer-events-auto relative text-sm font-medium text-slate-600 transition-colors hover:text-shalean-primary"
+                          className="marketing-focus-ring text-sm font-medium text-slate-600 transition-colors hover:text-shalean-primary"
+                          aria-label={serviceDetailLabel}
                         >
-                          Learn more
+                          {serviceDetailLabel}
                         </Link>
                       </div>
                     </div>

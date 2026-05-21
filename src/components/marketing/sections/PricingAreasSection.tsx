@@ -73,7 +73,16 @@ function FeaturePanel({
         </div>
 
         <div className="mt-6">
-          <MarketingPanelCta href={ctaHref}>{ctaLabel}</MarketingPanelCta>
+          <MarketingPanelCta
+            href={ctaHref}
+            aria-label={
+              id === "pricing"
+                ? "See full cleaning prices in Cape Town"
+                : "View all Cape Town cleaning service areas"
+            }
+          >
+            {ctaLabel}
+          </MarketingPanelCta>
         </div>
       </div>
 
@@ -171,6 +180,7 @@ export function PricingAreasSection() {
                   <Link
                     href={areaLocationPath(area)}
                     className="marketing-focus-ring inline-flex min-h-9 items-center justify-center rounded-full border border-shalean-soft-blue/80 bg-shalean-soft-blue/50 px-3.5 py-1.5 text-xs font-medium text-shalean-primary transition duration-200 hover:border-shalean-primary/35 hover:bg-shalean-soft-blue sm:text-sm"
+                    aria-label={`Cleaning services in ${area}, Cape Town`}
                   >
                     {area}
                   </Link>

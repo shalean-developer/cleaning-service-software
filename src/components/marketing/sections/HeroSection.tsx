@@ -36,12 +36,13 @@ export function HeroSection() {
               </div>
 
               <h1 className="mt-5 text-[2rem] font-extrabold leading-[1.08] tracking-[-0.02em] text-shalean-navy sm:mt-6 sm:text-[2.75rem] lg:mt-7 lg:text-[3.25rem] xl:text-[3.5rem]">
-                Professional Home Cleaning in{" "}
+                Professional Cleaning Services in{" "}
                 <span className="text-shalean-primary">Cape Town</span>
               </h1>
 
               <p className="mt-5 max-w-[32rem] text-base leading-relaxed text-slate-600 sm:mt-6 sm:text-lg sm:leading-[1.65] lg:text-[1.125rem]">
-                Vetted cleaners. Instant pricing. Seamless booking.
+                House cleaning, deep cleaning, Airbnb turnovers, and office cleaning with
+                transparent Cape Town pricing and online booking.
               </p>
 
               <p className="mt-5 text-sm font-medium tracking-wide text-slate-500 sm:mt-6">
@@ -52,6 +53,7 @@ export function HeroSection() {
                 <MarketingButton
                   href={BOOKING_PATH}
                   className="!h-[3.25rem] !min-w-[11rem] !rounded-2xl !px-8 !text-[0.9375rem] !font-semibold !shadow-[0_4px_14px_rgba(37,99,235,0.28)] hover:!shadow-[0_6px_20px_rgba(37,99,235,0.32)]"
+                  aria-label="Book cleaning services in Cape Town online"
                 >
                   <IconCalendar className="h-5 w-5" />
                   Book Cleaning
@@ -60,6 +62,7 @@ export function HeroSection() {
                   href={whatsappUrl}
                   variant="secondary"
                   external
+                  aria-label="Chat with Shalean Cleaning Services on WhatsApp"
                   className="!h-[3.25rem] !min-w-[11rem] !rounded-2xl !border !border-slate-200/90 !bg-white !px-8 !text-[0.9375rem] !font-semibold !text-shalean-navy !shadow-sm hover:!border-slate-300"
                 >
                   <IconWhatsApp className="h-5 w-5 text-[#25D366]" />

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import {
   BUSINESS_HOURS,
@@ -8,8 +9,10 @@ import {
   FOOTER_TRUST_POINTS,
   type FooterTrustPoint,
   MARKETING_SERVICES,
+  SERVICE_SEO_PATHS,
   SHALEAN_CONTACT,
 } from "@/features/marketing/constants";
+import { FAQ_PAGE_PATH, PRICING_PAGE_PATH } from "@/features/marketing/marketing-routes";
 import type { MarketingSectionId } from "@/lib/ui/scrollToSection";
 import { MarketingSectionLink } from "../MarketingSectionLink";
 import {
@@ -200,7 +203,9 @@ export function MarketingFooter() {
             <ul className="mt-5 space-y-3.5">
               {MARKETING_SERVICES.map((item) => (
                 <li key={item.slug}>
-                  <FooterSectionLink sectionId="services">{item.title}</FooterSectionLink>
+                  <Link href={SERVICE_SEO_PATHS[item.slug]} className={footerLinkClass}>
+                    {item.title}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -212,11 +217,31 @@ export function MarketingFooter() {
               <span id="footer-quick-links-heading">Quick Links</span>
             </FooterColumnHeading>
             <ul className="mt-5 space-y-3.5">
-              {FOOTER_QUICK_LINKS.map((item) => (
-                <li key={item.label}>
-                  <FooterSectionLink sectionId={item.sectionId}>{item.label}</FooterSectionLink>
-                </li>
-              ))}
+              {FOOTER_QUICK_LINKS.map((item) => {
+                const routeHref =
+                  item.sectionId === "pricing"
+                    ? PRICING_PAGE_PATH
+                    : item.sectionId === "faq"
+                      ? FAQ_PAGE_PATH
+                      : item.sectionId === "areas"
+                        ? "/locations"
+                        : item.sectionId === "contact"
+                          ? "/contact"
+                          : undefined;
+                return (
+                  <li key={item.label}>
+                    {routeHref ? (
+                      <Link href={routeHref} className={footerLinkClass}>
+                        {item.label}
+                      </Link>
+                    ) : (
+                      <FooterSectionLink sectionId={item.sectionId}>
+                        {item.label}
+                      </FooterSectionLink>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </nav>
 
@@ -231,10 +256,15 @@ export function MarketingFooter() {
                   <li key={item.label}>
                     <FooterSectionLink sectionId={item.sectionId}>{item.label}</FooterSectionLink>
                   </li>
+                ) : item.href ? (
+                  <li key={item.label}>
+                    <Link href={item.href} className={footerLinkClass}>
+                      {item.label}
+                    </Link>
+                  </li>
                 ) : (
                   <li key={item.label} className="text-[0.9375rem] leading-relaxed text-slate-500">
                     {item.label}
-                    <span className="ml-1.5 text-[0.75rem] text-slate-600">(soon)</span>
                   </li>
                 ),
               )}
@@ -309,14 +339,25 @@ export function MarketingFooter() {
               className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[0.8125rem]"
               aria-label="Legal"
             >
-              {FOOTER_LEGAL_LINKS.map((item) => (
-                <span key={item.label} className="text-slate-600">
-                  {item.label}
-                </span>
-              ))}
+              {FOOTER_LEGAL_LINKS.map((item) =>
+                item.href ? (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="marketing-focus-ring marketing-footer-link text-slate-400 hover:text-slate-200"
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <span key={item.label} className="text-slate-600">
+                    {item.label}
+                  </span>
+                ),
+              )}
               <MarketingSectionLink
                 sectionId="main-content"
                 className="marketing-focus-ring marketing-footer-link font-medium"
+                aria-label="Back to top of page"
               >
                 Back to top
               </MarketingSectionLink>

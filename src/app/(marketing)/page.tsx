@@ -1,16 +1,21 @@
 import type { Metadata } from "next";
 import { MarketingHomePage } from "@/components/marketing/MarketingHomePage";
+import { JsonLdScript } from "@/components/marketing/JsonLdScript";
 import { MARKETING_IMAGES } from "@/features/marketing/constants";
+import { buildMarketingMetadata } from "@/features/marketing/metadata";
 import { buildHomePageJsonLd } from "@/features/marketing/seo";
+import { getMarketingCanonicalUrl } from "@/features/marketing/siteUrl";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "http://localhost:3000";
+const HOME_TITLE = "Cleaning Services Cape Town from R250 | Shalean";
+const HOME_DESCRIPTION =
+  "Book trusted, insured Cape Town cleaners from R250. Regular, deep, move-in/out, Airbnb and office cleaning with instant quotes and secure online booking.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: "Professional Home Cleaning Services in Cape Town | Shalean",
-  description:
-    "Book trusted, vetted and insured cleaners in Cape Town. Regular, deep, move-in/out, Airbnb and office cleaning. Online booking in under 2 minutes.",
+  ...buildMarketingMetadata({
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    path: "/",
+  }),
   keywords: [
     "cleaning services Cape Town",
     "home cleaning Cape Town",
@@ -22,12 +27,11 @@ export const metadata: Metadata = {
     "Shalean cleaning",
   ],
   openGraph: {
-    title: "Professional Home Cleaning Services in Cape Town | Shalean",
-    description:
-      "Trusted home and deep cleaning in Cape Town. Vetted cleaners, instant quotes, and online booking.",
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
     type: "website",
     locale: "en_ZA",
-    url: "/",
+    url: getMarketingCanonicalUrl("/"),
     images: [
       {
         url: MARKETING_IMAGES.hero,
@@ -39,16 +43,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Shalean Cleaning Services | Cape Town",
-    description: "Professional home cleaning services in Cape Town. Book online in minutes.",
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
     images: [MARKETING_IMAGES.hero],
-  },
-  alternates: {
-    canonical: "/",
-  },
-  robots: {
-    index: true,
-    follow: true,
   },
 };
 
@@ -57,10 +54,7 @@ export default function MarketingHomePageRoute() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLdScript data={jsonLd} />
       <MarketingHomePage />
     </>
   );

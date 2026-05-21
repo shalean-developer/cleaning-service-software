@@ -4,7 +4,6 @@ import {
   BOOKING_PATH,
   BOOKING_SIGNUP_HINT,
   FAQ_SECTION,
-  FAQ_ITEMS,
   FINAL_CTA_SECTION,
   MARKETING_IMAGES,
   SHALEAN_CONTACT,
@@ -15,35 +14,14 @@ import { MarketingContainer } from "../MarketingContainer";
 import { MarketingSectionLink } from "../MarketingSectionLink";
 import { SectionEyebrow } from "../SectionEyebrow";
 
-function faqJsonLd() {
-  return {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: FAQ_ITEMS.map((item) => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
-    })),
-  };
-}
-
 export function FaqCtaSection() {
   const whatsappUrl = `https://wa.me/${SHALEAN_CONTACT.whatsappNumber}?text=${encodeURIComponent("Hi Shalean, I have a question about booking a cleaning.")}`;
-  const jsonLd = faqJsonLd();
 
   return (
     <section
       className="marketing-section relative bg-shalean-surface !py-12 sm:!py-14"
       aria-labelledby="faq-heading"
     >
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
       <MarketingContainer>
         <div id="faq" className="mx-auto max-w-3xl">
           <header className="text-center">
@@ -119,6 +97,7 @@ export function FaqCtaSection() {
               <Link
                 href={BOOKING_PATH}
                 className="marketing-focus-ring inline-flex h-12 items-center justify-center rounded-full bg-white px-7 text-sm font-semibold text-shalean-primary shadow-[0_4px_20px_rgba(15,23,42,0.12)] transition duration-200 hover:bg-blue-50"
+                aria-label="Book Shalean cleaning services online in Cape Town"
               >
                 Book Now
               </Link>

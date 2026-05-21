@@ -1,0 +1,23 @@
+import type { MarketingSectionId } from "./scrollToSection";
+import {
+  CONTACT_PAGE_PATH,
+  FAQ_PAGE_PATH,
+  LOCATIONS_HUB_PATH,
+  PRICING_PAGE_PATH,
+} from "@/features/marketing/marketing-routes";
+
+/** Route fallbacks when section scroll is unavailable (off homepage). */
+export const MARKETING_SECTION_ROUTES: Partial<Record<MarketingSectionId, string>> = {
+  services: "/",
+  about: "/",
+  areas: LOCATIONS_HUB_PATH,
+  pricing: PRICING_PAGE_PATH,
+  faq: FAQ_PAGE_PATH,
+  contact: CONTACT_PAGE_PATH,
+  "how-it-works": "/",
+  "main-content": "/",
+};
+
+export function marketingSectionRoute(sectionId: MarketingSectionId): string {
+  return MARKETING_SECTION_ROUTES[sectionId] ?? "/";
+}

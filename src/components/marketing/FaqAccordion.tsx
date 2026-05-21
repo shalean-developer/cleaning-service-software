@@ -2,6 +2,8 @@
 
 import { useId, useState } from "react";
 import { FAQ_ITEMS } from "@/features/marketing/constants";
+
+type FaqItem = { question: string; answer: string };
 import { IconChevron } from "./icons";
 import { ClientOnly } from "./ClientOnly";
 
@@ -13,10 +15,16 @@ function buttonId(baseId: string, index: number) {
   return `${baseId}-button-${index}`;
 }
 
-function FaqAccordionFallback({ baseId }: { baseId: string }) {
+function FaqAccordionFallback({
+  baseId,
+  items,
+}: {
+  baseId: string;
+  items: readonly FaqItem[];
+}) {
   return (
     <div className="mt-8 space-y-3">
-      {FAQ_ITEMS.map((item, index) => (
+      {items.map((item, index) => (
         <details
           key={item.question}
           open={index === 0}
@@ -37,12 +45,18 @@ function FaqAccordionFallback({ baseId }: { baseId: string }) {
   );
 }
 
-function FaqAccordionInteractive({ baseId }: { baseId: string }) {
+function FaqAccordionInteractive({
+  baseId,
+  items,
+}: {
+  baseId: string;
+  items: readonly FaqItem[];
+}) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
     <div className="mt-8 space-y-3">
-      {FAQ_ITEMS.map((item, index) => {
+      {items.map((item, index) => {
         const isOpen = openIndex === index;
         const btnId = buttonId(baseId, index);
         const pId = panelId(baseId, index);
@@ -94,12 +108,16 @@ function FaqAccordionInteractive({ baseId }: { baseId: string }) {
   );
 }
 
-export function FaqAccordion() {
+type FaqAccordionProps = {
+  items?: readonly FaqItem[];
+};
+
+export function FaqAccordion({ items = FAQ_ITEMS }: FaqAccordionProps) {
   const baseId = useId().replace(/:/g, "");
 
   return (
-    <ClientOnly fallback={<FaqAccordionFallback baseId={baseId} />}>
-      <FaqAccordionInteractive baseId={baseId} />
+    <ClientOnly fallback={<FaqAccordionFallback baseId={baseId} items={items} />}>
+      <FaqAccordionInteractive baseId={baseId} items={items} />
     </ClientOnly>
   );
 }

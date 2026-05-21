@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { MouseEvent, ReactNode } from "react";
+import { marketingSectionRoute } from "@/lib/ui/marketingSectionRoutes";
 import type { MarketingSectionId } from "@/lib/ui/scrollToSection";
 import { scrollToSection } from "@/lib/ui/scrollToSection";
 
@@ -10,6 +12,7 @@ type MarketingSectionLinkProps = {
   children: ReactNode;
   className?: string;
   onNavigate?: () => void;
+  "aria-label"?: string;
 };
 
 /**
@@ -21,7 +24,20 @@ export function MarketingSectionLink({
   children,
   className = "",
   onNavigate,
+  "aria-label": ariaLabel,
 }: MarketingSectionLinkProps) {
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+  const fallbackHref = marketingSectionRoute(sectionId);
+
+  if (!isHome) {
+    return (
+      <Link href={fallbackHref} className={className} onClick={onNavigate} aria-label={ariaLabel}>
+        {children}
+      </Link>
+    );
+  }
+
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     if (scrollToSection(sectionId)) {
@@ -32,7 +48,7 @@ export function MarketingSectionLink({
   };
 
   return (
-    <button type="button" className={className} onClick={handleClick}>
+    <button type="button" className={className} onClick={handleClick} aria-label={ariaLabel}>
       {children}
     </button>
   );

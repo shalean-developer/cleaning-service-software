@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { getMarketingSiteUrl } from "@/features/marketing/siteUrl";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(getMarketingSiteUrl()),
+};
 
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
