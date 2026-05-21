@@ -63,7 +63,8 @@ describe("AdminDashboardShell", () => {
     }
     expect(html).toContain("Operate");
     expect(html).toContain("Insight &amp; control");
-    expect(html).toContain("Quick actions");
+    expect(html).toContain("Booking flow");
+    expect(html).toContain("Hub");
   });
 
   it("marks the closed mobile drawer inert and aria-hidden", () => {

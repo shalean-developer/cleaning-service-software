@@ -41,8 +41,12 @@ export function AdminBookingDetailHero({
         </h1>
         <p className="mt-0.5 break-all font-mono text-[11px] text-zinc-400">{bookingId}</p>
         <section className="mt-2 flex flex-wrap gap-1.5">
-          {badges.map((badge) => (
-            <StatusBadge key={badge.label} label={badge.label} tone={badge.tone} />
+          {badges.map((badge, index) => (
+            <StatusBadge
+              key={`${badge.label}-${badge.tone}-${index}`}
+              label={badge.label}
+              tone={badge.tone}
+            />
           ))}
         </section>
       </header>

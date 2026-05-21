@@ -12,6 +12,15 @@ import type {
 import type { AdminPayoutSummary } from "@/features/earnings/server/payoutReadModel";
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
 import type { BookingStatus } from "@/features/bookings/server/types";
+import { scheduleStartToBookingDate } from "@/features/booking-wizard/bookingWindowConfig";
+import { johannesburgCalendarDayKey } from "@/lib/datetime/johannesburgDay";
+import type { AdminOverviewOperationalEvent } from "@/features/dashboards/server/adminOverviewOperationalEvents";
+import { addDaysToDateString } from "@/features/booking-wizard/dateStringUtils";
+import type {
+  AdminOverviewRhythmCounts,
+  AdminOverviewTodayCounts,
+  AdminOverviewUpcomingContext,
+} from "@/features/dashboards/server/adminOverviewTypes";
 
 export type AdminHomeTodaySnapshot = {
   bookingsToday: number;
@@ -47,6 +56,21 @@ export type AdminHomeLiveFeedItem = {
   detail: string;
   timeLabel: string;
   href: string;
+  /** When false, feed row is informational only (archived audit without resolvable booking). */
+  linkable?: boolean;
+};
+
+export type AdminHomeSnapshotPresentation = {
+  summarySuffix?: string;
+  bookingsFooter: string;
+  cleanersFooter: string;
+  revenueFooter: string;
+  issuesFooter: string;
+};
+
+export type AdminHomeRhythmPresentation = {
+  metrics: AdminHomeRhythmMetric[];
+  emptyWindowHint?: string;
 };
 
 export type AdminHomeDispatchAlert = {
@@ -81,6 +105,8 @@ export type AdminHomePayoutSummaryView = {
   pendingReviewCents: number;
   weeklyReadyLabel: string;
   previewHref: string;
+  /** False when payout summary failed to load (distinct from zero ready). */
+  dataAvailable: boolean;
 };
 
 const COMPLETED_STATUSES: readonly BookingStatus[] = ["completed", "payout_ready", "paid_out"];
@@ -94,8 +120,8 @@ function resolveReferenceNow(context?: AdminHomeDisplayContext): Date {
   return context?.referenceNow ? new Date(context.referenceNow) : new Date();
 }
 
-function startOfLocalDay(date: Date): number {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+function johannesburgDayKeyForContext(context?: AdminHomeDisplayContext): string {
+  return johannesburgCalendarDayKey(resolveReferenceNow(context));
 }
 
 function isScheduledToday(
@@ -103,9 +129,7 @@ function isScheduledToday(
   context?: AdminHomeDisplayContext,
 ): boolean {
   if (!scheduledStart) return false;
-  const now = resolveReferenceNow(context);
-  const day = startOfLocalDay(new Date(scheduledStart));
-  return day === startOfLocalDay(now);
+  return scheduleStartToBookingDate(scheduledStart) === johannesburgDayKeyForContext(context);
 }
 
 function formatTimeLabel(iso: string | undefined): string {
@@ -142,7 +166,21 @@ function customerInitials(label: string): string {
   return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
 }
 
-/** Presentation-only today metrics from the loaded bookings slice. */
+/** Today metrics from canonical overview count queries (Johannesburg day). */
+export function buildAdminHomeTodaySnapshotFromCounts(
+  counts: AdminOverviewTodayCounts,
+): AdminHomeTodaySnapshot {
+  return {
+    bookingsToday: counts.bookingsToday,
+    bookingsConfirmed: counts.bookingsConfirmed,
+    bookingsDone: counts.bookingsDone,
+    cleanersActive: counts.cleanersActive,
+    revenueTodayCents: counts.revenueTodayCents,
+    activeIssues: 0,
+  };
+}
+
+/** Presentation-only today metrics from a loaded bookings slice (tests / fallbacks). */
 export function buildAdminHomeTodaySnapshot(
   bookings: readonly AdminBookingListItem[],
   context?: AdminHomeDisplayContext,
@@ -158,14 +196,13 @@ export function buildAdminHomeTodaySnapshot(
     .filter((b) => COMPLETED_STATUSES.includes(b.status) || b.status === "confirmed")
     .reduce((sum, b) => sum + b.priceCents, 0);
 
-  return {
+  return buildAdminHomeTodaySnapshotFromCounts({
     bookingsToday: today.length,
     bookingsConfirmed: confirmed,
     bookingsDone: done,
     cleanersActive: cleaners.size,
     revenueTodayCents,
-    activeIssues: 0,
-  };
+  });
 }
 
 export function withActiveIssuesCount(
@@ -180,6 +217,64 @@ export function withActiveIssuesCount(
     ...snapshot,
     activeIssues: computeAdminHomeUrgentCount(input),
   };
+}
+
+function upcomingDayLabel(scheduledStart: string, todayKey: string): string {
+  const bookingDay = scheduleStartToBookingDate(scheduledStart);
+  if (!bookingDay) return "upcoming";
+  const tomorrowKey = addDaysToDateString(todayKey, 1);
+  if (bookingDay === tomorrowKey) return "tomorrow";
+  return new Intl.DateTimeFormat("en-ZA", {
+    day: "numeric",
+    month: "short",
+    timeZone: "Africa/Johannesburg",
+  }).format(new Date(scheduledStart));
+}
+
+/** Snapshot card footers and summary helpers — does not change today metric values. */
+export function buildAdminHomeSnapshotPresentation(input: {
+  snapshot: AdminHomeTodaySnapshot;
+  upcoming: AdminOverviewUpcomingContext | null;
+  matchingPending: number;
+  recurringActive: number;
+}): AdminHomeSnapshotPresentation {
+  const { snapshot, upcoming, matchingPending, recurringActive } = input;
+
+  let summarySuffix: string | undefined;
+  if (snapshot.bookingsToday === 0 && upcoming && upcoming.upcomingBookingsCount > 0) {
+    const dayLabel = upcoming.nextUpcomingDayLabel ?? "upcoming";
+    const countLabel =
+      upcoming.upcomingBookingsCount === 1
+        ? "1 upcoming"
+        : `${upcoming.upcomingBookingsCount} upcoming`;
+    summarySuffix = ` · ${countLabel} ${dayLabel}`;
+  }
+
+  const bookingsFooter = `${snapshot.bookingsConfirmed} confirmed · ${snapshot.bookingsDone} done`;
+
+  const cleanersFooter =
+    matchingPending > 0
+      ? `${matchingPending} matching pending`
+      : "Assigned on today's schedule";
+
+  const revenueFooter = `${recurringActive} recurring active`;
+
+  const issuesFooter = snapshot.activeIssues > 0 ? "Dispatch & SLA review" : "Queues clear";
+
+  return {
+    summarySuffix,
+    bookingsFooter,
+    cleanersFooter,
+    revenueFooter,
+    issuesFooter,
+  };
+}
+
+export function formatUpcomingDayLabel(
+  scheduledStart: string,
+  todayKey: string,
+): string {
+  return upcomingDayLabel(scheduledStart, todayKey);
 }
 
 export function buildAdminHomeWorkbenchRows(
@@ -234,16 +329,74 @@ export function buildAdminHomeWorkbenchRows(
   return rows.slice(0, limit);
 }
 
-export function buildAdminHomeLiveFeed(input: {
-  attention: readonly AdminAssignmentQueueItem[];
-  bookings: readonly AdminBookingListItem[];
+export function buildAdminHomeLiveFeedFromEvents(input: {
+  events: readonly AdminOverviewOperationalEvent[];
+  bookingLabels: ReadonlyMap<
+    string,
+    { customerLabel: string; serviceLabel: string; scheduleLabel: string }
+  >;
   limit?: number;
   context?: AdminHomeDisplayContext;
 }): AdminHomeLiveFeedItem[] {
   const limit = input.limit ?? 8;
   const items: AdminHomeLiveFeedItem[] = [];
 
-  for (const item of input.attention) {
+  for (const event of input.events) {
+    if (items.length >= limit) break;
+    const bookingId = event.bookingId?.trim() || null;
+    const labels = bookingId ? input.bookingLabels.get(bookingId) : undefined;
+    const archived = !bookingId || !labels;
+
+    const detailParts = archived
+      ? [event.detail?.trim(), "Archived booking activity"].filter(Boolean)
+      : [labels?.serviceLabel, labels?.customerLabel, event.detail].filter(
+          (part): part is string => Boolean(part?.trim()),
+        );
+
+    items.push({
+      id: event.id,
+      kind: event.kind,
+      title: event.title,
+      detail: detailParts.join(" · ") || "Archived booking activity",
+      timeLabel: formatRelativeTimeLabel(event.at, input.context),
+      href: bookingId ? `/admin/bookings/${bookingId}` : "/admin/bookings",
+      linkable: Boolean(bookingId),
+    });
+  }
+
+  return items;
+}
+
+export function mergeAdminHomeLiveFeed(
+  primary: readonly AdminHomeLiveFeedItem[],
+  secondary: readonly AdminHomeLiveFeedItem[],
+  limit = 8,
+): AdminHomeLiveFeedItem[] {
+  const seen = new Set<string>();
+  const merged: AdminHomeLiveFeedItem[] = [];
+
+  for (const item of [...primary, ...secondary]) {
+    if (merged.length >= limit) break;
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    merged.push(item);
+  }
+
+  return merged;
+}
+
+export function buildAdminHomeLiveFeed(input: {
+  attention?: readonly AdminAssignmentQueueItem[];
+  bookings?: readonly AdminBookingListItem[];
+  limit?: number;
+  context?: AdminHomeDisplayContext;
+}): AdminHomeLiveFeedItem[] {
+  const limit = input.limit ?? 8;
+  const items: AdminHomeLiveFeedItem[] = [];
+  const attention = input.attention ?? [];
+  const bookings = input.bookings ?? [];
+
+  for (const item of attention) {
     items.push({
       id: `feed-assignment-${item.bookingId}`,
       kind: "assignment",
@@ -254,7 +407,7 @@ export function buildAdminHomeLiveFeed(input: {
     });
   }
 
-  for (const booking of input.bookings) {
+  for (const booking of bookings) {
     if (items.length >= limit) break;
     if (booking.status === "payment_failed") {
       items.push({
@@ -312,6 +465,7 @@ export function buildAdminHomeDispatchAlerts(input: {
 }): AdminHomeDispatchAlert[] {
   const limit = input.limit ?? 5;
   const alerts: AdminHomeDispatchAlert[] = [];
+  const seenBookingAlerts = new Set<string>();
 
   const assignmentCount = queueCountByKey(input.queues, "assignment_attention");
   if (assignmentCount > 0) {
@@ -352,6 +506,8 @@ export function buildAdminHomeDispatchAlerts(input: {
   for (const item of input.attention) {
     if (alerts.length >= limit) break;
     if (item.openOffers.length > 0) continue;
+    if (seenBookingAlerts.has(item.bookingId)) continue;
+    seenBookingAlerts.add(item.bookingId);
     alerts.push({
       id: `dispatch-item-${item.bookingId}`,
       severity: item.manualInterventionNeeded ? "critical" : "warning",
@@ -407,9 +563,14 @@ export function buildAdminHomeSupportQueue(
       title = booking.observation.coordinationStatusLabel ?? "Team support";
     }
 
+    const customerLabel =
+      booking.customerLabel?.trim() && !booking.customerLabel.startsWith("Customer ")
+        ? booking.customerLabel
+        : "Archived customer";
+
     rows.push({
       id: booking.id,
-      customerInitials: customerInitials(booking.customerLabel),
+      customerInitials: customerInitials(customerLabel),
       title,
       detail: `${booking.serviceLabel} · ${booking.scheduleLabel}`,
       timeLabel: formatRelativeTimeLabel(booking.updatedAt, context),
@@ -421,6 +582,68 @@ export function buildAdminHomeSupportQueue(
   return rows.slice(0, limit);
 }
 
+export function buildAdminHomeRhythmMetricsFromCounts(
+  counts: AdminOverviewRhythmCounts,
+  assignmentWorkQueueTotal: number,
+): AdminHomeRhythmMetric[] {
+  const todayWindowEmpty =
+    counts.confirmedToday === 0 &&
+    counts.completedVisitsToday === 0 &&
+    counts.attentionNeeded === 0;
+
+  return [
+    {
+      id: "recurring",
+      label: "Recurring active",
+      value: String(counts.recurringActive),
+      hint: "Series or recurring frequency",
+    },
+    {
+      id: "confirmed-today",
+      label: "Confirmed today",
+      value: String(counts.confirmedToday),
+      hint: todayWindowEmpty
+        ? "No scheduled activity in today's window"
+        : "Scheduled today (SAST)",
+    },
+    {
+      id: "attention",
+      label: "Attention required",
+      value: String(counts.attentionNeeded),
+      hint:
+        assignmentWorkQueueTotal > 0
+          ? `${assignmentWorkQueueTotal} in work queue`
+          : "Global queue count",
+    },
+    {
+      id: "completed",
+      label: "Completed visits",
+      value: String(counts.completedVisitsToday),
+      hint: todayWindowEmpty
+        ? "No scheduled activity in today's window"
+        : "Scheduled today (SAST)",
+    },
+  ];
+}
+
+export function buildAdminHomeRhythmPresentation(
+  counts: AdminOverviewRhythmCounts,
+  assignmentWorkQueueTotal: number,
+): AdminHomeRhythmPresentation {
+  const metrics = buildAdminHomeRhythmMetricsFromCounts(counts, assignmentWorkQueueTotal);
+  const allZero =
+    counts.recurringActive === 0 &&
+    counts.confirmedToday === 0 &&
+    counts.attentionNeeded === 0 &&
+    counts.completedVisitsToday === 0;
+
+  return {
+    metrics,
+    emptyWindowHint: allZero ? "No scheduled activity in today's window" : undefined,
+  };
+}
+
+/** Rhythm strip from a loaded bookings slice (tests / fallbacks). */
 export function buildAdminHomeRhythmMetrics(
   input: {
     bookings: readonly AdminBookingListItem[];
@@ -438,34 +661,15 @@ export function buildAdminHomeRhythmMetrics(
   const completed = input.bookings.filter((b) => COMPLETED_STATUSES.includes(b.status)).length;
   const attention = queueCountByKey(input.queues, "assignment_attention");
 
-  return [
+  return buildAdminHomeRhythmMetricsFromCounts(
     {
-      id: "recurring",
-      label: "Recurring active",
-      value: String(recurring),
-      hint: "In current bookings slice",
+      recurringActive: recurring,
+      confirmedToday,
+      attentionNeeded: attention,
+      completedVisitsToday: completed,
     },
-    {
-      id: "confirmed-today",
-      label: "Confirmed today",
-      value: String(confirmedToday),
-    },
-    {
-      id: "attention",
-      label: "Attention required",
-      value: String(attention),
-      hint:
-        input.assignmentWorkQueueTotal > 0
-          ? `${input.assignmentWorkQueueTotal} in work queue`
-          : undefined,
-    },
-    {
-      id: "completed",
-      label: "Completed visits",
-      value: String(completed),
-      hint: "Loaded bookings window",
-    },
-  ];
+    input.assignmentWorkQueueTotal,
+  );
 }
 
 export function buildAdminHomePayoutSummaryView(
@@ -476,8 +680,9 @@ export function buildAdminHomePayoutSummaryView(
       payoutReadyCount: 0,
       payoutReadyLabel: "—",
       pendingReviewCents: 0,
-      weeklyReadyLabel: "Unavailable",
+      weeklyReadyLabel: "Payout summary unavailable",
       previewHref: "/admin/payouts",
+      dataAvailable: false,
     };
   }
 
@@ -487,10 +692,11 @@ export function buildAdminHomePayoutSummaryView(
     payoutReadyLabel: String(payoutReadyCount),
     pendingReviewCents: payoutSummary.pendingCents,
     weeklyReadyLabel:
-      payoutSummary.payoutReadyCents > 0
+      payoutReadyCount > 0
         ? `${formatZar(payoutSummary.payoutReadyCents)} ready`
         : "Nothing awaiting release",
     previewHref: "/admin/payouts",
+    dataAvailable: true,
   };
 }
 

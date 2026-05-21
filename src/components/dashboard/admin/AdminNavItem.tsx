@@ -29,8 +29,10 @@ export function AdminNavItem({
         href={href}
         onClick={onNavigate}
         aria-current={active ? "page" : undefined}
-        className={`flex min-h-10 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
-          active ? "bg-blue-50 text-blue-600" : "text-zinc-600 hover:bg-zinc-100"
+        className={`flex min-h-10 items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
+          active
+            ? "bg-blue-50 text-blue-700 shadow-[inset_0_0_0_1px_rgba(37,99,235,0.12)]"
+            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
         }`}
       >
         <AdminNavIcon href={href} className="h-4 w-4 shrink-0" />

@@ -2,7 +2,7 @@ import type { AdminOperationalAuditRow } from "@/lib/database/types";
 import type { AdminOperationalAuditEntry } from "@/features/dashboards/server/types";
 import { summarizeAdminOperationalMetadata } from "./recordAdminOperationalAudit";
 
-const ACTION_LABELS: Record<string, string> = {
+export const ADMIN_OPERATIONAL_AUDIT_ACTION_LABELS: Record<string, string> = {
   assignment_recovery: "Assignment recovery",
   deferred_dispatch_now: "Dispatch now (deferred)",
   manual_dispatch_offer: "Manual dispatch offer",
@@ -27,7 +27,7 @@ export function mapAdminOperationalAuditRow(
     adminProfileId: row.admin_profile_id,
     adminLabel,
     action: row.action,
-    actionLabel: ACTION_LABELS[row.action] ?? row.action,
+    actionLabel: ADMIN_OPERATIONAL_AUDIT_ACTION_LABELS[row.action] ?? row.action,
     outcome: row.outcome,
     outcomeLabel: OUTCOME_LABELS[row.outcome] ?? row.outcome,
     reason: row.reason?.trim() ? row.reason.trim() : null,

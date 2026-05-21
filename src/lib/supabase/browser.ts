@@ -20,7 +20,15 @@ export class SupabaseBrowserConfigError extends Error {
 export function createSupabaseBrowserClient(): SupabaseClient<Database> | null {
   const env = getSupabasePublicEnv();
   if (!env) return null;
-  return createBrowserClient<Database>(env.url, env.anonKey);
+
+  return createBrowserClient<Database>(env.url, env.anonKey, {
+    auth: {
+      // Dashboard session refresh is handled server-side (proxy/RSC).
+      autoRefreshToken: false,
+      detectSessionInUrl: true,
+      persistSession: true,
+    },
+  });
 }
 
 /**

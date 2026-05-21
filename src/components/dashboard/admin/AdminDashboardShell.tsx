@@ -52,7 +52,7 @@ export function AdminDashboardShell({
   const showTitleBlock = Boolean(title?.trim() || subtitle?.trim());
 
   return (
-    <section className="min-h-screen overflow-x-clip bg-zinc-50">
+    <section className="min-h-screen overflow-x-clip bg-slate-50/80">
       {mounted ? (
         <AdminDashboardHeader
           sidebarOpen={sidebarOpen}
@@ -76,7 +76,7 @@ export function AdminDashboardShell({
           />
         )}
 
-        <main className="min-w-0 flex-1 px-3 py-4 sm:px-5 sm:py-5 lg:px-6">
+        <main className="min-w-0 flex-1 px-3 py-5 sm:px-5 sm:py-6 lg:px-8 lg:py-8">
           {showTitleBlock ? (
             <header className="mb-4 min-w-0">
               {title?.trim() ? (

@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildAdminHomeLiveFeedFromEvents,
+  buildAdminHomePayoutSummaryView,
+  buildAdminHomeSnapshotPresentation,
   buildAdminHomeTodaySnapshot,
   buildAdminHomeWorkbenchRows,
   withActiveIssuesCount,
 } from "./adminHomeOperationsDisplay";
+import { buildAdminHomeTodaySnapshotFromCounts } from "./adminHomeOperationsDisplay";
 import type { AdminOperationalQueueCountItem } from "./server/adminOperationalQueueCounts";
 import { summarizeCronHealth } from "./adminAssignmentsPageDisplay";
 import type { AdminBookingListItem } from "./server/types";
@@ -103,6 +107,81 @@ describe("adminHomeOperationsDisplay", () => {
     });
 
     expect(enriched.activeIssues).toBe(2);
+  });
+
+  it("buildAdminHomeSnapshotPresentation adds upcoming context without changing counts", () => {
+    const snapshot = buildAdminHomeTodaySnapshotFromCounts({
+      bookingsToday: 0,
+      bookingsConfirmed: 0,
+      bookingsDone: 0,
+      cleanersActive: 0,
+      revenueTodayCents: 0,
+    });
+    const presentation = buildAdminHomeSnapshotPresentation({
+      snapshot: { ...snapshot, activeIssues: 0 },
+      upcoming: {
+        upcomingBookingsCount: 1,
+        nextUpcomingScheduledStart: "2026-05-22T09:00:00+02:00",
+        nextUpcomingDayLabel: "tomorrow",
+        futurePaidBookingsCount: 1,
+        cleanersInSystemCount: 2,
+      },
+      matchingPending: 0,
+      recurringActive: 0,
+    });
+
+    expect(presentation.summarySuffix).toContain("1 upcoming");
+    expect(presentation.summarySuffix).toContain("tomorrow");
+    expect(presentation.bookingsFooter).toBe("0 confirmed · 0 done");
+    expect(presentation.cleanersFooter).toBe("Assigned on today's schedule");
+    expect(presentation.revenueFooter).toBe("0 recurring active");
+    expect(presentation.issuesFooter).toBe("Queues clear");
+  });
+
+  it("buildAdminHomeLiveFeedFromEvents handles missing booking labels safely", () => {
+    const items = buildAdminHomeLiveFeedFromEvents({
+      events: [
+        {
+          id: "evt-1",
+          bookingId: "deleted-booking",
+          at: "2026-05-21T10:00:00Z",
+          source: "booking_audit",
+          kind: "payment",
+          title: "Payment confirmed",
+          detail: null,
+        },
+        {
+          id: "evt-archived",
+          bookingId: null,
+          at: "2026-05-21T09:00:00Z",
+          source: "booking_audit",
+          kind: "completed",
+          title: "Visit completed",
+          detail: null,
+        },
+      ],
+      bookingLabels: new Map(),
+    });
+
+    expect(items[0]?.detail).toContain("Archived booking activity");
+    expect(items[0]?.linkable).toBe(true);
+    expect(items[1]?.detail).toContain("Archived booking activity");
+    expect(items[1]?.linkable).toBe(false);
+  });
+
+  it("buildAdminHomePayoutSummaryView distinguishes unavailable from empty queue", () => {
+    const unavailable = buildAdminHomePayoutSummaryView(null);
+    expect(unavailable.dataAvailable).toBe(false);
+    expect(unavailable.weeklyReadyLabel).toContain("unavailable");
+
+    const empty = buildAdminHomePayoutSummaryView({
+      pendingCents: 0,
+      payoutReadyCents: 0,
+      paidCents: 0,
+      queue: [],
+    });
+    expect(empty.dataAvailable).toBe(true);
+    expect(empty.weeklyReadyLabel).toBe("Nothing awaiting release");
   });
 
   it("buildAdminHomeWorkbenchRows caps rows and links to dispatch", () => {

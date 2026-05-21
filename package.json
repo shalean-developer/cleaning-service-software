@@ -26,6 +26,7 @@
     "ops:delete:mock-cleaners": "node scripts/ops/delete-mock-cleaners.mjs",
     "ops:delete:mock-customers": "node scripts/ops/delete-mock-customers.mjs",
     "ops:delete:mock-data": "node scripts/ops/delete-mock-data.mjs",
+    "ops:audit:admin-overview": "node scripts/ops/audit-admin-overview-page.mjs",
     "ops:audit:clear-operational-data": "node scripts/ops/audit-clear-operational-data.mjs",
     "ops:clear-operational-data": "node scripts/ops/clear-operational-data.mjs",
     "ops:audit:reset-auth-admin": "node scripts/ops/audit-reset-auth-admin.mjs",
@@ -43,6 +44,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
+    "lucide-react": "^1.16.0",
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",

@@ -7,6 +7,7 @@ import {
   requiredRoleForDashboardPath,
 } from "@/lib/auth/redirects";
 import { isStaleRefreshTokenError } from "@/lib/auth/sessionErrors";
+import { isSupabaseAuthCookieName } from "@/lib/auth/supabaseAuthCookie";
 import { getSupabasePublicEnv } from "@/lib/supabase/publicEnv";
 
 /** Copies Set-Cookie headers from the session response onto a redirect. */
@@ -19,6 +20,17 @@ function redirectWithSessionCookies(
     redirectResponse.cookies.set(cookie);
   }
   return redirectResponse;
+}
+
+function clearSupabaseAuthCookiesOnResponse(
+  request: NextRequest,
+  response: NextResponse,
+): void {
+  for (const { name } of request.cookies.getAll()) {
+    if (isSupabaseAuthCookieName(name)) {
+      response.cookies.delete(name);
+    }
+  }
 }
 
 export async function proxy(request: NextRequest) {
@@ -62,7 +74,12 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError && isStaleRefreshTokenError(authError)) {
-    await supabase.auth.signOut();
+    clearSupabaseAuthCookiesOnResponse(request, sessionResponse);
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Ignore — auth cookies are cleared on the response.
+    }
     const signInUrl = new URL(buildSignInRedirectPath(pathname), request.url);
     return redirectWithSessionCookies(signInUrl, sessionResponse);
   }

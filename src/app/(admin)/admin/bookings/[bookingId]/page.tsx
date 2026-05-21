@@ -23,6 +23,7 @@ import { PastOffersCollapsible } from "@/components/dashboard/PastOffersCollapsi
 import { AdminTeamSupportOperationsPanel } from "@/components/dashboard/admin/AdminTeamSupportOperationsPanel";
 import { AdminTeamRosterFoundationPanel } from "@/components/dashboard/admin/AdminTeamRosterFoundationPanel";
 import { buildAdminOperationalLoadBadges } from "@/features/dashboards/server/adminTeamSupportObservation";
+import { dedupeAdminBookingListBadgesByLabel } from "@/features/dashboards/adminBookingListBadgePresentation";
 import {
   adminDeferredDispatchNeedsAttention,
   adminEarningsNeedsAttention,
@@ -129,7 +130,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
             ? getCarpetAdminBookingDetailCopy()
             : null;
 
-  const heroBadges = [
+  const heroBadges = dedupeAdminBookingListBadgesByLabel([
     { label: labelForBookingStatus(b.status), tone: toneForBookingStatus(b.status) },
     ...getAirbnbAdminListBadges({
       serviceLabel: b.serviceLabel,
@@ -183,7 +184,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           },
         ]
       : []),
-  ];
+  ]);
 
   const essentialRows = buildAdminBookingHeroEssentialRows({
     scheduleLabel: b.scheduleLabel,
