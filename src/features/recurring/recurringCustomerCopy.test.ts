@@ -5,12 +5,27 @@ import { describe, expect, it } from "vitest";
 const CUSTOMER_RECURRING_FILES = [
   "src/app/(customer)/customer/bookings/recurring/page.tsx",
   "src/app/(customer)/customer/bookings/recurring/[seriesId]/page.tsx",
+  "src/app/(customer)/customer/bookings/recurring/groups/[groupId]/page.tsx",
   "src/components/dashboard/customer/CustomerRecurringSeriesCard.tsx",
+  "src/components/dashboard/customer/CustomerRecurringScheduleGroupCard.tsx",
   "src/components/dashboard/customer/CustomerRecurringRequestActions.tsx",
+  "src/components/dashboard/customer/CustomerRecurringGroupRequestActions.tsx",
+  "src/components/dashboard/customer/CustomerRecurringGroupVisitsPanel.tsx",
 ];
 
-const FORBIDDEN = ["auto-charge", "subscription", "monthly invoice", "automatically billed"];
-const REQUIRED_PHRASES = ["pay to confirm", "assigned after payment"];
+const FORBIDDEN = [
+  "auto-charge",
+  "subscription",
+  "monthly invoice",
+  "automatically billed",
+  "guaranteed same cleaner",
+];
+const REQUIRED_PHRASES = [
+  "pay to confirm",
+  "assigned after payment",
+  "paid individually",
+  "request",
+];
 
 describe("customer recurring UI copy", () => {
   for (const rel of CUSTOMER_RECURRING_FILES) {
@@ -27,14 +42,18 @@ describe("customer recurring UI copy", () => {
       resolve("src/app/(customer)/customer/bookings/recurring/[seriesId]/page.tsx"),
       "utf8",
     ).toLowerCase();
-    const card = readFileSync(
-      resolve("src/components/dashboard/customer/CustomerRecurringSeriesCard.tsx"),
+    const group = readFileSync(
+      resolve("src/app/(customer)/customer/bookings/recurring/groups/[groupId]/page.tsx"),
       "utf8",
     ).toLowerCase();
-    const combined = `${detail} ${card}`;
+    const visits = readFileSync(
+      resolve("src/components/dashboard/customer/CustomerRecurringGroupVisitsPanel.tsx"),
+      "utf8",
+    ).toLowerCase();
+    const combined = `${detail} ${group} ${visits}`;
     for (const phrase of REQUIRED_PHRASES) {
       expect(combined).toContain(phrase);
     }
-    expect(combined).toContain("ready for payment");
+    expect(combined).toContain("each recurring visit is paid individually");
   });
 });

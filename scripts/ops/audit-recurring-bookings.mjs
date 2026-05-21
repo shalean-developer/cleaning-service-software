@@ -63,11 +63,20 @@ async function main() {
     bookingList.filter((b) => b.series_id).map((b) => b.id),
   );
 
+  const { data: requestRows, error: requestError } = await client
+    .from("recurring_series_requests")
+    .select("id, series_id, group_id, customer_id, scope, target_weekday, status");
+  if (requestError) {
+    console.error(requestError.message);
+    process.exit(1);
+  }
+
   const issues = buildRecurringIntegrityIssues({
     seriesRows: seriesRows ?? [],
     bookings: bookingList,
     paidBookingIds,
     groupRows: groupRows ?? [],
+    requestRows: requestRows ?? [],
   });
 
   const paidStatuses = new Set([

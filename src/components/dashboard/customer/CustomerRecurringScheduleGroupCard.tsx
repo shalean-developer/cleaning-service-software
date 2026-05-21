@@ -30,13 +30,19 @@ export function CustomerRecurringScheduleGroupCard({ item }: Props) {
         {item.series.length === 1 ? "" : "s"}
       </p>
       <div className="mt-3 flex flex-wrap gap-3">
+        <Link
+          href={`/customer/bookings/recurring/groups/${item.groupId}`}
+          className="text-sm font-semibold text-zinc-900 underline-offset-2 hover:underline"
+        >
+          View schedule →
+        </Link>
         {item.series.map((s) => (
           <Link
             key={s.seriesId}
             href={`/customer/bookings/recurring/${s.seriesId}`}
-            className="text-sm font-medium text-zinc-800 underline-offset-2 hover:underline"
+            className="text-sm font-medium text-zinc-600 underline-offset-2 hover:underline"
           >
-            {s.frequencyLabel} slot →
+            {s.frequencyLabel} slot
           </Link>
         ))}
       </div>

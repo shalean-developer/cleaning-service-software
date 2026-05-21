@@ -85,7 +85,7 @@ async function main() {
   const { data: bookings, error: bookingsError } = await client
     .from("bookings")
     .select(
-      "id, customer_id, series_id, status, scheduled_start, price_cents, metadata, created_at, synthetic_anchor",
+      "id, customer_id, series_id, status, scheduled_start, price_cents, metadata, created_at, synthetic_anchor, cleaner_id",
     )
     .not("series_id", "is", null);
   if (bookingsError) {
@@ -96,11 +96,16 @@ async function main() {
   const bookingList = bookings ?? [];
   const paidBookingIds = await loadPaidBookingIds(bookingList.map((b) => b.id));
 
+  const { data: requestRows } = await client
+    .from("recurring_series_requests")
+    .select("id, series_id, group_id, customer_id, scope, target_weekday, status");
+
   const globalIssues = buildRecurringIntegrityIssues({
     seriesRows: seriesRows ?? [],
     bookings: bookingList,
     paidBookingIds,
     groupRows: groupRows ?? [],
+    requestRows: requestRows ?? [],
   });
 
   const activeSeries = (seriesRows ?? []).filter((s) => s.status === "active");

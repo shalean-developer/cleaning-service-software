@@ -2,43 +2,56 @@ import "server-only";
 
 import type { CurrentUser } from "@/lib/auth/types";
 import type { Database } from "@/lib/database/types";
+import type {
+  RecurringSeriesRequestRow,
+  RecurringSeriesRequestScope,
+  RecurringSeriesRequestType,
+} from "@/lib/database/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { RECURRING_WEEKDAY_FULL_LABELS } from "../recurringScheduleDays";
 import { recordRecurringSeriesAudit } from "./recordRecurringSeriesAudit";
-import type { CustomerRecurringRequestType } from "./recurringSeriesCommandService";
+import type {
+  RecurringSeriesRequestScope as ScopeLabel,
+  RecurringSeriesRequestType as UiRequestType,
+} from "./recurringManagementTypes";
 
 export type RecurringSeriesRequestStatus = "open" | "acknowledged" | "resolved";
 
-export type RecurringSeriesRequestRow = {
-  id: string;
-  series_id: string;
-  customer_id: string;
-  request_type: CustomerRecurringRequestType;
-  note: string | null;
-  status: RecurringSeriesRequestStatus;
-  created_at: string;
-  resolved_at: string | null;
-  resolved_by: string | null;
-  metadata: Record<string, unknown>;
-};
-
 export type RecurringSeriesRequestSummary = {
   id: string;
-  seriesId: string;
+  seriesId: string | null;
+  groupId: string | null;
   customerId: string;
-  requestType: CustomerRecurringRequestType;
+  scope: RecurringSeriesRequestScope;
+  requestType: RecurringSeriesRequestType;
   requestTypeLabel: string;
+  scopeLabel: string;
   status: RecurringSeriesRequestStatus;
   statusLabel: string;
   note: string | null;
   createdAt: string;
   resolvedAt: string | null;
+  targetWeekday: number | null;
+  targetWeekdayLabel: string | null;
+  requestedDateTimeIso: string | null;
 };
 
-const REQUEST_TYPE_LABELS: Record<CustomerRecurringRequestType, string> = {
+const REQUEST_TYPE_LABELS: Record<RecurringSeriesRequestType, string> = {
   pause: "Pause",
   cancel: "Cancel",
   reschedule: "Reschedule",
+  pause_group: "Pause entire schedule",
+  cancel_group: "Cancel entire schedule",
+  reschedule_group: "Reschedule entire schedule",
+  pause_weekday: "Pause weekday",
+  cancel_weekday: "Cancel weekday",
+  reschedule_weekday: "Reschedule weekday",
+};
+
+const SCOPE_LABELS: Record<RecurringSeriesRequestScope, string> = {
+  series: "Weekday",
+  group: "Full schedule",
 };
 
 const STATUS_LABELS: Record<RecurringSeriesRequestStatus, string> = {
@@ -47,41 +60,97 @@ const STATUS_LABELS: Record<RecurringSeriesRequestStatus, string> = {
   resolved: "Resolved",
 };
 
+function weekdayLabel(weekday: number | null): string | null {
+  if (weekday == null || weekday < 0 || weekday > 6) return null;
+  return RECURRING_WEEKDAY_FULL_LABELS[weekday] ?? String(weekday);
+}
+
+function readRequestedDateTime(metadata: Record<string, unknown>): string | null {
+  const v = metadata.requestedDateTimeIso;
+  return typeof v === "string" && v.trim() ? v.trim() : null;
+}
+
 function mapRow(row: RecurringSeriesRequestRow): RecurringSeriesRequestSummary {
+  const meta =
+    row.metadata != null && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+      ? (row.metadata as Record<string, unknown>)
+      : {};
   return {
     id: row.id,
     seriesId: row.series_id,
+    groupId: row.group_id,
     customerId: row.customer_id,
+    scope: row.scope,
     requestType: row.request_type,
     requestTypeLabel: REQUEST_TYPE_LABELS[row.request_type],
+    scopeLabel: SCOPE_LABELS[row.scope],
     status: row.status,
     statusLabel: STATUS_LABELS[row.status],
     note: row.note,
     createdAt: row.created_at,
     resolvedAt: row.resolved_at,
+    targetWeekday: row.target_weekday,
+    targetWeekdayLabel: weekdayLabel(row.target_weekday),
+    requestedDateTimeIso: readRequestedDateTime(meta),
   };
 }
+
+export type LegacyCustomerRecurringRequestType = "pause" | "cancel" | "reschedule";
 
 export async function insertRecurringSeriesRequest(
   client: SupabaseClient<Database>,
   input: {
     seriesId: string;
     customerId: string;
-    requestType: CustomerRecurringRequestType;
+    requestType: LegacyCustomerRecurringRequestType;
     note?: string | null;
     anchorBookingId: string;
     actorProfileId: string;
   },
 ): Promise<{ ok: true; requestId: string } | { ok: false; message: string }> {
+  return insertScopedRecurringRequest(client, {
+    scope: "series",
+    seriesId: input.seriesId,
+    groupId: null,
+    targetWeekday: null,
+    customerId: input.customerId,
+    requestType: input.requestType,
+    note: input.note,
+    anchorBookingId: input.anchorBookingId,
+    actorProfileId: input.actorProfileId,
+    metadata: {},
+  });
+}
+
+export async function insertScopedRecurringRequest(
+  client: SupabaseClient<Database>,
+  input: {
+    scope: RecurringSeriesRequestScope;
+    seriesId: string | null;
+    groupId: string | null;
+    targetWeekday: number | null;
+    customerId: string;
+    requestType: RecurringSeriesRequestType;
+    note?: string | null;
+    anchorBookingId: string;
+    actorProfileId: string;
+    metadata?: Record<string, unknown>;
+  },
+): Promise<{ ok: true; requestId: string } | { ok: false; message: string }> {
+  const metadata = { ...(input.metadata ?? {}) };
+
   const { data, error } = await client
     .from("recurring_series_requests")
     .insert({
       series_id: input.seriesId,
+      group_id: input.groupId,
+      scope: input.scope,
+      target_weekday: input.targetWeekday,
       customer_id: input.customerId,
       request_type: input.requestType,
       note: input.note?.trim() || null,
       status: "open",
-      metadata: {},
+      metadata,
     })
     .select("id")
     .single();
@@ -100,6 +169,10 @@ export async function insertRecurringSeriesRequest(
     metadata: {
       requestType: input.requestType,
       requestId: data.id as string,
+      scope: input.scope,
+      groupId: input.groupId ?? undefined,
+      targetWeekday: input.targetWeekday ?? undefined,
+      ...metadata,
     },
   });
 
@@ -117,6 +190,29 @@ export async function countOpenRecurringSeriesRequests(
   return count ?? 0;
 }
 
+async function fetchRequestsForSeriesOrGroup(
+  client: SupabaseClient<Database>,
+  input: { seriesIds: string[]; groupId: string | null },
+): Promise<RecurringSeriesRequestRow[]> {
+  const filters: string[] = [];
+  if (input.seriesIds.length > 0) {
+    filters.push(`series_id.in.(${input.seriesIds.join(",")})`);
+  }
+  if (input.groupId) {
+    filters.push(`group_id.eq.${input.groupId}`);
+  }
+  if (filters.length === 0) return [];
+
+  const { data, error } = await client
+    .from("recurring_series_requests")
+    .select("*")
+    .or(filters.join(","))
+    .order("created_at", { ascending: false });
+
+  if (error) return [];
+  return (data ?? []) as RecurringSeriesRequestRow[];
+}
+
 export async function loadOpenRequestsBySeriesIds(
   client: SupabaseClient<Database>,
   seriesIds: string[],
@@ -124,21 +220,27 @@ export async function loadOpenRequestsBySeriesIds(
   const map = new Map<string, RecurringSeriesRequestSummary>();
   if (seriesIds.length === 0) return map;
 
-  const { data, error } = await client
-    .from("recurring_series_requests")
-    .select("*")
-    .in("series_id", seriesIds)
-    .in("status", ["open", "acknowledged"])
-    .order("created_at", { ascending: false });
-
-  if (error) return map;
-
-  for (const row of (data ?? []) as RecurringSeriesRequestRow[]) {
-    if (!map.has(row.series_id)) {
-      map.set(row.series_id, mapRow(row));
-    }
+  const rows = await fetchRequestsForSeriesOrGroup(client, { seriesIds, groupId: null });
+  for (const row of rows) {
+    if (row.status !== "open" && row.status !== "acknowledged") continue;
+    const key = row.series_id ?? (row.group_id ? `group:${row.group_id}` : null);
+    if (!key || map.has(key)) continue;
+    map.set(key, mapRow(row));
   }
   return map;
+}
+
+export async function loadOpenRequestsForGroup(
+  client: SupabaseClient<Database>,
+  input: { groupId: string; seriesIds: string[] },
+): Promise<RecurringSeriesRequestSummary[]> {
+  const rows = await fetchRequestsForSeriesOrGroup(client, {
+    seriesIds: input.seriesIds,
+    groupId: input.groupId,
+  });
+  return rows
+    .filter((r) => r.status === "open" || r.status === "acknowledged")
+    .map(mapRow);
 }
 
 export async function loadLatestRequestsBySeriesIds(
@@ -148,18 +250,10 @@ export async function loadLatestRequestsBySeriesIds(
   const map = new Map<string, RecurringSeriesRequestSummary>();
   if (seriesIds.length === 0) return map;
 
-  const { data, error } = await client
-    .from("recurring_series_requests")
-    .select("*")
-    .in("series_id", seriesIds)
-    .order("created_at", { ascending: false });
-
-  if (error) return map;
-
-  for (const row of (data ?? []) as RecurringSeriesRequestRow[]) {
-    if (!map.has(row.series_id)) {
-      map.set(row.series_id, mapRow(row));
-    }
+  const rows = await fetchRequestsForSeriesOrGroup(client, { seriesIds, groupId: null });
+  for (const row of rows) {
+    if (!row.series_id || map.has(row.series_id)) continue;
+    map.set(row.series_id, mapRow(row));
   }
   return map;
 }
@@ -169,15 +263,23 @@ export async function loadAllRequestsForSeriesIds(
   seriesIds: string[],
 ): Promise<RecurringSeriesRequestSummary[]> {
   if (seriesIds.length === 0) return [];
+  const rows = await fetchRequestsForSeriesOrGroup(client, { seriesIds, groupId: null });
+  return rows.map(mapRow);
+}
 
-  const { data, error } = await client
-    .from("recurring_series_requests")
-    .select("*")
-    .in("series_id", seriesIds)
-    .order("created_at", { ascending: false });
-
-  if (error) return [];
-  return (data ?? []).map((row) => mapRow(row as RecurringSeriesRequestRow));
+export async function loadAllRequestsForGroup(
+  client: SupabaseClient<Database>,
+  input: { groupId: string; seriesIds: string[] },
+): Promise<RecurringSeriesRequestSummary[]> {
+  const rows = await fetchRequestsForSeriesOrGroup(client, input);
+  const seen = new Set<string>();
+  const out: RecurringSeriesRequestSummary[] = [];
+  for (const row of rows) {
+    if (seen.has(row.id)) continue;
+    seen.add(row.id);
+    out.push(mapRow(row));
+  }
+  return out;
 }
 
 export async function loadLatestRequestForSeries(
@@ -265,15 +367,26 @@ export async function adminResolveRecurringSeriesRequest(
     };
   }
 
-  const { data: series } = await client
-    .from("booking_series")
-    .select("created_from_booking_id")
-    .eq("id", request.series_id)
-    .maybeSingle();
+  let anchorBookingId: string | null = null;
+  if (request.series_id) {
+    const { data: series } = await client
+      .from("booking_series")
+      .select("created_from_booking_id")
+      .eq("id", request.series_id)
+      .maybeSingle();
+    anchorBookingId = (series?.created_from_booking_id as string) ?? null;
+  } else if (request.group_id) {
+    const { data: group } = await client
+      .from("recurring_schedule_groups")
+      .select("anchor_booking_id")
+      .eq("id", request.group_id)
+      .maybeSingle();
+    anchorBookingId = (group?.anchor_booking_id as string) ?? null;
+  }
 
-  if (series?.created_from_booking_id) {
+  if (anchorBookingId) {
     await recordRecurringSeriesAudit(client, {
-      anchorBookingId: series.created_from_booking_id as string,
+      anchorBookingId,
       action: "RECURRING_CUSTOMER_REQUEST",
       seriesId: request.series_id,
       actorType: "admin",
@@ -282,6 +395,8 @@ export async function adminResolveRecurringSeriesRequest(
         requestId,
         requestResolution: nextStatus,
         requestType: request.request_type,
+        scope: request.scope,
+        groupId: request.group_id ?? undefined,
       },
     });
   }
@@ -294,3 +409,16 @@ export async function adminResolveRecurringSeriesRequest(
         : "Request marked resolved.",
   };
 }
+
+/** @deprecated Use RecurringSeriesRequestType from recurringManagementTypes */
+export type CustomerRecurringRequestType = LegacyCustomerRecurringRequestType;
+
+export type CustomerGroupRecurringRequestType = Extract<
+  UiRequestType,
+  | "pause_group"
+  | "cancel_group"
+  | "reschedule_group"
+  | "pause_weekday"
+  | "cancel_weekday"
+  | "reschedule_weekday"
+>;

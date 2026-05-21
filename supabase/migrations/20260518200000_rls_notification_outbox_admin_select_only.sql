@@ -3,6 +3,7 @@
 -- Rollback: docs/operations/rls-tightening-rollbacks.md
 
 drop policy if exists notification_outbox_admin on public.notification_outbox;
+drop policy if exists notification_outbox_select_admin on public.notification_outbox;
 
 create policy notification_outbox_select_admin on public.notification_outbox
   for select to authenticated

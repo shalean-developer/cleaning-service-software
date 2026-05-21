@@ -32,6 +32,7 @@ import { ARCHIVED_CUSTOMER_LABEL } from "./recurringReadModelLabels";
 import {
   countOpenRecurringSeriesRequests,
   loadLatestRequestForSeries,
+  loadAllRequestsForGroup,
   loadOpenRequestsBySeriesIds,
 } from "./recurringSeriesRequestsService";
 
@@ -131,10 +132,15 @@ function toRequestBadge(
     id: open.id,
     requestType: open.requestType,
     requestTypeLabel: open.requestTypeLabel,
+    scope: open.scope,
+    scopeLabel: open.scopeLabel,
     status: open.status,
     statusLabel: open.statusLabel,
     createdAt: open.createdAt,
     note: open.note,
+    targetWeekday: open.targetWeekday,
+    targetWeekdayLabel: open.targetWeekdayLabel,
+    requestedDateTimeIso: open.requestedDateTimeIso,
   };
 }
 
@@ -424,10 +430,15 @@ export async function listAdminRecurringSeries(
               id: open.id,
               requestType: open.requestType,
               requestTypeLabel: open.requestTypeLabel,
+              scope: open.scope,
+              scopeLabel: open.scopeLabel,
               status: open.status,
               statusLabel: open.statusLabel,
               createdAt: open.createdAt,
               note: open.note,
+              targetWeekday: open.targetWeekday,
+              targetWeekdayLabel: open.targetWeekdayLabel,
+              requestedDateTimeIso: open.requestedDateTimeIso,
             }
           : null,
         nowMs,
@@ -478,6 +489,14 @@ export async function listAdminRecurringSeries(
         for (const item of groupSeriesItems) seriesInGroups.add(item.seriesId);
         if (groupSeriesItems.length === 0) continue;
         const first = groupSeriesItems[0]!;
+        const groupSeriesIds = groupSeriesItems.map((s) => s.seriesId);
+        const groupRequests = await loadAllRequestsForGroup(client, {
+          groupId: group.id,
+          seriesIds: groupSeriesIds,
+        });
+        const openCustomerRequestsCount = groupRequests.filter(
+          (r) => r.status === "open" || r.status === "acknowledged",
+        ).length;
         groups.push({
           groupId: group.id,
           frequency: group.frequency,
@@ -491,6 +510,7 @@ export async function listAdminRecurringSeries(
             (n, s) => n + (s.nextOccurrencePaymentRequired ? 1 : 0),
             0,
           ),
+          openCustomerRequestsCount,
           customerId: group.customer_id,
           customerName: first.customerName,
           customerEmail: first.customerEmail,

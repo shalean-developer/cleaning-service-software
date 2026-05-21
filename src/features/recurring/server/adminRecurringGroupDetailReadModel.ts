@@ -35,7 +35,7 @@ import type {
   RecurringScheduleGroupActionsAllowed,
   RecurringSeriesRequestBadge,
 } from "./recurringManagementTypes";
-import { loadAllRequestsForSeriesIds } from "./recurringSeriesRequestsService";
+import { loadAllRequestsForGroup } from "./recurringSeriesRequestsService";
 
 const OVERDUE_PAYMENT_MS = 48 * 60 * 60 * 1000;
 
@@ -378,10 +378,10 @@ export async function getAdminRecurringScheduleGroupDetail(
       customerMap.get(group.customer_id) ??
       archivedCustomerFallback(group.customer_id);
 
-    const allRequests = await loadAllRequestsForSeriesIds(client, seriesIds);
+    const allRequests = await loadAllRequestsForGroup(client, { groupId, seriesIds });
     const latestRequestBySeries = new Map<string, (typeof allRequests)[number]>();
     for (const req of allRequests) {
-      if (!latestRequestBySeries.has(req.seriesId)) {
+      if (req.seriesId && !latestRequestBySeries.has(req.seriesId)) {
         latestRequestBySeries.set(req.seriesId, req);
       }
     }
@@ -397,10 +397,15 @@ export async function getAdminRecurringScheduleGroupDetail(
               id: latest.id,
               requestType: latest.requestType,
               requestTypeLabel: latest.requestTypeLabel,
+              scope: latest.scope,
+              scopeLabel: latest.scopeLabel,
               status: latest.status,
               statusLabel: latest.statusLabel,
               createdAt: latest.createdAt,
               note: latest.note,
+              targetWeekday: latest.targetWeekday,
+              targetWeekdayLabel: latest.targetWeekdayLabel,
+              requestedDateTimeIso: latest.requestedDateTimeIso,
             }
           : null;
       return mapSeriesListItem(series, bookings, customer, openBadge, nowMs);
@@ -456,14 +461,22 @@ export async function getAdminRecurringScheduleGroupDetail(
     ): import("./recurringManagementTypes").AdminRecurringGroupSupportRequestItem => ({
       id: req.id,
       seriesId: req.seriesId,
-      weekdayLabel: seriesWeekdayById.get(req.seriesId) ?? "—",
+      groupId: req.groupId,
+      weekdayLabel:
+        req.targetWeekdayLabel ??
+        (req.seriesId ? (seriesWeekdayById.get(req.seriesId) ?? "—") : "All weekdays"),
       requestType: req.requestType,
       requestTypeLabel: req.requestTypeLabel,
+      scope: req.scope,
+      scopeLabel: req.scopeLabel,
       status: req.status,
       statusLabel: req.statusLabel,
       createdAt: req.createdAt,
       note: req.note,
       resolvedAt: req.resolvedAt,
+      targetWeekday: req.targetWeekday,
+      targetWeekdayLabel: req.targetWeekdayLabel,
+      requestedDateTimeIso: req.requestedDateTimeIso,
     });
 
     const supportRequests = {

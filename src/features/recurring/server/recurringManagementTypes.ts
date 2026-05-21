@@ -25,14 +25,32 @@ export type RecurringSeriesTimelineEntry = {
   paymentLabel: string;
 };
 
+export type RecurringSeriesRequestType =
+  | "pause"
+  | "cancel"
+  | "reschedule"
+  | "pause_group"
+  | "cancel_group"
+  | "reschedule_group"
+  | "pause_weekday"
+  | "cancel_weekday"
+  | "reschedule_weekday";
+
+export type RecurringSeriesRequestScope = "series" | "group";
+
 export type RecurringSeriesRequestBadge = {
   id: string;
-  requestType: "pause" | "cancel" | "reschedule";
+  requestType: RecurringSeriesRequestType;
   requestTypeLabel: string;
+  scope: RecurringSeriesRequestScope;
+  scopeLabel: string;
   status: "open" | "acknowledged" | "resolved";
   statusLabel: string;
   createdAt: string;
   note: string | null;
+  targetWeekday: number | null;
+  targetWeekdayLabel: string | null;
+  requestedDateTimeIso: string | null;
 };
 
 export type AdminRecurringSeriesListItem = {
@@ -126,6 +144,7 @@ export type AdminRecurringScheduleGroupListItem = {
   selectedDaysLabel: string;
   activeSeriesCount: number;
   totalUnpaidChildren: number;
+  openCustomerRequestsCount: number;
   customerId: string;
   customerName: string;
   customerEmail: string | null;
@@ -170,10 +189,106 @@ export type AdminRecurringGroupTimelineEntry = {
 };
 
 export type AdminRecurringGroupSupportRequestItem = RecurringSeriesRequestBadge & {
-  seriesId: string;
+  seriesId: string | null;
+  groupId: string | null;
   weekdayLabel: string;
   resolvedAt: string | null;
 };
+
+export type CustomerRecurringGroupActionsAllowed = {
+  canRequestPauseGroup: boolean;
+  canRequestCancelGroup: boolean;
+  canRequestRescheduleGroup: boolean;
+  canRequestPauseWeekday: boolean;
+  canRequestCancelWeekday: boolean;
+  canRequestRescheduleWeekday: boolean;
+};
+
+export type CustomerRecurringGroupWeekdaySeriesItem = {
+  seriesId: string;
+  weekday: number | null;
+  weekdayLabel: string;
+  slotLabel: string | null;
+  status: BookingSeriesStatus;
+  statusLabel: string;
+  nextOccurrenceAt: string | null;
+  nextOccurrenceScheduleLabel: string | null;
+  nextOccurrencePaymentRequired: boolean;
+  nextOccurrenceBookingId: string | null;
+  unpaidChildCount: number;
+  completedChildCount: number;
+  latestVisitScheduleLabel: string | null;
+  seriesDetailHref: string;
+};
+
+export type CustomerRecurringGroupVisitEntry = {
+  bookingId: string;
+  seriesId: string;
+  weekdayLabel: string;
+  serviceLabel: string;
+  scheduledStart: string;
+  scheduledEnd: string;
+  scheduleLabel: string;
+  status: BookingStatus;
+  paymentLabel: string;
+  priceLabel: string;
+  paymentRequired: boolean;
+  bookingDetailHref: string;
+};
+
+export type CustomerRecurringGroupRequestItem = RecurringSeriesRequestBadge & {
+  seriesId: string | null;
+  resolvedAt: string | null;
+};
+
+export type CustomerRecurringScheduleGroupDetail = {
+  groupId: string;
+  serviceLabel: string;
+  frequencyLabel: string;
+  status: BookingSeriesStatus;
+  statusLabel: string;
+  selectedDays: number[];
+  selectedDaysLabel: string;
+  subtitleLabel: string;
+  timezone: string;
+  label: string | null;
+  createdAt: string;
+  sharedTimeLabel: string | null;
+  suburb: string | null;
+  addressSummary: string;
+  activeSeriesCount: number;
+  pausedSeriesCount: number;
+  cancelledSeriesCount: number;
+  totalChildVisits: number;
+  unpaidChildVisits: number;
+  paidChildVisits: number;
+  completedChildVisits: number;
+  openRequestCount: number;
+  nextUpcomingVisit: { bookingId: string; scheduleLabel: string; weekdayLabel: string } | null;
+  nextPaymentRequiredVisit: {
+    bookingId: string;
+    scheduleLabel: string;
+    weekdayLabel: string;
+  } | null;
+  weekdaySeries: CustomerRecurringGroupWeekdaySeriesItem[];
+  upcomingVisits: CustomerRecurringGroupVisitEntry[];
+  completedVisits: CustomerRecurringGroupVisitEntry[];
+  supportRequests: {
+    open: CustomerRecurringGroupRequestItem[];
+    acknowledged: CustomerRecurringGroupRequestItem[];
+    resolved: CustomerRecurringGroupRequestItem[];
+  };
+  actions: CustomerRecurringGroupActionsAllowed;
+};
+
+export type CustomerRecurringScheduleGroupDetailResult =
+  | { ok: true; group: CustomerRecurringScheduleGroupDetail }
+  | {
+      ok: false;
+      code: "NOT_FOUND" | "FORBIDDEN" | "PROVISIONING_INCOMPLETE" | "PERSISTENCE_ERROR";
+      message: string;
+      status: number;
+    };
 
 export type AdminRecurringScheduleGroupDetail = {
   groupId: string;

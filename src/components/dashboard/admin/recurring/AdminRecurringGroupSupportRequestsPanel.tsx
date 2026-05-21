@@ -24,31 +24,49 @@ function RequestSection({
       {items.map((req) => (
         <div key={req.id} className="space-y-1">
           <p className="text-xs text-slate-500">
-            {req.weekdayLabel} series ·{" "}
-            <a
-              href={`/admin/recurring/${req.seriesId}`}
-              className="font-medium text-blue-700 hover:text-blue-900"
-            >
-              Open series
-            </a>
+            {req.scopeLabel}
+            {req.targetWeekdayLabel ? ` · ${req.targetWeekdayLabel}` : ""}
+            {req.weekdayLabel !== "All weekdays" ? ` · ${req.weekdayLabel}` : ""}
+            {req.seriesId ? (
+              <>
+                {" "}
+                ·{" "}
+                <a
+                  href={`/admin/recurring/${req.seriesId}`}
+                  className="font-medium text-blue-700 hover:text-blue-900"
+                >
+                  Open series
+                </a>
+              </>
+            ) : null}
           </p>
+          {req.requestedDateTimeIso ? (
+            <p className="text-xs text-slate-600">
+              Requested: {new Date(req.requestedDateTimeIso).toLocaleString("en-ZA")}
+            </p>
+          ) : null}
           {req.status === "open" || req.status === "acknowledged" ? (
             <AdminRecurringSupportRequestPanel
-              seriesId={req.seriesId}
+              seriesId={req.seriesId ?? ""}
               request={{
                 id: req.id,
                 requestType: req.requestType,
                 requestTypeLabel: req.requestTypeLabel,
+                scope: req.scope,
+                scopeLabel: req.scopeLabel,
                 status: req.status,
                 statusLabel: req.statusLabel,
                 createdAt: req.createdAt,
                 note: req.note,
+                targetWeekday: req.targetWeekday,
+                targetWeekdayLabel: req.targetWeekdayLabel,
+                requestedDateTimeIso: req.requestedDateTimeIso,
               }}
             />
           ) : (
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
               <p>
-                {req.requestTypeLabel} · Resolved{" "}
+                {req.requestTypeLabel} · {req.scopeLabel} · Resolved{" "}
                 {req.resolvedAt
                   ? new Date(req.resolvedAt).toLocaleString("en-ZA")
                   : ""}

@@ -123,7 +123,7 @@ function createClient(fixture: Fixture) {
       if (table === "recurring_series_requests") {
         return {
           select: () => ({
-            in: () => ({
+            or: () => ({
               order: async () => ({ data: requests, error: null }),
             }),
           }),
@@ -268,9 +268,12 @@ describe("getAdminRecurringScheduleGroupDetail", () => {
           {
             id: "req-1",
             series_id: "series-mon",
+            group_id: "group-1",
+            scope: "series",
+            target_weekday: 1,
             customer_id: "cust-1",
-            request_type: "pause",
-            note: "Please pause",
+            request_type: "pause_weekday",
+            note: "Please pause Monday",
             status: "open",
             created_at: "2026-05-10T08:00:00.000Z",
             resolved_at: null,

@@ -16,6 +16,10 @@ import {
   evaluateRequiredEnv,
   REQUIRED_ENV_VARS,
 } from "./lib/recurring-launch-readiness.mjs";
+import {
+  buildRecurringGroupE2eReport,
+  deriveGroupLaunchRecommendation,
+} from "./lib/recurring-group-e2e.mjs";
 
 loadEnvFiles();
 const client = requireServiceRoleClient(createClient);
@@ -42,6 +46,21 @@ async function tableExists(tableName) {
   const msg = (error.message ?? "").toLowerCase();
   if (msg.includes("does not exist") || msg.includes("schema cache")) return false;
   return true;
+}
+
+function groupMigrationsPresent() {
+  return (
+    existsSync(
+      resolve("supabase/migrations/20260606120000_recurring_schedule_groups.sql"),
+    ) &&
+    existsSync(
+      resolve("supabase/migrations/20260608120000_recurring_series_requests_group_scope.sql"),
+    )
+  );
+}
+
+function routeFileExists(relPath) {
+  return existsSync(resolve(relPath));
 }
 
 async function loadPaidBookingIds(bookingIds) {
@@ -78,6 +97,7 @@ async function main() {
   const bookingSeriesOk = await tableExists("booking_series");
   const runsTableOk = await tableExists("recurring_generation_runs");
   const requestsTableOk = await tableExists("recurring_series_requests");
+  const groupsTableOk = await tableExists("recurring_schedule_groups");
 
   infraChecks.push(
     ...evaluateInfrastructureChecks({
@@ -94,7 +114,7 @@ async function main() {
       code: "TABLE_RECURRING_SERIES_REQUESTS",
       level: "WARN",
       message:
-        "recurring_series_requests table missing — apply migration 20260605120000_recurring_series_requests.sql",
+        "recurring_series_requests table missing — apply migrations 20260605120000 and 20260608120000",
     });
   } else {
     infraChecks.push({
@@ -132,7 +152,7 @@ async function main() {
   const { data: bookings } = await client
     .from("bookings")
     .select(
-      "id, customer_id, series_id, status, scheduled_start, price_cents, metadata, created_at",
+      "id, customer_id, series_id, status, scheduled_start, price_cents, metadata, created_at, synthetic_anchor, cleaner_id",
     )
     .not("series_id", "is", null);
 
@@ -140,10 +160,20 @@ async function main() {
   const seriesWithChildren = bookingList.filter((b) => b.series_id);
   const paidBookingIds = await loadPaidBookingIds(seriesWithChildren.map((b) => b.id));
 
+  const { data: groupRows } = await client
+    .from("recurring_schedule_groups")
+    .select("id, customer_id, status, frequency, selected_days");
+
+  const { data: requestRows } = await client
+    .from("recurring_series_requests")
+    .select("id, series_id, group_id, customer_id, scope, target_weekday, status");
+
   const integrityIssues = buildRecurringIntegrityIssues({
     seriesRows: seriesRows ?? [],
     bookings: bookingList,
     paidBookingIds,
+    groupRows: groupRows ?? [],
+    requestRows: requestRows ?? [],
     nowMs: now,
   });
 
@@ -185,14 +215,19 @@ async function main() {
     openRequestsCount = count ?? 0;
   }
 
-  const { data: latestRun } = await client
-    .from("recurring_generation_runs")
-    .select("completed_at, status")
-    .order("completed_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  let latestRun = null;
+  if (runsTableOk) {
+    const { data } = await client
+      .from("recurring_generation_runs")
+      .select("completed_at, status")
+      .order("completed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    latestRun = data;
+  }
 
   console.log("Metrics");
+  console.log(`  Schedule groups:                  ${(groupRows ?? []).length}`);
   console.log(`  Active series:                    ${activeSeries.length}`);
   console.log(`  Generated children (45d horizon):   ${generatedInHorizon.length}`);
   console.log(`  Unpaid children:                  ${unpaidChildren.length}`);
@@ -214,6 +249,89 @@ async function main() {
     });
   }
 
+  const groupE2eReport = buildRecurringGroupE2eReport({
+    groupRows: groupRows ?? [],
+    seriesRows: seriesRows ?? [],
+    bookings: bookingList,
+    paidBookingIds,
+    requestRows: requestRows ?? [],
+    latestRun: latestRun ?? null,
+  });
+  const groupLaunchRec = deriveGroupLaunchRecommendation(groupE2eReport);
+
+  const groupChecks = [
+    {
+      code: "TABLE_RECURRING_SCHEDULE_GROUPS",
+      level: groupsTableOk ? "PASS" : "FAIL",
+      message: groupsTableOk
+        ? "recurring_schedule_groups table exists."
+        : "recurring_schedule_groups missing — apply 20260606120000.",
+    },
+    {
+      code: "MIGRATION_GROUP_SCHEMA",
+      level: groupMigrationsPresent() ? "PASS" : "FAIL",
+      message: groupMigrationsPresent()
+        ? "Group + group-request migrations present in repo."
+        : "Missing group migration files in supabase/migrations.",
+    },
+    {
+      code: "ROUTE_CUSTOMER_GROUP_DETAIL",
+      level: routeFileExists(
+        "src/app/(customer)/customer/bookings/recurring/groups/[groupId]/page.tsx",
+      )
+        ? "PASS"
+        : "FAIL",
+      message: "Customer group detail at /customer/bookings/recurring/groups/[groupId]",
+    },
+    {
+      code: "ROUTE_ADMIN_GROUP_DETAIL",
+      level: routeFileExists("src/app/(admin)/admin/recurring/groups/[groupId]/page.tsx")
+        ? "PASS"
+        : "FAIL",
+      message: "Admin group detail at /admin/recurring/groups/[groupId]",
+    },
+    {
+      code: "API_GROUP_REQUEST_SCOPE",
+      level: routeFileExists(
+        "src/app/api/customer/recurring/groups/[groupId]/request/route.ts",
+      )
+        ? "PASS"
+        : "FAIL",
+      message: "Customer group request API supports group/weekday scope.",
+    },
+    {
+      code: "GROUP_REQUESTS_TABLE_SCOPE",
+      level:
+        requestsTableOk &&
+        (requestRows ?? []).every(
+          (r) => !r.scope || r.scope === "series" || r.scope === "group",
+        )
+          ? "PASS"
+          : "WARN",
+      message: "recurring_series_requests scope column valid for existing rows.",
+    },
+    {
+      code: "E2E_GROUP_DIAGNOSTIC",
+      level:
+        groupE2eReport.status === "PASS"
+          ? "PASS"
+          : groupE2eReport.status === "WARN"
+            ? "WARN"
+            : "FAIL",
+      message: `ops:e2e:recurring-group status ${groupE2eReport.status} (${groupE2eReport.metrics.groupCount} groups).`,
+    },
+    {
+      code: "GROUP_LAUNCH_RECOMMENDATION",
+      level:
+        groupLaunchRec === "BLOCKED"
+          ? "FAIL"
+          : groupLaunchRec === "READY WITH WARNINGS"
+            ? "WARN"
+            : "PASS",
+      message: `Recurring group launch: ${groupLaunchRec}`,
+    },
+  ];
+
   const dashboardChecks = [
     {
       code: "CUSTOMER_DASHBOARD_ROUTE",
@@ -233,15 +351,16 @@ async function main() {
     {
       code: "PAYMENT_REQUIRED_FLOW",
       level: "PASS",
-      message: "Per-visit PayNextVisitButton on customer series detail",
+      message: "Per-visit PayNextVisitButton on customer series + group detail",
     },
   ];
 
   printChecks("Infrastructure & environment", infraChecks);
   printChecks("Data integrity", dataChecks);
+  printChecks("Recurring group launch", groupChecks);
   printChecks("Dashboard & flows", dashboardChecks);
 
-  const allChecks = [...infraChecks, ...dataChecks, ...dashboardChecks];
+  const allChecks = [...infraChecks, ...dataChecks, ...groupChecks, ...dashboardChecks];
   const overall = deriveLaunchReadinessStatus(allChecks);
 
   for (const c of allChecks) {
@@ -270,8 +389,22 @@ async function main() {
   if (integrityIssues.length === 0 && activeSeries.length > 0) {
     recommendations.push("Run npm run ops:soak:recurring-bookings before launch.");
   }
+  if (groupLaunchRec === "READY WITH WARNINGS") {
+    recommendations.push(
+      "Complete docs/recurring-group-e2e-launch-checklist.md manual scenarios in staging.",
+    );
+  }
+  if (groupE2eReport.metrics.groupCount === 0) {
+    recommendations.push(
+      "Create at least one staging multi-day group before customer launch.",
+    );
+  }
+  for (const r of groupE2eReport.recommendations) {
+    recommendations.push(r);
+  }
 
   console.log(`\nOverall: ${overall}`);
+  console.log(`Recurring group launch: ${groupLaunchRec}`);
 
   if (blockers.length > 0) {
     console.log("\nLaunch blockers:");

@@ -25,6 +25,9 @@ export function AdminRecurringScheduleGroupCard({ item }: Props) {
             {item.totalUnpaidChildren > 0
               ? ` · ${item.totalUnpaidChildren} payment required`
               : ""}
+            {item.openCustomerRequestsCount > 0
+              ? ` · ${item.openCustomerRequestsCount} open request${item.openCustomerRequestsCount === 1 ? "" : "s"}`
+              : ""}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

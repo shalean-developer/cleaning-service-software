@@ -191,9 +191,32 @@ export function buildRecurringIntegrityIssues(input) {
   for (const g of input.groupRows ?? []) {
     const children = seriesByGroup.get(g.id) ?? [];
     if (children.length === 0) {
-      report("GROUP_NO_ACTIVE_SERIES", "warning", `group ${g.id} has no series`, {
-        seriesId: g.id,
+      report("GROUP_NO_SERIES", "critical", `group ${g.id} has no booking_series rows`, {
+        groupId: g.id,
       });
+    }
+    const seriesWeekdays = new Set(
+      children.map((c) => c.weekday).filter((w) => w != null),
+    );
+    for (const day of g.selected_days ?? []) {
+      if (!seriesWeekdays.has(day)) {
+        report(
+          "GROUP_SELECTED_DAYS_MISMATCH",
+          "critical",
+          `group ${g.id} selected day ${day} has no series`,
+          { groupId: g.id },
+        );
+      }
+    }
+    for (const w of seriesWeekdays) {
+      if (!(g.selected_days ?? []).includes(w)) {
+        report(
+          "GROUP_EXTRA_WEEKDAY_SERIES",
+          "warning",
+          `group ${g.id} has series for weekday ${w} not in selected_days`,
+          { groupId: g.id },
+        );
+      }
     }
     const weekdays = children.map((c) => c.weekday).filter((w) => w != null);
     const seen = new Set();
@@ -251,6 +274,32 @@ export function buildRecurringIntegrityIssues(input) {
   }
 
   for (const b of input.bookings ?? []) {
+    if (b.synthetic_anchor === true) {
+      if (input.paidBookingIds.has(b.id)) {
+        report(
+          "SYNTHETIC_ANCHOR_HAS_PAYMENT",
+          "critical",
+          `synthetic anchor booking ${b.id} has paid payment row`,
+          { bookingId: b.id, seriesId: b.series_id },
+        );
+      }
+      if (b.cleaner_id) {
+        report(
+          "SYNTHETIC_ANCHOR_CLEANER_ASSIGNED",
+          "critical",
+          `synthetic anchor booking ${b.id} has cleaner_id ${b.cleaner_id}`,
+          { bookingId: b.id, seriesId: b.series_id },
+        );
+      }
+      if (CLEANER_VISIBLE.has(b.status)) {
+        report(
+          "SYNTHETIC_ANCHOR_CLEANER_VISIBLE",
+          "critical",
+          `synthetic anchor booking ${b.id} status=${b.status}`,
+          { bookingId: b.id, seriesId: b.series_id },
+        );
+      }
+    }
     if (b.synthetic_anchor === true && b.series_id && groupSeriesIds.has(b.series_id)) {
       report(
         "SYNTHETIC_ANCHOR_IN_CHILD_TIMELINE",
@@ -273,6 +322,82 @@ export function buildRecurringIntegrityIssues(input) {
           `group child booking ${b.id} cleaner-visible without payment`,
           { bookingId: b.id, seriesId: b.series_id },
         );
+      }
+    }
+  }
+
+  if (input.requestRows?.length) {
+    const groupById = new Map((input.groupRows ?? []).map((g) => [g.id, g]));
+    const seriesById = new Map((input.seriesRows ?? []).map((s) => [s.id, s]));
+    const openByGroup = new Map();
+
+    for (const r of input.requestRows) {
+      if (r.group_id && !groupById.has(r.group_id)) {
+        report("GROUP_REQUEST_MISSING_GROUP", "critical", `request ${r.id} group ${r.group_id} missing`, {
+          requestId: r.id,
+        });
+      }
+      if (r.group_id) {
+        const g = groupById.get(r.group_id);
+        if (g && r.customer_id !== g.customer_id) {
+          report(
+            "GROUP_REQUEST_WRONG_CUSTOMER",
+            "critical",
+            `request ${r.id} customer mismatch group ${r.group_id}`,
+            { requestId: r.id },
+          );
+        }
+        if (r.scope !== "series" && r.scope !== "group") {
+          report("GROUP_REQUEST_INVALID_SCOPE", "critical", `request ${r.id} scope ${r.scope}`, {
+            requestId: r.id,
+          });
+        }
+        if (r.scope === "group" && !r.group_id) {
+          report("GROUP_REQUEST_INVALID_SCOPE", "critical", `request ${r.id} group scope without group_id`, {
+            requestId: r.id,
+          });
+        }
+        if (
+          r.target_weekday != null &&
+          g &&
+          Array.isArray(g.selected_days) &&
+          !g.selected_days.includes(r.target_weekday)
+        ) {
+          report(
+            "GROUP_REQUEST_WEEKDAY_NOT_IN_GROUP",
+            "warning",
+            `request ${r.id} weekday ${r.target_weekday} not in group days`,
+            { requestId: r.id },
+          );
+        }
+        if (r.series_id) {
+          const s = seriesById.get(r.series_id);
+          if (s && s.group_id !== r.group_id) {
+            report(
+              "GROUP_REQUEST_SERIES_NOT_IN_GROUP",
+              "critical",
+              `request ${r.id} series ${r.series_id} not in group ${r.group_id}`,
+              { requestId: r.id },
+            );
+          }
+        }
+        if (r.status === "open" || r.status === "acknowledged") {
+          openByGroup.set(r.group_id, (openByGroup.get(r.group_id) ?? 0) + 1);
+        }
+      }
+    }
+
+    if (input.groupOpenRequestCounts) {
+      for (const [groupId, expected] of Object.entries(input.groupOpenRequestCounts)) {
+        const actual = openByGroup.get(groupId) ?? 0;
+        if (actual !== expected) {
+          report(
+            "GROUP_OPEN_REQUEST_COUNT_MISMATCH",
+            "warning",
+            `group ${groupId} open requests expected ${expected} got ${actual}`,
+            { groupId },
+          );
+        }
       }
     }
   }

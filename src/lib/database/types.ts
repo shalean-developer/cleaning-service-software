@@ -334,12 +334,27 @@ export type DeferredDispatchCronRunRow = {
 
 export type RecurringGenerationRunStatus = "success" | "partial" | "failed";
 
-export type RecurringSeriesRequestType = "pause" | "cancel" | "reschedule";
+export type RecurringSeriesRequestType =
+  | "pause"
+  | "cancel"
+  | "reschedule"
+  | "pause_group"
+  | "cancel_group"
+  | "reschedule_group"
+  | "pause_weekday"
+  | "cancel_weekday"
+  | "reschedule_weekday";
+
+export type RecurringSeriesRequestScope = "series" | "group";
+
 export type RecurringSeriesRequestStatus = "open" | "acknowledged" | "resolved";
 
 export type RecurringSeriesRequestRow = {
   id: string;
-  series_id: string;
+  series_id: string | null;
+  group_id: string | null;
+  scope: RecurringSeriesRequestScope;
+  target_weekday: number | null;
   customer_id: string;
   request_type: RecurringSeriesRequestType;
   note: string | null;

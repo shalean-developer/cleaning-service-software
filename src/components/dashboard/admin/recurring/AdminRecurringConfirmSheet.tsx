@@ -12,6 +12,7 @@ type Props = {
   onClose: () => void;
   onConfirm: () => void;
   destructive?: boolean;
+  children?: React.ReactNode;
 };
 
 export function AdminRecurringConfirmSheet({
@@ -24,6 +25,7 @@ export function AdminRecurringConfirmSheet({
   onClose,
   onConfirm,
   destructive = false,
+  children,
 }: Props) {
   const titleId = useId();
   const descriptionId = useId();
@@ -62,6 +64,7 @@ export function AdminRecurringConfirmSheet({
         <p id={descriptionId} className="mt-2 text-sm text-slate-600">
           {description}
         </p>
+        {children}
         {error ? <p className="mt-3 text-sm text-red-800">{error}</p> : null}
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button

@@ -95,6 +95,7 @@ function createClient(fixture: Fixture) {
         const emptyRequests = { data: [], error: null, count: 0 };
         const chain = {
           in: () => chain,
+          or: () => chain,
           order: async () => emptyRequests,
           eq: () => chain,
           limit: () => chain,
@@ -104,6 +105,13 @@ function createClient(fixture: Fixture) {
           },
         };
         return { select: () => chain };
+      }
+      if (table === "recurring_schedule_groups") {
+        return {
+          select: () => ({
+            in: async () => ({ data: [], error: null }),
+          }),
+        };
       }
       throw new Error(`unexpected table ${table}`);
     },
