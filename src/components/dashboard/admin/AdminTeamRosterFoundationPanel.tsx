@@ -52,7 +52,7 @@ export function AdminTeamRosterFoundationPanel({ rows }: Props) {
               <span className="w-full text-xs text-emerald-700">
                 Support confirmed{" "}
                 {new Date(row.supportCompletedAt).toLocaleString("en-ZA")}
-                {row.supportNote ? ` — ${row.supportNote}` : ""}
+                {row.supportNote ? `. ${row.supportNote}` : ""}
               </span>
             ) : row.role === "support" ? (
               <span className="w-full text-xs text-zinc-500">

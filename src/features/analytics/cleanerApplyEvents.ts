@@ -1,5 +1,5 @@
 /**
- * Cleaner apply funnel analytics — fire-and-forget; never blocks submission.
+ * Cleaner apply funnel analytics. fire-and-forget; never blocks submission.
  */
 
 export type CleanerApplyEventName =

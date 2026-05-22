@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 type Options<T extends string> = {
   sectionIds: readonly T[];
   idPrefix: string;
-  /** IntersectionObserver rootMargin — biases which section counts as "in view". */
+  /** IntersectionObserver rootMargin. biases which section counts as "in view". */
   rootMargin?: string;
 };
 

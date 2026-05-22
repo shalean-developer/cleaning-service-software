@@ -149,7 +149,7 @@ export function AdminCleanerCreateForm() {
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       <p className={ADMIN_SECTION_MUTED_CLASS}>
         Cleaners can sign in with their mobile number or generated Shalean email. Profile details
-        only — operational lifecycle (activate, suspend, archive) is managed from the cleaner
+        only. operational lifecycle (activate, suspend, archive) is managed from the cleaner
         detail page after creation.
       </p>
 
@@ -213,7 +213,7 @@ export function AdminCleanerCreateForm() {
             {loginEmailPreview ?? "Enter a valid mobile number"}
           </output>
           <p className="mt-1 text-xs text-zinc-500">
-            Generated automatically as {"{localPhone}"}@shalean.co.za — not editable.
+            Generated automatically as {"{localPhone}"}@shalean.co.za. not editable.
           </p>
         </div>
 
@@ -311,7 +311,7 @@ export function AdminCleanerCreateForm() {
       <fieldset className="text-sm">
         <legend className="font-medium text-zinc-800">Service capabilities</legend>
         <p className="mt-0.5 text-xs text-zinc-500">
-          Required — cleaners with no capabilities are not eligible for assignment.
+          Required. cleaners with no capabilities are not eligible for assignment.
         </p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {CLEANER_CAPABILITY_OPTIONS.map((option) => {

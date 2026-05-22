@@ -41,7 +41,7 @@ export function OperationalAreaChipGroups({
         aria-label="Search preferred work areas"
       />
       <p className="text-xs text-slate-500">
-        Not sure? Choose the closest area — you can update this later.
+        Not sure? Choose the closest area. you can update this later.
       </p>
 
       {selected.length > 0 ? (

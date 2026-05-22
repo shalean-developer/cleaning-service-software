@@ -20,7 +20,7 @@ describe("resolveAssignmentVisibility", () => {
       offerStatuses: ["declined", "offered"],
     });
     expect(v.key).toBe("decline_redispatched");
-    expect(v.adminLabel).toBe("Cleaner declined — redispatched");
+    expect(v.adminLabel).toBe("Cleaner declined. redispatched");
     expect(v.customerMessage).toBe("We're finding another available cleaner.");
     expect(v.showCustomerAssignmentWarning).toBe(false);
   });
@@ -66,7 +66,7 @@ describe("resolveAssignmentVisibility", () => {
       offerStatuses: ["declined"],
     });
     expect(v.key).toBe("selected_declined_admin");
-    expect(v.adminLabel).toBe("Selected cleaner declined — admin action needed");
+    expect(v.adminLabel).toBe("Selected cleaner declined. admin action needed");
     expect(v.customerMessage).toBe(
       "We're reviewing cleaner availability for your booking.",
     );

@@ -98,14 +98,14 @@ export default async function AdminCleanerDetailPage({ params }: PageProps) {
           ) : null}
           {detail.operationalState === "onboarding" ? (
             <p className="mt-3 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-900">
-              Onboarding incomplete — cleaner is excluded from dispatch pools and cannot receive
+              Onboarding incomplete. cleaner is excluded from dispatch pools and cannot receive
               offers until onboarding is completed.
             </p>
           ) : null}
           {detail.active && detail.onboardingCompletedAt == null ? (
             <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
               Warning: active flag is set but onboarding is not complete. This state can make the
-              cleaner appear operational incorrectly — complete onboarding or deactivate.
+              cleaner appear operational incorrectly. complete onboarding or deactivate.
             </p>
           ) : null}
         </AdminDetailSection>
@@ -142,7 +142,7 @@ export default async function AdminCleanerDetailPage({ params }: PageProps) {
               <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
                 Auth email (resolved)
               </dt>
-              <dd className="mt-0.5 text-zinc-900">{detail.email ?? detail.loginEmail ?? "—"}</dd>
+              <dd className="mt-0.5 text-zinc-900">{detail.email ?? detail.loginEmail ?? "-"}</dd>
             </div>
             <div>
               <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
@@ -163,7 +163,7 @@ export default async function AdminCleanerDetailPage({ params }: PageProps) {
             <div>
               <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">Rating</dt>
               <dd className="mt-0.5 text-zinc-900">
-                {detail.averageRating != null ? detail.averageRating.toFixed(1) : "—"}
+                {detail.averageRating != null ? detail.averageRating.toFixed(1) : "-"}
               </dd>
             </div>
           </dl>
@@ -213,7 +213,7 @@ export default async function AdminCleanerDetailPage({ params }: PageProps) {
                         href={`/admin/bookings/${offer.booking_id}`}
                         className="text-zinc-800 underline-offset-2 hover:underline"
                       >
-                        Booking {offer.booking_id.slice(0, 8)} — offered
+                        Booking {offer.booking_id.slice(0, 8)}. offered
                       </Link>
                     </li>
                   ))}

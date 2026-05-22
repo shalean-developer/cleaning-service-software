@@ -9,7 +9,7 @@ const FREQUENCY_VISIBLE_SERVICE_SLUGS = new Set<ServiceSlug>([
 
 /**
  * Whether the booking wizard should show visit-frequency controls and cadence copy.
- * Does not change pricing input defaults — hidden services still send `frequency` in state/payloads.
+ * Does not change pricing input defaults. hidden services still send `frequency` in state/payloads.
  */
 export function showFrequencyForService(
   serviceSlug: ServiceSlug | string | null | undefined,

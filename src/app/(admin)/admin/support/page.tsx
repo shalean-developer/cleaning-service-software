@@ -63,7 +63,7 @@ export default async function AdminSupportInboxPage({ searchParams }: PageProps)
         <header>
           <h1 className="text-2xl font-semibold text-zinc-900">Support inbox</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Operational intelligence for one-off and recurring support — triage and SLA
+            Operational intelligence for one-off and recurring support. triage and SLA
             visibility only, no automatic booking changes.
           </p>
         </header>

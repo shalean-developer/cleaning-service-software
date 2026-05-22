@@ -72,7 +72,7 @@ export function AdminCustomerListTable({ items }: Props) {
 
                 <div className="min-w-0 sm:px-3">
                   <p className="text-xs font-medium uppercase text-zinc-500 sm:hidden">Phone</p>
-                  <span className="block truncate text-zinc-700">{item.phone ?? "—"}</span>
+                  <span className="block truncate text-zinc-700">{item.phone ?? "-"}</span>
                 </div>
 
                 <div className="sm:px-3 sm:text-right">

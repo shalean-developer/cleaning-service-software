@@ -10,7 +10,7 @@ export async function runBackfillNotificationMetricsHourlyCli(options?: {
   hours?: number;
 }): Promise<number> {
   if (!isNotificationMetricsRollupEnabled()) {
-    console.error("NOTIFICATION_METRICS_ROLLUP_ENABLED is false — aborting.");
+    console.error("NOTIFICATION_METRICS_ROLLUP_ENABLED is false. aborting.");
     return 1;
   }
 

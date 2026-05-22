@@ -8,7 +8,7 @@ type Props = {
   status: BookingStatus;
 };
 
-/** Fixed mobile bar for start/complete — desktop keeps actions in the hero. */
+/** Fixed mobile bar for start/complete. desktop keeps actions in the hero. */
 export function CleanerJobMobileActionBar({ bookingId, status }: Props) {
   if (status !== "assigned" && status !== "in_progress") {
     return null;

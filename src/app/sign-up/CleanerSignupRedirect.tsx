@@ -11,7 +11,7 @@ export function CleanerSignupRedirect() {
         </h1>
         <p className="mt-2 text-sm leading-6 text-zinc-600">
           Customer sign-up is for booking cleaning services. If you are joining as a cleaner,
-          sign in with the credentials you received after onboarding — or contact us to start
+          sign in with the credentials you received after onboarding. or contact us to start
           your application.
         </p>
       </section>

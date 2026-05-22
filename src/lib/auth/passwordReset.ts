@@ -1,7 +1,7 @@
 /** Where Supabase sends users after they click the password reset email link. */
 export const RESET_PASSWORD_PATH = "/reset-password" as const;
 
-/** Generic copy — must not reveal whether the email is registered. */
+/** Generic copy. must not reveal whether the email is registered. */
 export const PASSWORD_RESET_REQUEST_SUCCESS_MESSAGE =
   "If an account exists for this email, we'll send a reset link shortly." as const;
 

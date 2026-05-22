@@ -4,7 +4,7 @@ import { isSlotInPast } from "./slot";
 
 export { addDaysToDateString } from "./dateStringUtils";
 
-/** Display-only preset arrival times (HH:mm) — same format as native `type="time"` value. */
+/** Display-only preset arrival times (HH:mm). same format as native `type="time"` value. */
 export const SCHEDULE_TIME_PRESETS = [
   "08:00",
   "09:00",

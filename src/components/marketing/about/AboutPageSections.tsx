@@ -491,7 +491,7 @@ export function AboutPageSections({ heroAfterBreadcrumbs }: AboutPageSectionsPro
           <SectionHeader
             eyebrow="FAQs"
             id="about-faq-heading"
-            title="About Shalean — common questions"
+            title="About Shalean. common questions"
             subtitle="Platform, operations, recurring cleaning, and Cape Town coverage."
           />
           <div className="mx-auto mt-10 max-w-3xl">

@@ -29,7 +29,7 @@ export function AdminTeamSupportAnalyticsPanel({ analytics }: Props) {
   const teamPct =
     analytics.teamRequestPercent != null
       ? `${analytics.teamRequestPercent.toFixed(1)}%`
-      : "—";
+      : "-";
 
   return (
     <section className="space-y-6">
@@ -50,7 +50,7 @@ export function AdminTeamSupportAnalyticsPanel({ analytics }: Props) {
           value={
             analytics.avgPriceCentsTeamRequests != null
               ? formatZar(analytics.avgPriceCentsTeamRequests)
-              : "—"
+              : "-"
           }
         />
         <MetricCard
@@ -86,7 +86,7 @@ export function AdminTeamSupportAnalyticsPanel({ analytics }: Props) {
           Avg price:{" "}
           {analytics.avgPriceCentsRegularCleaning != null
             ? formatZar(analytics.avgPriceCentsRegularCleaning)
-            : "—"}
+            : "-"}
         </p>
         <p>
           Avg home size:{" "}

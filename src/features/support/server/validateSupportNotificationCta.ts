@@ -5,7 +5,7 @@ const ALLOWED_CTA_PREFIXES = [
   "/admin/support",
 ] as const;
 
-/** Relative same-origin paths only — rejects protocol-relative and external URLs. */
+/** Relative same-origin paths only. rejects protocol-relative and external URLs. */
 export function isValidSupportNotificationCtaPath(ctaPath: string): boolean {
   const trimmed = ctaPath.trim();
   if (!trimmed.startsWith("/") || trimmed.startsWith("//")) return false;

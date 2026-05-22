@@ -65,7 +65,7 @@ function SelectedBadge({ size = "sm" }: { size?: "sm" | "md" }) {
   );
 }
 
-/** Mobile layout — structure frozen; approved RC-1B copy/clamp/spacing tweaks only. */
+/** Mobile layout. structure frozen; approved RC-1B copy/clamp/spacing tweaks only. */
 function ServiceCardMobile({ service, selected, onSelect }: ServiceCardProps) {
   const showMostBooked = service.slug === MOST_BOOKED_SLUG;
 
@@ -110,7 +110,7 @@ function ServiceCardMobile({ service, selected, onSelect }: ServiceCardProps) {
   );
 }
 
-/** Desktop-only compact card — icon + title row, full-width description below. */
+/** Desktop-only compact card. icon + title row, full-width description below. */
 function ServiceCardDesktop({ service, selected, onSelect }: ServiceCardProps) {
   const showMostBooked = service.slug === MOST_BOOKED_SLUG;
 

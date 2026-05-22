@@ -31,7 +31,7 @@ function shortId(id: string): string {
 }
 
 function formatNextRetry(nextRetryAt: string | null): string {
-  if (!nextRetryAt) return "—";
+  if (!nextRetryAt) return "-";
   return new Date(nextRetryAt).toLocaleString("en-ZA");
 }
 
@@ -107,7 +107,7 @@ export function AdminNotificationOutboxTable({
                       {shortId(n.bookingId)}
                     </Link>
                   ) : (
-                    "—"
+                    "-"
                   )}
                 </td>
               ) : null}
@@ -122,14 +122,14 @@ export function AdminNotificationOutboxTable({
                 {n.statusNote ? (
                   <span title={n.statusNote}>{n.statusNote}</span>
                 ) : (
-                  <span className="text-zinc-400">—</span>
+                  <span className="text-zinc-400">-</span>
                 )}
               </td>
               <td className="py-2.5 font-mono text-xs text-zinc-500">
                 {n.offerId ? (
                   <span title={n.offerId}>{shortId(n.offerId)}</span>
                 ) : (
-                  "—"
+                  "-"
                 )}
               </td>
               {showRequeueActions ? (
@@ -137,7 +137,7 @@ export function AdminNotificationOutboxTable({
                   {n.canRequeue ? (
                     <AdminNotificationRequeueAction notification={n} />
                   ) : (
-                    <span className="text-xs text-zinc-300">—</span>
+                    <span className="text-xs text-zinc-300">-</span>
                   )}
                 </td>
               ) : null}

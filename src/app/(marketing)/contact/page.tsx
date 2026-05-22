@@ -110,7 +110,7 @@ export default function ContactPage() {
               Book online
             </h2>
             <p className="mt-3 text-base leading-relaxed text-slate-600">
-              The fastest way to schedule cleaning is through our secure booking flow — instant
+              The fastest way to schedule cleaning is through our secure booking flow. instant
               quotes, vetted cleaners, and encrypted payment.
             </p>
             <div className="mt-6">

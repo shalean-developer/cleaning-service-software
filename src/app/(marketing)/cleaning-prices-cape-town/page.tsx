@@ -43,7 +43,7 @@ export default function CleaningPricesPage() {
           { label: "Cleaning Prices" },
         ]}
         h1="Cleaning Prices in Cape Town"
-        intro="Shalean offers upfront pricing for home and office cleaning across Cape Town. Starting prices below cover a standard scope — your final quote reflects bedrooms, bathrooms, property size, and add-ons."
+        intro="Shalean offers upfront pricing for home and office cleaning across Cape Town. Starting prices below cover a standard scope. your final quote reflects bedrooms, bathrooms, property size, and add-ons."
         afterIntro={<MarketingBookCta />}
       >
         <div className="mx-auto max-w-3xl">

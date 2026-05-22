@@ -116,7 +116,7 @@ export function AdminNotificationWorkerHealthCard({ workerHealth }: Props) {
           </p>
           {(workerHealth.failed ?? 0) > 0 || (workerHealth.errorCount ?? 0) > 0 ? (
             <p className="mt-2 text-xs text-zinc-600">
-              Row-level failures recorded — use the failed queue filter below. Raw error payloads
+              Row-level failures recorded. use the failed queue filter below. Raw error payloads
               are not shown here.
             </p>
           ) : null}

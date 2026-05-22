@@ -8,16 +8,9 @@ import {
   FOOTER_SUPPORT_LINKS,
   FOOTER_TRUST_POINTS,
   type FooterTrustPoint,
-  MARKETING_SERVICES,
-  SERVICE_SEO_PATHS,
   SHALEAN_CONTACT,
+  SHALEAN_SOCIAL,
 } from "@/features/marketing/constants";
-import {
-  ABOUT_PAGE_PATH,
-  FAQ_PAGE_PATH,
-  PRICING_PAGE_PATH,
-  SERVICES_HUB_PATH,
-} from "@/features/marketing/marketing-routes";
 import type { MarketingSectionId } from "@/lib/ui/scrollToSection";
 import { MarketingSectionLink } from "../MarketingSectionLink";
 import {
@@ -143,7 +136,7 @@ export function MarketingFooter() {
       aria-labelledby="footer-heading"
     >
       <h2 id="footer-heading" className="sr-only">
-        Shalean Cleaning Services — site footer
+        Shalean Cleaning Services. site footer
       </h2>
 
       <div className="marketing-footer-glow pointer-events-none absolute inset-0" aria-hidden />
@@ -170,56 +163,35 @@ export function MarketingFooter() {
         <div className="grid gap-14 sm:grid-cols-2 sm:gap-x-10 sm:gap-y-14 lg:grid-cols-5 lg:gap-x-12 lg:gap-y-0">
           {/* Brand column */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <div className="rounded-2xl ring-1 ring-white/[0.06] ring-offset-0">
-              <ShaleanLogo variant="footer" />
-            </div>
-            <p className="mt-6 max-w-[18rem] text-[0.9375rem] leading-[1.75] text-[#F8FAFC]/90">
+            <ShaleanLogo variant="footer" />
+            <p className="mt-6 max-w-[20rem] text-[0.9375rem] leading-[1.75] text-[#F8FAFC]/90">
               {FOOTER_BRAND.description}
-            </p>
-            <p className="mt-3 max-w-[18rem] text-[0.8125rem] leading-relaxed text-slate-500">
-              {FOOTER_BRAND.microcopy}
             </p>
 
             <nav className="mt-8 flex items-center gap-3" aria-label="Social media">
               <SocialButton href={whatsappUrl} label="WhatsApp Shalean Cleaning Services">
                 <IconWhatsApp className="h-[1.125rem] w-[1.125rem]" />
               </SocialButton>
-              <SocialButton label="Facebook" disabled>
+              <SocialButton
+                href={SHALEAN_SOCIAL.facebook}
+                label="Shalean Cleaning Services on Facebook"
+              >
                 <IconFacebook className="h-[1.125rem] w-[1.125rem]" />
               </SocialButton>
-              <SocialButton label="Instagram" disabled>
+              <SocialButton
+                href={SHALEAN_SOCIAL.instagram}
+                label="Shalean Cleaning Services on Instagram"
+              >
                 <IconInstagram className="h-[1.125rem] w-[1.125rem]" />
               </SocialButton>
-              <SocialButton label="LinkedIn" disabled>
+              <SocialButton
+                href={SHALEAN_SOCIAL.linkedIn}
+                label="Shalean Cleaning Services on LinkedIn"
+              >
                 <IconLinkedIn className="h-[1.125rem] w-[1.125rem]" />
               </SocialButton>
             </nav>
-
-            <p className="mt-6 text-[0.8125rem] leading-relaxed text-slate-500">
-              {FOOTER_BRAND.trustStatement}
-            </p>
           </div>
-
-          {/* Services */}
-          <nav id="footer-services" aria-labelledby="footer-services-heading">
-            <FooterColumnHeading>
-              <span id="footer-services-heading">Services</span>
-            </FooterColumnHeading>
-            <ul className="mt-5 space-y-3.5">
-              <li>
-                <Link href={SERVICES_HUB_PATH} className={footerLinkClass}>
-                  All cleaning services
-                </Link>
-              </li>
-              {MARKETING_SERVICES.map((item) => (
-                <li key={item.slug}>
-                  <Link href={SERVICE_SEO_PATHS[item.slug]} className={footerLinkClass}>
-                    {item.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
 
           {/* Quick links */}
           <nav aria-labelledby="footer-quick-links-heading">
@@ -227,33 +199,29 @@ export function MarketingFooter() {
               <span id="footer-quick-links-heading">Quick Links</span>
             </FooterColumnHeading>
             <ul className="mt-5 space-y-3.5">
-              {FOOTER_QUICK_LINKS.map((item) => {
-                const routeHref =
-                  item.sectionId === "about"
-                    ? ABOUT_PAGE_PATH
-                    : item.sectionId === "pricing"
-                      ? PRICING_PAGE_PATH
-                      : item.sectionId === "faq"
-                        ? FAQ_PAGE_PATH
-                        : item.sectionId === "areas"
-                          ? "/locations"
-                          : item.sectionId === "contact"
-                            ? "/contact"
-                            : undefined;
-                return (
-                  <li key={item.label}>
-                    {routeHref ? (
-                      <Link href={routeHref} className={footerLinkClass}>
-                        {item.label}
-                      </Link>
-                    ) : (
-                      <FooterSectionLink sectionId={item.sectionId}>
-                        {item.label}
-                      </FooterSectionLink>
-                    )}
-                  </li>
-                );
-              })}
+              {FOOTER_QUICK_LINKS.map((item) => (
+                <li key={item.label}>
+                  <Link href={item.href} className={footerLinkClass}>
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Legal */}
+          <nav aria-labelledby="footer-legal-heading">
+            <FooterColumnHeading>
+              <span id="footer-legal-heading">Legal</span>
+            </FooterColumnHeading>
+            <ul className="mt-5 space-y-3.5">
+              {FOOTER_LEGAL_LINKS.map((item) => (
+                <li key={item.label}>
+                  <Link href={item.href} className={footerLinkClass}>
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </nav>
 
@@ -322,16 +290,6 @@ export function MarketingFooter() {
                 <span className="text-slate-500">{BUSINESS_HOURS}</span>
               </li>
             </ul>
-
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="marketing-focus-ring marketing-footer-whatsapp mt-8 inline-flex min-h-12 w-full items-center justify-center gap-2.5 rounded-full px-6 text-sm font-semibold text-white sm:w-auto"
-            >
-              <IconWhatsApp className="h-5 w-5 shrink-0" aria-hidden />
-              Chat on WhatsApp
-            </a>
           </div>
         </div>
       </MarketingContainer>
@@ -349,26 +307,11 @@ export function MarketingFooter() {
 
             <nav
               className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[0.8125rem]"
-              aria-label="Legal"
+              aria-label="Footer utilities"
             >
-              {FOOTER_LEGAL_LINKS.map((item) =>
-                item.href ? (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="marketing-focus-ring marketing-footer-link text-slate-400 hover:text-slate-200"
-                  >
-                    {item.label}
-                  </Link>
-                ) : (
-                  <span key={item.label} className="text-slate-600">
-                    {item.label}
-                  </span>
-                ),
-              )}
               <MarketingSectionLink
                 sectionId="main-content"
-                className="marketing-focus-ring marketing-footer-link font-medium"
+                className="marketing-focus-ring marketing-footer-link font-medium text-slate-400 hover:text-slate-200"
                 aria-label="Back to top of page"
               >
                 Back to top

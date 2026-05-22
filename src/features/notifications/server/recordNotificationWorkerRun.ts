@@ -59,7 +59,7 @@ export type RecordNotificationWorkerRunInput = {
 };
 
 /**
- * Persists one notification worker run via service role. Never throws — logs on failure.
+ * Persists one notification worker run via service role. Never throws. logs on failure.
  */
 export async function recordNotificationWorkerRun(
   client: SupabaseClient<Database> | null,

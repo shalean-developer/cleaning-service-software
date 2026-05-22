@@ -49,6 +49,6 @@ export function buildRecurringScheduleReviewLine(input: {
     .map((d) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d] ?? "")
     .filter(Boolean)
     .join(" · ");
-  const time = input.time.trim() || "—";
+  const time = input.time.trim() || "-";
   return `${cadence} recurring schedule: ${days} at ${time}`;
 }

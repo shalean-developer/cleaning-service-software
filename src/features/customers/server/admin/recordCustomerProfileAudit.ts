@@ -15,7 +15,7 @@ export const AUDIT_RECORD_FAILED_WARNING =
 export const AUDIT_UPDATE_RECORD_FAILED_WARNING =
   "Customer was updated but the operational audit log could not be recorded." as const;
 
-/** Idempotency key for admin create — one audit row per customer/admin pair. */
+/** Idempotency key for admin create. one audit row per customer/admin pair. */
 export function customerCreatedAuditIdempotencyKey(
   customerId: string,
   adminProfileId: string,
@@ -33,7 +33,7 @@ export function hashCustomerUpdatePatch(patch: Record<string, unknown>): string 
   return createHash("sha256").update(JSON.stringify(normalized)).digest("hex").slice(0, 16);
 }
 
-/** Idempotency key for admin update — dedupes identical retries of the same patch. */
+/** Idempotency key for admin update. dedupes identical retries of the same patch. */
 export function customerUpdatedAuditIdempotencyKey(
   customerId: string,
   adminProfileId: string,

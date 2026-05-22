@@ -37,7 +37,7 @@ export function saveCleanerApplyDraft(step: number, values: CleanerApplyFormStat
     };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   } catch {
-    // quota / private mode — ignore
+    // quota / private mode. ignore
   }
 }
 

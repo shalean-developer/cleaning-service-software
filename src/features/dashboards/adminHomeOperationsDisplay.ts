@@ -112,7 +112,7 @@ export type AdminHomePayoutSummaryView = {
 const COMPLETED_STATUSES: readonly BookingStatus[] = ["completed", "payout_ready", "paid_out"];
 
 export type AdminHomeDisplayContext = {
-  /** ISO timestamp from the server render — keeps “today” and relative labels stable. */
+  /** ISO timestamp from the server render. keeps “today” and relative labels stable. */
   referenceNow: string;
 };
 
@@ -133,7 +133,7 @@ function isScheduledToday(
 }
 
 function formatTimeLabel(iso: string | undefined): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   return new Date(iso).toLocaleTimeString("en-ZA", {
     hour: "2-digit",
     minute: "2-digit",
@@ -145,7 +145,7 @@ function formatRelativeTimeLabel(
   iso: string | undefined,
   context?: AdminHomeDisplayContext,
 ): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const deltaMs = resolveReferenceNow(context).getTime() - new Date(iso).getTime();
   const minutes = Math.round(deltaMs / 60_000);
   if (minutes < 1) return "Just now";
@@ -231,7 +231,7 @@ function upcomingDayLabel(scheduledStart: string, todayKey: string): string {
   }).format(new Date(scheduledStart));
 }
 
-/** Snapshot card footers and summary helpers — does not change today metric values. */
+/** Snapshot card footers and summary helpers. does not change today metric values. */
 export function buildAdminHomeSnapshotPresentation(input: {
   snapshot: AdminHomeTodaySnapshot;
   upcoming: AdminOverviewUpcomingContext | null;
@@ -678,7 +678,7 @@ export function buildAdminHomePayoutSummaryView(
   if (!payoutSummary) {
     return {
       payoutReadyCount: 0,
-      payoutReadyLabel: "—",
+      payoutReadyLabel: "-",
       pendingReviewCents: 0,
       weeklyReadyLabel: "Payout summary unavailable",
       previewHref: "/admin/payouts",

@@ -87,7 +87,7 @@ export function resolveAssignmentVisibility(input: {
   if (input.dispatchNotStarted || isDispatchNotStartedAttentionReason(reason)) {
     return {
       key: "dispatch_not_started",
-      adminLabel: "Paid — dispatch not started",
+      adminLabel: "Paid. dispatch not started",
       customerMessage: null,
       showCustomerAssignmentWarning: false,
       lastOfferOutcome,
@@ -116,7 +116,7 @@ export function resolveAssignmentVisibility(input: {
   ) {
     return {
       key: "decline_redispatched",
-      adminLabel: "Cleaner declined — redispatched",
+      adminLabel: "Cleaner declined. redispatched",
       customerMessage: "We're finding another available cleaner.",
       showCustomerAssignmentWarning: false,
       lastOfferOutcome: "declined",
@@ -128,7 +128,7 @@ export function resolveAssignmentVisibility(input: {
   if (hasOpenOffer && assignment?.status === "offered") {
     return {
       key: "offer_sent",
-      adminLabel: "Offer sent — awaiting acceptance",
+      adminLabel: "Offer sent. awaiting acceptance",
       customerMessage: null,
       showCustomerAssignmentWarning: false,
       lastOfferOutcome,
@@ -169,7 +169,7 @@ export function resolveAssignmentVisibility(input: {
   ) {
     return {
       key: "selected_expired_admin",
-      adminLabel: "Selected cleaner offer expired — admin action needed",
+      adminLabel: "Selected cleaner offer expired. admin action needed",
       customerMessage: "We're reviewing cleaner availability for your booking.",
       showCustomerAssignmentWarning: true,
       lastOfferOutcome: "expired",
@@ -186,7 +186,7 @@ export function resolveAssignmentVisibility(input: {
   ) {
     return {
       key: "selected_declined_admin",
-      adminLabel: "Selected cleaner declined — admin action needed",
+      adminLabel: "Selected cleaner declined. admin action needed",
       customerMessage: "We're reviewing cleaner availability for your booking.",
       showCustomerAssignmentWarning: true,
       lastOfferOutcome: "declined",

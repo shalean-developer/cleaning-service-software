@@ -59,7 +59,7 @@ export default async function CleanerHomePage() {
         <section className={`${CLEANER_DETAIL_CARD_CLASS} ${CLEANER_LIST_CARD_PADDING}`}>
           <h2 className="text-sm font-medium text-zinc-800">Open offers</h2>
           <p className="mt-1 text-2xl font-semibold tabular-nums text-zinc-900">
-            {offersOk ? openOffers.length : "—"}
+            {offersOk ? openOffers.length : "-"}
           </p>
           <Link
             href="/cleaner/offers"
@@ -71,7 +71,7 @@ export default async function CleanerHomePage() {
         <section className={`${CLEANER_DETAIL_CARD_CLASS} ${CLEANER_LIST_CARD_PADDING}`}>
           <h2 className="text-sm font-medium text-zinc-800">Active jobs</h2>
           <p className="mt-1 text-2xl font-semibold tabular-nums text-zinc-900">
-            {jobsOk ? activeJobs.length : "—"}
+            {jobsOk ? activeJobs.length : "-"}
           </p>
           <Link
             href="/cleaner/jobs"

@@ -95,7 +95,7 @@ export function AdminTeamSupportOperationsPanel({
       setNotes(payload.teamSupportOps.teamSupportNotes ?? "");
       router.refresh();
     } catch {
-      setError("Network error — try again.");
+      setError("Network error. try again.");
     } finally {
       setPending(false);
     }
@@ -128,7 +128,7 @@ export function AdminTeamSupportOperationsPanel({
       );
       router.refresh();
     } catch {
-      setError("Network error — try again.");
+      setError("Network error. try again.");
     } finally {
       setPending(false);
     }
@@ -145,13 +145,13 @@ export function AdminTeamSupportOperationsPanel({
             Team support operations
           </h2>
           <p className={ADMIN_SECTION_MUTED_CLASS}>
-            Operational coordination only — does not change assignment, payouts, lifecycle, or
+            Operational coordination only. does not change assignment, payouts, lifecycle, or
             dispatch. One assigned cleaner remains the system assignee.
           </p>
         </>
       ) : (
         <p className={ADMIN_SECTION_MUTED_CLASS}>
-          Operational coordination only — does not change assignment, payouts, lifecycle, or
+          Operational coordination only. does not change assignment, payouts, lifecycle, or
           dispatch.
         </p>
       )}
@@ -210,7 +210,7 @@ export function AdminTeamSupportOperationsPanel({
             Supporting cleaner (not assignee)
           </h3>
           <p className="mt-1 text-xs text-zinc-600">
-            Record a partner cleaner for ops coordination — not a second assignment.
+            Record a partner cleaner for ops coordination. not a second assignment.
           </p>
           <div className="mt-2 grid gap-3 sm:grid-cols-2">
             <label className="block text-xs font-medium text-zinc-600">
@@ -293,7 +293,7 @@ export function AdminTeamSupportOperationsPanel({
             Coordination status
           </h3>
           <p className="mt-1 text-xs text-zinc-600">
-            Ops visibility only — not connected to booking lifecycle.
+            Ops visibility only. not connected to booking lifecycle.
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {(

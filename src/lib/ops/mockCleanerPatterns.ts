@@ -1,4 +1,4 @@
-/** Mirrors scripts/ops/lib/mock-cleaner-patterns.mjs — keep classification in sync. */
+/** Mirrors scripts/ops/lib/mock-cleaner-patterns.mjs. keep classification in sync. */
 
 export function isMockCleanerEmail(email: string | null | undefined): boolean {
   if (typeof email !== "string" || !email.includes("@")) return false;

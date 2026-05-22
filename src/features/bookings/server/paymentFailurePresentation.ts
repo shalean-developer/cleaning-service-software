@@ -5,7 +5,7 @@ import {
   PAYMENT_RETRY_NOT_ELIGIBLE_EXPLANATION,
 } from "./paymentFailureDisplay";
 
-/** Footer on failed return page — avoids repeating reassurance shown above. */
+/** Footer on failed return page. avoids repeating reassurance shown above. */
 export const PAYMENT_FAILED_PAGE_FOOTER_HINT =
   "Need help? Contact support with your booking reference." as const;
 

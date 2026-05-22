@@ -22,14 +22,14 @@ export function isCarpetCleaningSlug(
   return serviceSlug === CARPET_CLEANING_SLUG;
 }
 
-/** Step 1 mobile card — floor-care positioning. */
+/** Step 1 mobile card. floor-care positioning. */
 export const CARPET_SERVICE_STEP_DESCRIPTION_MOBILE = "Carpets and high-traffic area refresh";
 
-/** Step 1 desktop card — max two lines. */
+/** Step 1 desktop card. max two lines. */
 export const CARPET_SERVICE_STEP_DESCRIPTION_DESKTOP =
   "Restore freshness to carpets and high-traffic areas.";
 
-/** Recurring labels — frequency values unchanged. */
+/** Recurring labels. frequency values unchanged. */
 export const CARPET_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
   { value: "once", label: "One-time carpet refresh", description: "Single floor-care visit" },
   { value: "weekly", label: "Weekly", description: "Regular high-traffic upkeep" },
@@ -37,7 +37,7 @@ export const CARPET_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
   { value: "monthly", label: "Monthly", description: "Light carpet maintenance" },
 ];
 
-/** Carpet add-on order — fabric and upholstery treatment. */
+/** Carpet add-on order. fabric and upholstery treatment. */
 export const CARPET_ADDON_STEP_DISPLAY_ORDER: AddonSlug[] = [
   "mattress-cleaning",
   "couch-cleaning",
@@ -49,9 +49,9 @@ export const CARPET_ADDON_STEP_DISPLAY_ORDER: AddonSlug[] = [
 ];
 
 export const CARPET_ADDON_STEP_DESCRIPTIONS: Partial<Record<AddonSlug, string>> = {
-  "mattress-cleaning": "Deep clean for one mattress — stain lift and fabric refresh.",
-  "couch-cleaning": "Upholstery refresh for one couch or sofa — fabric-safe clean.",
-  "rug-cleaning": "Area rug refresh — stain lift and pile revitalization.",
+  "mattress-cleaning": "Deep clean for one mattress. stain lift and fabric refresh.",
+  "couch-cleaning": "Upholstery refresh for one couch or sofa. fabric-safe clean.",
+  "rug-cleaning": "Area rug refresh. stain lift and pile revitalization.",
   "stain-treatment": "Targeted stain lifting for high-traffic or marked areas.",
   "deodorizing-treatment": "Odor neutralization for fabrics and carpeted areas.",
   "fabric-protection": "Protective treatment to help reduce future staining.",
@@ -64,7 +64,7 @@ export const CARPET_ADDON_STEP_LABELS: Partial<Record<AddonSlug, string>> = {
 };
 
 export const CARPET_ADDONS_SECTION_HINT =
-  "Fabric and upholstery extras — stains, odor, and protection treatments.";
+  "Fabric and upholstery extras. stains, odor, and protection treatments.";
 
 export const CARPET_STAIN_SEVERITY_VALUES = ["light", "noticeable", "heavy"] as const;
 
@@ -148,11 +148,11 @@ export function getCarpetCleaningStepCopy(
       label: "Property access (optional)",
       hint: "Room access, ventilation, parking, pets, and areas needing stain attention.",
       placeholder:
-        "e.g. Park in visitor bay 2 · Ventilate living room after clean · Stain on lounge carpet · Cat — keep study door closed",
+        "e.g. Park in visitor bay 2 · Ventilate living room after clean · Stain on lounge carpet · Cat. keep study door closed",
     },
     detailsIntro: {
       title: "Carpet scope",
-      description: "Standalone floor-care — we skip unrelated home questions.",
+      description: "Standalone floor-care. we skip unrelated home questions.",
     },
     homeSizeTitle: "Carpeted rooms / zones",
     zonesFieldLabel: "Carpeted rooms",
@@ -165,16 +165,16 @@ export function getCarpetCleaningStepCopy(
     frequencyTitle: "Visit timing",
     cleaner: {
       title: "Choose your carpet cleaning cleaner",
-      subtitle: "Experienced cleaners for carpet and floor-care — ideal for stain-focused refreshes.",
+      subtitle: "Experienced cleaners for carpet and floor-care. ideal for stain-focused refreshes.",
       bestAvailableTitle: "Best available cleaner",
       bestAvailableDescription:
-        "Fastest assignment — we match an eligible cleaner experienced in carpet and floor-care work.",
+        "Fastest assignment. we match an eligible cleaner experienced in carpet and floor-care work.",
       selectedHint:
         "Your selected cleaner is offered first. Ideal for stain treatment and fabric-safe carpet refresh.",
       disclosureBestAvailable:
         "Highest-rated eligible cleaner for your area, carpet zones, and scheduled window.",
       disclosureSelected:
-        "Offered to them first after payment. If unavailable, we assign the next best eligible match — your carpet clean stays booked.",
+        "Offered to them first after payment. If unavailable, we assign the next best eligible match. your carpet clean stays booked.",
     },
   };
 }
@@ -210,7 +210,7 @@ export function getCarpetScheduleStepHelperCopy(
   return "Allow drying time after carpet cleaning. Good ventilation helps carpets dry faster. Pick a date with room access for each carpet zone.";
 }
 
-/** Display-only zone summaries — bedrooms field holds zone count in pricing. */
+/** Display-only zone summaries. bedrooms field holds zone count in pricing. */
 export function formatCarpetZonesLabel(zoneCount: number): string {
   return `${zoneCount} carpet zone${zoneCount === 1 ? "" : "s"}`;
 }
@@ -356,7 +356,7 @@ export function getCarpetCleaningCheckoutCopy(
   if (!isCarpetCleaningSlug(serviceSlug)) return null;
   return {
     whatHappensNext: CARPET_CHECKOUT_WHAT_HAPPENS_NEXT,
-    floorCareNote: "Allow drying time after cleaning — ventilation helps carpets dry faster.",
+    floorCareNote: "Allow drying time after cleaning. ventilation helps carpets dry faster.",
     amountHelper: (customerEmail, recurringNote) => {
       if (recurringNote) return recurringNote;
       return `Paying as ${customerEmail} · Carpet cleaner assignment begins after payment.`;
@@ -384,7 +384,7 @@ export function getCarpetWizardSummaryLocationLabel(serviceSlug: ServiceSlug | n
 
 export function getCarpetWizardSummaryEstimateHint(serviceSlug: ServiceSlug | null): string | null {
   return isCarpetCleaningSlug(serviceSlug)
-    ? "Estimate only — confirmed total on review."
+    ? "Estimate only. confirmed total on review."
     : null;
 }
 
@@ -408,11 +408,11 @@ export function customerCarpetStatusLine(
     case "assigned":
       return "Your carpet cleaning cleaner is confirmed.";
     case "in_progress":
-      return "Carpet refresh in progress — allow drying time after cleaning.";
+      return "Carpet refresh in progress. allow drying time after cleaning.";
     case "completed":
     case "payout_ready":
     case "paid_out":
-      return "Carpet refresh complete — ventilation helps finishing dry time.";
+      return "Carpet refresh complete. ventilation helps finishing dry time.";
     default:
       return defaultLine;
   }
@@ -443,9 +443,9 @@ export function cleanerCarpetJobDescription(
 ): string {
   switch (status) {
     case "assigned":
-      return "Carpet clean scheduled — review stain notes and zone list before arrival.";
+      return "Carpet clean scheduled. review stain notes and zone list before arrival.";
     case "in_progress":
-      return "Floor-care in progress — prioritize high-traffic areas and protect delicate fabrics.";
+      return "Floor-care in progress. prioritize high-traffic areas and protect delicate fabrics.";
     case "completed":
     case "payout_ready":
     case "paid_out":
@@ -461,7 +461,7 @@ export function cleanerCarpetExpectedUpdate(
 ): string | null {
   switch (status) {
     case "assigned":
-      return "Start on site — follow stain notes and allow ventilation after cleaning";
+      return "Start on site. follow stain notes and allow ventilation after cleaning";
     case "in_progress":
       return "Mark complete when carpet zones are refreshed and customer notes addressed";
     default:

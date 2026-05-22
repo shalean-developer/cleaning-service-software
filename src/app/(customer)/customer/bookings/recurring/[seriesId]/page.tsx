@@ -49,7 +49,7 @@ export default async function CustomerRecurringDetailPage({ params }: PageProps)
               customerEmail={customerEmail}
             />
             <p className="mt-2 text-xs text-zinc-500">
-              Pay to confirm this visit. Cleaners are assigned after payment — each visit is paid
+              Pay to confirm this visit. Cleaners are assigned after payment. each visit is paid
               separately, not billed automatically.
             </p>
           </div>
@@ -60,7 +60,7 @@ export default async function CustomerRecurringDetailPage({ params }: PageProps)
         <h2 className="text-sm font-semibold text-zinc-900">Change your schedule</h2>
         <p className="mt-1 text-sm text-zinc-600">
           You can request pause, reschedule, or cancellation. Our team reviews every request and
-          confirms before your schedule changes — nothing is changed automatically.
+          confirms before your schedule changes. nothing is changed automatically.
         </p>
         <div className="mt-3">
           <CustomerRecurringRequestActions seriesId={s.seriesId} actions={s.actions} />

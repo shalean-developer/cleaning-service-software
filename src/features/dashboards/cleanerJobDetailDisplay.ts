@@ -112,7 +112,7 @@ function heroCopyForCleanerJob(
       };
     case "in_progress":
       return {
-        description: "Job in progress — mark complete when finished.",
+        description: "Job in progress. mark complete when finished.",
         expectedUpdate: "Mark complete during your scheduled window",
       };
     case "completed":

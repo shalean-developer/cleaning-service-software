@@ -1,6 +1,6 @@
 /**
  * Carpet Cleaning operational copy for cleaner and admin surfaces.
- * Presentation only — no dispatch, assignment, lifecycle, or earnings logic.
+ * Presentation only. no dispatch, assignment, lifecycle, or earnings logic.
  */
 
 import type { BookingStatus } from "@/features/bookings/server/types";
@@ -71,7 +71,7 @@ export function getCarpetCleanerJobCopy(): CarpetCleanerJobCopy {
     notesSectionTitle: "Areas needing attention",
     notesIntro: "Stain locations, high-traffic paths, and access notes from the customer.",
     heroSubtitle: "Carpet & floor-care",
-    completedDescription: "Carpet zones refreshed — allow drying time on site.",
+    completedDescription: "Carpet zones refreshed. allow drying time on site.",
   };
 }
 
@@ -92,11 +92,11 @@ export function getCarpetCleanerJobGuidanceSteps(
         },
         {
           title: "High-traffic areas first",
-          body: "Prioritize lounges, halls, and paths — then remaining carpet zones.",
+          body: "Prioritize lounges, halls, and paths. then remaining carpet zones.",
         },
         {
           title: "Ventilation after cleaning",
-          body: "Allow airflow in carpeted rooms — mention drying time to the customer if on site.",
+          body: "Allow airflow in carpeted rooms. mention drying time to the customer if on site.",
         },
       ];
     case "in_progress":
@@ -115,7 +115,7 @@ export function getCarpetCleanerJobGuidanceSteps(
     case "paid_out":
       return [
         { title: "Carpet clean recorded", body: "Logged as complete in your history." },
-        { title: "Payout", body: "Pay status updates below — unchanged from other services." },
+        { title: "Payout", body: "Pay status updates below. unchanged from other services." },
       ];
     default:
       return null;
@@ -173,19 +173,19 @@ export function adminCarpetBookingListNextAction(
     return "Assign carpet cleaning cleaner on booking detail when eligible.";
   }
   if (defaultAction.includes("Redispatch")) {
-    return "Redispatch — offer an eligible carpet / floor-care cleaner.";
+    return "Redispatch. offer an eligible carpet / floor-care cleaner.";
   }
   if (defaultAction.includes("Recover assignment") || defaultAction.includes("Recover")) {
     return "Recover carpet cleaning assignment on booking detail when eligible.";
   }
   if (defaultAction.includes("dispatch")) {
-    return "Carpet clean dispatch — open booking detail to send offer or recover.";
+    return "Carpet clean dispatch. open booking detail to send offer or recover.";
   }
   if (defaultAction.includes("payout")) {
     return defaultAction;
   }
   if (defaultAction.includes("triage")) {
-    return "Carpet cleaning assignment needs triage — open booking detail.";
+    return "Carpet cleaning assignment needs triage. open booking detail.";
   }
   return defaultAction;
 }
@@ -202,7 +202,7 @@ export type CarpetAdminBookingDetailCopy = {
 
 export function getCarpetAdminBookingDetailCopy(): CarpetAdminBookingDetailCopy {
   return {
-    shellSubtitle: "Carpet Cleaning — ops, payment, and floor-care context",
+    shellSubtitle: "Carpet Cleaning. ops, payment, and floor-care context",
     heroHeadline: "Floor-care service",
     contextSectionTitle: "Carpet cleaning context",
     homeSizeLabel: "Carpet zones",

@@ -587,7 +587,7 @@ export function CleanerApplyForm() {
                   id="notes"
                   rows={4}
                   className={APPLY_INPUT_CLASS}
-                  placeholder="Optional — types of homes, teams, or specialties"
+                  placeholder="Optional. types of homes, teams, or specialties"
                   value={values.notes}
                   onChange={(e) => setValues((v) => ({ ...v, notes: e.target.value }))}
                 />
@@ -694,7 +694,7 @@ export function CleanerApplyForm() {
                       ? EXPERIENCE_LABELS[
                           values.experienceLevel as keyof typeof EXPERIENCE_LABELS
                         ]
-                      : "—"}
+                      : "-"}
                   </dd>
                 </div>
               </dl>

@@ -17,7 +17,7 @@ export function AdminAuditTimeline({ audits }: Props) {
           className="rounded-lg border border-zinc-100 bg-zinc-50/80 px-3 py-2 text-xs text-zinc-800"
         >
           <p className="font-mono font-medium">
-            {a.command ?? "—"}: {a.from ?? "∅"} → {a.to ?? "∅"}
+            {a.command ?? "-"}: {a.from ?? "∅"} → {a.to ?? "∅"}
           </p>
           <p className="mt-1 text-zinc-600">
             {new Date(a.at).toLocaleString("en-ZA")}

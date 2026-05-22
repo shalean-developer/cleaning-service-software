@@ -11,7 +11,7 @@ export function AdminSupportInboxOperationsPanel({ operations }: Props) {
     <section className="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-4">
       <h2 className="text-sm font-semibold text-zinc-900">Operations intelligence</h2>
       <p className="mt-1 text-xs text-zinc-600">
-        Visibility only — support requests do not auto-change bookings, payments, or dispatch.
+        Visibility only. support requests do not auto-change bookings, payments, or dispatch.
       </p>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">

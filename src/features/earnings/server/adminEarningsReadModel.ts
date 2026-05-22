@@ -102,7 +102,7 @@ function buildSummaryCards(input: {
       value:
         input.revenueCents > 0
           ? `${input.recurringSharePercent}% recurring`
-          : "—",
+          : "-",
       footer: "Series-linked bookings of total",
     },
     {
@@ -117,7 +117,7 @@ function buildSummaryCards(input: {
       value:
         input.revenueCents > 0 || input.cleanerSharePercent > 0
           ? `${input.cleanerSharePercent}% cleaner share`
-          : "—",
+          : "-",
       footer: "Payout vs gross earnings in period",
     },
   ];

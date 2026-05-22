@@ -362,13 +362,13 @@ export function buildAssignmentQueueOpsFields(input: {
       "Paid booking is still confirmed without assignment dispatch; recovery cron can re-run post-payment assignment after the grace window.";
   } else if (input.opsSearching) {
     queueReason =
-      "System is actively searching or waiting on a cleaner offer — monitor; no admin action unless the offer expires or is declined.";
+      "System is actively searching or waiting on a cleaner offer. monitor; no admin action unless the offer expires or is declined.";
   } else if (input.assignmentAttention === "selected_declined_admin") {
     queueReason =
       "Customer selected a specific cleaner who declined; use manual dispatch on booking detail to offer another eligible cleaner.";
   } else if (input.assignmentAttention === "max_attempts_admin") {
     queueReason =
-      "Maximum automatic dispatch attempts reached — use manual dispatch on booking detail with acknowledgement.";
+      "Maximum automatic dispatch attempts reached. use manual dispatch on booking detail with acknowledgement.";
   } else if (input.opsAdminRequired) {
     queueReason =
       "Assignment metadata requires admin review; see operational status on booking detail.";
@@ -428,7 +428,7 @@ export function buildAdminOperationalStatus(input: {
   const openOfferSummary =
     openCount === 0
       ? "No open offers"
-      : `${openCount} open offer${openCount === 1 ? "" : "s"} — awaiting cleaner response`;
+      : `${openCount} open offer${openCount === 1 ? "" : "s"}. awaiting cleaner response`;
 
   const recoveryCronCanHandle = input.dispatchNotStarted;
   const manualInterventionNeeded =
@@ -456,7 +456,7 @@ export function buildAdminOperationalStatus(input: {
     runbookKey = runbookKey ?? "assignmentDeclineRedispatch";
   } else if (input.opsSearching) {
     nextSuggestedAction =
-      "Monitor — system is dispatching or waiting on offer acceptance. Expiry/decline crons may redispatch automatically.";
+      "Monitor. system is dispatching or waiting on offer acceptance. Expiry/decline crons may redispatch automatically.";
     runbookKey = runbookKey ?? "expireAssignmentOffers";
   } else if (input.visibilityKey === "selected_declined_admin") {
     nextSuggestedAction =
@@ -470,7 +470,7 @@ export function buildAdminOperationalStatus(input: {
     nextSuggestedAction = "Use payout actions below when earnings are ready.";
     runbookKey = "adminDashboard";
   } else {
-    nextSuggestedAction = "No immediate admin action — booking is progressing normally.";
+    nextSuggestedAction = "No immediate admin action. booking is progressing normally.";
   }
 
   const queueFields = buildAssignmentQueueOpsFields({

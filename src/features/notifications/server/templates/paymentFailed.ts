@@ -93,7 +93,7 @@ export function buildPaymentFailedEmail(input: {
 <html lang="en">
 <body style="font-family: system-ui, sans-serif; line-height: 1.5; color: #111;">
   <p>${escapeHtml(greeting)}</p>
-  <p><strong>${escapeHtml(issueCopy.title)}</strong> — ${escapeHtml(issueCopy.body)}</p>
+  <p><strong>${escapeHtml(issueCopy.title)}</strong>. ${escapeHtml(issueCopy.body)}</p>
   <p>No cleaner is assigned until payment succeeds.</p>
   <ul>
     <li><strong>Booking reference:</strong> ${escapeHtml(ref)}</li>

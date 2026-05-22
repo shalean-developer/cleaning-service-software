@@ -6,7 +6,7 @@ type DetailsToggleSwitchProps = {
   onToggle: () => void;
 };
 
-/** Step 4 pill toggle — presentation only; matches add-on row switches. */
+/** Step 4 pill toggle. presentation only; matches add-on row switches. */
 export function DetailsToggleSwitch({ checked, label, onToggle }: DetailsToggleSwitchProps) {
   return (
     <button

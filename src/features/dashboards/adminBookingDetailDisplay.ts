@@ -56,7 +56,7 @@ export function buildAdminBookingHeroEssentialRows(input: {
   ];
 }
 
-/** Secondary booking context — collapsed by default on detail page. */
+/** Secondary booking context. collapsed by default on detail page. */
 export function buildAdminBookingHeroContextRows(input: {
   serviceSlug?: string | null;
   serviceLabel?: string | null;

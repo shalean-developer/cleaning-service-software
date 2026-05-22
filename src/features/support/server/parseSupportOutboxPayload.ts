@@ -27,7 +27,7 @@ export type ParsedSupportOutboxPayload = {
   messagePreview: string | null;
   customerResponse: string | null;
   ctaPath: string;
-  /** Pre-rendered at enqueue — used as fallback when re-render fails. */
+  /** Pre-rendered at enqueue. used as fallback when re-render fails. */
   subject?: string;
   html?: string;
   text?: string;

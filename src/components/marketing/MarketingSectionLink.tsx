@@ -18,7 +18,7 @@ type MarketingSectionLinkProps = {
 /**
  * Section CTAs without hash URLs. Always renders a Link (stable SSR/hydration).
  * On the homepage, click scrolls to the section when present; otherwise follows href.
- * Main header/footer nav uses href-only links — not this component.
+ * Main header/footer nav uses href-only links. not this component.
  */
 export function MarketingSectionLink({
   sectionId,

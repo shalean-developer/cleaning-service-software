@@ -106,7 +106,7 @@ export function PaymentSuccessVerifier() {
         : "Confirming payment";
   const shellSubtitle =
     phase === "success"
-      ? "Your booking is secured — opening your dashboard"
+      ? "Your booking is secured. opening your dashboard"
       : phase === "error"
         ? "We could not confirm payment yet"
         : "This usually takes a few seconds";

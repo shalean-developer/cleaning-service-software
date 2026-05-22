@@ -1,6 +1,6 @@
 import type { BookingRow } from "@/lib/database/types";
 
-/** Cadence-only booking rows — never customer visits or cleaner jobs. */
+/** Cadence-only booking rows. never customer visits or cleaner jobs. */
 export function isSyntheticAnchorBooking(
   booking: Pick<BookingRow, "synthetic_anchor" | "metadata">,
 ): boolean {

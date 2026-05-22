@@ -47,7 +47,7 @@ const QUEUE_EXPLAINABILITY = {
   needs_assignment: {
     severity: "action_required",
     summary:
-      "Bookings that are paid (or otherwise ready) but still have no assigned cleaner — the system is waiting to start or complete dispatch.",
+      "Bookings that are paid (or otherwise ready) but still have no assigned cleaner. the system is waiting to start or complete dispatch.",
     whyHere: [
       "status is pending_assignment",
       "No cleaner is assigned yet",
@@ -62,14 +62,14 @@ const QUEUE_EXPLAINABILITY = {
   dispatch_not_started: {
     severity: "monitor",
     summary:
-      "Paid bookings where assignment dispatch never started or visibility shows dispatch not started — often right after payment or a failed auto-dispatch.",
+      "Paid bookings where assignment dispatch never started or visibility shows dispatch not started. often right after payment or a failed auto-dispatch.",
     whyHere: [
       'Assignment reason contains "dispatch not started", or',
       "Paid confirmed booking past the recovery grace window with no open or accepted offers",
-      "Monitoring view — overlaps with recovery visibility but separate from assignment attention",
+      "Monitoring view. overlaps with recovery visibility but separate from assignment attention",
     ],
     recommendedAction:
-      "Monitor the list — recovery cron may pick up eligible bookings. For a single stuck booking, open detail and use Recover assignment when eligibility shows eligible.",
+      "Monitor the list. recovery cron may pick up eligible bookings. For a single stuck booking, open detail and use Recover assignment when eligibility shows eligible.",
     secondaryNote:
       "Do not batch-recover from this page. See the assignment recovery runbook for cron vs manual timing.",
     runbookKey: "assignmentRecovery",
@@ -77,11 +77,11 @@ const QUEUE_EXPLAINABILITY = {
   recovery_needed: {
     severity: "action_required",
     summary:
-      "Bookings that need post-payment assignment recovery — dispatch did not complete and the booking is eligible (or flagged) for the recovery path.",
+      "Bookings that need post-payment assignment recovery. dispatch did not complete and the booking is eligible (or flagged) for the recovery path.",
     whyHere: [
       "Recovery eligibility is eligible on booking detail, or",
       "Assignment visibility key is dispatch_not_started",
-      "Same filter bundle as dispatch not started — use this queue when actively recovering",
+      "Same filter bundle as dispatch not started. use this queue when actively recovering",
     ],
     recommendedAction:
       "Open each booking and run Recover assignment when the operational panel shows eligibility eligible. Otherwise wait for cron or investigate grace / in-progress states on detail.",
@@ -92,10 +92,10 @@ const QUEUE_EXPLAINABILITY = {
   payment_attention: {
     severity: "urgent",
     summary:
-      "Bookings whose payment failed or could not be completed — the job cannot proceed until the customer retries checkout.",
+      "Bookings whose payment failed or could not be completed. the job cannot proceed until the customer retries checkout.",
     whyHere: [
       "status is payment_failed",
-      "Customer must complete payment again — admin cannot finalize payment in the dashboard",
+      "Customer must complete payment again. admin cannot finalize payment in the dashboard",
     ],
     recommendedAction:
       "Confirm the customer has been notified and direct them to retry from their booking/payment flow. Use booking detail to verify outbox notifications if needed.",
@@ -105,22 +105,22 @@ const QUEUE_EXPLAINABILITY = {
   assignment_attention: {
     severity: "action_required",
     summary:
-      "Bookings that need assignment triage — needs assignment, selected cleaner declined, max dispatch attempts, or legacy attention metadata.",
+      "Bookings that need assignment triage. needs assignment, selected cleaner declined, max dispatch attempts, or legacy attention metadata.",
     whyHere: [
       "Visibility key is needs_assignment, selected_declined_admin, or max_attempts_admin, or",
       "Stale attention_required metadata on confirmed without a visibility key",
       "Excludes dispatch-not-started and recovery-only cases (separate queues)",
     ],
     recommendedAction:
-      "Open the filtered bookings list for global triage. For day-to-day scanning, also use /admin/assignments — per-booking guidance and badges live there.",
+      "Open the filtered bookings list for global triage. For day-to-day scanning, also use /admin/assignments. per-booking guidance and badges live there.",
     secondaryNote:
-      "This count is exact across all bookings. The assignments work queue scans only the newest 100 pending_assignment / confirmed rows — the two numbers often differ.",
+      "This count is exact across all bookings. The assignments work queue scans only the newest 100 pending_assignment / confirmed rows. the two numbers often differ.",
     runbookKey: "assignmentDeclineRedispatch",
     secondaryRunbookKey: "adminDashboard",
   },
 } as const satisfies Record<AdminOperationalQueueKey, AdminOperationalQueueExplainability>;
 
-/** Stage 7A-1 operational queues — booking filter deep links use exact SQL counts (Stage 6C). */
+/** Stage 7A-1 operational queues. booking filter deep links use exact SQL counts (Stage 6C). */
 export const ADMIN_OPERATIONAL_QUEUES: readonly AdminOperationalQueueDefinition[] = [
   {
     key: "needs_assignment",

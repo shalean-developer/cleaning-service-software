@@ -1,6 +1,6 @@
 /**
  * Deep Cleaning operational copy for cleaner and admin surfaces.
- * Presentation only — no dispatch, assignment, lifecycle, or earnings logic.
+ * Presentation only. no dispatch, assignment, lifecycle, or earnings logic.
  */
 
 import type { BookingStatus } from "@/features/bookings/server/types";
@@ -119,7 +119,7 @@ export function getDeepCleanerJobGuidanceSteps(
     case "paid_out":
       return [
         { title: "Deep clean recorded", body: "Logged as complete in your history." },
-        { title: "Payout", body: "Pay status updates below — unchanged from other services." },
+        { title: "Payout", body: "Pay status updates below. unchanged from other services." },
       ];
     default:
       return null;
@@ -178,19 +178,19 @@ export function adminDeepBookingListNextAction(
     return "Assign deep cleaning cleaner on booking detail when eligible.";
   }
   if (defaultAction.includes("Redispatch")) {
-    return "Redispatch — offer an eligible deep cleaning cleaner.";
+    return "Redispatch. offer an eligible deep cleaning cleaner.";
   }
   if (defaultAction.includes("Recover assignment") || defaultAction.includes("Recover")) {
     return "Recover deep clean assignment on booking detail when eligible.";
   }
   if (defaultAction.includes("dispatch")) {
-    return "Deep clean dispatch — open booking detail to send offer or recover.";
+    return "Deep clean dispatch. open booking detail to send offer or recover.";
   }
   if (defaultAction.includes("payout")) {
     return defaultAction;
   }
   if (defaultAction.includes("triage")) {
-    return "Deep clean assignment needs triage — open booking detail.";
+    return "Deep clean assignment needs triage. open booking detail.";
   }
   return defaultAction;
 }
@@ -207,7 +207,7 @@ export type DeepAdminBookingDetailCopy = {
 
 export function getDeepAdminBookingDetailCopy(): DeepAdminBookingDetailCopy {
   return {
-    shellSubtitle: "Deep Cleaning — ops, payment, and restoration context",
+    shellSubtitle: "Deep Cleaning. ops, payment, and restoration context",
     heroHeadline: "Detailed restoration",
     contextSectionTitle: "Deep-clean priorities",
     homeSizeLabel: "Home size",
@@ -259,7 +259,7 @@ export function getDeepOperationsQueueCopy(input: {
     cardSubtitle: "Deep clean · intensive restoration",
     attentionFlagLabel: scheduledToday ? "Scheduled today" : "Deep clean",
     openBookingCta: "Open deep clean booking →",
-    sameDayNote: scheduledToday ? "Scheduled today — prioritize assignment." : null,
+    sameDayNote: scheduledToday ? "Scheduled today. prioritize assignment." : null,
   };
 }
 

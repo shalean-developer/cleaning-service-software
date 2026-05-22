@@ -31,7 +31,7 @@ export async function runRecoverAssignmentAfterPaymentCli(
   );
 
   for (const row of candidates) {
-    console.log(`— booking ${row.bookingId}`);
+    console.log(`- booking ${row.bookingId}`);
     console.log(`  customer: ${row.customerId}`);
     console.log(`  payment: ${row.paymentId} (paid ${row.paidAt})`);
   }
@@ -43,7 +43,7 @@ export async function runRecoverAssignmentAfterPaymentCli(
 
   if (options.dryRun) {
     console.log(
-      "\nDry-run only — no runAssignmentAfterPayment calls.",
+      "\nDry-run only. no runAssignmentAfterPayment calls.",
     );
     console.log(
       "To apply: CONFIRM_ASSIGNMENT_RECOVERY=yes npm run ops:recover:assignments",

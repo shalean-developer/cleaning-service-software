@@ -23,7 +23,7 @@ function normalizeOrigin(url: string): string | null {
 
 /**
  * Canonical public site origin for SEO outputs (sitemap, metadata, JSON-LD).
- * Never returns localhost, Vercel preview hosts, or www — falls back to shalean.co.za.
+ * Never returns localhost, Vercel preview hosts, or www. falls back to shalean.co.za.
  */
 export function getMarketingSiteUrl(): string {
   const candidates = [

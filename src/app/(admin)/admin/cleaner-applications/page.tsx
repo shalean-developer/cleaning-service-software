@@ -43,7 +43,7 @@ export default async function AdminCleanerApplicationsPage({ searchParams }: Pag
         <header>
           <h1 className="text-2xl font-semibold text-zinc-900">Cleaner applications</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Public apply funnel submissions — review before provisioning inactive cleaners.
+            Public apply funnel submissions. review before provisioning inactive cleaners.
           </p>
         </header>
 

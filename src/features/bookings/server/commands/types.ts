@@ -91,7 +91,7 @@ export type FinalizePaymentSuccessCommand = BaseCommand & {
   type: "FINALIZE_PAYMENT_SUCCESS";
   bookingId: BookingId;
   paymentId: string;
-  /** Required — duplicate finalize must reuse the same key (e.g. provider event id). */
+  /** Required. duplicate finalize must reuse the same key (e.g. provider event id). */
   idempotencyKey: string;
 };
 
@@ -128,7 +128,7 @@ export type DeclineCleanerAssignmentCommand = BaseCommand & {
   offerId: string;
 };
 
-/** Admin-only — withdraw an open assignment offer without booking status change. */
+/** Admin-only. withdraw an open assignment offer without booking status change. */
 export type CancelOpenAssignmentOfferCommand = BaseCommand & {
   type: "CANCEL_OPEN_ASSIGNMENT_OFFER";
   bookingId: BookingId;
@@ -182,14 +182,14 @@ export type AdminOverrideStatusCommand = BaseCommand & {
   reason: string;
 };
 
-/** System/service only — records assignment outcome in booking.metadata without status change. */
+/** System/service only. records assignment outcome in booking.metadata without status change. */
 export type RecordAssignmentAttentionCommand = BaseCommand & {
   type: "RECORD_ASSIGNMENT_ATTENTION";
   bookingId: BookingId;
   assignment: import("@/features/assignments/server/types").AssignmentMetadata;
 };
 
-/** System/service only — append-only audit when an assignment offer row is already expired. */
+/** System/service only. append-only audit when an assignment offer row is already expired. */
 export type RecordAssignmentOfferExpiredCommand = BaseCommand & {
   type: "RECORD_ASSIGNMENT_OFFER_EXPIRED";
   bookingId: BookingId;
@@ -198,7 +198,7 @@ export type RecordAssignmentOfferExpiredCommand = BaseCommand & {
   expiredAt: string;
 };
 
-/** System/service only — guarded offer expiry (status + audit). Cron uses expirySource cron in metadata. */
+/** System/service only. guarded offer expiry (status + audit). Cron uses expirySource cron in metadata. */
 export type ExpireAssignmentOfferCommand = BaseCommand & {
   type: "EXPIRE_ASSIGNMENT_OFFER";
   bookingId: BookingId;
@@ -207,7 +207,7 @@ export type ExpireAssignmentOfferCommand = BaseCommand & {
   expiredAt: string;
 };
 
-/** System/service — unpaid child visit for a materialized series (per-visit payment MVP). */
+/** System/service. unpaid child visit for a materialized series (per-visit payment MVP). */
 export type CreateRecurringOccurrenceCommand = BaseCommand & {
   type: "CREATE_RECURRING_OCCURRENCE";
   customerId: string;
@@ -220,7 +220,7 @@ export type CreateRecurringOccurrenceCommand = BaseCommand & {
   idempotencyKey: string;
 };
 
-/** System/service — cadence anchor only; cancelled + synthetic_anchor, never dispatched. */
+/** System/service. cadence anchor only; cancelled + synthetic_anchor, never dispatched. */
 export type CreateSyntheticSeriesAnchorCommand = BaseCommand & {
   type: "CREATE_SYNTHETIC_SERIES_ANCHOR";
   customerId: string;
@@ -232,7 +232,7 @@ export type CreateSyntheticSeriesAnchorCommand = BaseCommand & {
   idempotencyKey: string;
 };
 
-/** Admin-only — updates visit schedule without payment or finalize side effects. */
+/** Admin-only. updates visit schedule without payment or finalize side effects. */
 export type RescheduleBookingCommand = BaseCommand & {
   type: "RESCHEDULE_BOOKING";
   bookingId: BookingId;

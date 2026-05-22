@@ -1,6 +1,6 @@
 /**
  * Raw "House Cleaning {area}" labels from search/operations data.
- * Normalized by `locationRegistry` — do not use directly in UI.
+ * Normalized by `locationRegistry`. do not use directly in UI.
  */
 export const HOUSE_CLEANING_AREA_LABELS = [
   "House Cleaning Sea Point",

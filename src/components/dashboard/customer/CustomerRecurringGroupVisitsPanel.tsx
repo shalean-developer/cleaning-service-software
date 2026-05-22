@@ -72,7 +72,7 @@ export function CustomerRecurringGroupVisitsPanel({
                   {v.weekdayLabel} · {v.scheduleLabel}
                 </Link>
                 {" "}
-                — {v.paymentLabel}
+               . {v.paymentLabel}
               </li>
             ))}
           </ul>

@@ -62,7 +62,7 @@ export type SupportRequestSlaSnapshot = {
 };
 
 /**
- * SLA status for triage visibility only — does not trigger booking/payment mutations.
+ * SLA status for triage visibility only. does not trigger booking/payment mutations.
  */
 export function supportRequestSlaStatus(input: {
   status: string;

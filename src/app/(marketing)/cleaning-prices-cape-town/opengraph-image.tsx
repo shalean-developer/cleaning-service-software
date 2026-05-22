@@ -4,7 +4,7 @@ import {
   renderShaleanOgImage,
 } from "@/features/marketing/og-image";
 
-export const alt = "Cleaning prices in Cape Town — Shalean";
+export const alt = "Cleaning prices in Cape Town. Shalean";
 export const size = OG_IMAGE_SIZE;
 export const contentType = OG_IMAGE_CONTENT_TYPE;
 

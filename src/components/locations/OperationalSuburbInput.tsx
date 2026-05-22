@@ -120,7 +120,7 @@ export function OperationalSuburbInput({
         </p>
       ) : value.trim() && !isKnownOperationalArea(value) ? (
         <p className="mt-1 text-xs text-zinc-600" role="status">
-          We&apos;ll save &ldquo;{formatLocationName(value)}&rdquo; — can&apos;t find your area? Continue with
+          We&apos;ll save &ldquo;{formatLocationName(value)}&rdquo;. can&apos;t find your area? Continue with
           your suburb name.
         </p>
       ) : null}

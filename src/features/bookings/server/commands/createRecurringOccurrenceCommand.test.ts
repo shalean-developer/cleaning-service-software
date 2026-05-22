@@ -33,7 +33,7 @@ describe("CREATE_RECURRING_OCCURRENCE", () => {
     expect(booking?.status).toBe("pending_payment");
   });
 
-  it("does not auto-dispatch — child stays pending_payment until paid", async () => {
+  it("does not auto-dispatch. child stays pending_payment until paid", async () => {
     const backend = new InMemoryBookingCommandBackend();
     const seriesId = crypto.randomUUID();
     const start = "2026-07-01T08:00:00+02:00";

@@ -39,11 +39,11 @@ export function formatAdminBookingOpsReference(bookingId: string): string {
 }
 
 function formatDurationHours(scheduledStart?: string, scheduledEnd?: string): string {
-  if (!scheduledStart || !scheduledEnd) return "Duration —";
+  if (!scheduledStart || !scheduledEnd) return "Duration -";
   const startMs = new Date(scheduledStart).getTime();
   const endMs = new Date(scheduledEnd).getTime();
   if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
-    return "Duration —";
+    return "Duration -";
   }
   const hours = (endMs - startMs) / (1000 * 60 * 60);
   if (hours < 1) {
@@ -56,7 +56,7 @@ function formatDurationHours(scheduledStart?: string, scheduledEnd?: string): st
 }
 
 function formatScheduleWhen(scheduledStart?: string): { when: string; time: string } {
-  if (!scheduledStart) return { when: "—", time: "—" };
+  if (!scheduledStart) return { when: "-", time: "-" };
   const dayKey = scheduleStartToBookingDate(scheduledStart);
   const todayKey = johannesburgCalendarDayKey();
   const when = dayKey === todayKey ? "Today" : "Scheduled";
@@ -144,7 +144,7 @@ export function buildAdminBookingOpsCardModel(
   booking: AdminBookingListItem,
 ): AdminBookingOpsCardModel {
   const { when, time } = formatScheduleWhen(booking.scheduledStart);
-  const area = booking.suburb ?? booking.city ?? "—";
+  const area = booking.suburb ?? booking.city ?? "-";
   const serviceTitle = booking.homeSizeSummary
     ? `${booking.serviceLabel} · ${booking.homeSizeSummary}`
     : booking.serviceLabel;

@@ -18,19 +18,19 @@ export function AdminNotificationDeliveryBanner({ banner }: Props) {
         <li>
           ENABLE_NOTIFICATION_DELIVERY:{" "}
           <strong>{banner.deliveryEnabled ? "on" : "off"}</strong>
-          {!banner.deliveryEnabled ? " — cron worker will no-op." : null}
+          {!banner.deliveryEnabled ? ". cron worker will no-op." : null}
         </li>
         <li>
           Email provider: <strong>{banner.emailProvider}</strong>
           {banner.emailProvider === "resend" ? (
             <span>
               {" "}
-              (Resend only —{" "}
+              (Resend only -{" "}
               <strong>{banner.resendConfigured ? "configured" : "not configured"}</strong>)
             </span>
           ) : null}
           {banner.deliveryEnabled && !banner.canRunDelivery && banner.emailProvider === "resend"
-            ? " — cannot send until Resend env is set."
+            ? ". cannot send until Resend env is set."
             : null}
         </li>
         <li>
@@ -68,7 +68,7 @@ export function AdminNotificationDeliveryBanner({ banner }: Props) {
       <p className="mt-3 text-xs text-zinc-600">
         This page is read-only. Use the notification cron and{" "}
         <span className="font-mono">docs/operations/notification-outbox-worker.md</span> for
-        processing — no retry or resend from the dashboard.
+        processing. no retry or resend from the dashboard.
       </p>
     </section>
   );

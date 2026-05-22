@@ -12,20 +12,27 @@ import {
   resolvePostCustomerSignUpPath,
   SIGN_UP_CHECK_EMAIL_PATH,
 } from "@/lib/auth/customerSignup";
+import { persistCustomerSignupPhone } from "@/lib/auth/persistCustomerSignupPhone";
+import { buildAuthPathWithRedirect } from "@/lib/auth/bookingAuthPaths";
 import { SIGN_IN_PATH } from "@/lib/auth/redirects";
+import {
+  normalizeSouthAfricanPhone,
+  SOUTH_AFRICAN_MOBILE_INVALID_MESSAGE,
+} from "@/lib/validation/southAfricanPhone";
 import { UI_BUTTON_PRIMARY_CLASS } from "@/lib/ui/productUiTokens";
 import {
   createSupabaseBrowserClient,
   SupabaseBrowserConfigError,
 } from "@/lib/supabase/browser";
 
-/** Static placeholder — avoids hydration mismatch when extensions inject form attributes. */
+/** Static placeholder. avoids hydration mismatch when extensions inject form attributes. */
 function SignUpFormSkeleton() {
   return (
     <section className="flex flex-col gap-4" aria-hidden>
       <div className="h-[66px] rounded-lg bg-zinc-100" />
       <div className="h-[66px] rounded-lg bg-zinc-100" />
-      <div className="h-[66px] rounded-lg bg-zinc-100" />
+      <div className="h-[76px] rounded-lg bg-zinc-100" />
+      <div className="h-[76px] rounded-lg bg-zinc-100" />
       <div className="h-10 rounded-xl bg-zinc-200" />
     </section>
   );
@@ -38,6 +45,7 @@ function SignUpFormFields() {
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -48,9 +56,19 @@ function SignUpFormFields() {
 
     const trimmedName = fullName.trim();
     const trimmedEmail = email.trim();
+    const trimmedMobile = mobile.trim();
+    const phoneE164 = normalizeSouthAfricanPhone(trimmedMobile);
 
     if (!trimmedName) {
       setError("Please enter your full name.");
+      return;
+    }
+    if (!trimmedMobile) {
+      setError("Please enter your mobile number.");
+      return;
+    }
+    if (!phoneE164) {
+      setError(SOUTH_AFRICAN_MOBILE_INVALID_MESSAGE);
       return;
     }
     if (password.length < CUSTOMER_SIGNUP_MIN_PASSWORD_LENGTH) {
@@ -70,8 +88,11 @@ function SignUpFormFields() {
         email: trimmedEmail,
         password,
         options: {
-          data: buildCustomerSignupMetadata(trimmedName),
-          emailRedirectTo: buildCustomerSignupEmailRedirectUrl(window.location.origin),
+          data: buildCustomerSignupMetadata(trimmedName, phoneE164),
+          emailRedirectTo: buildCustomerSignupEmailRedirectUrl(
+            window.location.origin,
+            redirectedFrom,
+          ),
         },
       });
 
@@ -84,6 +105,9 @@ function SignUpFormFields() {
         const checkEmailUrl = new URL(SIGN_UP_CHECK_EMAIL_PATH, window.location.origin);
         if (trimmedEmail) {
           checkEmailUrl.searchParams.set("email", trimmedEmail);
+        }
+        if (redirectedFrom?.trim()) {
+          checkEmailUrl.searchParams.set("redirectedFrom", redirectedFrom.trim());
         }
         router.replace(checkEmailUrl.pathname + checkEmailUrl.search);
         return;
@@ -108,6 +132,13 @@ function SignUpFormFields() {
 
       if (profileResult.role !== "customer") {
         setError("This sign-up path is for customer accounts only.");
+        await supabase.auth.signOut();
+        return;
+      }
+
+      const phoneResult = await persistCustomerSignupPhone(phoneE164);
+      if (!phoneResult.ok) {
+        setError(phoneResult.error);
         await supabase.auth.signOut();
         return;
       }
@@ -152,6 +183,23 @@ function SignUpFormFields() {
         />
       </label>
       <label className="flex flex-col gap-1.5">
+        <span className="text-sm font-medium text-zinc-800">Mobile number</span>
+        <input
+          type="tel"
+          name="mobile"
+          autoComplete="tel"
+          inputMode="tel"
+          placeholder="082 123 4567"
+          required
+          value={mobile}
+          onChange={(e) => setMobile(e.target.value)}
+          className={inputClassName}
+        />
+        <span className="text-xs text-zinc-500">
+          Used for booking updates and cleaner coordination.
+        </span>
+      </label>
+      <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-zinc-800">Password</span>
         <input
           type="password"
@@ -182,7 +230,7 @@ function SignUpFormFields() {
       <p className="text-center text-sm text-zinc-600">
         Already have an account?{" "}
         <Link
-          href={SIGN_IN_PATH}
+          href={buildAuthPathWithRedirect(SIGN_IN_PATH, redirectedFrom)}
           className="font-medium text-zinc-900 underline-offset-2 hover:underline"
         >
           Sign in

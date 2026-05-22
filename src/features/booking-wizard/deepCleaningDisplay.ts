@@ -26,14 +26,14 @@ export function isDeepCleaningSlug(
   return serviceSlug === DEEP_CLEANING_SLUG;
 }
 
-/** Step 1 mobile card — restoration positioning. */
+/** Step 1 mobile card. restoration positioning. */
 export const DEEP_SERVICE_STEP_DESCRIPTION_MOBILE = "Buildup removal and seasonal resets";
 
-/** Step 1 desktop card — max two lines. */
+/** Step 1 desktop card. max two lines. */
 export const DEEP_SERVICE_STEP_DESCRIPTION_DESKTOP =
   "Detailed cleaning for neglected buildup and seasonal resets.";
 
-/** Softer recurring labels — frequency values unchanged. */
+/** Softer recurring labels. frequency values unchanged. */
 export const DEEP_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
   { value: "once", label: "One-time deep clean", description: "Full-home restoration reset" },
   { value: "weekly", label: "Weekly", description: "Intensive upkeep between resets" },
@@ -41,7 +41,7 @@ export const DEEP_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
   { value: "monthly", label: "Monthly", description: "Seasonal maintenance between deep cleans" },
 ];
 
-/** Restoration-focused add-on order — display only. */
+/** Restoration-focused add-on order. display only. */
 export const DEEP_ADDON_STEP_DISPLAY_ORDER = DEEP_MOVING_ADDON_STEP_DISPLAY_ORDER;
 
 export const DEEP_ADDON_STEP_DESCRIPTIONS = DEEP_MOVING_ADDON_STEP_DESCRIPTIONS;
@@ -49,7 +49,7 @@ export const DEEP_ADDON_STEP_DESCRIPTIONS = DEEP_MOVING_ADDON_STEP_DESCRIPTIONS;
 export const DEEP_ADDON_STEP_LABELS = DEEP_MOVING_ADDON_STEP_LABELS;
 
 export const DEEP_ADDONS_SECTION_HINT =
-  "Deep and move-ready extras — balconies, carpets, ceilings, garages, mattresses, windows, and upholstery.";
+  "Deep and move-ready extras. balconies, carpets, ceilings, garages, mattresses, windows, and upholstery.";
 
 export type DeepCleaningStepCopy = {
   mobileDescription: string;
@@ -88,7 +88,7 @@ export function getDeepCleaningStepCopy(
       label: "Property access (optional)",
       hint: "Parking, building entry, pets, clutter, and priority areas needing extra attention.",
       placeholder:
-        "e.g. Park in visitor bay 3 · Gate code 4521 · Cat in study — secure fragile items · Kitchen buildup priority",
+        "e.g. Park in visitor bay 3 · Gate code 4521 · Cat in study. secure fragile items · Kitchen buildup priority",
     },
     detailsIntro: {
       title: "Home restoration details",
@@ -107,13 +107,13 @@ export function getDeepCleaningStepCopy(
       subtitle: "Detail-oriented cleaners for intensive restoration and homes needing extra attention.",
       bestAvailableTitle: "Best available cleaner",
       bestAvailableDescription:
-        "Fastest assignment — we match an eligible cleaner experienced in detailed restoration cleaning.",
+        "Fastest assignment. we match an eligible cleaner experienced in detailed restoration cleaning.",
       selectedHint:
         "Your selected cleaner is offered first. Ideal for homes needing intensive cleaning and detailed surface attention.",
       disclosureBestAvailable:
         "Highest-rated eligible cleaner for your home, area, and scheduled deep clean window.",
       disclosureSelected:
-        "Offered to them first after payment. If unavailable, we assign the next best eligible match — your deep clean stays booked.",
+        "Offered to them first after payment. If unavailable, we assign the next best eligible match. your deep clean stays booked.",
     },
   };
 }
@@ -146,7 +146,7 @@ export function getDeepScheduleStepHelperCopy(
   if (extendedWindowEnabled) {
     return "Book up to 90 days ahead.";
   }
-  return "Deep cleans may require more detailed preparation time. Ideal before holidays, events, or seasonal resets — allow enough cleaning time on your chosen date.";
+  return "Deep cleans may require more detailed preparation time. Ideal before holidays, events, or seasonal resets. allow enough cleaning time on your chosen date.";
 }
 
 export type DeepCleaningReviewCopy = {
@@ -258,7 +258,7 @@ export function getDeepWizardSummaryLocationLabel(serviceSlug: ServiceSlug | nul
 
 export function getDeepWizardSummaryEstimateHint(serviceSlug: ServiceSlug | null): string | null {
   return isDeepCleaningSlug(serviceSlug)
-    ? "Estimate only — confirmed total on review."
+    ? "Estimate only. confirmed total on review."
     : null;
 }
 
@@ -268,7 +268,7 @@ export function getDeepWizardCleanerFootnote(serviceSlug: ServiceSlug | null): s
     : null;
 }
 
-/** Customer dashboard status — presentation only. */
+/** Customer dashboard status. presentation only. */
 export function customerDeepStatusLine(
   status: BookingStatus,
   defaultLine: string,
@@ -287,7 +287,7 @@ export function customerDeepStatusLine(
     case "completed":
     case "payout_ready":
     case "paid_out":
-      return "Home restoration complete — thank you for choosing us.";
+      return "Home restoration complete. thank you for choosing us.";
     default:
       return defaultLine;
   }
@@ -318,9 +318,9 @@ export function cleanerDeepJobDescription(
 ): string {
   switch (status) {
     case "assigned":
-      return "Deep clean scheduled — review access, attention areas, and detailed extras before arrival.";
+      return "Deep clean scheduled. review access, attention areas, and detailed extras before arrival.";
     case "in_progress":
-      return "Deep cleaning in progress — prioritize buildup areas and detailed extras before marking complete.";
+      return "Deep cleaning in progress. prioritize buildup areas and detailed extras before marking complete.";
     case "completed":
     case "payout_ready":
     case "paid_out":
@@ -336,7 +336,7 @@ export function cleanerDeepExpectedUpdate(
 ): string | null {
   switch (status) {
     case "assigned":
-      return "Start on site — follow access notes and deep-clean priorities";
+      return "Start on site. follow access notes and deep-clean priorities";
     case "in_progress":
       return "Mark complete when restoration-focused cleaning is finished";
     default:

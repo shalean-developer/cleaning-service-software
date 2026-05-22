@@ -10,7 +10,7 @@ const STROKE = {
   join: "round" as const,
 };
 
-/** Shared 24×24 stroke icon shell — consistent weight and optical alignment. */
+/** Shared 24×24 stroke icon shell. consistent weight and optical alignment. */
 function strokeIcon(className: string | undefined, children: ReactNode) {
   return (
     <svg

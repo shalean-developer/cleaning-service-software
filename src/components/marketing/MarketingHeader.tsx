@@ -7,7 +7,7 @@ import {
   HEADER_PRIMARY_NAV,
   HEADER_SECONDARY_NAV,
   HEADER_UTILITY_NAV,
-  SIGN_IN_PATH,
+  AUTH_PATH,
   SIGN_UP_PATH,
   type HeaderNavLink,
 } from "@/features/marketing/constants";
@@ -215,7 +215,7 @@ export function MarketingHeader() {
                 </UtilityLink>
               ))}
               <span className="mx-1 h-4 w-px bg-slate-200/90" aria-hidden />
-              <UtilityLink href={SIGN_IN_PATH} tone="default">
+              <UtilityLink href={AUTH_PATH} tone="default">
                 Log in
               </UtilityLink>
               <SignUpButton />
@@ -307,7 +307,7 @@ export function MarketingHeader() {
               </p>
               <div className="flex flex-col gap-3">
                 <UtilityLink
-                  href={SIGN_IN_PATH}
+                  href={AUTH_PATH}
                   onNavigate={closeMenu}
                   className="px-1 py-2 text-base font-normal text-slate-600 hover:text-shalean-navy"
                 >

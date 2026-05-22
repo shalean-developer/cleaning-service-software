@@ -26,7 +26,7 @@ export type NotificationWorker24hAnalytics = {
   reclaimedTotal: number;
   avgSentPerRun: number | null;
   avgScannedPerRun: number | null;
-  /** Live Resend deliveries only — excludes dry-run provider runs. */
+  /** Live Resend deliveries only. excludes dry-run provider runs. */
   liveSuccessRatePercent: number | null;
   dryRunRatioPercent: number | null;
 };

@@ -319,7 +319,7 @@ export type CustomerHomeQuickAction = {
   href: string;
 };
 
-/** Quick rebook tiles — existing book routes only. */
+/** Quick rebook tiles. existing book routes only. */
 export const CUSTOMER_HOME_QUICK_ACTIONS: CustomerHomeQuickAction[] = [
   {
     slug: "regular-cleaning",

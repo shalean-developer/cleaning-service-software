@@ -5,18 +5,18 @@ type Props = {
 };
 
 function formatPercent(value: number | null): string {
-  if (value == null) return "—";
+  if (value == null) return "-";
   return `${value}%`;
 }
 
 function formatDeltaPercent(value: number | null): string {
-  if (value == null) return "—";
+  if (value == null) return "-";
   const arrow = value > 0 ? "↑" : value < 0 ? "↓" : "→";
   return `${arrow} ${Math.abs(value)}% vs prior week`;
 }
 
 function formatDeltaPoints(value: number | null): string {
-  if (value == null) return "—";
+  if (value == null) return "-";
   const arrow = value > 0 ? "↑" : value < 0 ? "↓" : "→";
   return `${arrow} ${Math.abs(value)} pts vs prior week`;
 }
@@ -88,11 +88,11 @@ export function AdminNotificationAnalyticsPanel({ analytics }: Props) {
         />
         <MetricCard label="Dry-run (24h)" value={worker24h.dryRunTotal} hint="Preview sends" />
         <MetricCard label="Scanned (24h)" value={worker24h.scannedTotal} />
-        <MetricCard label="Avg sent / run" value={worker24h.avgSentPerRun ?? "—"} />
+        <MetricCard label="Avg sent / run" value={worker24h.avgSentPerRun ?? "-"} />
         <MetricCard
           label="Live success rate"
           value={formatPercent(worker24h.liveSuccessRatePercent)}
-          hint="Resend only — excludes dry-run provider"
+          hint="Resend only. excludes dry-run provider"
         />
         <MetricCard
           label="Dry-run share"
@@ -106,7 +106,7 @@ export function AdminNotificationAnalyticsPanel({ analytics }: Props) {
           7-day trends (hourly rollups)
         </h3>
         <p className="mt-1 text-xs text-zinc-600">
-          Worker throughput only — compares last 7 days to the prior 7 days.
+          Worker throughput only. compares last 7 days to the prior 7 days.
           {trends7d.rollupAsOf ? (
             <>
               {" "}
@@ -122,13 +122,13 @@ export function AdminNotificationAnalyticsPanel({ analytics }: Props) {
         <ul className="mt-3 space-y-2 text-sm text-zinc-800">
           <li>
             <span className="font-medium">Sent (7d):</span> {trends7d.sent7dTotal}
-            <span className="text-zinc-500"> — {formatDeltaPercent(trends7d.sent7dDeltaPercent)}</span>
+            <span className="text-zinc-500">. {formatDeltaPercent(trends7d.sent7dDeltaPercent)}</span>
           </li>
           <li>
             <span className="font-medium">Failed rows (7d):</span> {trends7d.failed7dTotal}
             <span className="text-zinc-500">
               {" "}
-              — {formatDeltaPercent(trends7d.failed7dDeltaPercent)}
+             . {formatDeltaPercent(trends7d.failed7dDeltaPercent)}
             </span>
           </li>
           <li>
@@ -136,18 +136,18 @@ export function AdminNotificationAnalyticsPanel({ analytics }: Props) {
             {formatPercent(trends7d.liveSuccessRate7dPercent)}
             <span className="text-zinc-500">
               {" "}
-              — {formatDeltaPoints(trends7d.liveSuccessRate7dDeltaPoints)}
+             . {formatDeltaPoints(trends7d.liveSuccessRate7dDeltaPoints)}
             </span>
           </li>
           <li>
             <span className="font-medium">Dry-run deliveries (7d):</span> {trends7d.dryRun7dTotal}
-            <span className="text-zinc-500"> — separate from live success rate</span>
+            <span className="text-zinc-500">. separate from live success rate</span>
           </li>
           <li>
             <span className="font-medium">Worker runs (7d):</span> {trends7d.runCount7dTotal}
             <span className="text-zinc-500">
               {" "}
-              — {formatDeltaPercent(trends7d.runCount7dDeltaPercent)}
+             . {formatDeltaPercent(trends7d.runCount7dDeltaPercent)}
             </span>
           </li>
         </ul>
@@ -157,7 +157,7 @@ export function AdminNotificationAnalyticsPanel({ analytics }: Props) {
         ) : null}
         {trends7d.rollupStale ? (
           <p className="mt-2 text-xs text-amber-800">
-            Hourly rollup may be delayed — check the metrics rollup cron.
+            Hourly rollup may be delayed. check the metrics rollup cron.
           </p>
         ) : null}
       </div>

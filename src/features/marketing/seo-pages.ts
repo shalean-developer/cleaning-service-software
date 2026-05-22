@@ -33,7 +33,7 @@ export const SERVICES_HUB_FAQ_PREVIEW = [
   {
     question: "What is the difference between regular and deep cleaning?",
     answer:
-      "Regular cleaning maintains day-to-day freshness on kitchens, bathrooms, and living areas. Deep cleaning is more intensive — ideal for seasonal refreshes, neglected spaces, or before events. Compare both on our Cape Town cleaning prices page.",
+      "Regular cleaning maintains day-to-day freshness on kitchens, bathrooms, and living areas. Deep cleaning is more intensive. ideal for seasonal refreshes, neglected spaces, or before events. Compare both on our Cape Town cleaning prices page.",
   },
   {
     question: "Do cleaners bring equipment and supplies?",
@@ -43,7 +43,7 @@ export const SERVICES_HUB_FAQ_PREVIEW = [
   {
     question: "How does recurring cleaning work?",
     answer:
-      "Select weekly, bi-weekly, monthly, or multi-day schedules for regular home cleaning. Each visit is paid individually — pay per visit with no subscription lock-in. Future visits are booked and paid separately from your account.",
+      "Select weekly, bi-weekly, monthly, or multi-day schedules for regular home cleaning. Each visit is paid individually. pay per visit with no subscription lock-in. Future visits are booked and paid separately from your account.",
   },
   {
     question: "How do Airbnb turnovers work?",
@@ -140,7 +140,7 @@ export const SERVICE_SEO_CONTENT: Record<ServiceSeoSlug, ServiceSeoContent> = {
     "Regular Home Cleaning Cape Town | Shalean",
     "Book vetted regular home cleaning in Cape Town. Transparent pricing from R450, insured cleaners, and online booking in minutes.",
     "Regular Home Cleaning in Cape Town",
-    "Keep your home consistently fresh with Shalean's regular cleaning service. Our vetted, insured cleaners follow a structured checklist for kitchens, bathrooms, bedrooms, and living areas — ideal for busy households across Cape Town.",
+    "Keep your home consistently fresh with Shalean's regular cleaning service. Our vetted, insured cleaners follow a structured checklist for kitchens, bathrooms, bedrooms, and living areas. ideal for busy households across Cape Town.",
     [
       {
         heading: "What's included",
@@ -163,7 +163,7 @@ export const SERVICE_SEO_CONTENT: Record<ServiceSeoSlug, ServiceSeoContent> = {
     "Deep Cleaning Services Cape Town | Shalean",
     "Intensive deep cleaning in Cape Town for kitchens, bathrooms, and neglected areas. Insured professionals, transparent pricing from R850.",
     "Deep Cleaning Services in Cape Town",
-    "A Shalean deep clean goes beyond routine housekeeping — ideal before events, seasonal refreshes, or when your home needs extra attention. Our teams focus on buildup, corners, and high-touch areas across Cape Town.",
+    "A Shalean deep clean goes beyond routine housekeeping. ideal before events, seasonal refreshes, or when your home needs extra attention. Our teams focus on buildup, corners, and high-touch areas across Cape Town.",
     [
       {
         heading: "When to choose deep cleaning",
@@ -186,7 +186,7 @@ export const SERVICE_SEO_CONTENT: Record<ServiceSeoSlug, ServiceSeoContent> = {
     "Move In / Move Out Cleaning Cape Town | Shalean",
     "Handover-ready move in and move out cleaning in Cape Town for tenants and landlords. Transparent pricing from R1,200.",
     "Move In / Move Out Cleaning in Cape Town",
-    "Moving is stressful enough — Shalean delivers handover-ready cleaning for empty or furnished properties so you can meet landlord, agent, or buyer expectations across Cape Town.",
+    "Moving is stressful enough. Shalean delivers handover-ready cleaning for empty or furnished properties so you can meet landlord, agent, or buyer expectations across Cape Town.",
     [
       {
         heading: "Who it's for",
@@ -198,7 +198,7 @@ export const SERVICE_SEO_CONTENT: Record<ServiceSeoSlug, ServiceSeoContent> = {
       },
       {
         heading: "Pricing",
-        body: `Move in/out cleaning starts from ${serviceFromPrice("moving-cleaning")}. Property size and condition affect the final quote — book online for an instant estimate.`,
+        body: `Move in/out cleaning starts from ${serviceFromPrice("moving-cleaning")}. Property size and condition affect the final quote. book online for an instant estimate.`,
       },
     ],
     ["deep-cleaning-cape-town", "regular-cleaning-cape-town", "carpet-cleaning-cape-town"],
@@ -221,7 +221,7 @@ export const SERVICE_SEO_CONTENT: Record<ServiceSeoSlug, ServiceSeoContent> = {
       },
       {
         heading: "Popular host areas",
-        body: "Sea Point, Green Point, Camps Bay, Claremont, and Century City are among our busiest short-term rental zones — same-day availability subject to cleaner schedules.",
+        body: "Sea Point, Green Point, Camps Bay, Claremont, and Century City are among our busiest short-term rental zones. same-day availability subject to cleaner schedules.",
       },
     ],
     ["regular-cleaning-cape-town", "deep-cleaning-cape-town", "office-cleaning-cape-town"],
@@ -232,7 +232,7 @@ export const SERVICE_SEO_CONTENT: Record<ServiceSeoSlug, ServiceSeoContent> = {
     "Office Cleaning Cape Town | Shalean",
     "Professional office and workspace cleaning in Cape Town. Flexible schedules for teams, studios, and shared spaces.",
     "Office Cleaning in Cape Town",
-    "Shalean keeps Cape Town workspaces professional and hygienic — from small studios to multi-desk offices. Book after-hours or daytime cleans to suit your team.",
+    "Shalean keeps Cape Town workspaces professional and hygienic. from small studios to multi-desk offices. Book after-hours or daytime cleans to suit your team.",
     [
       {
         heading: "Workspace coverage",
@@ -267,7 +267,7 @@ export const SERVICE_SEO_CONTENT: Record<ServiceSeoSlug, ServiceSeoContent> = {
       },
       {
         heading: "Combine with other services",
-        body: "Many customers add carpet care to a deep clean or move-out booking for a single visit — saving time and coordination.",
+        body: "Many customers add carpet care to a deep clean or move-out booking for a single visit. saving time and coordination.",
       },
     ],
     ["deep-cleaning-cape-town", "move-in-out-cleaning-cape-town", "regular-cleaning-cape-town"],
@@ -280,7 +280,7 @@ export const FAQ_PAGE_ITEMS = [
   {
     question: "How do I pay for cleaning?",
     answer:
-      "Pay securely online when you book. Shalean uses encrypted checkout — no cash handling required on the day unless arranged separately for specific accounts.",
+      "Pay securely online when you book. Shalean uses encrypted checkout. no cash handling required on the day unless arranged separately for specific accounts.",
   },
   {
     question: "What is your cancellation policy?",
@@ -308,7 +308,7 @@ export const PRICING_PAGE_FAQS = [
   {
     question: "Is there a minimum booking fee?",
     answer:
-      "Each service has a base price that covers a standard scope. Smaller jobs may still use the service minimum — your quote widget reflects this instantly.",
+      "Each service has a base price that covers a standard scope. Smaller jobs may still use the service minimum. your quote widget reflects this instantly.",
   },
 ] as const;
 
@@ -341,7 +341,7 @@ export type LocationSeoContent = {
 
 const LOCATION_INTROS: Partial<Record<(typeof CAPE_TOWN_AREAS)[number], string>> = {
   "Sea Point":
-    "Atlantic Seaboard apartments and family homes benefit from Shalean's regular, deep, and Airbnb turnover teams — with same-day slots often available.",
+    "Atlantic Seaboard apartments and family homes benefit from Shalean's regular, deep, and Airbnb turnover teams. with same-day slots often available.",
   Claremont:
     "Southern Suburbs families and students book Shalean for recurring home cleaning, deep refreshes, and move-in/out handovers near UCT and Cavendish.",
   "Camps Bay":
@@ -382,12 +382,12 @@ export function buildLocationContent(area: (typeof CAPE_TOWN_AREAS)[number]): Lo
     metaTitle: `Cleaning Services ${area} Cape Town | Shalean`,
     metaDescription,
     h1: `Cleaning Services in ${area}`,
-    intro: `Professional home and office cleaning in ${area}, Cape Town — booked online with vetted, insured Shalean cleaners and upfront pricing.`,
+    intro: `Professional home and office cleaning in ${area}, Cape Town. booked online with vetted, insured Shalean cleaners and upfront pricing.`,
     localNote,
   };
 }
 
-/** Unique suburb meta descriptions — shared structure, localized service emphasis. */
+/** Unique suburb meta descriptions. shared structure, localized service emphasis. */
 export function buildLocationMetaDescription(area: (typeof CAPE_TOWN_AREAS)[number]): string {
   const localized = LOCATION_META_LOCALIZED_PHRASE[area];
   return `Book regular, deep, Airbnb, and move-out cleaning services in ${area}, Cape Town with online scheduling and transparent pricing. ${localized} Vetted Shalean cleaners for homes, rentals, and offices.`;
@@ -397,7 +397,7 @@ const LOCATION_META_LOCALIZED_PHRASE: Partial<
   Record<(typeof CAPE_TOWN_AREAS)[number], string>
 > = {
   "Sea Point":
-    "Atlantic Seaboard apartments and family homes — same-day slots often available.",
+    "Atlantic Seaboard apartments and family homes. same-day slots often available.",
   Claremont:
     "Southern Suburbs homes, student rentals, and Cavendish-area handovers.",
   "Camps Bay":
@@ -413,7 +413,7 @@ const LOCATION_META_LOCALIZED_PHRASE: Partial<
   Observatory:
     "Student rentals and family homes with affordable recurring cleans.",
   Rondebosch:
-    "UCT-area hosts and homeowners — Airbnb turnovers and study-friendly regular cleans.",
+    "UCT-area hosts and homeowners. Airbnb turnovers and study-friendly regular cleans.",
   Wynberg:
     "Flexible one-off or recurring cleans across Wynberg and surrounds.",
   "Green Point":

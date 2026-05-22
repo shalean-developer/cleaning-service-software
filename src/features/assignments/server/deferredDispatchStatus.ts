@@ -34,7 +34,7 @@ export type DeferredDispatchStatus = {
   adminLabel: string | null;
   adminOperationalCopy: string | null;
   customerMessage: string | null;
-  /** True only for dispatch_overdue — normal deferred bookings must not surface as failed. */
+  /** True only for dispatch_overdue. normal deferred bookings must not surface as failed. */
   operationalAttentionRequired: boolean;
 };
 
@@ -159,7 +159,7 @@ export function isDeferredDispatchExemptFromRecovery(input: {
 }
 
 /**
- * True after dispatch_at but before overdue grace — cron should dispatch; not a failure yet.
+ * True after dispatch_at but before overdue grace. cron should dispatch; not a failure yet.
  */
 export function isDeferredDispatchInReadyGrace(input: {
   assignmentDispatchAt: string | null | undefined;

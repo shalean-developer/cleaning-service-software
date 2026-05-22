@@ -120,7 +120,7 @@ body {
   }
 }
 
-/* Luxury typography rhythm — calm, readable, not oversized */
+/* Luxury typography rhythm. calm, readable, not oversized */
 .marketing-prose {
   font-size: 0.9375rem;
   line-height: 1.75;
@@ -144,7 +144,7 @@ body {
   color: #5c6578;
 }
 
-/* Subtle alternating section atmosphere — blue-tinted, not heavy */
+/* Subtle alternating section atmosphere. blue-tinted, not heavy */
 .marketing-section-tint {
   background: linear-gradient(180deg, #fafbfc 0%, #f3f7fd 46%, #fafbfc 100%);
 }
@@ -181,7 +181,7 @@ body {
     0 0 0 1px rgba(226, 232, 240, 0.65);
 }
 
-/* CTA panel — mockup-aligned royal blue, still accessible */
+/* CTA panel. mockup-aligned royal blue, still accessible */
 .marketing-cta-panel {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 52%, #1e40af 100%);
 }
@@ -383,29 +383,7 @@ body {
   outline-offset: 2px;
 }
 
-.skip-to-main {
-  position: absolute;
-  left: 1rem;
-  top: 0.75rem;
-  z-index: 100;
-  transform: translateY(-200%);
-  border: none;
-  border-radius: 0.5rem;
-  background: var(--shalean-navy);
-  color: #fff;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: transform 0.15s ease;
-}
-
-.skip-to-main:focus {
-  transform: translateY(0);
-}
-
-/* How It Works — mobile timeline + subtle step reveal */
+/* How It Works. mobile timeline + subtle step reveal */
 .how-it-works-timeline::before {
   content: "";
   position: absolute;
@@ -466,7 +444,7 @@ body {
   }
 }
 
-/* Why Choose — staggered trust cards */
+/* Why Choose. staggered trust cards */
 @media (prefers-reduced-motion: no-preference) {
   .why-choose-feature {
     animation: how-it-works-fade-up 0.5s ease backwards;

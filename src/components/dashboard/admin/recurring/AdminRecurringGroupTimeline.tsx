@@ -29,7 +29,7 @@ export function AdminRecurringGroupTimeline({ entries }: Props) {
             </p>
             <p className="mt-0.5 text-sm text-slate-600">
               {e.customerStatusLabel} · {e.paymentLabel}
-              {e.priceLabel !== "—" ? ` · ${e.priceLabel}` : ""}
+              {e.priceLabel !== "-" ? ` · ${e.priceLabel}` : ""}
               {e.cleanerLabel ? ` · ${e.cleanerLabel}` : ""}
             </p>
           </div>

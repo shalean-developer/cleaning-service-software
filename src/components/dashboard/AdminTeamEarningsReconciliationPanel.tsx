@@ -56,7 +56,7 @@ export function AdminTeamEarningsReconciliationPanel({ reconciliation }: Props) 
           <dd className="font-medium tabular-nums text-zinc-900">
             {reconciliation.totalPoolCents != null
               ? formatZar(reconciliation.totalPoolCents)
-              : "—"}
+              : "-"}
           </dd>
         </div>
         <div>
@@ -64,7 +64,7 @@ export function AdminTeamEarningsReconciliationPanel({ reconciliation }: Props) 
           <dd className="font-medium tabular-nums text-zinc-900">
             {reconciliation.expectedShareCents != null
               ? formatZar(reconciliation.expectedShareCents)
-              : "—"}
+              : "-"}
             {reconciliation.splitPolicy ? (
               <span className="ml-1 text-xs font-normal text-zinc-500">
                 ({reconciliation.splitPolicy}, {reconciliation.expectedParticipantCount}{" "}

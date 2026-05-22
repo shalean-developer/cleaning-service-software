@@ -18,22 +18,22 @@ type BookingRowInput = Pick<
 
 function defaultAdminBookingListNextAction(booking: BookingRowInput): string | null {
   if (booking.status === "payment_failed") {
-    return "Customer must retry payment — open booking to verify notifications.";
+    return "Customer must retry payment. open booking to verify notifications.";
   }
 
   const deferredPhase = booking.deferredDispatch?.phase;
   if (deferredPhase === "dispatch_overdue") {
-    return "Deferred dispatch overdue — open booking or assignments workbench.";
+    return "Deferred dispatch overdue. open booking or assignments workbench.";
   }
   if (deferredPhase === "ready_for_dispatch") {
-    return "Deferred dispatch ready — dispatch from booking detail when eligible.";
+    return "Deferred dispatch ready. dispatch from booking detail when eligible.";
   }
 
   if (
     booking.observation.isTwoCleanerRequest &&
     booking.observation.teamSupportOps.coordinationStatus?.status === "awaiting_coordination"
   ) {
-    return "Team support needs coordination — open booking for team ops panel.";
+    return "Team support needs coordination. open booking for team ops panel.";
   }
 
   const key = booking.assignmentVisibilityKey ?? booking.assignmentAttention;
@@ -42,9 +42,9 @@ function defaultAdminBookingListNextAction(booking: BookingRowInput): string | n
       return "Send offer or assign cleaner on booking detail.";
     case "selected_declined_admin":
     case "max_attempts_admin":
-      return "Redispatch — send offer to an eligible cleaner.";
+      return "Redispatch. send offer to an eligible cleaner.";
     case "dispatch_not_started":
-      return "Dispatch not started — recover or send offer on detail.";
+      return "Dispatch not started. recover or send offer on detail.";
     default:
       break;
   }
@@ -58,7 +58,7 @@ function defaultAdminBookingListNextAction(booking: BookingRowInput): string | n
   }
 
   if (booking.assignmentAttention === "attention_required") {
-    return "Assignment needs triage — open booking detail.";
+    return "Assignment needs triage. open booking detail.";
   }
 
   return null;

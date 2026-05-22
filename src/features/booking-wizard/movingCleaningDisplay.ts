@@ -27,14 +27,14 @@ export function isMovingCleaningSlug(
   return serviceSlug === MOVING_CLEANING_SLUG;
 }
 
-/** Step 1 mobile card — move-ready positioning. */
+/** Step 1 mobile card. move-ready positioning. */
 export const MOVING_SERVICE_STEP_DESCRIPTION_MOBILE = "Move-in, handover, and inspection prep";
 
-/** Step 1 desktop card — max two lines. */
+/** Step 1 desktop card. max two lines. */
 export const MOVING_SERVICE_STEP_DESCRIPTION_DESKTOP =
   "Detailed cleaning before move-in, handover, or inspection.";
 
-/** Softer recurring labels — frequency values unchanged. */
+/** Softer recurring labels. frequency values unchanged. */
 export const MOVING_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
   { value: "once", label: "One-time move clean", description: "Single handover or move-in prep" },
   { value: "weekly", label: "Weekly", description: "Ongoing property maintenance" },
@@ -42,7 +42,7 @@ export const MOVING_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
   { value: "monthly", label: "Monthly", description: "Light upkeep between tenancies" },
 ];
 
-/** Inspection-focused add-on order — display only. */
+/** Inspection-focused add-on order. display only. */
 export const MOVING_ADDON_STEP_DISPLAY_ORDER = DEEP_MOVING_ADDON_STEP_DISPLAY_ORDER;
 
 export const MOVING_ADDON_STEP_DESCRIPTIONS = DEEP_MOVING_ADDON_STEP_DESCRIPTIONS;
@@ -50,7 +50,7 @@ export const MOVING_ADDON_STEP_DESCRIPTIONS = DEEP_MOVING_ADDON_STEP_DESCRIPTION
 export const MOVING_ADDON_STEP_LABELS = DEEP_MOVING_ADDON_STEP_LABELS;
 
 export const MOVING_ADDONS_SECTION_HINT =
-  "Move and handover extras — balconies, carpets, ceilings, garages, mattresses, windows, and upholstery.";
+  "Move and handover extras. balconies, carpets, ceilings, garages, mattresses, windows, and upholstery.";
 
 export type MovingCleaningStepCopy = {
   mobileDescription: string;
@@ -108,13 +108,13 @@ export function getMovingCleaningStepCopy(
       subtitle: "Detail-oriented cleaners for vacant homes and inspection-ready standards.",
       bestAvailableTitle: "Best available cleaner",
       bestAvailableDescription:
-        "Fastest assignment — we match an eligible cleaner experienced in move preparation.",
+        "Fastest assignment. we match an eligible cleaner experienced in move preparation.",
       selectedHint:
         "Your selected cleaner is offered first. Ideal for vacant properties and handover-ready cleaning.",
       disclosureBestAvailable:
         "Highest-rated eligible cleaner for your property, area, and scheduled move window.",
       disclosureSelected:
-        "Offered to them first after payment. If unavailable, we assign the next best eligible match — your move clean stays booked.",
+        "Offered to them first after payment. If unavailable, we assign the next best eligible match. your move clean stays booked.",
     },
   };
 }
@@ -259,7 +259,7 @@ export function getMovingWizardSummaryLocationLabel(serviceSlug: ServiceSlug | n
 
 export function getMovingWizardSummaryEstimateHint(serviceSlug: ServiceSlug | null): string | null {
   return isMovingCleaningSlug(serviceSlug)
-    ? "Estimate only — confirmed total on review."
+    ? "Estimate only. confirmed total on review."
     : null;
 }
 
@@ -269,7 +269,7 @@ export function getMovingWizardCleanerFootnote(serviceSlug: ServiceSlug | null):
     : null;
 }
 
-/** Customer dashboard status — presentation only. */
+/** Customer dashboard status. presentation only. */
 export function customerMovingStatusLine(
   status: BookingStatus,
   defaultLine: string,
@@ -288,7 +288,7 @@ export function customerMovingStatusLine(
     case "completed":
     case "payout_ready":
     case "paid_out":
-      return "Move clean complete — property prepared for handover or occupancy.";
+      return "Move clean complete. property prepared for handover or occupancy.";
     default:
       return defaultLine;
   }
@@ -319,9 +319,9 @@ export function cleanerMovingJobDescription(
 ): string {
   switch (status) {
     case "assigned":
-      return "Move clean scheduled — confirm vacant access and move instructions before arrival.";
+      return "Move clean scheduled. confirm vacant access and move instructions before arrival.";
     case "in_progress":
-      return "Move preparation in progress — finish inspection-ready standards before marking complete.";
+      return "Move preparation in progress. finish inspection-ready standards before marking complete.";
     case "completed":
     case "payout_ready":
     case "paid_out":
@@ -337,7 +337,7 @@ export function cleanerMovingExpectedUpdate(
 ): string | null {
   switch (status) {
     case "assigned":
-      return "Start on site — follow property access and inspection extras";
+      return "Start on site. follow property access and inspection extras";
     case "in_progress":
       return "Mark complete when the property is handover-ready";
     default:

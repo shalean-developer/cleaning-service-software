@@ -101,7 +101,7 @@ describe("AdminOperationalStatusPanel", () => {
 
     expect(eligibleHtml).toContain("Run assignment recovery");
     expect(ineligibleHtml).not.toContain("Run assignment recovery");
-    expect(ineligibleHtml).toContain("Grace —");
+    expect(ineligibleHtml).toContain("Grace -");
   });
 
   it("shows manual dispatch only when manualDispatchEligible", () => {

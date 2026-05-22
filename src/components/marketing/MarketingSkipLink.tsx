@@ -9,7 +9,7 @@ export function MarketingSkipLink() {
   return (
     <button
       type="button"
-      className="skip-to-main marketing-focus-ring"
+      className="sr-only"
       onClick={() => scrollToSection(sectionId)}
     >
       Skip to main content

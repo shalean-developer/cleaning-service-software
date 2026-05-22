@@ -3,7 +3,7 @@ export const ADMIN_RUNBOOKS = {
   assignmentRecovery: {
     title: "Assignment recovery after payment",
     docPath: "docs/operations/assignment-recovery.md",
-    summary: "Paid bookings stuck on confirmed without dispatch — cron and ops script.",
+    summary: "Paid bookings stuck on confirmed without dispatch. cron and ops script.",
   },
   assignmentDeclineRedispatch: {
     title: "Assignment decline & redispatch",
@@ -11,7 +11,7 @@ export const ADMIN_RUNBOOKS = {
     summary: "How auto-redispatch works for best_available vs selected cleaner paths.",
   },
   paymentFailedRetry: {
-    title: "Payment failed — customer retry",
+    title: "Payment failed. customer retry",
     docPath: "docs/operations/payment-failed-customer-retry.md",
     summary: "Customer-facing retry; admin cannot finalize payment in the dashboard.",
   },

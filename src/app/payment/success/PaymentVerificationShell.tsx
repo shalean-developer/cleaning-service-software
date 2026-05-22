@@ -7,7 +7,7 @@ type Props = {
   children: ReactNode;
 };
 
-/** @deprecated Wizard chrome — use {@link PaymentCustomerShell} for customer payment return. */
+/** @deprecated Wizard chrome. use {@link PaymentCustomerShell} for customer payment return. */
 export function PaymentVerificationShell({ children }: Props) {
   return (
     <PaymentCustomerShell title="Confirming payment" subtitle="Securing your booking with Shalean">

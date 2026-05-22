@@ -122,7 +122,7 @@ export function resolveRollupBucketStart(
   if (bucketStartParam) {
     const parsed = parseUtcHourBucketStart(bucketStartParam);
     if (!parsed) {
-      throw new Error("Invalid bucketStart — expected UTC hour ISO timestamp.");
+      throw new Error("Invalid bucketStart. expected UTC hour ISO timestamp.");
     }
     if (isCurrentPartialUtcHour(parsed, now)) {
       throw new Error("Cannot roll up the current partial UTC hour.");

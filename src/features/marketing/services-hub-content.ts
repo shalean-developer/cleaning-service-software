@@ -39,7 +39,7 @@ export type ServicesHubUseCase = {
 
 const movePath = SERVICE_SEO_PATHS["moving-cleaning"];
 
-/** Services hub hero — distinct from homepage hero copy. */
+/** Services hub hero. distinct from homepage hero copy. */
 export const SERVICES_HUB_HERO = {
   eyebrow: "Service directory",
   h1: "Find the Right Cleaning Service in Cape Town",
@@ -250,7 +250,7 @@ export function cleaningServicesInAreaLabel(area: string): string {
 export const SERVICES_HUB_RECURRING = {
   title: "Recurring cleaning, on your schedule",
   paragraphs: [
-    "Choose weekly, bi-weekly, monthly, or multi-day schedules for regular home cleaning. Each visit is booked and paid individually — pay per visit with no subscription lock-in and no automatic charges for future dates.",
+    "Choose weekly, bi-weekly, monthly, or multi-day schedules for regular home cleaning. Each visit is booked and paid individually. pay per visit with no subscription lock-in and no automatic charges for future dates.",
     "Upcoming visits appear in your account so you can adjust timing, add rooms, or skip a date before the next clean.",
   ],
   ctaLabel: "Explore recurring cleaning",

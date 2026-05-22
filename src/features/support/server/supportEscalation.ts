@@ -65,7 +65,7 @@ export function buildSupportEscalationContext(
   };
 }
 
-/** Admin-only escalation reasons — no customer notifications. */
+/** Admin-only escalation reasons. no customer notifications. */
 export function detectSupportEscalations(
   item: SupportEscalationInput,
   context: SupportEscalationContext,

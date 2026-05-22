@@ -121,7 +121,7 @@ export function formatAuthAdminError(error: AuthAdminErrorLike, email: string): 
     error.status != null ? `status=${error.status}` : null,
     error.code ? `code=${error.code}` : null,
   ].filter((part): part is string => Boolean(part));
-  const detail = parts.length > 0 ? parts.join(" — ") : "unknown auth error";
+  const detail = parts.length > 0 ? parts.join(". ") : "unknown auth error";
   return (
     `Failed to create or locate auth user (${email}): ${detail}. ` +
     `Apply migration 20260516150000_auth_profile_bootstrap.sql (supabase db push). ` +
@@ -442,7 +442,7 @@ export function postgrestErrorText(error: PostgrestErrorLike): string {
     error.hint?.trim(),
     error.code ? `code=${error.code}` : null,
   ].filter((part): part is string => Boolean(part));
-  return parts.length > 0 ? parts.join(" — ") : "unknown PostgREST error";
+  return parts.length > 0 ? parts.join(". ") : "unknown PostgREST error";
 }
 
 export function formatApplicationAccessError(error: PostgrestErrorLike): string {
@@ -457,7 +457,7 @@ export function formatApplicationAccessError(error: PostgrestErrorLike): string 
     return (
       "Service role JWT is valid but cannot access application tables (e.g. public.customers). " +
       "Apply migrations to this project (supabase db push) including api_role_grants, and confirm " +
-      "SUPABASE_SERVICE_ROLE_KEY is the service_role secret from Project Settings → API—not anon or publishable."
+      "SUPABASE_SERVICE_ROLE_KEY is the service_role secret from Project Settings → API-not anon or publishable."
     );
   }
 

@@ -108,7 +108,7 @@ export default async function CleanerJobDetailPage({ params }: PageProps) {
 
         {job.team.viewerRole === "support" ? (
           <>
-            <CleanerSupportJobNotice message="Lead cleaner starts and completes this job. Confirm below after helping on site — records support participation only." />
+            <CleanerSupportJobNotice message="Lead cleaner starts and completes this job. Confirm below after helping on site. records support participation only." />
             <SupportParticipationActions
               bookingId={job.bookingId}
               canMarkParticipation={job.team.supportParticipation.canMarkParticipation}

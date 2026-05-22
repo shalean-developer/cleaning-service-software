@@ -188,7 +188,7 @@ export function CustomerBookingSupportPanel({
               />
               <span>
                 I understand this is a cancellation request and our team will review before
-                confirming — not an instant cancel.
+                confirming. not an instant cancel.
               </span>
             </label>
           )}

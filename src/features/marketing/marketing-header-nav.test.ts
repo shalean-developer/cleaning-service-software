@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  AUTH_PATH,
   FOOTER_QUICK_LINKS,
   HEADER_PRIMARY_NAV,
   HEADER_SECONDARY_NAV,
@@ -65,6 +66,13 @@ describe("marketing header navigation", () => {
     expect(MARKETING_NAV_PATHS.contact).toBe("/contact");
   });
 
+  it("header log in links to role chooser, not direct sign-in", () => {
+    const source = readSource("src/components/marketing/MarketingHeader.tsx");
+    expect(AUTH_PATH).toBe("/auth");
+    expect(source).toContain("AUTH_PATH");
+    expect(source).not.toMatch(/UtilityLink href=\{SIGN_IN_PATH\}/);
+  });
+
   it("header component uses utility nav config and active states", () => {
     const source = readSource("src/components/marketing/MarketingHeader.tsx");
     expect(source).not.toContain('sectionId: "services"');
@@ -78,25 +86,26 @@ describe("marketing header navigation", () => {
 
   it("footer quick links use canonical routes for main sections", () => {
     const about = FOOTER_QUICK_LINKS.find((l) => l.label === "About Us");
+    const services = FOOTER_QUICK_LINKS.find((l) => l.label === "Services");
     const pricing = FOOTER_QUICK_LINKS.find((l) => l.label === "Pricing");
     const locations = FOOTER_QUICK_LINKS.find((l) => l.label === "Locations");
     const faq = FOOTER_QUICK_LINKS.find((l) => l.label === "FAQ");
     const contact = FOOTER_QUICK_LINKS.find((l) => l.label === "Contact");
 
-    expect(about?.sectionId).toBe("about");
-    expect(pricing?.sectionId).toBe("pricing");
-    expect(locations?.sectionId).toBe("areas");
-    expect(faq?.sectionId).toBe("faq");
-    expect(contact?.sectionId).toBe("contact");
+    expect(about?.href).toBe("/about");
+    expect(services?.href).toBe("/services");
+    expect(pricing?.href).toBe("/cleaning-prices-cape-town");
+    expect(locations?.href).toBe("/locations");
+    expect(faq?.href).toBe("/faq");
+    expect(contact?.href).toBe("/contact");
   });
 
-  it("footer maps quick links to canonical hrefs in component", () => {
+  it("footer omits dedicated services column; services live under quick links", () => {
     const source = readSource("src/components/marketing/sections/MarketingFooter.tsx");
-    expect(source).toContain("ABOUT_PAGE_PATH");
-    expect(source).toContain("PRICING_PAGE_PATH");
-    expect(source).toContain('"/locations"');
-    expect(source).toContain("FAQ_PAGE_PATH");
-    expect(source).toContain('"/contact"');
+    expect(source).not.toContain("footer-services");
+    expect(source).not.toContain("SERVICES_HUB_PATH");
+    expect(source).not.toContain("MARKETING_SERVICES.map");
+    expect(source).not.toContain("SERVICE_SEO_PATHS");
   });
 
   it("section route fallbacks do not point main nav to homepage root", () => {

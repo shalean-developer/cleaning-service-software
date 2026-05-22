@@ -72,7 +72,7 @@ export default async function AdminRecurringDetailPage({ params }: PageProps) {
           <div>
             <dt className="text-slate-500">Next visit</dt>
             <dd className="text-slate-900">
-              {s.nextOccurrenceScheduleLabel ?? "—"}
+              {s.nextOccurrenceScheduleLabel ?? "-"}
               {s.nextOccurrencePaymentRequired ? " (payment required)" : ""}
             </dd>
           </div>

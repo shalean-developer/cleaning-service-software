@@ -45,7 +45,7 @@ async function parseRequestOptions(request: Request): Promise<{
         );
       }
     } catch {
-      // ignore invalid JSON — query params still apply
+      // ignore invalid JSON. query params still apply
     }
   }
 

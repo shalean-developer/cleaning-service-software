@@ -50,7 +50,7 @@ const CARDS: {
 ];
 
 function formatMinutes(value: number | null): string {
-  if (value == null) return "—";
+  if (value == null) return "-";
   if (value < 60) return `${value}m`;
   const h = Math.floor(value / 60);
   const m = value % 60;

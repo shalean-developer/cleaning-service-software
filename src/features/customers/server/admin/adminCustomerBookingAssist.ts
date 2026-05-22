@@ -3,7 +3,7 @@
  *
  * Production booking creation requires a customer session with actingCustomerId;
  * lock/paystack routes reject admin roles. Command-layer CREATE_BOOKING_DRAFT
- * allows admin actors in tests only — no safe admin HTTP flow exists yet.
+ * allows admin actors in tests only. no safe admin HTTP flow exists yet.
  */
 export const ADMIN_CUSTOMER_ASSISTED_BOOKING_SUPPORTED = false;
 

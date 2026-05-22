@@ -15,7 +15,7 @@ export function isPreferredCadenceFrequency(frequency: PricingFrequency): boolea
   return frequency !== "once";
 }
 
-/** @deprecated Prefer {@link isPreferredCadenceFrequency} — name retained for callers. */
+/** @deprecated Prefer {@link isPreferredCadenceFrequency}. name retained for callers. */
 export const isRecurringFrequency = isPreferredCadenceFrequency;
 
 export function getPreferredCadenceReviewNote(

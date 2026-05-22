@@ -39,7 +39,7 @@ export default function FaqPage() {
           { label: "FAQ" },
         ]}
         h1="Frequently Asked Questions"
-        intro="Everything you need to know before booking professional cleaning in Cape Town — pricing, scheduling, supplies, and service areas."
+        intro="Everything you need to know before booking professional cleaning in Cape Town. pricing, scheduling, supplies, and service areas."
         afterIntro={<MarketingBookCta />}
       >
         <div className="mx-auto max-w-3xl">

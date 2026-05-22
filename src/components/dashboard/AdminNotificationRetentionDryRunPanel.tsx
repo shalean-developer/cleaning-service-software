@@ -23,11 +23,11 @@ function RetentionMetricCard({
 }
 
 function formatOldest(iso: string | null): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   try {
     return new Date(iso).toISOString().slice(0, 10);
   } catch {
-    return "—";
+    return "-";
   }
 }
 
@@ -38,7 +38,7 @@ export function AdminNotificationRetentionDryRunPanel({ retention }: Props) {
     <section className="mt-6 rounded-xl border border-sky-200 bg-sky-50/60 p-5">
       <h2 className="text-sm font-semibold text-zinc-900">Retention dry-run</h2>
       <p className="mt-1 text-xs text-zinc-600">
-        Dry-run only — no data is deleted. Counts show rows that would be eligible for future
+        Dry-run only. no data is deleted. Counts show rows that would be eligible for future
         cleanup under the Stage 5I policy (live sent {policy.outboxLiveSentDays}d, dry-run sent{" "}
         {policy.outboxDryRunSentDays}d, failed {policy.outboxFailedMaxDays}d, unsupported pending{" "}
         {policy.outboxUnsupportedPendingDays}d, worker runs {policy.workerRunsDays}d with rollup,

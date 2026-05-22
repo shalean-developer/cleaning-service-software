@@ -8,7 +8,7 @@ export type CleanerPreferenceLock = {
 
 export type BookingLockInput = {
   checkoutIdempotencyKey: string;
-  /** Client-displayed total — must match server recalculation. */
+  /** Client-displayed total. must match server recalculation. */
   clientQuoteTotalCents: number;
   pricingInput: PricingInput;
   scheduledStart: string;

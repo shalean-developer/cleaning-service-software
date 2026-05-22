@@ -54,7 +54,7 @@ function OfficeAddonRow({ slug, label, description, checked, onToggle }: OfficeA
   );
 }
 
-/** Compact, grouped office extras — display only; same selection contract as AddonsStepPanel. */
+/** Compact, grouped office extras. display only; same selection contract as AddonsStepPanel. */
 export function OfficeAddonsStepPanel({ selected, onChange }: Props) {
   const serviceSlug = OFFICE_CLEANING_SLUG;
 

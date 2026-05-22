@@ -53,7 +53,7 @@ describe("AdminNotificationRetentionDryRunPanel", () => {
     const html = renderToStaticMarkup(
       <AdminNotificationRetentionDryRunPanel retention={sampleReport} />,
     );
-    expect(html).toContain("Dry-run only — no data is deleted");
+    expect(html).toContain("Dry-run only. no data is deleted");
     expect(html).toContain(">10<");
     expect(html).toContain(">95<");
     expect(html).toContain("Pending deliverable");

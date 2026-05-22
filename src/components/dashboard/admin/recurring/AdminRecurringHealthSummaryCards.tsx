@@ -17,8 +17,8 @@ type Props = { summary: RecurringHealthSummary };
 
 function launchFooter(level: LaunchReadinessLevel): string {
   if (level === "green") return "Launch safe";
-  if (level === "amber") return "Watch — review warnings";
-  return "Blocker — do not launch";
+  if (level === "amber") return "Watch. review warnings";
+  return "Blocker. do not launch";
 }
 
 function statusFooter(status: RecurringHealthSummary["overallStatus"]): string {
@@ -122,7 +122,7 @@ export function AdminRecurringHealthSummaryCards({ summary }: Props) {
             value={
               summary.cronLastRunAgeHours != null
                 ? `${summary.cronLastRunAgeHours}h`
-                : "—"
+                : "-"
             }
             footer={
               summary.cronLastRunStatus

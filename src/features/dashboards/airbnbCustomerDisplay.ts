@@ -1,6 +1,6 @@
 /**
  * Airbnb Cleaning customer-facing copy (payment return, bookings list, detail).
- * Presentation only — no payment, lifecycle, or dispatch behavior.
+ * Presentation only. no payment, lifecycle, or dispatch behavior.
  */
 
 import type { PaymentSuccessVariant } from "@/lib/app/paymentReturnDisplay";
@@ -250,7 +250,7 @@ export function customerAirbnbCompactGuidance(
     case "payout_ready":
     case "paid_out":
       return {
-        primary: "Prepared for guest arrival — thank you for hosting with us.",
+        primary: "Prepared for guest arrival. thank you for hosting with us.",
       };
     default:
       return null;

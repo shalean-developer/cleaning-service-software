@@ -53,7 +53,7 @@ export const LOCATION_TRUST_POINTS = [
   },
   {
     title: "Transparent pricing",
-    description: "See starting rates and your quote before you confirm — no hidden fees.",
+    description: "See starting rates and your quote before you confirm. no hidden fees.",
   },
 ] as const;
 
@@ -72,35 +72,35 @@ export const LOCATION_REGIONS: readonly LocationRegion[] = [
     id: "atlantic-seaboard",
     title: "Atlantic Seaboard",
     intro:
-      "Coastal apartments, holiday rentals, and family homes from Sea Point through Camps Bay — popular for Airbnb turnovers and same-day refreshes.",
+      "Coastal apartments, holiday rentals, and family homes from Sea Point through Camps Bay. popular for Airbnb turnovers and same-day refreshes.",
     areas: ["Sea Point", "Green Point", "Camps Bay"],
   },
   {
     id: "city-bowl",
     title: "City Bowl & nearby",
     intro:
-      "Dense rentals, student accommodation, and mixed housing near the CBD — ideal for flexible recurring cleans and tenant handovers.",
+      "Dense rentals, student accommodation, and mixed housing near the CBD. ideal for flexible recurring cleans and tenant handovers.",
     areas: ["Observatory"],
   },
   {
     id: "southern-suburbs",
     title: "Southern Suburbs",
     intro:
-      "Family suburbs, student rentals, and Cavendish-area homes — strong demand for recurring home care, deep cleans, and move-in/out handovers.",
+      "Family suburbs, student rentals, and Cavendish-area homes. strong demand for recurring home care, deep cleans, and move-in/out handovers.",
     areas: ["Claremont", "Rondebosch", "Wynberg"],
   },
   {
     id: "northern-suburbs",
     title: "Northern Suburbs",
     intro:
-      "Established neighbourhoods and wine-route estates north of the CBD — reliable scheduling for homes, estates, and small offices.",
+      "Established neighbourhoods and wine-route estates north of the CBD. reliable scheduling for homes, estates, and small offices.",
     areas: ["Bellville", "Durbanville"],
   },
   {
     id: "west-coast",
     title: "West Coast & Table Bay",
     intro:
-      "Coastal and canal-side communities from Table View to Milnerton and Century City — sand-aware home care, offices, and mixed-use buildings.",
+      "Coastal and canal-side communities from Table View to Milnerton and Century City. sand-aware home care, offices, and mixed-use buildings.",
     areas: ["Table View", "Milnerton", "Century City"],
   },
 ] as const;
@@ -135,17 +135,17 @@ function faq(
     case "services":
       return {
         question: `Which cleaning services are available in ${area}?`,
-        answer: `Homes and rentals in ${area} commonly book regular cleaning, deep cleaning, Airbnb turnovers, move-in/out handovers, office cleaning, and carpet care. Service scope and pricing depend on your property — see our Cape Town cleaning prices for starting rates.`,
+        answer: `Homes and rentals in ${area} commonly book regular cleaning, deep cleaning, Airbnb turnovers, move-in/out handovers, office cleaning, and carpet care. Service scope and pricing depend on your property. see our Cape Town cleaning prices for starting rates.`,
       };
     case "cost":
       return {
         question: `How much does cleaning cost in ${area}?`,
-        answer: `Cleaning prices in ${area} depend on service type, bedrooms, bathrooms, add-ons, and frequency — not a flat suburb fee. Use our online quote when booking or view transparent starting rates on the Cape Town pricing page.`,
+        answer: `Cleaning prices in ${area} depend on service type, bedrooms, bathrooms, add-ons, and frequency. not a flat suburb fee. Use our online quote when booking or view transparent starting rates on the Cape Town pricing page.`,
       };
     case "recurring":
       return {
         question: `Can I book recurring cleaning in ${area}?`,
-        answer: `Yes. Weekly, bi-weekly, and monthly regular cleaning is available in ${area} where cleaners have capacity. Each visit is booked and paid individually — no subscription lock-in.`,
+        answer: `Yes. Weekly, bi-weekly, and monthly regular cleaning is available in ${area} where cleaners have capacity. Each visit is booked and paid individually. no subscription lock-in.`,
       };
     case "equipment":
       return {

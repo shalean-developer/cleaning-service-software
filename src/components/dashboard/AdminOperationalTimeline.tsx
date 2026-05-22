@@ -55,7 +55,7 @@ export function AdminOperationalTimeline({ audits }: Props) {
           ) : null}
           {(a.bookingStatusBefore || a.bookingStatusAfter) && (
             <p className="mt-1 text-zinc-600">
-              Status: {a.bookingStatusBefore ?? "—"} → {a.bookingStatusAfter ?? "—"}
+              Status: {a.bookingStatusBefore ?? "-"} → {a.bookingStatusAfter ?? "-"}
             </p>
           )}
           {a.cleanerId ? (

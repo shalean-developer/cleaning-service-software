@@ -8,14 +8,19 @@ export const CUSTOMER_SIGNUP_MIN_PASSWORD_LENGTH = 6;
 
 export type CustomerSignupUserMetadata = {
   full_name: string;
+  /** E.164 South African mobile (+27XXXXXXXXX). */
+  phone: string;
 };
 
 /**
  * Safe signup metadata for Supabase `options.data`.
- * Never includes role — provisioning relies on handle_new_user + customer triggers.
+ * Never includes role. provisioning relies on handle_new_user + customer triggers.
  */
-export function buildCustomerSignupMetadata(fullName: string): CustomerSignupUserMetadata {
-  return { full_name: fullName.trim() };
+export function buildCustomerSignupMetadata(
+  fullName: string,
+  phoneE164: string,
+): CustomerSignupUserMetadata {
+  return { full_name: fullName.trim(), phone: phoneE164 };
 }
 
 /** Where to send a new customer after sign-up when a session exists immediately. */
@@ -26,6 +31,14 @@ export function resolvePostCustomerSignUpPath(
 }
 
 /** Auth callback URL for email confirmation links (browser origin). */
-export function buildCustomerSignupEmailRedirectUrl(origin: string): string {
-  return new URL("/auth/callback", origin).toString();
+export function buildCustomerSignupEmailRedirectUrl(
+  origin: string,
+  redirectedFrom?: string | null,
+): string {
+  const url = new URL("/auth/callback", origin);
+  const trimmed = redirectedFrom?.trim();
+  if (trimmed && trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    url.searchParams.set("redirectedFrom", trimmed);
+  }
+  return url.toString();
 }

@@ -210,7 +210,7 @@ function AdminSupportInboxCard({ item }: { item: AdminSupportInboxItem }) {
           {contextLine ? <p className="text-sm text-zinc-600">{contextLine}</p> : null}
           {item.bookingStatus || item.paymentStatus ? (
             <p className="text-xs text-zinc-500">
-              Booking {item.bookingStatus ?? "—"}
+              Booking {item.bookingStatus ?? "-"}
               {item.paymentStatus ? ` · Payment ${item.paymentStatus}` : ""}
               {item.paymentRisk ? " · Payment risk" : ""}
             </p>

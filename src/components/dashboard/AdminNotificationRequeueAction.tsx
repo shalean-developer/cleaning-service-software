@@ -61,7 +61,7 @@ export function AdminNotificationRequeueAction({ notification }: Props) {
           : "Notification requeued to pending.";
       setMessage(
         dedupeBlocked
-          ? `${baseMessage} Another row may already be sent — worker dedupe may skip email.`
+          ? `${baseMessage} Another row may already be sent. worker dedupe may skip email.`
           : baseMessage,
       );
       setReason("");

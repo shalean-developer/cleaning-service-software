@@ -44,7 +44,7 @@ export type WizardBookingSummarySnapshot = {
   service: string;
   when: string | null;
   home: string | null;
-  /** Optional recap lines — shown in collapsed “More details”. */
+  /** Optional recap lines. shown in collapsed “More details”. */
   secondaryRows: WizardSummaryRow[];
   estimatedTotalCents: number | null;
 };
@@ -147,7 +147,7 @@ function buildSecondaryRows(input: WizardBookingSummaryInput): WizardSummaryRow[
   return rows;
 }
 
-/** Display-only recap for details/cleaner sidebar — does not mutate wizard quote state. */
+/** Display-only recap for details/cleaner sidebar. does not mutate wizard quote state. */
 export function buildWizardBookingSummarySnapshot(
   input: WizardBookingSummaryInput,
 ): WizardBookingSummarySnapshot {
@@ -168,7 +168,7 @@ export function buildWizardBookingSummarySnapshot(
   );
 
   const snapshot: WizardBookingSummarySnapshot = {
-    service: input.serviceLabel.trim() || "—",
+    service: input.serviceLabel.trim() || "-",
     when,
     home,
     secondaryRows: buildSecondaryRows(input),
@@ -193,7 +193,7 @@ export function buildWizardBookingSummarySnapshot(
   return snapshot;
 }
 
-/** Mirrors review pricing for sidebar display only — official quote still loads on review. */
+/** Mirrors review pricing for sidebar display only. official quote still loads on review. */
 export function getWizardEstimatedTotalCents(input: WizardBookingSummaryInput): number | null {
   if (!input.serviceSlug) return null;
 

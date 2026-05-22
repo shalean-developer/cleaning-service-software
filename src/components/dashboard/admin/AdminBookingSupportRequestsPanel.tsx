@@ -121,7 +121,7 @@ export function AdminBookingSupportRequestsPanel({ bookingId, requests }: Props)
               ) : null}
               {r.status === "resolved" && r.requestType === "reschedule" ? (
                 <p className="mt-2 text-xs font-medium text-emerald-800">
-                  Reschedule executed —{" "}
+                  Reschedule executed -{" "}
                   <a href={`/admin/bookings/${bookingId}`} className="underline">
                     view booking
                   </a>

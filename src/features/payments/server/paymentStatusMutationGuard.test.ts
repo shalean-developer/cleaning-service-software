@@ -9,7 +9,7 @@ import {
  * Status transitions to paid/failed are RPC-only (see booking_command_layer migration).
  *
  * `tests/security/rlsTestSupport.ts` is allowed only for RLS integration probes
- * (e.g. isPaymentsRlsPhase1Applied) — not production payment lifecycle writes.
+ * (e.g. isPaymentsRlsPhase1Applied). not production payment lifecycle writes.
  */
 const ALLOWED_PAYMENT_STATUS_WRITE_SRC = new Set([
   "features/bookings/server/commands/inMemoryBookingCommandBackend.ts",
@@ -27,7 +27,7 @@ const PAYMENT_STATUS_UPDATE_PATTERNS = [
   /\.from\(\s*["']payments["']\s*\)[\s\S]*?\.update\(\s*\{[^}]*status:/,
 ];
 
-/** Assignment only — exclude comparisons (`===`, `!==`). */
+/** Assignment only. exclude comparisons (`===`, `!==`). */
 const PAYMENT_STATUS_ASSIGNMENT_PATTERNS = [/\bpayment\.status\s*=(?!=)/];
 
 const SQL_PAYMENT_STATUS_UPDATE = [

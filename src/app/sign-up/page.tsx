@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import Link from "next/link";
+import { resolvePostCustomerSignUpPath } from "@/lib/auth/customerSignup";
 import { isCustomerSignupEnabled } from "@/lib/auth/customerSignupFlag";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { isCleanerSignInIntent } from "@/lib/auth/signInIntent";
 import { SignUpForm } from "./SignUpForm";
 import { SignUpUnavailable } from "./SignUpUnavailable";
@@ -18,6 +21,10 @@ type PageProps = {
 
 export default async function SignUpPage({ searchParams }: PageProps) {
   const { redirectedFrom } = await searchParams;
+  const user = await getCurrentUser();
+  if (user) {
+    redirect(resolvePostCustomerSignUpPath(redirectedFrom));
+  }
 
   if (isCleanerSignInIntent(redirectedFrom)) {
     return <CleanerSignupRedirect />;

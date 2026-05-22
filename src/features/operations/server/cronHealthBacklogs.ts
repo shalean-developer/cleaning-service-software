@@ -242,7 +242,7 @@ export async function loadDeferredDispatchCronRunSummary(
   };
 }
 
-/** Exported for tests — mirrors expire job skip accounting without mutations. */
+/** Exported for tests. mirrors expire job skip accounting without mutations. */
 export function summarizeStalePaymentScan(
   candidates: StalePaymentRow[],
   bookingStatusById: Map<string, string>,

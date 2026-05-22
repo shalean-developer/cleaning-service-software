@@ -1,6 +1,6 @@
 /**
  * Airbnb Cleaning operational copy for cleaner and admin surfaces.
- * Presentation only — no dispatch, assignment, lifecycle, or earnings logic.
+ * Presentation only. no dispatch, assignment, lifecycle, or earnings logic.
  */
 
 import type { BookingStatus } from "@/features/bookings/server/types";
@@ -81,7 +81,7 @@ export type AirbnbCleanerJobGuidanceStep = {
   body: string;
 };
 
-/** Optional compact turnover guidance — display only, not enforced. */
+/** Optional compact turnover guidance. display only, not enforced. */
 export function getAirbnbCleanerJobGuidanceSteps(
   status: BookingStatus,
 ): readonly AirbnbCleanerJobGuidanceStep[] | null {
@@ -103,7 +103,7 @@ export function getAirbnbCleanerJobGuidanceSteps(
     case "paid_out":
       return [
         { title: "Turnover completed", body: "Guest-ready preparation complete." },
-        { title: "Payout", body: "Pay status updates below — unchanged from other services." },
+        { title: "Payout", body: "Pay status updates below. unchanged from other services." },
       ];
     default:
       return null;
@@ -164,19 +164,19 @@ export function adminAirbnbBookingListNextAction(
     return "Assign turnover cleaner on booking detail when eligible.";
   }
   if (defaultAction.includes("Redispatch")) {
-    return "Redispatch — offer an eligible turnover cleaner.";
+    return "Redispatch. offer an eligible turnover cleaner.";
   }
   if (defaultAction.includes("Recover assignment") || defaultAction.includes("Recover")) {
     return "Recover turnover assignment on booking detail when eligible.";
   }
   if (defaultAction.includes("dispatch")) {
-    return "Turnover dispatch — open booking detail to send offer or recover.";
+    return "Turnover dispatch. open booking detail to send offer or recover.";
   }
   if (defaultAction.includes("payout")) {
     return defaultAction;
   }
   if (defaultAction.includes("triage")) {
-    return "Turnover assignment needs triage — open booking detail.";
+    return "Turnover assignment needs triage. open booking detail.";
   }
   return defaultAction;
 }
@@ -193,7 +193,7 @@ export type AirbnbAdminBookingDetailCopy = {
 
 export function getAirbnbAdminBookingDetailCopy(): AirbnbAdminBookingDetailCopy {
   return {
-    shellSubtitle: "Airbnb turnover — ops, payment, and property context",
+    shellSubtitle: "Airbnb turnover. ops, payment, and property context",
     heroHeadline: "Airbnb turnover",
     contextSectionTitle: "Turnover context",
     homeSizeLabel: "Property size",
@@ -246,7 +246,7 @@ export function getAirbnbOperationsQueueCopy(input: {
     cardSubtitle: "Guest-ready turnover · host property",
     attentionFlagLabel: sameDay ? "Same-day turnover" : "Turnover",
     openBookingCta: "Open turnover booking →",
-    sameDayNote: sameDay ? "Same-day turnover — prioritize assignment." : null,
+    sameDayNote: sameDay ? "Same-day turnover. prioritize assignment." : null,
   };
 }
 

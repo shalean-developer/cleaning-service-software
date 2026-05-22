@@ -7,7 +7,7 @@ export function formatZar(cents: number): string {
   }).format(amount);
 }
 
-/** Compact add-on row price (e.g. "+ R 160") — display only. */
+/** Compact add-on row price (e.g. "+ R 160"). display only. */
 export function formatAddonPrice(cents: number): string {
   const amount = Math.round(cents / 100);
   return `+ R ${amount.toLocaleString("en-ZA")}`;

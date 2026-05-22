@@ -71,14 +71,14 @@ describe("customerBookingListCardLayers", () => {
         serviceSlug: null,
         assignmentCustomerMessage: null,
         isTwoCleanerRequest: true,
-        teamSupportLabel: "Team support requested — awaiting confirmation",
+        teamSupportLabel: "Team support requested. awaiting confirmation",
       },
       assignedCleanerLabel: null,
     });
 
     expect(layers.supportingMessage).toEqual({
       kind: "assignment",
-      text: "Team support requested — awaiting confirmation",
+      text: "Team support requested. awaiting confirmation",
     });
   });
 

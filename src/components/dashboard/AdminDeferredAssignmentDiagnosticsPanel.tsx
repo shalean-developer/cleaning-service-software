@@ -58,7 +58,7 @@ export function AdminDeferredAssignmentDiagnosticsPanel({
           <dd className="mt-0.5 text-sm font-medium text-zinc-900">
             {diagnostics.oldestOverdueDispatchAt
               ? new Date(diagnostics.oldestOverdueDispatchAt).toLocaleString("en-ZA")
-              : "—"}
+              : "-"}
           </dd>
         </div>
       </dl>
@@ -69,7 +69,7 @@ export function AdminDeferredAssignmentDiagnosticsPanel({
             Last cron run
           </h3>
           <p className="mt-1 text-zinc-800">
-            {new Date(last.completedAt).toLocaleString("en-ZA")} —{" "}
+            {new Date(last.completedAt).toLocaleString("en-ZA")} -{" "}
             {last.ok ? "success" : "failure"} ({last.triggerSource})
           </p>
           <p className="mt-1 text-xs text-zinc-600">

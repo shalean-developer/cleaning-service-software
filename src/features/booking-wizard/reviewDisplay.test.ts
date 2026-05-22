@@ -121,14 +121,14 @@ describe("reviewDisplay", () => {
 
   it("formats customer dashboard team support status from fulfillment", () => {
     expect(getTeamSupportCustomerDashboardLabel(null)).toBe(
-      "Team support requested — awaiting confirmation",
+      "Team support requested. awaiting confirmation",
     );
     expect(
       getTeamSupportCustomerDashboardLabel({ fulfilledCleanerCount: 2 }),
-    ).toBe("Team support confirmed — 2 cleaners");
+    ).toBe("Team support confirmed. 2 cleaners");
     expect(
       getTeamSupportCustomerDashboardLabel({ fulfilledCleanerCount: 1 }),
-    ).toBe("Team support confirmed — 1 cleaner");
+    ).toBe("Team support confirmed. 1 cleaner");
   });
 
   it("formats office property size instead of beds and baths", () => {

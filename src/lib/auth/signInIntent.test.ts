@@ -21,12 +21,13 @@ describe("signInIntent", () => {
     const copy = resolveSignInPageCopy("/cleaner/offers");
     expect(copy.title).toBe("Cleaner sign in");
     expect(copy.subtitle).toContain("jobs");
-    expect(copy.helperText).toContain("onboarding");
+    expect("helperText" in copy).toBe(false);
   });
 
   it("retains customer copy for customer redirect targets", () => {
     const copy = resolveSignInPageCopy("/customer/book");
-    expect(copy.title).toBe("Sign in");
+    expect(copy.title).toBe("Welcome back");
     expect(copy.subtitle).toContain("bookings");
+    expect(copy.subtitle).toContain("cleaning schedule");
   });
 });

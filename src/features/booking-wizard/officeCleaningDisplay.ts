@@ -28,37 +28,37 @@ export function isOfficeCleaningSlug(
   return serviceSlug === OFFICE_CLEANING_SLUG;
 }
 
-/** Office steps use dedicated sizing/extras sections — hide the compact context chip strip. */
+/** Office steps use dedicated sizing/extras sections. hide the compact context chip strip. */
 export function showWizardContextStripForService(
   serviceSlug: ServiceSlug | string | null | undefined,
 ): boolean {
   return !isOfficeCleaningSlug(serviceSlug);
 }
 
-/** Step 1 mobile card — commercial positioning. */
+/** Step 1 mobile card. commercial positioning. */
 export const OFFICE_SERVICE_STEP_DESCRIPTION_MOBILE = "Reliable office workspace cleaning";
 
-/** Step 1 desktop card — max two lines. */
+/** Step 1 desktop card. max two lines. */
 export const OFFICE_SERVICE_STEP_DESCRIPTION_DESKTOP =
   "Reliable office cleaning for productive workspaces.";
 
-/** Commercial cadence — frequency values unchanged. */
+/** Commercial cadence. frequency values unchanged. */
 export const OFFICE_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
   { value: "once", label: "One-time office clean", description: "Single workspace visit" },
   {
     value: "weekly",
     label: "Weekly",
-    description: "First-booking preference — follow-ups arranged after",
+    description: "First-booking preference. follow-ups arranged after",
   },
   {
     value: "biweekly",
     label: "Bi-weekly",
-    description: "First-booking preference — follow-ups arranged after",
+    description: "First-booking preference. follow-ups arranged after",
   },
   {
     value: "monthly",
     label: "Monthly",
-    description: "First-booking preference — follow-ups arranged after",
+    description: "First-booking preference. follow-ups arranged after",
   },
 ];
 
@@ -68,7 +68,7 @@ export type OfficeAddonStepGroup = {
   slugs: AddonSlug[];
 };
 
-/** Operational groupings for the office extras step — display only. */
+/** Operational groupings for the office extras step. display only. */
 export const OFFICE_ADDON_STEP_GROUPS: OfficeAddonStepGroup[] = [
   {
     id: "workspace-care",
@@ -87,7 +87,7 @@ export const OFFICE_ADDON_STEP_GROUPS: OfficeAddonStepGroup[] = [
   },
 ];
 
-/** Commercial add-on order — display only; matches group order above. */
+/** Commercial add-on order. display only; matches group order above. */
 export const OFFICE_ADDON_STEP_DISPLAY_ORDER: AddonSlug[] =
   OFFICE_ADDON_STEP_GROUPS.flatMap((g) => g.slugs);
 
@@ -168,16 +168,16 @@ export function getOfficeCleaningStepCopy(
     cleaner: {
       title: "Choose your office cleaning professional",
       subtitle:
-        "Experienced cleaners for commercial environments — ideal for recurring workspace maintenance.",
+        "Experienced cleaners for commercial environments. ideal for recurring workspace maintenance.",
       bestAvailableTitle: "Best available cleaner",
       bestAvailableDescription:
-        "Fastest assignment — we match an eligible cleaner experienced in office and workspace cleaning.",
+        "Fastest assignment. we match an eligible cleaner experienced in office and workspace cleaning.",
       selectedHint:
         "Your selected cleaner is offered first. Ideal for recurring office maintenance and consistent workspace standards.",
       disclosureBestAvailable:
         "Highest-rated eligible cleaner for your workspace, area, and scheduled service window.",
       disclosureSelected:
-        "Offered to them first after payment. If unavailable, we assign the next best eligible match — your office clean stays booked.",
+        "Offered to them first after payment. If unavailable, we assign the next best eligible match. your office clean stays booked.",
     },
   };
 }
@@ -322,7 +322,7 @@ export function getOfficeWizardSummaryLocationLabel(serviceSlug: ServiceSlug | n
 
 export function getOfficeWizardSummaryEstimateHint(serviceSlug: ServiceSlug | null): string | null {
   return isOfficeCleaningSlug(serviceSlug)
-    ? "Estimate only — confirmed total on review."
+    ? "Estimate only. confirmed total on review."
     : null;
 }
 
@@ -341,7 +341,7 @@ export function formatOfficeWorkspaceSizeSummary(
   return formatOfficeSizingSummary(officeSizeTier, officeWorkstations, propertySizeSqm);
 }
 
-/** Optional booking metadata for operational context — does not affect pricing. */
+/** Optional booking metadata for operational context. does not affect pricing. */
 export function buildOfficeBookingDetailsMetadata(input: {
   officeSizeTier: OfficeSizeTier | null;
   officeWorkstations: OfficeWorkstationTier | null;
@@ -355,7 +355,7 @@ export function buildOfficeBookingDetailsMetadata(input: {
   };
 }
 
-/** Customer dashboard status — presentation only. */
+/** Customer dashboard status. presentation only. */
 export function customerOfficeStatusLine(
   status: BookingStatus,
   defaultLine: string,
@@ -374,7 +374,7 @@ export function customerOfficeStatusLine(
     case "completed":
     case "payout_ready":
     case "paid_out":
-      return "Workspace refresh complete — professional environment maintained.";
+      return "Workspace refresh complete. professional environment maintained.";
     default:
       return defaultLine;
   }
@@ -405,9 +405,9 @@ export function cleanerOfficeJobDescription(
 ): string {
   switch (status) {
     case "assigned":
-      return "Office clean scheduled — review business access and workspace instructions before arrival.";
+      return "Office clean scheduled. review business access and workspace instructions before arrival.";
     case "in_progress":
-      return "Workspace cleaning in progress — maintain professional standards before marking complete.";
+      return "Workspace cleaning in progress. maintain professional standards before marking complete.";
     case "completed":
     case "payout_ready":
     case "paid_out":
@@ -423,7 +423,7 @@ export function cleanerOfficeExpectedUpdate(
 ): string | null {
   switch (status) {
     case "assigned":
-      return "Start on site — follow office access and workspace instructions";
+      return "Start on site. follow office access and workspace instructions";
     case "in_progress":
       return "Mark complete when the workspace meets professional standards";
     default:

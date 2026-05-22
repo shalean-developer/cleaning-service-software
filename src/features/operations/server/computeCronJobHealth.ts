@@ -36,7 +36,7 @@ export function computeCronJobHealthFromLastRun(
     return {
       level: "healthy",
       ageMinutes,
-      message: `Last run ${ageMinutes === 0 ? "just now" : `${ageMinutes}m ago`} — within expected ${expectedIntervalMinutes}m schedule.`,
+      message: `Last run ${ageMinutes === 0 ? "just now" : `${ageMinutes}m ago`}. within expected ${expectedIntervalMinutes}m schedule.`,
     };
   }
 
@@ -44,14 +44,14 @@ export function computeCronJobHealthFromLastRun(
     return {
       level: "warning",
       ageMinutes,
-      message: `Last run ${ageMinutes}m ago — later than expected ${expectedIntervalMinutes}m schedule.`,
+      message: `Last run ${ageMinutes}m ago. later than expected ${expectedIntervalMinutes}m schedule.`,
     };
   }
 
   return {
     level: "critical",
     ageMinutes,
-    message: `Last run ${ageMinutes}m ago — verify pg_cron/Vault URL, deployment, and CRON_SECRET.`,
+    message: `Last run ${ageMinutes}m ago. verify pg_cron/Vault URL, deployment, and CRON_SECRET.`,
   };
 }
 
@@ -68,13 +68,13 @@ export function computeCronHealthFromBacklog(
   if (backlogCount >= criticalThreshold) {
     return {
       level: "critical",
-      message: `${backlogCount} backlog item(s) — cron may be down or falling behind.`,
+      message: `${backlogCount} backlog item(s). cron may be down or falling behind.`,
     };
   }
   if (backlogCount >= warningThreshold) {
     return {
       level: "warning",
-      message: `${backlogCount} backlog item(s) — verify cron is scheduled and succeeding.`,
+      message: `${backlogCount} backlog item(s). verify cron is scheduled and succeeding.`,
     };
   }
   return { level: "healthy", message: "No backlog detected." };

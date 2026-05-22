@@ -313,7 +313,7 @@ export async function runAdminDeferredDispatchNow(
 
   const message =
     engineResult.outcome === "offered" && engineResult.idempotent
-      ? "Offer already open — no duplicate offer created."
+      ? "Offer already open. no duplicate offer created."
       : engineResult.outcome === "attention_required"
         ? "Dispatch ran but no eligible cleaner was available."
         : "Deferred assignment dispatch succeeded.";

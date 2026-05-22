@@ -78,7 +78,7 @@ export async function proxy(request: NextRequest) {
     try {
       await supabase.auth.signOut();
     } catch {
-      // Ignore — auth cookies are cleared on the response.
+      // Ignore. auth cookies are cleared on the response.
     }
     const signInUrl = new URL(buildSignInRedirectPath(pathname), request.url);
     return redirectWithSessionCookies(signInUrl, sessionResponse);

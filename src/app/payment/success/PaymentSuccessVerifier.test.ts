@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("PaymentSuccessVerifier", () => {
-  it("calls verify API only — never mutates booking status client-side", () => {
+  it("calls verify API only. never mutates booking status client-side", () => {
     const source = readFileSync(
       resolve(process.cwd(), "src/app/payment/success/PaymentSuccessVerifier.tsx"),
       "utf8",

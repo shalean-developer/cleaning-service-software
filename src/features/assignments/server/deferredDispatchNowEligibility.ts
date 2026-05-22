@@ -1,5 +1,5 @@
 /**
- * Pure eligibility for admin "Dispatch now" — safe to import from client-boundary modules.
+ * Pure eligibility for admin "Dispatch now". safe to import from client-boundary modules.
  */
 
 export function computeDeferredDispatchNowEligible(input: {

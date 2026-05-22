@@ -24,7 +24,7 @@ export function queueCountByKey(
   return queues.find((q) => q.key === key)?.count ?? 0;
 }
 
-/** Composite “needs eyes now” — payment failures plus cron/deferred signals (presentation only). */
+/** Composite “needs eyes now”. payment failures plus cron/deferred signals (presentation only). */
 export function computeAdminHomeUrgentCount(input: {
   queues: readonly AdminOperationalQueueCountItem[];
   cronSummary: CronHealthSummary | null;
@@ -112,7 +112,7 @@ function buildCronHealthTile(cronSummary: CronHealthSummary | null): AdminHomeHe
     return {
       id: "cron",
       label: "Cron health",
-      value: "—",
+      value: "-",
       subtitle: "Unavailable",
       href: "/admin/assignments",
       cta: "Diagnostics",
@@ -159,7 +159,7 @@ function buildPayoutTile(payoutQueueCount: number | null): AdminHomeHealthTile {
     return {
       id: "payouts",
       label: "Payouts",
-      value: "—",
+      value: "-",
       subtitle: "Unavailable",
       href: "/admin/payouts",
       cta: "Payouts",

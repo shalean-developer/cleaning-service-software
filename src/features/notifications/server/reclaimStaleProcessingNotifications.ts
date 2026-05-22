@@ -17,7 +17,7 @@ export type ReclaimStaleProcessingResult = {
 /**
  * Resets notification_outbox rows stuck in `processing` (e.g. crash after claim)
  * back to `pending` when `updated_at` is older than the stale threshold.
- * Does not send email — reclaim only.
+ * Does not send email. reclaim only.
  */
 export async function reclaimStaleProcessingNotifications(
   client: SupabaseClient<Database>,

@@ -24,7 +24,7 @@ export {
 /** @deprecated Use {@link isPreferredCadenceFrequency}. */
 export const isRecurringFrequency = isPreferredCadenceFrequency;
 
-/** Display-only copy for review / checkout — no billing logic. */
+/** Display-only copy for review / checkout. no billing logic. */
 export function getRecurringScheduleExplanation(
   frequency: PricingFrequency,
   serviceSlug: ServiceSlug | null = null,
@@ -39,7 +39,7 @@ export function getRecurringScheduleExplanation(
   return getPreferredCadenceScheduleExplanation(frequency);
 }
 
-/** Shorter review-step note — frequency label already appears in the summary strip. */
+/** Shorter review-step note. frequency label already appears in the summary strip. */
 export function getRecurringScheduleReviewNote(
   frequency: PricingFrequency,
   serviceSlug: ServiceSlug | null = null,
@@ -62,7 +62,7 @@ export function getRecurringScheduleReviewNote(
   return getPreferredCadenceReviewNote(frequency);
 }
 
-/** Display-only — clarifies today's charge vs follow-up visits. */
+/** Display-only. clarifies today's charge vs follow-up visits. */
 export function getRecurringPaymentExplanation(
   frequency: PricingFrequency,
   serviceSlug: ServiceSlug | null = null,

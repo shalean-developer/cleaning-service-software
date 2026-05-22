@@ -95,7 +95,7 @@ export function buildRecurringOverdueAdminAlertEmail(input: {
   customerName: string;
   adminSeriesUrl: string;
 }): RecurringNotificationEmailContent {
-  const subject = `[Admin] Overdue recurring payment — ${input.customerName}`;
+  const subject = `[Admin] Overdue recurring payment. ${input.customerName}`;
   const text = [
     "A recurring child visit is overdue for payment (>48h).",
     "",

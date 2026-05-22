@@ -125,7 +125,7 @@ export function parseBookingDisplay(metadata: Json | null | undefined): BookingD
         : null;
 
   const locationParts = [line1, suburb, city].filter(Boolean);
-  const locationSummary = locationParts.length > 0 ? locationParts.join(", ") : "—";
+  const locationSummary = locationParts.length > 0 ? locationParts.join(", ") : "-";
 
   const assignment = readAssignmentMetadata(metadata);
   const serviceDetails = parseCustomerBookingServiceDetails(metadata, serviceSlug);

@@ -9,7 +9,7 @@ export function legacyLocationPathFromSlug(slug: string): string {
 
 /**
  * Permanent redirects from short legacy suburb URLs to canonical `-cape-town` slugs.
- * Generated from LOCATION_SEO_SLUGS — do not hardcode individual suburbs.
+ * Generated from LOCATION_SEO_SLUGS. do not hardcode individual suburbs.
  */
 export function buildLocationLegacyRedirects(): Redirect[] {
   return LOCATION_SEO_SLUG_LIST.map((slug) => ({

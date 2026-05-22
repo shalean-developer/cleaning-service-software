@@ -48,18 +48,18 @@ export type BookingWizardState = {
   /** Team support preference (regular cleaning only; 1 = default, 2 = request only). */
   requestedTeamSize: 1 | 2;
   propertySizeSqm: number | null;
-  /** Office cleaning — UI selection; drives derived propertySizeSqm. */
+  /** Office cleaning. UI selection; drives derived propertySizeSqm. */
   officeSizeTier: OfficeSizeTier | null;
   officeWorkstations: OfficeWorkstationTier | null;
   frequency: PricingFrequency;
-  /** 0=Sun … 6=Sat — weekly/biweekly multi-day schedules only. */
+  /** 0=Sun … 6=Sat. weekly/biweekly multi-day schedules only. */
   recurringDays: number[];
   addons: AddonSlug[];
-  /** Carpet cleaning only — display/metadata; does not affect quote. */
+  /** Carpet cleaning only. display/metadata; does not affect quote. */
   carpetStainSeverity: CarpetStainSeverity | null;
-  /** Carpet cleaning only — display/metadata; does not affect quote. */
+  /** Carpet cleaning only. display/metadata; does not affect quote. */
   carpetPetStains: boolean;
-  /** Carpet cleaning only — display/metadata; does not affect quote. */
+  /** Carpet cleaning only. display/metadata; does not affect quote. */
   carpetGoodDryingAirflow: boolean;
   specialInstructions: string;
   cleanerPreferenceMode: CleanerPreferenceMode;

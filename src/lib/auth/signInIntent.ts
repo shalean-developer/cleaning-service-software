@@ -17,7 +17,6 @@ export function isCustomerSignInIntent(redirectedFrom: string | null | undefined
 export type SignInPageCopy = {
   title: string;
   subtitle: string;
-  helperText?: string;
 };
 
 export function resolveSignInPageCopy(
@@ -27,22 +26,18 @@ export function resolveSignInPageCopy(
     return {
       title: "Cleaner sign in",
       subtitle: "Sign in to manage jobs, availability, and payouts.",
-      helperText:
-        "Use the phone number and password provided during onboarding. Need help? Contact Shalean support.",
     };
   }
 
   if (isCustomerSignInIntent(redirectedFrom)) {
     return {
-      title: "Sign in",
-      subtitle: "Sign in to manage your bookings, payments, and cleaner assignments.",
+      title: "Welcome back",
+      subtitle: "Sign in to manage your bookings, payments, and cleaning schedule.",
     };
   }
 
   return {
-    title: "Sign in",
-    subtitle: "Sign in to manage your bookings, payments, and cleaner assignments.",
-    helperText:
-      "Looking to work as a cleaner? Use the cleaner sign-in link from our careers page.",
+    title: "Welcome back",
+    subtitle: "Sign in to manage your bookings, payments, and cleaning schedule.",
   };
 }

@@ -1,4 +1,4 @@
-/** Lifecycle columns — never accepted on profile create/update payloads. */
+/** Lifecycle columns. never accepted on profile create/update payloads. */
 export const LIFECYCLE_PAYLOAD_KEYS = [
   "active",
   "suspended_at",
@@ -14,7 +14,7 @@ export const LIFECYCLE_PAYLOAD_KEYS = [
   "suspended",
 ] as const;
 
-/** Immutable or auth-managed fields — rejected on profile update (v1). */
+/** Immutable or auth-managed fields. rejected on profile update (v1). */
 export const IMMUTABLE_PROFILE_EDIT_KEYS = [
   "phone",
   "password",

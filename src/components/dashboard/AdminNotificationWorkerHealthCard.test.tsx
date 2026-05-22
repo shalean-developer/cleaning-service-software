@@ -27,7 +27,7 @@ const healthyRun: AdminNotificationWorkerHealthModel = {
   completedAt: "2026-05-17T12:00:00.000Z",
   ageMinutes: 2,
   healthLevel: "healthy",
-  healthMessage: "Last run 2m ago — cron appears healthy.",
+  healthMessage: "Last run 2m ago. cron appears healthy.",
   ok: true,
   deliveryEnabled: true,
   emailProvider: "resend",
@@ -56,7 +56,7 @@ describe("AdminNotificationWorkerHealthCard", () => {
     const html = renderToStaticMarkup(
       <AdminNotificationWorkerHealthCard workerHealth={healthyRun} />,
     );
-    expect(html).toContain("Last run 2m ago — cron appears healthy.");
+    expect(html).toContain("Last run 2m ago. cron appears healthy.");
     expect(html).not.toContain("Never run");
     expect(html).toContain("Healthy");
   });

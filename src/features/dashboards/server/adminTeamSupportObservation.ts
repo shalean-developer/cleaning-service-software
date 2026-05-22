@@ -7,7 +7,7 @@ export type TeamRequestFulfillment = {
   recordedByProfileId: string;
 };
 
-/** NF-7B.2 — operational coordination visibility only (not lifecycle). */
+/** NF-7B.2. operational coordination visibility only (not lifecycle). */
 export type TeamCoordinationStatus =
   | "awaiting_coordination"
   | "partially_fulfilled"
@@ -19,7 +19,7 @@ export type TeamCoordinationStatusRecord = {
   recordedByProfileId: string;
 };
 
-/** Supporting partner cleaner — ops metadata only, not a second assignee. */
+/** Supporting partner cleaner. ops metadata only, not a second assignee. */
 export type SupportingCleanerRecord = {
   name?: string;
   profileId?: string;
@@ -487,6 +487,6 @@ export function teamRequestFulfillmentLabel(
 }
 
 export function formatTeamSupportAnalyticsHomeSize(units: number | null): string {
-  if (units == null) return "—";
+  if (units == null) return "-";
   return `${units.toFixed(1)} bed+bath units`;
 }

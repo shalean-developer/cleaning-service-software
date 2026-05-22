@@ -1,5 +1,5 @@
 /**
- * Office cleaning size/workstation UI and sqm mapping — display + pricing bridge only.
+ * Office cleaning size/workstation UI and sqm mapping. display + pricing bridge only.
  * Pricing engine still consumes `propertySizeSqm`; tiers derive that value.
  */
 
@@ -35,14 +35,14 @@ export const OFFICE_WORKSTATION_OPTIONS: OfficeWorkstationOption[] = [
   { value: "50_plus", label: "50+" },
 ];
 
-/** Base sqm by office size tier — internal pricing bridge only. */
+/** Base sqm by office size tier. internal pricing bridge only. */
 const OFFICE_SIZE_BASE_SQM: Record<OfficeSizeTier, number> = {
   small: 50,
   medium: 98,
   large: 145,
 };
 
-/** Additional sqm by workstation tier — internal pricing bridge only. */
+/** Additional sqm by workstation tier. internal pricing bridge only. */
 const OFFICE_WORKSTATION_SQM: Record<OfficeWorkstationTier, number> = {
   "5": 0,
   "10": 10,
@@ -85,7 +85,7 @@ export function formatOfficeWorkstationHeroSegment(tier: OfficeWorkstationTier):
   return tier === "50_plus" ? "50+ workstations" : `${desks} workstations`;
 }
 
-/** Customer-facing summary — no sqm unless tiers missing (legacy). */
+/** Customer-facing summary. no sqm unless tiers missing (legacy). */
 export function formatOfficeSizingSummary(
   officeSizeTier: OfficeSizeTier | null,
   officeWorkstations: OfficeWorkstationTier | null,

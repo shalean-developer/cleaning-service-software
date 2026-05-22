@@ -59,7 +59,7 @@ export function formatRegistryZar(cents: number): string {
 }
 
 export function formatRelativeLastVisit(iso: string | null, nowMs = Date.now()): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
 
   const visitMs = new Date(iso).getTime();
   const diffMs = nowMs - visitMs;
@@ -149,12 +149,12 @@ export function buildAdminCustomerRegistryCardModel(
     href: `/admin/customers/${item.customerId}`,
     initials: customerInitialsFromName(item.companyName),
     name: item.companyName,
-    areaLabel: item.areaLabel ?? "—",
+    areaLabel: item.areaLabel ?? "-",
     isRecurring: item.recurringCount > 0,
     bookingsLabel: String(item.bookingCount),
     lastVisitLabel: formatRelativeLastVisit(item.lastVisitAt),
     lifetimeLabel:
-      item.lifetimeValueCents > 0 ? formatRegistryZar(item.lifetimeValueCents) : "—",
+      item.lifetimeValueCents > 0 ? formatRegistryZar(item.lifetimeValueCents) : "-",
     careFlags,
     footnote,
   };

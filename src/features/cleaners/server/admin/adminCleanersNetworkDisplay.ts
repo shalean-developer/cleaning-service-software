@@ -85,17 +85,17 @@ export function isTopPerformerCleaner(item: AdminCleanerListItem): boolean {
 }
 
 function formatRatingLabel(rating: number | null): string {
-  if (typeof rating !== "number" || Number.isNaN(rating)) return "—";
+  if (typeof rating !== "number" || Number.isNaN(rating)) return "-";
   return rating.toFixed(2);
 }
 
 function formatReviewsLabel(_item: AdminCleanerListItem): string {
-  return "—";
+  return "-";
 }
 
 function formatCompletionLabel(item: AdminCleanerListItem): string {
-  if (item.operationalState === "active" && item.active) return "—";
-  return "—";
+  if (item.operationalState === "active" && item.active) return "-";
+  return "-";
 }
 
 function formatTodayPrimaryLabel(item: AdminCleanerListItem): string {
@@ -105,14 +105,14 @@ function formatTodayPrimaryLabel(item: AdminCleanerListItem): string {
   if (item.openOffersCount > 0) {
     return `0 · ${item.openOffersCount} offer${item.openOffersCount === 1 ? "" : "s"}`;
   }
-  return "—";
+  return "-";
 }
 
 function formatTodaySecondaryLabel(item: AdminCleanerListItem): string {
   if (item.pendingEarningsCount > 0) {
     return `${item.pendingEarningsCount} pending payout${item.pendingEarningsCount === 1 ? "" : "s"}`;
   }
-  return item.active && item.operationalState === "active" ? "Ready" : "—";
+  return item.active && item.operationalState === "active" ? "Ready" : "-";
 }
 
 function buildBadgeLabels(item: AdminCleanerListItem): string[] {

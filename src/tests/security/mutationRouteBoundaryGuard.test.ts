@@ -76,7 +76,7 @@ describe("mutation route boundary guard (static)", () => {
         } else {
           expect(
             hasServiceRole,
-            `${rule.routeFile} must not import service role — use feature facades`,
+            `${rule.routeFile} must not import service role. use feature facades`,
           ).toBe(false);
         }
       });

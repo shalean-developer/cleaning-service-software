@@ -10,7 +10,7 @@ export function AdminOverviewHero() {
           Today on Shalean
         </h1>
         <p className={`max-w-2xl ${ADMIN_OVERVIEW_MUTED_CLASS}`}>
-          Calm command of bookings, cleaners, and support — at a glance.
+          Calm command of bookings, cleaners, and support. at a glance.
         </p>
       </div>
       <div className="flex shrink-0 sm:justify-end">

@@ -92,7 +92,7 @@ type ExtraRoomsFieldProps = {
   inline?: boolean;
 };
 
-/** Shared extra-rooms stepper — same pattern as regular cleaning supplies row. */
+/** Shared extra-rooms stepper. same pattern as regular cleaning supplies row. */
 function ExtraRoomsField({
   extraRooms,
   stepErrors,

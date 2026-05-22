@@ -127,7 +127,7 @@ export function ApplyPageSections({ heroAfterBreadcrumbs }: ApplyPageSectionsPro
               Types of cleaning work available
             </h2>
             <p className="mt-3 text-base text-slate-600">
-              Opportunities depend on your preferences, areas, and availability — we do not
+              Opportunities depend on your preferences, areas, and availability. we do not
               guarantee a fixed volume of jobs.
             </p>
           </div>

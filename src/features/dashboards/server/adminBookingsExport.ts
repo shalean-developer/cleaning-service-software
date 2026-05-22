@@ -94,7 +94,7 @@ export function mapAdminBookingListItemToCsvRow(item: AdminBookingListItem): Adm
         ? labelForAdminPaymentFailureAttention(item.paymentFailureReason)
         : "",
     assignment_status_key: assignmentKey,
-    assignment_status_label: assignmentLabel === "—" ? "" : assignmentLabel,
+    assignment_status_label: assignmentLabel === "-" ? "" : assignmentLabel,
     service_name: item.serviceLabel,
     scheduled_start: item.scheduledStart ?? "",
     scheduled_end: item.scheduledEnd ?? "",
@@ -132,7 +132,7 @@ export function renderAdminBookingsCsv(
   return `${lines.join("\r\n")}\r\n`;
 }
 
-/** Test helper — assert exported CSV does not leak forbidden patterns. */
+/** Test helper. assert exported CSV does not leak forbidden patterns. */
 export function assertCsvExcludesSensitivePatterns(csv: string): void {
   const lower = csv.toLowerCase();
   for (const forbidden of FORBIDDEN_CSV_SUBSTRINGS) {

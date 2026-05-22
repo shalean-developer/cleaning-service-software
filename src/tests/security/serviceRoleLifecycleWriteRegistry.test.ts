@@ -3,7 +3,7 @@ import { collectServiceRoleImporterPaths } from "./staticGuardSupport";
 
 /**
  * Modules allowed to import `@/lib/supabase/serviceRole` for server-side lifecycle work.
- * Add a path here only after review — see docs/security/command-boundary-static-guards.md
+ * Add a path here only after review. see docs/security/command-boundary-static-guards.md
  */
 export const ALLOWED_SERVICE_ROLE_LIFECYCLE_IMPORTERS = new Set([
   "lib/supabase/serviceRole.ts",

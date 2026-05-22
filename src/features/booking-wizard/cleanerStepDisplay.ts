@@ -14,7 +14,7 @@ const SHORT_INELIGIBLE_REASON: Partial<Record<CleanerEligibilityCode, string>> =
   schedule_conflict: "Booked at this time",
 };
 
-/** One-line card subtitle — does not change eligibility rules. */
+/** One-line card subtitle. does not change eligibility rules. */
 export function cleanerCardSubtitle(card: CleanerPublicCard): string {
   if (card.eligibilityStatus !== "eligible") {
     return (

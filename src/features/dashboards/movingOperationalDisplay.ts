@@ -1,6 +1,6 @@
 /**
  * Move In/Out Cleaning operational copy for cleaner and admin surfaces.
- * Presentation only — no dispatch, assignment, lifecycle, or earnings logic.
+ * Presentation only. no dispatch, assignment, lifecycle, or earnings logic.
  */
 
 import type { BookingStatus } from "@/features/bookings/server/types";
@@ -96,7 +96,7 @@ export function getMovingCleanerJobGuidanceSteps(
         },
         {
           title: "Empty property check",
-          body: "Confirm all rooms are accessible — note anything blocked on site.",
+          body: "Confirm all rooms are accessible. note anything blocked on site.",
         },
         {
           title: "Handover-ready finish",
@@ -119,7 +119,7 @@ export function getMovingCleanerJobGuidanceSteps(
     case "paid_out":
       return [
         { title: "Move clean recorded", body: "Logged as complete in your history." },
-        { title: "Payout", body: "Pay status updates below — unchanged from other services." },
+        { title: "Payout", body: "Pay status updates below. unchanged from other services." },
       ];
     default:
       return null;
@@ -178,19 +178,19 @@ export function adminMovingBookingListNextAction(
     return "Assign move preparation cleaner on booking detail when eligible.";
   }
   if (defaultAction.includes("Redispatch")) {
-    return "Redispatch — offer an eligible move preparation cleaner.";
+    return "Redispatch. offer an eligible move preparation cleaner.";
   }
   if (defaultAction.includes("Recover assignment") || defaultAction.includes("Recover")) {
     return "Recover move clean assignment on booking detail when eligible.";
   }
   if (defaultAction.includes("dispatch")) {
-    return "Move clean dispatch — open booking detail to send offer or recover.";
+    return "Move clean dispatch. open booking detail to send offer or recover.";
   }
   if (defaultAction.includes("payout")) {
     return defaultAction;
   }
   if (defaultAction.includes("triage")) {
-    return "Move clean assignment needs triage — open booking detail.";
+    return "Move clean assignment needs triage. open booking detail.";
   }
   return defaultAction;
 }
@@ -207,7 +207,7 @@ export type MovingAdminBookingDetailCopy = {
 
 export function getMovingAdminBookingDetailCopy(): MovingAdminBookingDetailCopy {
   return {
-    shellSubtitle: "Move In/Out — ops, payment, and handover context",
+    shellSubtitle: "Move In/Out. ops, payment, and handover context",
     heroHeadline: "Move preparation",
     contextSectionTitle: "Move preparation context",
     homeSizeLabel: "Property size",
@@ -260,7 +260,7 @@ export function getMovingOperationsQueueCopy(input: {
     cardSubtitle: "Move In/Out · vacant / handover property",
     attentionFlagLabel: handoverDay ? "Handover day" : "Move clean",
     openBookingCta: "Open move clean booking →",
-    sameDayNote: handoverDay ? "Handover day — prioritize assignment." : null,
+    sameDayNote: handoverDay ? "Handover day. prioritize assignment." : null,
   };
 }
 

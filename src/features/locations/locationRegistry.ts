@@ -405,7 +405,7 @@ export function getCleanerAreaOptionGroups(): CleanerAreaOptionGroup[] {
   return sortCleanerAreaOptionGroups(built);
 }
 
-/** Twelve featured SEO suburbs — popular defaults for booking and apply. */
+/** Twelve featured SEO suburbs. popular defaults for booking and apply. */
 export function getPopularOperationalAreas(): CleanerAreaOption[] {
   return getFeaturedOperationalAreas().map(locationToCleanerAreaOption);
 }

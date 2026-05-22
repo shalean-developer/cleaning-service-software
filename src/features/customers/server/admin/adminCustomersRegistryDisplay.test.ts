@@ -50,7 +50,7 @@ describe("adminCustomersRegistryDisplay", () => {
   it("formats relative last visit labels", () => {
     const today = new Date();
     expect(formatRelativeLastVisit(today.toISOString())).toBe("Today");
-    expect(formatRelativeLastVisit(null)).toBe("—");
+    expect(formatRelativeLastVisit(null)).toBe("-");
   });
 
   it("detects VIP from notes or company name", () => {

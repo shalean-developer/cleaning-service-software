@@ -231,7 +231,7 @@ async function seedOfferWithPath(
   return offerId;
 }
 
-describe("processBookingAfterOfferEnded — decline", () => {
+describe("processBookingAfterOfferEnded. decline", () => {
   let backend: InMemoryBookingCommandBackend;
   const now = new Date("2026-05-18T12:00:00.000Z");
 
@@ -440,7 +440,7 @@ describe("processBookingAfterOfferEnded — decline", () => {
   });
 });
 
-describe("processBookingAfterOfferEnded — expiry wrapper unchanged", () => {
+describe("processBookingAfterOfferEnded. expiry wrapper unchanged", () => {
   let backend: InMemoryBookingCommandBackend;
   const now = new Date("2026-05-18T12:00:00.000Z");
 

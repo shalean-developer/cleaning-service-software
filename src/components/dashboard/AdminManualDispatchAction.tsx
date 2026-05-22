@@ -130,7 +130,7 @@ export function AdminManualDispatchAction({ bookingId, operational }: Props) {
     >
       <h3 className="text-sm font-semibold text-amber-950">Send offer to cleaner</h3>
       <p className="mt-1 text-xs text-amber-900/80">
-        Sends an assignment offer only. The booking is assigned after the cleaner accepts —
+        Sends an assignment offer only. The booking is assigned after the cleaner accepts -
         not when you submit this form.
       </p>
 
@@ -159,7 +159,7 @@ export function AdminManualDispatchAction({ bookingId, operational }: Props) {
                 {c.displayName}
                 {c.eligibilityStatus === "eligible"
                   ? ""
-                  : ` — ${c.eligibilityReason}`}
+                  : `. ${c.eligibilityReason}`}
               </option>
             ))}
           </select>

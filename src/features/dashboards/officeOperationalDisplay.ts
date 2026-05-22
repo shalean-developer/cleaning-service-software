@@ -1,6 +1,6 @@
 /**
  * Office Cleaning operational copy for cleaner and admin surfaces.
- * Presentation only — no dispatch, assignment, lifecycle, or earnings logic.
+ * Presentation only. no dispatch, assignment, lifecycle, or earnings logic.
  */
 
 import type { BookingStatus } from "@/features/bookings/server/types";
@@ -96,7 +96,7 @@ export function getOfficeCleanerJobGuidanceSteps(
         },
         {
           title: "Active work areas",
-          body: "Coordinate around desks and teams — follow workspace instructions on site.",
+          body: "Coordinate around desks and teams. follow workspace instructions on site.",
         },
         {
           title: "Professional finish",
@@ -119,7 +119,7 @@ export function getOfficeCleanerJobGuidanceSteps(
     case "paid_out":
       return [
         { title: "Office clean recorded", body: "Logged as complete in your history." },
-        { title: "Payout", body: "Pay status updates below — unchanged from other services." },
+        { title: "Payout", body: "Pay status updates below. unchanged from other services." },
       ];
     default:
       return null;
@@ -180,19 +180,19 @@ export function adminOfficeBookingListNextAction(
     return "Assign office cleaning professional on booking detail when eligible.";
   }
   if (defaultAction.includes("Redispatch")) {
-    return "Redispatch — offer an eligible office cleaning professional.";
+    return "Redispatch. offer an eligible office cleaning professional.";
   }
   if (defaultAction.includes("Recover assignment") || defaultAction.includes("Recover")) {
     return "Recover office clean assignment on booking detail when eligible.";
   }
   if (defaultAction.includes("dispatch")) {
-    return "Office clean dispatch — open booking detail to send offer or recover.";
+    return "Office clean dispatch. open booking detail to send offer or recover.";
   }
   if (defaultAction.includes("payout")) {
     return defaultAction;
   }
   if (defaultAction.includes("triage")) {
-    return "Office clean assignment needs triage — open booking detail.";
+    return "Office clean assignment needs triage. open booking detail.";
   }
   return defaultAction;
 }
@@ -209,7 +209,7 @@ export type OfficeAdminBookingDetailCopy = {
 
 export function getOfficeAdminBookingDetailCopy(): OfficeAdminBookingDetailCopy {
   return {
-    shellSubtitle: "Office Cleaning — ops, payment, and workspace context",
+    shellSubtitle: "Office Cleaning. ops, payment, and workspace context",
     heroHeadline: "Commercial maintenance",
     contextSectionTitle: "Workspace context",
     homeSizeLabel: "Workspace size",
@@ -261,7 +261,7 @@ export function getOfficeOperationsQueueCopy(input: {
     cardSubtitle: "Office · commercial workspace",
     attentionFlagLabel: serviceToday ? "Service today" : "Office clean",
     openBookingCta: "Open office clean booking →",
-    sameDayNote: serviceToday ? "Service today — prioritize assignment." : null,
+    sameDayNote: serviceToday ? "Service today. prioritize assignment." : null,
   };
 }
 
@@ -273,7 +273,7 @@ export type OfficeAdminCustomerBookingCardCopy = {
 export function getOfficeAdminCustomerBookingCardCopy(): OfficeAdminCustomerBookingCardCopy {
   return {
     serviceSubtitle: "Office workspace maintenance",
-    unassignedLabel: "Office clean — unassigned",
+    unassignedLabel: "Office clean. unassigned",
   };
 }
 

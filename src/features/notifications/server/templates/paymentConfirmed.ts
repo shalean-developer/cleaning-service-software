@@ -54,7 +54,7 @@ export function buildPaymentConfirmedEmail(input: {
   const text = [
     greeting,
     "",
-    "Payment confirmed — your Shalean booking is received.",
+    "Payment confirmed. your Shalean booking is received.",
     "",
     `Booking reference: ${ref}`,
     `Service: ${serviceLabel}`,
@@ -73,7 +73,7 @@ export function buildPaymentConfirmedEmail(input: {
 <html lang="en">
 <body style="font-family: system-ui, sans-serif; line-height: 1.5; color: #111;">
   <p>${escapeHtml(greeting)}</p>
-  <p><strong>Payment confirmed</strong> — your Shalean booking is received.</p>
+  <p><strong>Payment confirmed</strong>. your Shalean booking is received.</p>
   <ul>
     <li><strong>Booking reference:</strong> ${escapeHtml(ref)}</li>
     <li><strong>Service:</strong> ${escapeHtml(serviceLabel)}</li>
@@ -87,7 +87,7 @@ export function buildPaymentConfirmedEmail(input: {
 </html>`;
 
   return {
-    subject: "Payment confirmed — your Shalean booking is received",
+    subject: "Payment confirmed. your Shalean booking is received",
     html,
     text,
   };

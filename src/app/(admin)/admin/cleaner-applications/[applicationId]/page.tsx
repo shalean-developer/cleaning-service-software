@@ -96,21 +96,21 @@ export default async function AdminCleanerApplicationDetailPage({ params }: Page
             <div>
               <dt className="font-medium text-zinc-500">Own transport</dt>
               <dd className="text-zinc-900">
-                {app.has_own_transport === null ? "—" : app.has_own_transport ? "Yes" : "No"}
+                {app.has_own_transport === null ? "-" : app.has_own_transport ? "Yes" : "No"}
               </dd>
             </div>
             <div>
               <dt className="font-medium text-zinc-500">Preferred areas</dt>
-              <dd className="text-zinc-900">{app.preferred_areas.join(", ") || "—"}</dd>
+              <dd className="text-zinc-900">{app.preferred_areas.join(", ") || "-"}</dd>
             </div>
             <div>
               <dt className="font-medium text-zinc-500">Availability</dt>
-              <dd className="text-zinc-900">{dayLabels(app.availability_days) || "—"}</dd>
+              <dd className="text-zinc-900">{dayLabels(app.availability_days) || "-"}</dd>
             </div>
             <div>
               <dt className="font-medium text-zinc-500">Work preferences</dt>
               <dd className="text-zinc-900">
-                {workPrefsLabel || app.service_interests.join(", ") || "—"}
+                {workPrefsLabel || app.service_interests.join(", ") || "-"}
               </dd>
             </div>
             {skillLabels.length > 0 ? (

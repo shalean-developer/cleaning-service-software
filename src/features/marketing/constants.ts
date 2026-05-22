@@ -1,9 +1,7 @@
 import { SERVICE_CATALOG } from "@/features/pricing/server/catalog";
 import type { ServiceSlug } from "@/features/pricing/server/types";
 import type { MarketingSectionId } from "@/lib/ui/scrollToSection";
-import { SHALEAN_CONTACT } from "./contact";
-
-export { SHALEAN_CONTACT };
+export { SHALEAN_CONTACT, SHALEAN_SOCIAL } from "./contact";
 
 export const BRAND = {
   primary: "#2563EB",
@@ -23,15 +21,16 @@ export type NavLink = {
 
 export type FooterQuickLink = {
   label: string;
-  sectionId: MarketingSectionId;
+  href: string;
 };
 
 export const FOOTER_QUICK_LINKS: readonly FooterQuickLink[] = [
-  { sectionId: "about", label: "About Us" },
-  { sectionId: "pricing", label: "Pricing" },
-  { sectionId: "areas", label: "Locations" },
-  { sectionId: "faq", label: "FAQ" },
-  { sectionId: "contact", label: "Contact" },
+  { label: "About Us", href: "/about" },
+  { label: "Services", href: "/services" },
+  { label: "Pricing", href: "/cleaning-prices-cape-town" },
+  { label: "Locations", href: "/locations" },
+  { label: "FAQ", href: "/faq" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export type FooterSupportLink = {
@@ -43,6 +42,9 @@ export type FooterSupportLink = {
 export const SIGN_IN_PATH = "/sign-in" as const;
 export const SIGN_UP_PATH = "/sign-up" as const;
 
+/** Public role-selection page before customer or cleaner sign-in. */
+export { AUTH_PATH } from "@/lib/auth/authEntryPaths";
+
 export const CLEANER_SIGN_IN_PATH =
   `/sign-in?redirectedFrom=${encodeURIComponent("/cleaner/offers")}` as const;
 
@@ -50,11 +52,7 @@ export const CLEANER_SIGN_IN_PATH =
 export const APPLY_PATH = "/apply" as const;
 
 export const FOOTER_SUPPORT_LINKS: readonly FooterSupportLink[] = [
-  { href: "/faq", label: "FAQ" },
   { label: "Apply to clean with Shalean", href: APPLY_PATH },
-  { label: "Terms & Conditions", href: "/terms" },
-  { label: "Privacy Policy", href: "/privacy" },
-  { label: "Refund Policy", href: "/refund-policy" },
 ];
 
 export const BUSINESS_HOURS = "Mon to Sat: 7:00 AM to 7:00 PM";
@@ -111,7 +109,7 @@ export const HERO_TRUST_ITEMS = [
   },
 ] as const;
 
-/** Shown near booking CTAs — sets expectation for sign-up before booking. */
+/** Shown near booking CTAs. sets expectation for sign-up before booking. */
 export const BOOKING_SIGNUP_HINT = "Free account · then book online in minutes";
 
 export const STATS = [
@@ -144,7 +142,7 @@ export const SERVICES_SECTION = {
   eyebrow: "Professional Cleaning Services",
   heading: "Explore Shalean Cleaning Services",
   subtitle:
-    "House cleaning, deep cleaning, Airbnb turnovers, and office cleaning across Cape Town — trusted by busy homes, hosts, and businesses.",
+    "House cleaning, deep cleaning, Airbnb turnovers, and office cleaning across Cape Town. trusted by busy homes, hosts, and businesses.",
 } as const;
 
 export function serviceFromPrice(slug: ServiceSlug): string {
@@ -376,18 +374,21 @@ export const FOOTER_TRUST_POINTS: readonly FooterTrustPoint[] = [
 
 export const FOOTER_BRAND = {
   description:
-    "Premium home and office cleaning services trusted across Cape Town.",
-  microcopy: "Professional cleaners. Transparent pricing. Exceptional results.",
-  trustStatement: "Insured professionals · Secure online booking · Cape Town metro",
+    "Premium Cape Town home & office cleaning with transparent pricing, insured professionals, and secure online booking.",
 } as const;
 
-export const FOOTER_LEGAL_LINKS: readonly FooterSupportLink[] = [
-  { label: "Terms", href: "/terms" },
-  { label: "Privacy", href: "/privacy" },
+export type FooterLegalLink = {
+  label: string;
+  href: string;
+};
+
+export const FOOTER_LEGAL_LINKS: readonly FooterLegalLink[] = [
+  { label: "Terms & Conditions", href: "/terms" },
+  { label: "Privacy Policy", href: "/privacy" },
   { label: "Refund Policy", href: "/refund-policy" },
 ];
 
-/** Homepage pricing card — same four services as MARKETING_SERVICES_HOMEPAGE. */
+/** Homepage pricing card. same four services as MARKETING_SERVICES_HOMEPAGE. */
 export const PRICING_PREVIEW = HOMEPAGE_SERVICE_SLUGS.map((slug) => ({
   slug,
   name: SERVICE_CATALOG[slug].label,
@@ -398,7 +399,7 @@ export const PRICING_PANEL = {
   eyebrow: "Pricing",
   heading: "Affordable. Transparent. Fair.",
   subtitle:
-    "Cleaning prices in Cape Town for homes, Airbnb properties, and offices — see starting rates before you book.",
+    "Cleaning prices in Cape Town for homes, Airbnb properties, and offices. see starting rates before you book.",
   microcopy: "No hidden costs.",
   ctaLabel: "See Cape Town cleaning prices",
 } as const;
@@ -440,10 +441,11 @@ export const MARKETING_NAV_PATHS = {
   contact: "/contact",
 } as const;
 
-/** Canonical 12 SEO suburb display names — sourced from location registry. */
+/** Canonical 12 SEO suburb display names. sourced from location registry. */
 export { SEO_LOCATION_NAMES as CAPE_TOWN_AREAS } from "@/features/locations/locationRegistry";
 
-export const BOOKING_PATH = "/sign-up?redirectedFrom=/customer/book" as const;
+/** Unauthenticated users are sent to sign-in with this path preserved after login. */
+export const BOOKING_PATH = "/customer/book" as const;
 
 /** Product-first platform navigation (desktop center + mobile primary). */
 export const HEADER_PRIMARY_NAV: readonly HeaderNavLink[] = [
@@ -454,13 +456,13 @@ export const HEADER_PRIMARY_NAV: readonly HeaderNavLink[] = [
   { href: MARKETING_NAV_PATHS.locations, label: "Locations" },
 ];
 
-/** Desktop header utility links (FAQ, contact — right of primary nav). */
+/** Desktop header utility links (FAQ, contact. right of primary nav). */
 export const HEADER_UTILITY_NAV: readonly HeaderNavLink[] = [
   { href: MARKETING_NAV_PATHS.faq, label: "FAQ" },
   { href: MARKETING_NAV_PATHS.contact, label: "Contact" },
 ];
 
-/** Lower-priority links — mobile drawer & footer-style discovery. */
+/** Lower-priority links. mobile drawer & footer-style discovery. */
 export const HEADER_SECONDARY_NAV: readonly HeaderNavLink[] = [
   { href: CLEANER_SIGN_IN_PATH, label: "Cleaner sign in" },
   { href: MARKETING_NAV_PATHS.faq, label: "FAQ" },
@@ -468,10 +470,9 @@ export const HEADER_SECONDARY_NAV: readonly HeaderNavLink[] = [
   { label: "Blog", enabled: false },
 ];
 
-/** Sign-up entry with optional post-auth redirect to a specific service booking flow. */
+/** Canonical customer booking entry (proxy redirects unauthenticated users to sign-in). */
 export function marketingBookPath(serviceSlug?: ServiceSlug): string {
-  const redirect = serviceSlug ? `/customer/book/${serviceSlug}` : "/customer/book";
-  return `/sign-up?redirectedFrom=${encodeURIComponent(redirect)}`;
+  return serviceSlug ? `/customer/book/${serviceSlug}` : BOOKING_PATH;
 }
 
 export const FAQ_SECTION = {

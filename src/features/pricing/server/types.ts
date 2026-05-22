@@ -75,12 +75,12 @@ export type PricingInput = {
    */
   extraRooms?: number;
   /**
-   * Regular cleaning only — home condition / workload (default standard).
+   * Regular cleaning only. home condition / workload (default standard).
    * Detailed (+15%) and heavy (+30%) add time; not a deep clean.
    */
   cleaningIntensity?: CleaningIntensity;
   /**
-   * Regular cleaning only — who brings cleaning supplies/equipment (default customer).
+   * Regular cleaning only. who brings cleaning supplies/equipment (default customer).
    * `shalean` adds a flat equipment fee; `customer` is no charge.
    */
   equipmentSupply?: EquipmentSupply;
@@ -91,7 +91,7 @@ export type PricingInput = {
   /** Number of cleaners on the job (default 1). Values above 1 use team payout rules. */
   teamSize?: number;
   /**
-   * Regular cleaning only — customer preference for team size (1 or 2).
+   * Regular cleaning only. customer preference for team size (1 or 2).
    * Request-only in NF-7B: adds a surcharge when 2; does not affect assignment or payout.
    */
   requestedTeamSize?: number;

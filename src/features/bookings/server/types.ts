@@ -5,7 +5,7 @@
 
 export type BookingId = string;
 
-/** Canonical booking lifecycle states — aligned with `public.booking_status`. */
+/** Canonical booking lifecycle states. aligned with `public.booking_status`. */
 export const BOOKING_STATUSES = [
   "draft",
   "pending_payment",
@@ -22,5 +22,5 @@ export const BOOKING_STATUSES = [
 
 export type BookingStatus = (typeof BOOKING_STATUSES)[number];
 
-/** Pre-persist sentinel used only by guards/tests — not a DB enum value. */
+/** Pre-persist sentinel used only by guards/tests. not a DB enum value. */
 export type BookingLifecyclePhase = "initial" | BookingStatus;

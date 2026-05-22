@@ -385,7 +385,7 @@ export async function runAdminSingleBookingAssignmentRecovery(
 
   const message =
     engineResult.outcome === "offered" && engineResult.idempotent
-      ? "Offer already open — no duplicate offer created."
+      ? "Offer already open. no duplicate offer created."
       : engineResult.outcome === "attention_required"
         ? "Recovery ran but no eligible cleaner was available."
         : "Assignment recovery succeeded.";

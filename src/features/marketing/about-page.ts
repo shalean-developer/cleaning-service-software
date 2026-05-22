@@ -1,4 +1,4 @@
-/** Re-exports for tests and legacy imports — content lives in about-page-content.ts */
+/** Re-exports for tests and legacy imports. content lives in about-page-content.ts */
 export {
   ABOUT_PAGE_CAREERS,
   ABOUT_PAGE_FAQ,

@@ -9,7 +9,7 @@ type Props = {
   description?: string;
 };
 
-/** Distinct from {@link EmptyState} — used when data failed to load, not when the list is empty. */
+/** Distinct from {@link EmptyState}. used when data failed to load, not when the list is empty. */
 export function DashboardFetchError({ title, description }: Props) {
   return (
     <section role="alert" className={UI_FETCH_ERROR_SHELL_CLASS}>

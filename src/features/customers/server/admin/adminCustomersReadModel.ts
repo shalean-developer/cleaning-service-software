@@ -344,7 +344,7 @@ function aggregateBookingListSummary(rows: BookingListRowSlice[]): BookingListSu
     areaLabel =
       (suburbRaw ? formatLocationName(suburbRaw) : null) ||
       display.city?.trim() ||
-      (display.locationSummary !== "—" ? display.locationSummary : null);
+      (display.locationSummary !== "-" ? display.locationSummary : null);
     preferredCleanerId = display.preferredCleanerId;
     lastVisitAt = visitRow.scheduled_start;
   }

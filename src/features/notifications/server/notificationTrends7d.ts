@@ -104,7 +104,7 @@ const EMPTY_TRENDS: AdminNotificationTrends7d = {
   coverageHours7d: 0,
   coverageComplete: false,
   partialCoverageNote:
-    "No hourly rollup data yet — run the metrics rollup cron or backfill script.",
+    "No hourly rollup data yet. run the metrics rollup cron or backfill script.",
   rollupStale: false,
 };
 
@@ -151,7 +151,7 @@ export function computeTrends7dFromHourlyBuckets(
 
   let partialCoverageNote: string | null = null;
   if (!coverageComplete) {
-    partialCoverageNote = `Trends based on ${coverageHours7d} of ${TRENDS_FULL_COVERAGE_HOURS} hourly buckets in the last 7 days — run backfill for a full week view.`;
+    partialCoverageNote = `Trends based on ${coverageHours7d} of ${TRENDS_FULL_COVERAGE_HOURS} hourly buckets in the last 7 days. run backfill for a full week view.`;
   }
 
   const rollupStale =

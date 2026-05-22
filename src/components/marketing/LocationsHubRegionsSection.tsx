@@ -21,7 +21,7 @@ export function LocationsHubRegionsSection() {
           Cape Town regions we cover
         </h2>
         <p className="mt-3 text-base leading-relaxed text-slate-600">
-          Browse suburb pages by region — each includes local service guidance, pricing notes, and
+          Browse suburb pages by region. each includes local service guidance, pricing notes, and
           booking for your neighbourhood.
         </p>
         <div className="mt-8 space-y-10">

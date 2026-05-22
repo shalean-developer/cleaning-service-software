@@ -1,4 +1,4 @@
-/** Auth, identity, and booking ownership — never accepted on customer profile edit. */
+/** Auth, identity, and booking ownership. never accepted on customer profile edit. */
 export const FORBIDDEN_CUSTOMER_EDIT_KEYS = [
   "email",
   "authEmail",

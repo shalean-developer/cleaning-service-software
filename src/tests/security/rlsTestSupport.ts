@@ -432,7 +432,7 @@ export function clearPhase2SignedInClients(): void {
   phase2SignedInClientsByEmail.clear();
 }
 
-/** One signed-in client per email per process — avoids Supabase Auth rate limits in long RLS suites. */
+/** One signed-in client per email per process. avoids Supabase Auth rate limits in long RLS suites. */
 export async function getSignedInPhase2Client(
   url: string,
   anonKey: string,
@@ -452,7 +452,7 @@ export const CLEANER_LIFECYCLE_PHASE_A_SKIP =
 
 /**
  * Deletes operational rows that block cleaner DELETE under ON DELETE RESTRICT.
- * Service-role test cleanup only — not a product lifecycle API.
+ * Service-role test cleanup only. not a product lifecycle API.
  */
 export async function purgeCleanerOperationalRows(
   serviceClient: SupabaseClient<Database>,

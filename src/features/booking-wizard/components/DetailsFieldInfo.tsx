@@ -6,7 +6,7 @@ type DetailsFieldInfoProps = {
   text: string;
 };
 
-/** Compact info control — hover on desktop, tap/focus on mobile. Presentation only. */
+/** Compact info control. hover on desktop, tap/focus on mobile. Presentation only. */
 export function DetailsFieldInfo({ text }: DetailsFieldInfoProps) {
   const tooltipId = useId();
   const [open, setOpen] = useState(false);

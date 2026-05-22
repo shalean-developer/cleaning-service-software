@@ -88,7 +88,7 @@ function createMockClient(state: MockState): SupabaseClient<Database> {
   } as unknown as SupabaseClient<Database>;
 }
 
-// Wire upsert/insert to mutate state (profiles/cleaners builders above are stubs — patch client)
+// Wire upsert/insert to mutate state (profiles/cleaners builders above are stubs. patch client)
 function createStatefulClient(state: MockState): SupabaseClient<Database> {
   const base = createMockClient(state);
   const originalFrom = base.from.bind(base);

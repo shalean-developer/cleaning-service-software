@@ -40,7 +40,7 @@ function isPaymentHelpType(type: string): boolean {
   return type === "payment_help";
 }
 
-/** Type-specific disclaimer — never implies booking was mutated. */
+/** Type-specific disclaimer. never implies booking was mutated. */
 export function supportRequestTypeDisclaimer(requestType: string): string | null {
   if (isRescheduleType(requestType)) {
     return "A reschedule request is not confirmed until our team updates your booking.";
@@ -90,7 +90,7 @@ export function buildSupportCustomerNotificationEmail(input: {
   const headline = EVENT_HEADLINE[input.event];
   const disclaimer = supportRequestTypeDisclaimer(input.requestType);
   const bookingSafety =
-    "This update reflects your support request status only — not an automatic change to your booking or schedule.";
+    "This update reflects your support request status only. not an automatic change to your booking or schedule.";
 
   const lines = [
     greeting,
@@ -164,7 +164,7 @@ export function buildSupportAdminUrgentAlertEmail(input: {
     input.customerContact?.trim() ? `Contact: ${input.customerContact.trim()}` : null,
   ]
     .filter(Boolean)
-    .join(" — ");
+    .join(". ");
 
   const subject = "Urgent Shalean support request";
   const text = [

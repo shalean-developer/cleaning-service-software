@@ -48,7 +48,7 @@ export default async function AdminNotificationsPage({ searchParams }: PageProps
   return (
     <AdminDashboardShell
       title="Notification delivery"
-      subtitle="Queue health across all bookings. Requeue eligible failed rows — does not send email immediately."
+      subtitle="Queue health across all bookings. Requeue eligible failed rows. does not send email immediately."
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
       <AdminNotificationDeliveryBanner banner={page.banner} />

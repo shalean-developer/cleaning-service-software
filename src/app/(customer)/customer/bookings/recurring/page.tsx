@@ -22,7 +22,7 @@ export default async function CustomerRecurringListPage() {
   return (
     <DashboardShell
       title="Recurring cleans"
-      subtitle="Recurring visits — pay each visit to confirm before we assign your cleaner"
+      subtitle="Recurring visits. pay each visit to confirm before we assign your cleaner"
       nav={[...CUSTOMER_DASHBOARD_NAV]}
       headerEnd={<CustomerDashboardHeaderEndLoader />}
     >

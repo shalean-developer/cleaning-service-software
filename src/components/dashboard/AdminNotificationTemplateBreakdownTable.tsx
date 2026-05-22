@@ -15,7 +15,7 @@ export function AdminNotificationTemplateBreakdownTable({ analytics }: Props) {
     <section className="mt-6 rounded-xl border border-zinc-200 bg-white p-6">
       <h2 className="text-sm font-semibold text-zinc-900">Template breakdown</h2>
       <p className="mt-1 text-xs text-zinc-500">
-        Counts by template and status. Template keys only — no payload bodies.
+        Counts by template and status. Template keys only. no payload bodies.
       </p>
 
       <div className="mt-4 overflow-x-auto">
@@ -56,7 +56,7 @@ export function AdminNotificationTemplateBreakdownTable({ analytics }: Props) {
               .map((row) => (
                 <li key={row.template}>
                   <span className="font-mono text-xs">{row.template}</span>
-                  <span className="text-zinc-500"> — {row.pending} pending</span>
+                  <span className="text-zinc-500">. {row.pending} pending</span>
                 </li>
               ))}
           </ul>

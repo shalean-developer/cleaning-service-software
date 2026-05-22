@@ -603,7 +603,7 @@ export async function getAdminRecurringSeriesDetail(
             : {};
         const action =
           (meta.recurringSeries as Record<string, unknown> | undefined)?.action ?? a.command;
-        return `${a.created_at}: ${String(action)}${a.reason ? ` — ${a.reason}` : ""}`;
+        return `${a.created_at}: ${String(action)}${a.reason ? `. ${a.reason}` : ""}`;
       });
 
     const detail: AdminRecurringSeriesDetail = {

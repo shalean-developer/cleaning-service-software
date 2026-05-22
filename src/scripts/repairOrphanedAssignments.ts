@@ -6,7 +6,7 @@ import { createBookingCommandBackend } from "@/features/bookings/server/commands
 import type { Database } from "@/lib/database/types";
 import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
 
-/** Matches `scripts/e2e/lib/constants.mjs` E2E_PREFIX — keep in sync for repair safety scope. */
+/** Matches `scripts/e2e/lib/constants.mjs` E2E_PREFIX. keep in sync for repair safety scope. */
 export const E2E_CUSTOMER_PREFIX = "test_e2e_";
 
 export function isE2eCustomerCompanyName(name: string | null | undefined): boolean {
@@ -127,7 +127,7 @@ export async function runRepairOrphanedAssignments(
   }
 
   for (const row of candidates) {
-    console.log(`— booking ${row.bookingId}`);
+    console.log(`- booking ${row.bookingId}`);
     console.log(`  customer: ${row.companyName} (${row.customerId})`);
     console.log(`  assignment metadata: ${JSON.stringify(row.assignmentMeta)}`);
     console.log(
@@ -139,7 +139,7 @@ export async function runRepairOrphanedAssignments(
 
   if (options.dryRun) {
     console.log(
-      "\nDry-run only — no assignment engine calls, no metadata or offer writes.",
+      "\nDry-run only. no assignment engine calls, no metadata or offer writes.",
     );
     console.log(
       "To apply: CONFIRM_ASSIGNMENT_REPAIR=yes npm run e2e:repair:assignments",
@@ -157,7 +157,7 @@ export async function runRepairOrphanedAssignments(
 
     if (result.ok) {
       console.log(
-        `  → outcome=${result.outcome} cleanerId=${result.cleanerId ?? "—"} offerId=${result.offerId ?? "—"}`,
+        `  → outcome=${result.outcome} cleanerId=${result.cleanerId ?? "-"} offerId=${result.offerId ?? "-"}`,
       );
       success += 1;
     } else {

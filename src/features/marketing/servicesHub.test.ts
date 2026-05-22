@@ -106,8 +106,8 @@ describe("services hub", () => {
     );
     const footer = readFileSync(footerPath, "utf8");
     const internal = readFileSync(internalPath, "utf8");
-    expect(footer).toContain("All cleaning services");
-    expect(footer).toContain("SERVICES_HUB_PATH");
+    expect(footer).toContain("FOOTER_QUICK_LINKS");
+    expect(footer).not.toContain("footer-services");
     expect(internal).toContain("All cleaning services");
     expect(footer).not.toMatch(/["']\/service["']/);
     expect(internal).not.toMatch(/["']\/service["']/);

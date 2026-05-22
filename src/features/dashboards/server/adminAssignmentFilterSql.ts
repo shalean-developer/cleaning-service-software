@@ -136,7 +136,7 @@ export function matchesBookingRowForAssignmentFilterSql(
 }
 
 /**
- * Parity oracle for recovery_needed — equivalent to dispatch_not_started SQL bundle
+ * Parity oracle for recovery_needed. equivalent to dispatch_not_started SQL bundle
  * (recoveryEligible OR visibility key dispatch_not_started ≡ computeDispatchNotStarted).
  */
 export function matchesRecoveryNeededBookingRow(

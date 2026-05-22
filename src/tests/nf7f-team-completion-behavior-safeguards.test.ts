@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * NF-7F guardrails: roster-only support participation — no payout/lifecycle/dispatch changes.
+ * NF-7F guardrails: roster-only support participation. no payout/lifecycle/dispatch changes.
  */
 describe("NF-7F behavior safeguards", () => {
   const migration = readFileSync(

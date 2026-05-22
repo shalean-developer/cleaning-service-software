@@ -36,7 +36,7 @@ export function isBookingExtendedWindowEnabled(
 /**
  * Browser: NEXT_PUBLIC_BOOKING_EXTENDED_WINDOW_ENABLED
  *
- * Must read `process.env.NEXT_PUBLIC_*` directly — Next.js only inlines public env
+ * Must read `process.env.NEXT_PUBLIC_*` directly. Next.js only inlines public env
  * vars for static property access, not `env[key]` or a passed `process.env` object.
  */
 export function isClientBookingExtendedWindowEnabled(): boolean {
@@ -238,7 +238,7 @@ export function resolveBookingWindowEnvStatus(
   };
 }
 
-/** Server lock rejection copy — matches wizard validation where possible. */
+/** Server lock rejection copy. matches wizard validation where possible. */
 export function resolveScheduleOutsideWindowMessage(
   scheduledStart: string,
   now: Date = new Date(),

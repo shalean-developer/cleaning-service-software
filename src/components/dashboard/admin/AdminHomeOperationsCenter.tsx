@@ -55,7 +55,7 @@ function StatusBanners({
           role="status"
         >
           <span className="font-semibold">{deferredOverdue} deferred dispatch overdue</span>
-          {" — "}
+          {". "}
           <Link
             href="/admin/assignments"
             className="font-medium underline underline-offset-2 hover:text-amber-900"

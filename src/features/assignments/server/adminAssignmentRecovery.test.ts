@@ -241,7 +241,7 @@ describe("runAdminSingleBookingAssignmentRecovery", () => {
     eligibilityMock.pickBestEligibleCleanerId.mockResolvedValue("cleaner-a");
 
     const result = await runAdminSingleBookingAssignmentRecovery(adminUser, bookingId, {
-      reason: "Paid but dispatch not started — admin recovery",
+      reason: "Paid but dispatch not started. admin recovery",
     });
 
     expect(result.ok).toBe(true);

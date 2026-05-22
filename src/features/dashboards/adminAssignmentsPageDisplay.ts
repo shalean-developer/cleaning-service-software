@@ -84,7 +84,7 @@ export const ASSIGNMENT_QUEUE_PRESETS: readonly {
   { id: "offer_expired", label: "Offer expired" },
 ] as const;
 
-/** Client-side preset filter — does not change server queue fetch. */
+/** Client-side preset filter. does not change server queue fetch. */
 export function matchesAssignmentQueuePreset(
   item: AdminAssignmentQueueItem,
   preset: AssignmentQueuePresetId,

@@ -56,7 +56,7 @@ export default async function AdminCreateCleanerPage() {
 
         <p className={ADMIN_SECTION_MUTED_CLASS}>
           After a cleaner is created, use their detail page to deactivate, suspend, reactivate, or
-          archive — those actions use audited lifecycle commands only.
+          archive. those actions use audited lifecycle commands only.
         </p>
       </div>
     </AdminDashboardShell>

@@ -8,7 +8,7 @@ export function isSeriesLinkedAdminBooking(seriesId: string | null | undefined):
 }
 
 /**
- * Admin "recurring" flag — series-linked bookings only.
+ * Admin "recurring" flag. series-linked bookings only.
  * Metadata cadence (weekly/monthly) is not treated as an active recurring series.
  */
 export function isRecurringAdminBooking(input: {

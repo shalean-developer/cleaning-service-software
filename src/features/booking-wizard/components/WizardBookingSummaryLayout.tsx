@@ -14,7 +14,7 @@ type Props = {
 
 /**
  * Shell-level two-column layout for details/cleaner steps.
- * Used only from BookingWizard — step panels must not import or wrap this.
+ * Used only from BookingWizard. step panels must not import or wrap this.
  */
 export function WizardBookingSummaryLayout({ children, snapshot, footnote }: Props) {
   const summaryProps = { snapshot, footnote };

@@ -61,7 +61,7 @@ export type ProcessNotificationOutboxResult = {
   dryRun: number;
   failed: number;
   errors: ProcessNotificationOutboxError[];
-  /** Safe previews — no email addresses. */
+  /** Safe previews. no email addresses. */
   dryRunPreviews: DryRunDeliveryPreview[];
 };
 

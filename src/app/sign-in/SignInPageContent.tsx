@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { SIGN_UP_PATH } from "@/lib/auth/customerSignup";
+import { buildAuthPathWithRedirect } from "@/lib/auth/bookingAuthPaths";
 import {
   isCleanerSignInIntent,
   resolveSignInPageCopy,
@@ -28,9 +29,6 @@ export function SignInPageContent({ redirectedFrom, signupEnabled }: Props) {
           <>
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">{copy.title}</h1>
             <p className="mt-2 text-sm leading-6 text-zinc-600">{copy.subtitle}</p>
-            {copy.helperText ? (
-              <p className="mt-2 text-sm leading-6 text-zinc-500">{copy.helperText}</p>
-            ) : null}
           </>
         ) : (
           <>
@@ -47,6 +45,7 @@ export function SignInPageContent({ redirectedFrom, signupEnabled }: Props) {
       {mode === "sign-in" ? (
         <SignInForm
           redirectedFrom={redirectedFrom}
+          cleanerIntent={cleanerIntent}
           onForgotPassword={() => setMode("reset")}
         />
       ) : (
@@ -55,12 +54,12 @@ export function SignInPageContent({ redirectedFrom, signupEnabled }: Props) {
 
       {mode === "sign-in" && showCustomerSignup ? (
         <p className="text-center text-sm text-zinc-600">
-          Don&apos;t have an account?{" "}
+          New to Shalean?{" "}
           <Link
-            href={SIGN_UP_PATH}
+            href={buildAuthPathWithRedirect(SIGN_UP_PATH, redirectedFrom)}
             className="font-medium text-zinc-900 underline-offset-2 transition-colors hover:underline"
           >
-            Create one
+            Create an account
           </Link>
         </p>
       ) : null}
@@ -78,14 +77,19 @@ export function SignInPageContent({ redirectedFrom, signupEnabled }: Props) {
       ) : null}
 
       {mode === "sign-in" ? (
-        <p className="text-center text-sm text-zinc-600">
-          <Link
-            href="/"
-            className="font-medium text-zinc-900 underline-offset-2 transition-colors hover:underline"
-          >
-            Back to home
-          </Link>
-        </p>
+        <>
+          <p className="text-center text-sm text-zinc-600">
+            <Link
+              href="/"
+              className="font-medium text-zinc-900 underline-offset-2 transition-colors hover:underline"
+            >
+              Back to home
+            </Link>
+          </p>
+          <p className="text-center text-xs text-zinc-500">
+            Shalean Cleaning Services • Cape Town
+          </p>
+        </>
       ) : null}
     </>
   );

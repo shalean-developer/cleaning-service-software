@@ -7,7 +7,7 @@ type ClientOnlyProps = {
   fallback?: ReactNode;
 };
 
-/** Renders children only after mount — avoids hydration mismatches from browser extensions on forms. */
+/** Renders children only after mount. avoids hydration mismatches from browser extensions on forms. */
 export function ClientOnly({ children, fallback = null }: ClientOnlyProps) {
   const [mounted, setMounted] = useState(false);
 

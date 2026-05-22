@@ -1,12 +1,11 @@
-import Link from "next/link";
 import {
   BOOKING_PATH,
   HOMEPAGE_HERO_SUBTITLE,
-  MARKETING_NAV_PATHS,
   SHALEAN_CONTACT,
 } from "@/features/marketing/constants";
 import { HeroBookingCard } from "../HeroBookingCard";
-import { IconCalendar, IconMapPin, IconWhatsApp } from "../icons";
+import { HeroUserLocationLabel } from "../HeroUserLocationLabel";
+import { IconCalendar, IconWhatsApp } from "../icons";
 import { MarketingButton } from "../MarketingButton";
 import { MarketingContainer } from "../MarketingContainer";
 
@@ -28,16 +27,7 @@ export function HeroSection() {
           <div className="grid items-center gap-12 sm:gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,32rem)] lg:gap-x-16 lg:gap-y-0 xl:grid-cols-[minmax(0,1fr)_minmax(0,36rem)] xl:gap-x-20">
             <div className="flex max-w-[40rem] flex-col justify-center lg:pr-4 xl:max-w-[42rem]">
               <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm">
-                <span className="inline-flex items-center gap-1.5 font-semibold text-shalean-navy">
-                  <IconMapPin className="h-4 w-4 shrink-0" aria-hidden />
-                  Cape Town, ZA
-                </span>
-                <Link
-                  href={MARKETING_NAV_PATHS.locations}
-                  className="marketing-focus-ring font-normal text-shalean-navy underline decoration-slate-400 underline-offset-[3px] transition hover:decoration-shalean-navy"
-                >
-                  Change location
-                </Link>
+                <HeroUserLocationLabel />
               </div>
 
               <h1 className="mt-5 text-[2rem] font-extrabold leading-[1.08] tracking-[-0.02em] text-shalean-navy sm:mt-6 sm:text-[2.75rem] lg:mt-7 lg:text-[3.25rem] xl:text-[3.5rem]">
@@ -75,7 +65,7 @@ export function HeroSection() {
               </div>
             </div>
 
-            <div className="relative flex w-full flex-col lg:justify-self-end">
+            <div className="relative flex w-full flex-col overflow-visible lg:justify-self-end">
               <HeroBookingCard />
             </div>
           </div>

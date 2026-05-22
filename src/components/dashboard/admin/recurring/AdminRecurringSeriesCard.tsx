@@ -48,7 +48,7 @@ export function AdminRecurringSeriesCard({ item }: Props) {
         <span>
           Next:{" "}
           <span className="font-medium text-slate-900">
-            {item.nextOccurrenceScheduleLabel ?? "—"}
+            {item.nextOccurrenceScheduleLabel ?? "-"}
           </span>
         </span>
         <span>{item.childBookingsCount} visits</span>

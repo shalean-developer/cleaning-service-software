@@ -82,7 +82,7 @@ export function AdminDispatchDeferredNowAction({
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           disabled={loading}
-          placeholder="e.g. Staging verification — force dispatch before cron window"
+          placeholder="e.g. Staging verification. force dispatch before cron window"
           className="mt-1 w-full rounded-lg border border-teal-200 bg-white px-3 py-2 text-sm text-zinc-900 disabled:opacity-50"
         />
       </label>

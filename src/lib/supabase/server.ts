@@ -8,7 +8,7 @@ import { getSupabasePublicEnv } from "./publicEnv";
 
 /**
  * Server-only Supabase client (user-scoped, respects the caller session cookie jar).
- * Use only in Server Components, Route Handlers, and Server Actions — never import from client bundles.
+ * Use only in Server Components, Route Handlers, and Server Actions. never import from client bundles.
  */
 export async function createSupabaseServerClient(): Promise<
   SupabaseClient<Database> | null
@@ -29,7 +29,7 @@ export async function createSupabaseServerClient(): Promise<
             cookieStore.set(name, value, options);
           }
         } catch {
-          // Called from a Server Component without mutable response context — ignore refresh writes.
+          // Called from a Server Component without mutable response context. ignore refresh writes.
         }
       },
     },

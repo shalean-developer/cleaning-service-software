@@ -129,7 +129,7 @@ export function buildAssignmentTrends7d(
   const coverageComplete = coverageHours7d >= TRENDS_PARTIAL_COVERAGE_THRESHOLD;
   const partialCoverageNote = coverageComplete
     ? null
-    : `7-day trends use ${coverageHours7d} of ${TRENDS_FULL_COVERAGE_HOURS} expected hourly buckets — run the rollup cron or backfill.`;
+    : `7-day trends use ${coverageHours7d} of ${TRENDS_FULL_COVERAGE_HOURS} expected hourly buckets. run the rollup cron or backfill.`;
 
   return {
     offersCreated7d: current.offers_created_count,

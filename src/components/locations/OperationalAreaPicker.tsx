@@ -97,7 +97,7 @@ export function OperationalAreaPicker({
       </div>
 
       <div>
-        <p className="text-xs font-medium text-zinc-600">Quick add — featured areas</p>
+        <p className="text-xs font-medium text-zinc-600">Quick add. featured areas</p>
         <div className="mt-1.5 flex flex-wrap gap-1.5">
           {popular.map((opt) => {
             const selected = selectedSlugs.includes(opt.slug);
@@ -136,7 +136,7 @@ export function OperationalAreaPicker({
           </button>
         </div>
       ) : (
-        <p className="text-xs text-zinc-500">No areas selected — cleaner can serve all areas when empty.</p>
+        <p className="text-xs text-zinc-500">No areas selected. cleaner can serve all areas when empty.</p>
       )}
 
       <div className="max-h-72 space-y-2 overflow-y-auto rounded-lg border border-zinc-200 p-2">

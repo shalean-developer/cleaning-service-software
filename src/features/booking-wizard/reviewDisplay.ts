@@ -112,7 +112,7 @@ export function formatSuburbLocation(suburb: string, city: string): string {
   return `${suburbTrimmed}, ${cityTrimmed}`;
 }
 
-/** Compact review hero pill — omits empty, em-dash, and duplicate segments (display only). */
+/** Compact review hero pill. omits empty, em-dash, and duplicate segments (display only). */
 export function buildCompactReviewHeroSegments(
   ...segments: Array<string | null | undefined>
 ): string[] {
@@ -143,9 +143,9 @@ export function getCleaningIntensityExplanation(
 ): string | null {
   if (intensity === "standard") return null;
   if (intensity === "detailed") {
-    return "Extra attention for areas that need more time — still a regular clean, not a full deep clean.";
+    return "Extra attention for areas that need more time. still a regular clean, not a full deep clean.";
   }
-  return "High-use home or rooms needing deeper attention — still regular cleaning with extra time, not a full deep clean.";
+  return "High-use home or rooms needing deeper attention. still regular cleaning with extra time, not a full deep clean.";
 }
 
 export function getEquipmentSupplyCustomerLabel(supply: EquipmentSupply): string {
@@ -184,17 +184,17 @@ export type TeamSupportFulfillmentSnapshot = {
   fulfilledCleanerCount: 1 | 2;
 };
 
-/** Customer dashboard/detail after payment — reflects admin-recorded fulfillment when present. */
+/** Customer dashboard/detail after payment. reflects admin-recorded fulfillment when present. */
 export function getTeamSupportCustomerDashboardLabel(
   fulfillment: TeamSupportFulfillmentSnapshot | null,
 ): string {
   if (!fulfillment) {
-    return "Team support requested — awaiting confirmation";
+    return "Team support requested. awaiting confirmation";
   }
   if (fulfillment.fulfilledCleanerCount === 2) {
-    return "Team support confirmed — 2 cleaners";
+    return "Team support confirmed. 2 cleaners";
   }
-  return "Team support confirmed — 1 cleaner";
+  return "Team support confirmed. 1 cleaner";
 }
 
 export function getTeamSupportExplanation(requestedTeamSize: 1 | 2): string | null {
@@ -207,7 +207,7 @@ export function getReviewNextStepsNote(): string {
   return "Next: secure Paystack checkout, then we assign a cleaner to your booking.";
 }
 
-/** Neutral cleaner-facing note — not a team/dual-assignment label. */
+/** Neutral cleaner-facing note. not a team/dual-assignment label. */
 export function getTeamSupportCleanerNote(requestedTeamSize: 1 | 2): string | null {
   if (requestedTeamSize !== 2) return null;
   return "Team support requested. Coordinate arrival with operations if needed.";

@@ -44,7 +44,7 @@ const regularProps = {
   serviceSlug: "regular-cleaning" as const,
 };
 
-describe("DetailsStepPanel — carpet cleaning form", () => {
+describe("DetailsStepPanel. carpet cleaning form", () => {
   it("shows carpet scope intro and carpeted rooms", () => {
     const html = renderToStaticMarkup(<DetailsStepPanel {...carpetProps} />);
 
@@ -120,7 +120,7 @@ describe("DetailsStepPanel — carpet cleaning form", () => {
   });
 });
 
-describe("addonStepDisplay — carpet cleaning", () => {
+describe("addonStepDisplay. carpet cleaning", () => {
   it("orders all carpet fabric add-ons for catalog helpers", () => {
     expect(getAddonStepDisplayOrder(CARPET)).toEqual([
       "mattress-cleaning",

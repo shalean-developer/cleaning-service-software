@@ -89,7 +89,7 @@ function shouldAttachIdempotencyKey(outcome: AdminOperationalOutcome): boolean {
 }
 
 /**
- * Persists an admin operational audit row via service role. Never throws — logs on failure.
+ * Persists an admin operational audit row via service role. Never throws. logs on failure.
  */
 export async function recordAdminOperationalAudit(
   client: SupabaseClient<Database> | null,

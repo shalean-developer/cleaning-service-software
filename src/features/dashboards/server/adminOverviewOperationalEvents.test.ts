@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { BookingStateAuditRow } from "@/lib/database/types";
 
-// Test mapping via load function internals — import file and test through exported loader pattern
+// Test mapping via load function internals. import file and test through exported loader pattern
 // We test filter behavior by re-exporting a test hook or duplicating map logic.
 // Here we validate the public event shape through loadAdminOverviewOperationalEvents with a mock client.
 

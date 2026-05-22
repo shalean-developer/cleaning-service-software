@@ -4,14 +4,14 @@ import type { WizardStep } from "./types";
 export const WIZARD_SHELL_BASE =
   "mx-auto flex min-h-screen w-full flex-col overflow-x-clip bg-zinc-50 px-4 py-5 md:py-6";
 
-/** Primary picker and review steps — wide centered column. */
+/** Primary picker and review steps. wide centered column. */
 export const WIZARD_SHELL_MAX_DESKTOP = "max-w-3xl";
 
 /** Literal wide shell for Tailwind scan + service/schedule parity (do not join dynamically). */
 export const WIZARD_SHELL_WIDE_CLASS =
   "mx-auto flex min-h-screen w-full max-w-3xl flex-col overflow-x-clip bg-zinc-50 px-4 py-5 md:py-6";
 
-/** Details/cleaner two-column layout — slightly wider for main + summary sidebar. */
+/** Details/cleaner two-column layout. slightly wider for main + summary sidebar. */
 export const WIZARD_SHELL_WIDE_WITH_SIDEBAR_CLASS =
   "mx-auto flex min-h-screen w-full max-w-5xl flex-col overflow-x-clip bg-zinc-50 px-4 py-5 md:py-6";
 

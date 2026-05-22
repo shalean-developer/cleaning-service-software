@@ -47,7 +47,7 @@ export async function listCleanerEarnings(
   const earnings: CleanerEarningListItem[] = [];
   for (const line of lines ?? []) {
     let serviceLabel = "Cleaning job";
-    let scheduleLabel = "—";
+    let scheduleLabel = "-";
     if (line.booking_id) {
       const { data: booking } = await client
         .from("bookings")

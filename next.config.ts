@@ -25,6 +25,26 @@ const nextConfig: NextConfig = {
         destination: "/about",
         permanent: true,
       },
+      {
+        source: "/login",
+        destination: "/sign-in",
+        permanent: false,
+      },
+      {
+        source: "/signup",
+        destination: "/sign-up",
+        permanent: false,
+      },
+      {
+        source: "/cleaner/login",
+        destination: "/sign-in?redirectedFrom=%2Fcleaner%2Foffers",
+        permanent: false,
+      },
+      {
+        source: "/careers",
+        destination: "/apply",
+        permanent: false,
+      },
     ];
   },
   images: {

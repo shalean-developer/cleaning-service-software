@@ -48,7 +48,7 @@ export function AdminDeferredDispatchPanel({ deferredDispatch, embedded = false 
           <dd className="mt-0.5 font-medium text-zinc-900">
             {deferredDispatch.assignmentDispatchAt
               ? new Date(deferredDispatch.assignmentDispatchAt).toLocaleString("en-ZA")
-              : "—"}
+              : "-"}
           </dd>
         </div>
         {deferredDispatch.scheduledStart ? (
@@ -89,7 +89,7 @@ export function AdminDeferredDispatchPanel({ deferredDispatch, embedded = false 
             Ops attention
           </dt>
           <dd className="mt-0.5 font-medium text-zinc-900">
-            {deferredDispatch.operationalAttentionRequired ? "Yes — overdue dispatch" : "No"}
+            {deferredDispatch.operationalAttentionRequired ? "Yes. overdue dispatch" : "No"}
           </dd>
         </div>
       </dl>

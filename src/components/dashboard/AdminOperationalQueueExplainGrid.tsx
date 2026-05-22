@@ -17,7 +17,7 @@ export function AdminOperationalQueueExplainGrid({ cards, embedded = false }: Pr
         <>
           <h2 className="text-sm font-semibold text-zinc-900">Queue guide</h2>
           <p className="mt-0.5 text-xs text-zinc-500">
-            What each queue means and what to do next. Read-only — counts match the strip above.
+            What each queue means and what to do next. Read-only. counts match the strip above.
           </p>
         </>
       )}

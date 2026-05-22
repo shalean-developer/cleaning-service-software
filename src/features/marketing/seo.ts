@@ -1,4 +1,10 @@
-import { BUSINESS_HOURS, FAQ_ITEMS, SHALEAN_CONTACT } from "./constants";
+import {
+  BUSINESS_HOURS,
+  FAQ_ITEMS,
+  MARKETING_SERVICES,
+  SERVICE_SEO_PATHS,
+  SHALEAN_CONTACT,
+} from "./constants";
 import { getMarketingCanonicalUrl, getMarketingSiteUrl } from "./siteUrl";
 import type { LocationSeoContent, ServiceSeoContent } from "./seo-pages";
 
@@ -133,7 +139,7 @@ export function buildServiceSchema(content: ServiceSeoContent) {
   };
 }
 
-/** @deprecated Suburb pages use buildLocationSuburbWebPageSchema — avoids duplicate LocalBusiness @id. */
+/** @deprecated Suburb pages use buildLocationSuburbWebPageSchema. avoids duplicate LocalBusiness @id. */
 export function buildLocationBusinessSchema(content: LocationSeoContent) {
   return buildLocalBusinessSchema({
     description: `${content.intro} ${content.localNote}`,
@@ -312,11 +318,17 @@ export function buildItemListSchema(items: { name: string; path: string }[]) {
   };
 }
 
-/** Homepage: single graph with LocalBusiness, WebSite, and FAQPage only. */
+/** Homepage: LocalBusiness, WebSite, FAQPage, and service directory ItemList. */
 export function buildHomePageJsonLd() {
+  const serviceListItems = MARKETING_SERVICES.map((service) => ({
+    name: service.title,
+    path: SERVICE_SEO_PATHS[service.slug],
+  }));
+
   return buildJsonLdGraph([
     buildLocalBusinessSchema(),
     buildWebSiteSchema(),
     buildFaqPageSchema(FAQ_ITEMS),
+    buildItemListSchema(serviceListItems),
   ]);
 }

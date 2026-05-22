@@ -94,7 +94,7 @@ export function AdminRecurringHealthPanel({ model }: Props) {
           >
             {model.summary.launchReadiness}
           </span>{" "}
-          — green = launch safe, amber = watch, red = blocker
+         . green = launch safe, amber = watch, red = blocker
         </p>
         {model.launchBlockers.length > 0 ? (
           <div className="mt-3">
@@ -248,7 +248,7 @@ export function AdminRecurringHealthPanel({ model }: Props) {
 
       <section className={ADMIN_DETAIL_CARD_CLASS}>
         <h2 className={ADMIN_SECTION_TITLE_CLASS}>All alerts</h2>
-        <AlertList alerts={model.alerts} emptyLabel="No alerts — recurring engine healthy." />
+        <AlertList alerts={model.alerts} emptyLabel="No alerts. recurring engine healthy." />
       </section>
 
       <section className={ADMIN_DETAIL_CARD_CLASS}>

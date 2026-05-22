@@ -24,7 +24,7 @@ export function AdminRecurringGroupWeekdaySeriesPanel({ series }: Props) {
                 {s.slotLabel ? ` · ${s.slotLabel}` : ""}
               </h3>
               <p className="text-sm text-slate-600">
-                {s.statusLabel} · Next: {s.nextOccurrenceScheduleLabel ?? "—"}
+                {s.statusLabel} · Next: {s.nextOccurrenceScheduleLabel ?? "-"}
                 {s.nextOccurrencePaymentRequired ? " (payment required)" : ""}
               </p>
               <p className="text-xs text-slate-500">

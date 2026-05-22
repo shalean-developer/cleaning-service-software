@@ -131,7 +131,7 @@ function buildEmailPreview(payload: SupportNotificationPayload): {
 }
 
 /**
- * Enqueue support notification — idempotent, non-blocking for callers (use void).
+ * Enqueue support notification. idempotent, non-blocking for callers (use void).
  * Does not throw to caller; logs diagnostics on failure.
  */
 export async function enqueueSupportNotification(
@@ -272,7 +272,7 @@ export function mapStatusToNotificationEvent(
   return null;
 }
 
-/** Fire-and-forget wrapper — never blocks status mutation. */
+/** Fire-and-forget wrapper. never blocks status mutation. */
 export function voidEnqueueSupportNotification(
   promise: Promise<void>,
 ): void {

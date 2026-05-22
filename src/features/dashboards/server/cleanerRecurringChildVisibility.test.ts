@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-/** Mirror of cleanerJobReadModel JOB_STATUSES — unpaid recurring children must stay off this list. */
+/** Mirror of cleanerJobReadModel JOB_STATUSES. unpaid recurring children must stay off this list. */
 const CLEANER_JOB_STATUSES = [
   "assigned",
   "in_progress",

@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * NF-7C guardrails: schema/read-model only — assignment, payout, and lifecycle paths stay untouched.
+ * NF-7C guardrails: schema/read-model only. assignment, payout, and lifecycle paths stay untouched.
  */
 describe("NF-7C behavior safeguards (no dispatch/payout/lifecycle changes)", () => {
   const assignmentContext = readFileSync(

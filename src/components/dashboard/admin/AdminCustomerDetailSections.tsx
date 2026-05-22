@@ -190,7 +190,7 @@ export function AdminCustomerDetailSections({
                   {bookingOperations.latestBookingId.slice(0, 8)}…
                 </Link>
               ) : (
-                "—"
+                "-"
               )}
             </dd>
           </div>
@@ -205,7 +205,7 @@ export function AdminCustomerDetailSections({
                   {bookingOperations.nextScheduledBookingId.slice(0, 8)}…
                 </Link>
               ) : (
-                "—"
+                "-"
               )}
             </dd>
           </div>
@@ -237,12 +237,12 @@ export function AdminCustomerDetailSections({
             <dd>
               {paymentSupport.latestPaymentAttemptAt
                 ? formatDateTime(paymentSupport.latestPaymentAttemptAt)
-                : "—"}
+                : "-"}
             </dd>
           </div>
           <div>
             <dt className="text-zinc-500">Payment method</dt>
-            <dd>{paymentSupport.latestPaymentMethod ?? "—"}</dd>
+            <dd>{paymentSupport.latestPaymentMethod ?? "-"}</dd>
           </div>
           <div>
             <dt className="text-zinc-500">Latest payment status</dt>
@@ -258,11 +258,11 @@ export function AdminCustomerDetailSections({
           <dl className="grid gap-3 text-sm">
             <div>
               <dt className="text-zinc-500">Auth email</dt>
-              <dd className="font-medium text-zinc-900">{detail.authEmail ?? "—"}</dd>
+              <dd className="font-medium text-zinc-900">{detail.authEmail ?? "-"}</dd>
             </div>
             <div>
               <dt className="text-zinc-500">Phone</dt>
-              <dd className="text-zinc-900">{detail.phone ?? "—"}</dd>
+              <dd className="text-zinc-900">{detail.phone ?? "-"}</dd>
             </div>
             <div>
               <dt className="text-zinc-500">Company</dt>
@@ -286,7 +286,7 @@ export function AdminCustomerDetailSections({
           <dl className="mt-4 grid gap-3 text-sm">
             <div>
               <dt className="text-zinc-500">Profile role</dt>
-              <dd className="text-zinc-900">{detail.profileRole ?? "— (orphan profile)"}</dd>
+              <dd className="text-zinc-900">{detail.profileRole ?? "- (orphan profile)"}</dd>
             </div>
             <div>
               <dt className="text-zinc-500">Customer row</dt>

@@ -39,8 +39,8 @@ describe("cleaner pages Stage 6F-1b empty/error wiring", () => {
     expect(source).toContain("jobs && !jobs.ok");
     expect(source).toContain("dashboardFetchErrorTitle(\"offers\", \"cleaner\")");
     expect(source).toContain("dashboardFetchErrorTitle(\"jobs\", \"cleaner\")");
-    expect(source).toContain('offersOk ? openOffers.length : "—"');
-    expect(source).toContain('jobsOk ? activeJobs.length : "—"');
+    expect(source).toContain('offersOk ? openOffers.length : "-"');
+    expect(source).toContain('jobsOk ? activeJobs.length : "-"');
     expect(source).not.toContain('text-xs text-red-700">Could not load offers');
     expect(source).not.toContain('text-xs text-red-700">Could not load jobs');
     expect(source).toContain("openOffers.slice(0, 3)");

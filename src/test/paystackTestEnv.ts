@@ -38,7 +38,7 @@ export function restorePaystackTestEnv(snapshot: PaystackTestEnvSnapshot): void 
 }
 
 /**
- * Returns a restore function — useful in beforeEach/afterEach pairs.
+ * Returns a restore function. useful in beforeEach/afterEach pairs.
  */
 export function withPaystackTestEnv(): () => void {
   const snapshot = snapshotPaystackTestEnv();

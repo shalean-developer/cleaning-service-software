@@ -31,7 +31,7 @@ export function computeWorkerRunHealth(
     return {
       level: "healthy",
       ageMinutes,
-      message: `Last run ${ageMinutes === 0 ? "just now" : `${ageMinutes}m ago`} — cron appears healthy.`,
+      message: `Last run ${ageMinutes === 0 ? "just now" : `${ageMinutes}m ago`}. cron appears healthy.`,
     };
   }
 
@@ -39,13 +39,13 @@ export function computeWorkerRunHealth(
     return {
       level: "warning",
       ageMinutes,
-      message: `No worker run in ${ageMinutes}m — check scheduler (expected every 2–5 min).`,
+      message: `No worker run in ${ageMinutes}m. check scheduler (expected every 2–5 min).`,
     };
   }
 
   return {
     level: "critical",
     ageMinutes,
-    message: `No worker run in ${ageMinutes}m — verify pg_cron, deployment, and CRON_SECRET.`,
+    message: `No worker run in ${ageMinutes}m. verify pg_cron, deployment, and CRON_SECRET.`,
   };
 }

@@ -19,7 +19,7 @@ export type MutationRouteRule = {
   category: MutationRouteCategory;
   /** At least one symbol must appear in an import statement in the route file */
   requiredFacadeImports: string[];
-  /** Optional additional imports (e.g. cron auth) — all must be present */
+  /** Optional additional imports (e.g. cron auth). all must be present */
   requiredAdditionalImports?: string[];
   /** When true, route may import `@/lib/supabase/serviceRole` */
   mayImportServiceRole?: boolean;

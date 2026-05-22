@@ -27,7 +27,7 @@ function StatusRow({
       <span className="text-zinc-600">{label}</span>
       <span className={ok ? "font-medium text-emerald-800" : "font-medium text-amber-900"}>
         {ok ? "OK" : "Needs attention"}
-        {detail ? ` — ${detail}` : ""}
+        {detail ? `. ${detail}` : ""}
       </span>
     </div>
   );

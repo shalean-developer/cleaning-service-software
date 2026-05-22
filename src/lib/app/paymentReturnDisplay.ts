@@ -6,7 +6,7 @@ export const PAYMENT_VERIFY_LOADING_COPY = {
   title: "Confirming your payment",
   body: "We're confirming your payment with Paystack. This usually takes a few seconds.",
   reassurance:
-    "Your booking updates as soon as payment is confirmed — no need to refresh.",
+    "Your booking updates as soon as payment is confirmed. no need to refresh.",
   footnote: "Keep this window open while we finish up.",
 } as const;
 

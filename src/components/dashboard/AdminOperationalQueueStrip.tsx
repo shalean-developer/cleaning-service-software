@@ -6,7 +6,7 @@ type Props = {
   queues: AdminOperationalQueueCountItem[];
   /** Highlights the chip matching the active bookings filter, when present. */
   activeFilter?: AdminBookingFilter;
-  /** Compact mode for assignments page — hides guide copy. */
+  /** Compact mode for assignments page. hides guide copy. */
   compact?: boolean;
 };
 

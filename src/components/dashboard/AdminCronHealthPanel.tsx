@@ -24,7 +24,7 @@ export function AdminCronHealthCriticalBanner({ jobs }: { jobs: CronJobHealthSna
       <ul className="mt-1.5 space-y-0.5 text-xs">
         {jobs.map((job) => (
           <li key={job.id}>
-            <span className="font-medium">{job.name}</span> — {job.statusMessage}
+            <span className="font-medium">{job.name}</span>. {job.statusMessage}
           </li>
         ))}
       </ul>
@@ -114,7 +114,7 @@ export function AdminCronHealthPanel({
                   {job.lastSuccessfulRunAt
                     ? new Date(job.lastSuccessfulRunAt).toLocaleString("en-ZA")
                     : job.hasRunTelemetry
-                      ? "—"
+                      ? "-"
                       : "No telemetry"}
                 </dd>
               </div>
@@ -126,7 +126,7 @@ export function AdminCronHealthPanel({
                   {job.lastFailureRunAt
                     ? new Date(job.lastFailureRunAt).toLocaleString("en-ZA")
                     : job.hasRunTelemetry
-                      ? "—"
+                      ? "-"
                       : "No telemetry"}
                 </dd>
               </div>
@@ -135,7 +135,7 @@ export function AdminCronHealthPanel({
                   Failures (24h)
                 </dt>
                 <dd className="mt-0.5 tabular-nums text-zinc-900">
-                  {job.recentFailureCount24h ?? "—"}
+                  {job.recentFailureCount24h ?? "-"}
                 </dd>
               </div>
             </dl>

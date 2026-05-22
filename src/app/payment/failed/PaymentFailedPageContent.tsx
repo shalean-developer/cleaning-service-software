@@ -38,7 +38,7 @@ export function PaymentFailedPageContent({ model }: Props) {
   return (
     <PaymentCustomerShell
       title="Payment not completed"
-      subtitle="Your booking is saved — you can complete payment when ready"
+      subtitle="Your booking is saved. you can complete payment when ready"
     >
       <PaymentVerificationPanel>
         <section

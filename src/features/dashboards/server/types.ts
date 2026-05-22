@@ -231,7 +231,7 @@ export type AdminNotificationOutboxEntry = {
     recipientType: string | null;
   } | null;
   isDeliverable: boolean;
-  /** Booking detail only — failed deliverable rows eligible for admin requeue (5E-1a). */
+  /** Booking detail only. failed deliverable rows eligible for admin requeue (5E-1a). */
   canRequeue: boolean;
   requeueBlockReason?: string;
 };

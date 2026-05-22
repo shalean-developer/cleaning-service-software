@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-/** Mirrors scripts/e2e/lib/constants.mjs — keep in sync for cleanup safety. */
+/** Mirrors scripts/e2e/lib/constants.mjs. keep in sync for cleanup safety. */
 const E2E_PREFIX = "test_e2e_";
 
 function isE2eCompanyName(name: string): boolean {

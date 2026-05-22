@@ -18,7 +18,7 @@ export type LocationReviewOverride = {
   nearbyAreas?: readonly string[];
   requiresReview: false;
   notes: string;
-  /** Documented for promotion planning — does not enable SEO. */
+  /** Documented for promotion planning. does not enable SEO. */
   futureSeoCandidate?: boolean;
 };
 
@@ -34,7 +34,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["melkbosstrand", "bloubergstrand"],
     requiresReview: false,
-    notes: "West Coast township — operational suburb, not an SEO page.",
+    notes: "West Coast township. operational suburb, not an SEO page.",
   },
   bishopscourt: {
     decision: "valid_cape_town_suburb",
@@ -43,7 +43,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["claremont", "kenilworth", "rondebosch"],
     requiresReview: false,
-    notes: "Southern Suburbs estate suburb — operational only.",
+    notes: "Southern Suburbs estate suburb. operational only.",
     futureSeoCandidate: true,
   },
   bothasig: {
@@ -53,7 +53,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["montague-gardens", "milnerton", "table-view"],
     requiresReview: false,
-    notes: "Northern Suburbs industrial/residential — operational only.",
+    notes: "Northern Suburbs industrial/residential. operational only.",
   },
   brooklyn: {
     decision: "valid_cape_town_suburb",
@@ -63,7 +63,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     aliases: ["Brooklyn Chestnut"],
     nearbyAreas: ["maitland", "ndabeni", "montague-gardens"],
     requiresReview: false,
-    notes: "Cape Town Brooklyn (not NY) — operational only.",
+    notes: "Cape Town Brooklyn (not NY). operational only.",
   },
   "cape-flats": {
     decision: "broad_region_label",
@@ -71,7 +71,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     cityGroup: "Cape Town",
     serviceAreaType: "cape_town_area",
     requiresReview: false,
-    notes: "Broad operational label for Cape Flats bookings — not a single suburb or SEO target.",
+    notes: "Broad operational label for Cape Flats bookings. not a single suburb or SEO target.",
   },
   "cape-gate": {
     decision: "valid_cape_town_suburb",
@@ -80,7 +80,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["century-city", "kuils-river", "bellville"],
     requiresReview: false,
-    notes: "Retail/business node near Kuils River — operational only.",
+    notes: "Retail/business node near Kuils River. operational only.",
   },
   edgemead: {
     decision: "valid_cape_town_suburb",
@@ -89,7 +89,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["bellville", "parow", "bothasig"],
     requiresReview: false,
-    notes: "Northern Suburbs residential — operational only.",
+    notes: "Northern Suburbs residential. operational only.",
   },
   "elsies-river": {
     decision: "valid_cape_town_suburb",
@@ -98,7 +98,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["belhar", "parow", "goodwood"],
     requiresReview: false,
-    notes: "Northern Suburbs / Cape Flats edge — operational only.",
+    notes: "Northern Suburbs / Cape Flats edge. operational only.",
   },
   heathfield: {
     decision: "valid_cape_town_suburb",
@@ -107,7 +107,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["wynberg", "plumstead", "diep-river"],
     requiresReview: false,
-    notes: "Southern Suburbs — operational only.",
+    notes: "Southern Suburbs. operational only.",
   },
   helderberg: {
     decision: "broad_region_label",
@@ -116,7 +116,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_area",
     nearbyAreas: ["somerset-west", "strand", "gordon-s-bay"],
     requiresReview: false,
-    notes: "Broad Helderberg basin label — use Somerset West/Strand for precision; operational only.",
+    notes: "Broad Helderberg basin label. use Somerset West/Strand for precision; operational only.",
   },
   "joe-slovo-park": {
     decision: "valid_cape_town_suburb",
@@ -125,7 +125,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["mitchells-plain", "langa", "nyanga"],
     requiresReview: false,
-    notes: "Cape Flats township — operational only.",
+    notes: "Cape Flats township. operational only.",
   },
   maitland: {
     decision: "valid_cape_town_suburb",
@@ -134,7 +134,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["ndabeni", "brooklyn", "pinelands"],
     requiresReview: false,
-    notes: "City Bowl fringe — operational only.",
+    notes: "City Bowl fringe. operational only.",
   },
   "marina-da-gama": {
     decision: "valid_cape_town_suburb",
@@ -144,7 +144,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     aliases: ["Marina da Gama"],
     nearbyAreas: ["muizenberg", "st-james", "fish-hoek"],
     requiresReview: false,
-    notes: "False Bay coastal suburb — operational only.",
+    notes: "False Bay coastal suburb. operational only.",
   },
   "montague-gardens": {
     decision: "valid_cape_town_suburb",
@@ -153,7 +153,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["bothasig", "milnerton", "brooklyn"],
     requiresReview: false,
-    notes: "West Coast business precinct — operational only.",
+    notes: "West Coast business precinct. operational only.",
   },
   "mouille-point": {
     decision: "valid_cape_town_suburb",
@@ -162,7 +162,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["green-point", "sea-point", "three-anchor-bay"],
     requiresReview: false,
-    notes: "Atlantic Seaboard — operational only.",
+    notes: "Atlantic Seaboard. operational only.",
     futureSeoCandidate: true,
   },
   ndabeni: {
@@ -172,7 +172,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["pinelands", "maitland", "observatory"],
     requiresReview: false,
-    notes: "City Bowl fringe industrial/residential — operational only.",
+    notes: "City Bowl fringe industrial/residential. operational only.",
   },
   "northern-suburbs": {
     decision: "broad_region_label",
@@ -180,7 +180,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     cityGroup: "Cape Town",
     serviceAreaType: "cape_town_area",
     requiresReview: false,
-    notes: "Broad operational label — not an SEO suburb. Prefer Bellville, Durbanville, etc.",
+    notes: "Broad operational label. not an SEO suburb. Prefer Bellville, Durbanville, etc.",
   },
   pinelands: {
     decision: "valid_cape_town_suburb",
@@ -189,7 +189,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["ndabeni", "century-city", "maitland"],
     requiresReview: false,
-    notes: "Pinelands suburb — operational only.",
+    notes: "Pinelands suburb. operational only.",
     futureSeoCandidate: true,
   },
   "plettenberg-bay": {
@@ -199,7 +199,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "garden_route",
     nearbyAreas: ["knysna", "mossel-bay", "sedgefield"],
     requiresReview: false,
-    notes: "Garden Route town — operational only, outside Cape Town SEO cluster.",
+    notes: "Garden Route town. operational only, outside Cape Town SEO cluster.",
   },
   "protea-valley": {
     decision: "valid_cape_town_suburb",
@@ -208,7 +208,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["athlone", "lansdowne", "rylands"],
     requiresReview: false,
-    notes: "Cape Flats residential — operational only.",
+    notes: "Cape Flats residential. operational only.",
   },
   rylands: {
     decision: "valid_cape_town_suburb",
@@ -217,7 +217,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["athlone", "lansdowne", "protea-valley"],
     requiresReview: false,
-    notes: "Cape Flats residential — operational only.",
+    notes: "Cape Flats residential. operational only.",
   },
   "southern-suburbs": {
     decision: "broad_region_label",
@@ -225,7 +225,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     cityGroup: "Cape Town",
     serviceAreaType: "cape_town_area",
     requiresReview: false,
-    notes: "Broad operational label — not an SEO suburb. Prefer Claremont, Wynberg, etc.",
+    notes: "Broad operational label. not an SEO suburb. Prefer Claremont, Wynberg, etc.",
   },
   sunningdale: {
     decision: "valid_cape_town_suburb",
@@ -234,7 +234,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["bloubergstrand", "parklands", "table-view"],
     requiresReview: false,
-    notes: "Blouberg/Sunningdale residential — operational only.",
+    notes: "Blouberg/Sunningdale residential. operational only.",
   },
   "three-anchor-bay": {
     decision: "valid_cape_town_suburb",
@@ -243,7 +243,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["sea-point", "green-point", "mouille-point"],
     requiresReview: false,
-    notes: "Atlantic Seaboard — operational only.",
+    notes: "Atlantic Seaboard. operational only.",
     futureSeoCandidate: true,
   },
   "walmer-estate": {
@@ -253,7 +253,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["woodstock", "observatory", "zonnebloem"],
     requiresReview: false,
-    notes: "City Bowl fringe — operational only.",
+    notes: "City Bowl fringe. operational only.",
   },
   wetton: {
     decision: "valid_cape_town_suburb",
@@ -262,7 +262,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["wynberg", "plumstead", "ottery"],
     requiresReview: false,
-    notes: "Southern Suburbs — operational only.",
+    notes: "Southern Suburbs. operational only.",
   },
   youngsfield: {
     decision: "valid_cape_town_suburb",
@@ -271,7 +271,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["wynberg", "heathfield", "retreat"],
     requiresReview: false,
-    notes: "Southern Suburbs — operational only.",
+    notes: "Southern Suburbs. operational only.",
   },
   zeekoevlei: {
     decision: "valid_cape_town_suburb",
@@ -280,7 +280,7 @@ export const LOCATION_REVIEW_OVERRIDES: Record<string, LocationReviewOverride> =
     serviceAreaType: "cape_town_suburb",
     nearbyAreas: ["pelican-park", "grassy-park", "philippi"],
     requiresReview: false,
-    notes: "Cape Flats / wetland fringe suburb — operational only.",
+    notes: "Cape Flats / wetland fringe suburb. operational only.",
   },
 };
 

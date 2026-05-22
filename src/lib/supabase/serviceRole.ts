@@ -13,7 +13,7 @@ function getServiceRoleEnv(): { url: string; serviceRoleKey: string } | null {
 
 /**
  * Server-only Supabase client with service role (bypasses RLS).
- * Used for booking command persistence — never import from client bundles.
+ * Used for booking command persistence. never import from client bundles.
  */
 export function createServiceRoleClient(): SupabaseClient<Database> | null {
   const env = getServiceRoleEnv();

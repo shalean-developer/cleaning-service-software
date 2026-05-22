@@ -77,7 +77,7 @@ export function AdminNotificationHealthCards({ summary, oldestActionablePendingA
         <Card
           label="Unsupported pending"
           value={summary.unsupportedPending}
-          hint="Not delivered yet — not a failure"
+          hint="Not delivered yet. not a failure"
         />
         <Card label="Dry-run rows" value={summary.dryRun} tone="info" hint="Metadata in last_error" />
       </div>

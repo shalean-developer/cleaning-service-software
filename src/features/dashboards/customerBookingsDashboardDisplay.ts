@@ -79,7 +79,7 @@ export function emptyStateForCustomerBookingTab(
     case "unpaid":
       return {
         title: "No unpaid bookings",
-        description: "You're all caught up — nothing to pay right now.",
+        description: "You're all caught up. nothing to pay right now.",
       };
     default:
       return {

@@ -30,11 +30,11 @@ export const DETAILS_OPTION_TITLE = "block text-sm font-medium leading-snug text
 
 export const DETAILS_OPTION_DESC = "mt-0.5 block text-[11px] leading-snug text-zinc-500 sm:text-xs";
 
-/** Step 4 section headings — presentation only. */
+/** Step 4 section headings. presentation only. */
 export const DETAILS_SECTION_HEADING =
   "mb-2.5 text-xs font-semibold uppercase tracking-wide text-zinc-500";
 
-/** Step 4 option-row info tooltips — presentation only. */
+/** Step 4 option-row info tooltips. presentation only. */
 export const EXTRA_ROOMS_INFO_TEXT =
   "Add extra spaces such as a study, laundry, playroom, or second lounge.";
 
@@ -50,7 +50,7 @@ export const DETAILS_OPTION_CARD =
 export const DETAILS_INPUT =
   "w-full min-h-[2.75rem] rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200";
 
-/** Compact toggle row — label/hint above, switch in this row. */
+/** Compact toggle row. label/hint above, switch in this row. */
 export const DETAILS_TOGGLE_CONTROL =
   "flex w-full items-center justify-end rounded-lg border border-zinc-200/90 bg-zinc-50/50 px-2.5 py-2";
 

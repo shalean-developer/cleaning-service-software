@@ -28,7 +28,7 @@ export function AdminRecurringGroupSummaryCards({ group }: Props) {
         <li>
           <AdminMetricCard
             label="Next upcoming visit"
-            value={group.nextUpcomingVisit ? "Scheduled" : "—"}
+            value={group.nextUpcomingVisit ? "Scheduled" : "-"}
             footer={group.nextUpcomingVisit?.scheduleLabel ?? "No upcoming visits"}
             icon={CalendarClock}
           />

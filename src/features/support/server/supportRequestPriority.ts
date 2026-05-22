@@ -7,7 +7,7 @@ function isCancelOrRescheduleType(type: string): boolean {
   return type.includes("cancel") || type.includes("reschedule");
 }
 
-/** Triage priority for support requests (visibility only — no booking mutations). */
+/** Triage priority for support requests (visibility only. no booking mutations). */
 export function supportRequestPriority(input: {
   status: string;
   requestType: string;
@@ -40,7 +40,7 @@ export function supportRequestPriority(input: {
   return "normal";
 }
 
-/** SLA category — urgent vs standard response/resolution targets. */
+/** SLA category. urgent vs standard response/resolution targets. */
 export function supportRequestSlaCategory(input: {
   requestType: string;
   scheduledStart: string | null;
@@ -93,7 +93,7 @@ export function supportRequestUrgencyReason(input: {
   return null;
 }
 
-/** @deprecated Use supportRequestPriority — kept for audit/read-model parity export name. */
+/** @deprecated Use supportRequestPriority. kept for audit/read-model parity export name. */
 export function computeSupportInboxPriorityForTest(
   input: Parameters<typeof supportRequestPriority>[0],
 ): SupportRequestPriority {

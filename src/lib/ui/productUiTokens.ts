@@ -1,5 +1,5 @@
 /**
- * Phase 2F — shared presentation tokens across customer, cleaner, admin, and booking.
+ * Phase 2F. shared presentation tokens across customer, cleaner, admin, and booking.
  * Presentation only; no business logic.
  */
 
@@ -101,7 +101,7 @@ export const UI_LIST_META_CLASS =
 /** Secondary location segment in schedule · location rows. */
 export const UI_META_LOCATION_CLASS = "break-words [overflow-wrap:anywhere]";
 
-/** Auth surfaces (sign-in / sign-up) — presentation only. */
+/** Auth surfaces (sign-in / sign-up). presentation only. */
 export const UI_AUTH_PAGE_CLASS =
   "relative flex min-h-screen flex-col items-center justify-center bg-zinc-50 px-4 py-8 sm:py-10";
 

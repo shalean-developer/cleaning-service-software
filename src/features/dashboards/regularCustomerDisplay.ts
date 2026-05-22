@@ -1,6 +1,6 @@
 /**
  * Regular Cleaning customer-facing copy (payment return, bookings list, detail).
- * Presentation only — mirrors specialty customer display modules.
+ * Presentation only. mirrors specialty customer display modules.
  */
 
 import type { PaymentSuccessVariant } from "@/lib/app/paymentReturnDisplay";
@@ -200,7 +200,7 @@ export function customerRegularCompactGuidance(
       };
     case "assigned":
       return {
-        primary: "Your cleaner is confirmed — check back before your scheduled time.",
+        primary: "Your cleaner is confirmed. check back before your scheduled time.",
       };
     case "in_progress":
       return {

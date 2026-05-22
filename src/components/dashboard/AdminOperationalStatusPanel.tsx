@@ -21,7 +21,7 @@ export function AdminOperationalStatusPanel({ bookingId, operational }: Props) {
     <section className={`${ADMIN_DETAIL_CARD_CLASS} border-sky-200/80 bg-sky-50/30 p-4 sm:p-5`}>
       <h2 className={`${ADMIN_SECTION_TITLE_CLASS} text-sky-950`}>Actions</h2>
       <p className={ADMIN_SECTION_MUTED_CLASS}>
-        Manual ops — booking statuses are not overridden here.
+        Manual ops. booking statuses are not overridden here.
       </p>
 
       <section className="mt-3 space-y-2">
@@ -58,7 +58,7 @@ export function AdminOperationalStatusPanel({ bookingId, operational }: Props) {
               {operational.recoveryEligibility === "eligible"
                 ? "Eligible for recovery cron"
                 : operational.recoveryEligibility === "grace_period"
-                  ? `Grace — ~${operational.recoveryGraceMinutesRemaining ?? "?"} min`
+                  ? `Grace. ~${operational.recoveryGraceMinutesRemaining ?? "?"} min`
                   : operational.recoveryEligibility === "in_progress"
                     ? "Dispatch in progress"
                     : "N/A"}

@@ -32,7 +32,7 @@ export default async function CleanerOffersPage() {
   return (
     <DashboardShell
       title="Job offers"
-      subtitle="When, where, pay — accept or decline."
+      subtitle="When, where, pay. accept or decline."
       nav={[...CLEANER_NAV_ITEMS]}
       headerEnd={<CleanerDashboardHeaderEndLoader />}
     >
@@ -75,7 +75,7 @@ function CleanerOffersList({
         </h2>
         {needsResponse.length === 0 ? (
           <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-            You&apos;re all caught up — nothing needs a response right now.
+            You&apos;re all caught up. nothing needs a response right now.
           </p>
         ) : (
           <ul className="mt-3 space-y-3">

@@ -52,7 +52,7 @@ export function isGenericOfferLocationPart(value: string | null | undefined): bo
   return false;
 }
 
-/** Suburb/city only — no street line; safe fallback for missing or test placeholders. */
+/** Suburb/city only. no street line; safe fallback for missing or test placeholders. */
 export function formatOfferLocationForEmail(display: BookingDisplayFields): string {
   const addressLine = display.addressLine?.trim() || null;
   const suburbRaw = display.suburb?.trim() || null;

@@ -171,10 +171,10 @@ export function AdminReplaceOpenOfferAction({ bookingId, operational }: Props) {
               >
                 {c.displayName}
                 {c.cleanerId === openOffer?.cleanerId
-                  ? " — current open offer"
+                  ? ". current open offer"
                   : c.eligibilityStatus === "eligible"
                     ? ""
-                    : ` — ${c.eligibilityReason}`}
+                    : `. ${c.eligibilityReason}`}
               </option>
             ))}
           </select>

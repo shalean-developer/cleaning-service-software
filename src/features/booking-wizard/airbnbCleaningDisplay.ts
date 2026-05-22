@@ -89,14 +89,14 @@ export function isAirbnbCleaningSlug(
   return serviceSlug === AIRBNB_CLEANING_SLUG;
 }
 
-/** Step 1 mobile card — host-focused. */
+/** Step 1 mobile card. host-focused. */
 export const AIRBNB_SERVICE_STEP_DESCRIPTION_MOBILE = "Fast prep before your next guest";
 
-/** Step 1 desktop card — max two lines. */
+/** Step 1 desktop card. max two lines. */
 export const AIRBNB_SERVICE_STEP_DESCRIPTION_DESKTOP =
   "Fast property preparation before your next guest check-in.";
 
-/** Host-oriented frequency cards — values unchanged. */
+/** Host-oriented frequency cards. values unchanged. */
 export const AIRBNB_FREQUENCY_STEP_OPTIONS: FrequencyStepOption[] = [
   { value: "once", label: "Single turnover", description: "One checkout clean" },
   { value: "weekly", label: "Weekly", description: "Scheduled property maintenance" },
@@ -152,7 +152,7 @@ export function getFrequencySectionTitle(serviceSlug: ServiceSlug | null): strin
     : "Preferred cleaning schedule";
 }
 
-/** Airbnb add-on order — turnover and guest-readiness first. */
+/** Airbnb add-on order. turnover and guest-readiness first. */
 export const AIRBNB_ADDON_STEP_DISPLAY_ORDER: AddonSlug[] = [
   "laundry",
   "inside-fridge",
@@ -333,7 +333,7 @@ export function getScheduleStepHelperCopy(
     if (extendedWindowEnabled) {
       return "Book up to 90 days ahead.";
     }
-    return "Pick your turnover date and arrival window. Same-day requests are subject to availability — book early before the next guest check-in.";
+    return "Pick your turnover date and arrival window. Same-day requests are subject to availability. book early before the next guest check-in.";
   }
   if (extendedWindowEnabled) {
     return "Book up to 90 days ahead.";
@@ -366,31 +366,31 @@ export function getCleanerStepCopy(serviceSlug: ServiceSlug | null): CleanerStep
       subtitle: "Returning cleaners help keep guest-ready standards consistent.",
       bestAvailableTitle: "Best available cleaner",
       bestAvailableDescription:
-        "Fastest assignment — we match an eligible cleaner familiar with turnover work.",
+        "Fastest assignment. we match an eligible cleaner familiar with turnover work.",
       selectedHint:
         "We offer your selected cleaner first. Returning cleaners help maintain consistent guest standards at your property.",
       disclosureBestAvailable:
         "We assign the highest-rated eligible cleaner for your property, area, and turnover window.",
       disclosureSelected:
-        "Your selected cleaner is offered the job first after payment. If unavailable, we assign the next best eligible match — your turnover is still fully booked.",
+        "Your selected cleaner is offered the job first after payment. If unavailable, we assign the next best eligible match. your turnover is still fully booked.",
     };
   }
   return {
     title: "Choose your cleaner",
-    subtitle: "Recommended for speed — or pick someone you prefer.",
+    subtitle: "Recommended for speed. or pick someone you prefer.",
     bestAvailableTitle: "Best available cleaner",
     bestAvailableDescription:
-      "Fastest assignment — we match the top eligible cleaner. No need to choose manually.",
+      "Fastest assignment. we match the top eligible cleaner. No need to choose manually.",
     selectedHint:
       "We'll try your selected cleaner first. If they can't take the job, we'll assign the next best eligible match.",
     disclosureBestAvailable:
       "Highest-rated cleaner who is eligible for your service, area, and time.",
     disclosureSelected:
-      "We offer the job to them first after payment. If they decline or are unavailable, we continue with the next best match — you are still fully booked.",
+      "We offer the job to them first after payment. If they decline or are unavailable, we continue with the next best match. you are still fully booked.",
   };
 }
 
-/** Review hero — operational order for hosts. */
+/** Review hero. operational order for hosts. */
 export function buildAirbnbReviewHeroSegments(input: {
   scheduleLabel: string;
   locationLabel: string;
@@ -615,9 +615,9 @@ export function getWizardSummaryEstimateHint(serviceSlug: ServiceSlug | null): s
   const carpet = getCarpetWizardSummaryEstimateHint(serviceSlug);
   if (carpet) return carpet;
   if (isAirbnbCleaningSlug(serviceSlug)) {
-    return "Estimate only — confirmed total on review.";
+    return "Estimate only. confirmed total on review.";
   }
-  return "Estimate only — confirmed on review.";
+  return "Estimate only. confirmed on review.";
 }
 
 export function getWizardCleanerFootnote(serviceSlug: ServiceSlug | null): string | undefined {
@@ -637,7 +637,7 @@ export function getWizardCleanerFootnote(serviceSlug: ServiceSlug | null): strin
 
 export { isCarpetCleaningSlug, isDeepCleaningSlug, isMovingCleaningSlug };
 
-/** Customer dashboard status lines — presentation only. */
+/** Customer dashboard status lines. presentation only. */
 export function getReviewAddonsSectionLabel(serviceSlug: ServiceSlug | null): string {
   const officeReview = getOfficeCleaningReviewCopy(serviceSlug);
   if (officeReview) return officeReview.addonsSectionLabel;
@@ -675,7 +675,7 @@ export function customerAirbnbStatusLine(
     case "completed":
     case "payout_ready":
     case "paid_out":
-      return "Turnover complete — property prepared for guests.";
+      return "Turnover complete. property prepared for guests.";
     default:
       return defaultLine;
   }
@@ -700,16 +700,16 @@ export function customerAirbnbTimingHint(
   }
 }
 
-/** Cleaner dashboard job hero — turnover-focused. */
+/** Cleaner dashboard job hero. turnover-focused. */
 export function cleanerAirbnbJobDescription(
   status: BookingStatus,
   defaultDescription: string,
 ): string {
   switch (status) {
     case "assigned":
-      return "Turnover scheduled — review access and host instructions before arrival.";
+      return "Turnover scheduled. review access and host instructions before arrival.";
     case "in_progress":
-      return "Turnover in progress — finish guest-ready standards before marking complete.";
+      return "Turnover in progress. finish guest-ready standards before marking complete.";
     case "completed":
     case "payout_ready":
     case "paid_out":
@@ -725,7 +725,7 @@ export function cleanerAirbnbExpectedUpdate(
 ): string | null {
   switch (status) {
     case "assigned":
-      return "Start on site — follow host access and turnover extras";
+      return "Start on site. follow host access and turnover extras";
     case "in_progress":
       return "Mark complete when the property is guest-ready";
     default:
@@ -733,7 +733,7 @@ export function cleanerAirbnbExpectedUpdate(
   }
 }
 
-/** Future-ready checklist placeholders — display only, no enforcement. */
+/** Future-ready checklist placeholders. display only, no enforcement. */
 export const AIRBNB_CLEANER_CHECKLIST_PLACEHOLDERS = [
   "Linen completed",
   "Restock confirmed",

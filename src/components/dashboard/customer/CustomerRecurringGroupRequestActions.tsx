@@ -188,7 +188,7 @@ export function CustomerRecurringGroupRequestActions({
       <AdminRecurringConfirmSheet
         open={pending != null}
         title="Submit schedule change request?"
-        description="Our team reviews every request before your schedule changes — nothing is updated automatically."
+        description="Our team reviews every request before your schedule changes. nothing is updated automatically."
         confirmLabel="Submit request"
         destructive={pending?.type.includes("cancel") ?? false}
         loading={loading}

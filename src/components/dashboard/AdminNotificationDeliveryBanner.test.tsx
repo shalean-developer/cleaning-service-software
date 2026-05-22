@@ -22,7 +22,7 @@ describe("AdminNotificationDeliveryBanner", () => {
           ...baseBanner,
           appBaseUrl: "http://localhost:3000",
           appBaseUrlWarning:
-            "APP_BASE_URL resolves to localhost — email links may be wrong in production.",
+            "APP_BASE_URL resolves to localhost. email links may be wrong in production.",
         }}
       />,
     );
@@ -65,7 +65,7 @@ describe("AdminNotificationDeliveryBanner", () => {
           ...baseBanner,
           emailProvider: "dry_run",
           readinessHint:
-            "Dry-run mode — no live email provider. Failover is not enabled yet.",
+            "Dry-run mode. no live email provider. Failover is not enabled yet.",
         }}
       />,
     );

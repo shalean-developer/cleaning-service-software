@@ -450,7 +450,7 @@ describe("executeBookingCommand", () => {
         actor: adminActor,
         bookingId,
         offerId,
-        reason: "Admin withdrew offer — no response",
+        reason: "Admin withdrew offer. no response",
       },
       {},
     );

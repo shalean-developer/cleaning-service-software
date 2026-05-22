@@ -1,6 +1,6 @@
 /**
  * Carpet Cleaning customer-facing copy (payment return, bookings list, detail).
- * Presentation only — no payment, lifecycle, or dispatch behavior.
+ * Presentation only. no payment, lifecycle, or dispatch behavior.
  */
 
 import type { PaymentSuccessVariant } from "@/lib/app/paymentReturnDisplay";
@@ -60,7 +60,7 @@ export function getCarpetCustomerSuccessCopy(
       },
       {
         title: "Drying time",
-        body: "Allow drying time after cleaning — good ventilation helps carpets dry faster.",
+        body: "Allow drying time after cleaning. good ventilation helps carpets dry faster.",
       },
       {
         title: "Email updates",
@@ -167,7 +167,7 @@ export function getCarpetCustomerBookingListCopy(input: {
   if (status === "in_progress") {
     serviceSubtitle = "Carpet and floor-care service in progress";
   } else if (status === "completed" || status === "payout_ready" || status === "paid_out") {
-    serviceSubtitle = "Carpet refresh complete — allow drying time";
+    serviceSubtitle = "Carpet refresh complete. allow drying time";
   } else if (isUpcoming) {
     serviceSubtitle =
       status === "confirmed" || status === "pending_assignment" || status === "assigned"
@@ -240,7 +240,7 @@ export function customerCarpetCompactGuidance(
     case "assigned":
       return {
         primary: "Check this page before your visit for stain notes and access updates.",
-        secondary: "Allow drying time after cleaning — ventilate when possible.",
+        secondary: "Allow drying time after cleaning. ventilate when possible.",
       };
     case "in_progress":
       return {
@@ -251,7 +251,7 @@ export function customerCarpetCompactGuidance(
     case "payout_ready":
     case "paid_out":
       return {
-        primary: "Carpet refresh complete — thank you.",
+        primary: "Carpet refresh complete. thank you.",
         secondary: "Allow carpets to dry fully before heavy furniture replacement.",
       };
     default:

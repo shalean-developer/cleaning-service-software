@@ -48,7 +48,7 @@ export function buildInitializeCheckoutPayload(
   };
 }
 
-/** Client must never treat booking as confirmed — only redirect to Paystack. */
+/** Client must never treat booking as confirmed. only redirect to Paystack. */
 export function isPaystackRedirectResponse(body: unknown): body is {
   ok: true;
   authorization_url: string;

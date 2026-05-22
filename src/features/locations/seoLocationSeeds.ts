@@ -3,7 +3,7 @@ import { LOCATION_SEO_SLUG_LIST } from "../marketing/locationSlugList";
 /** URL segment after `/locations/` (e.g. sea-point-cape-town). */
 export type LocationSeoSlug = `${string}-cape-town`;
 
-/** Canonical 12 SEO suburb pages — order matches `locationSlugList.ts` for next.config. */
+/** Canonical 12 SEO suburb pages. order matches `locationSlugList.ts` for next.config. */
 export const SEO_LOCATION_SEEDS = [
   {
     name: "Sea Point",

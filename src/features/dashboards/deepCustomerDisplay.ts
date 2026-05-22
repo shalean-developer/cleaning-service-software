@@ -1,6 +1,6 @@
 /**
  * Deep Cleaning customer-facing copy (payment return, bookings list, detail).
- * Presentation only — no payment, lifecycle, or dispatch behavior.
+ * Presentation only. no payment, lifecycle, or dispatch behavior.
  */
 
 import type { PaymentSuccessVariant } from "@/lib/app/paymentReturnDisplay";
@@ -245,7 +245,7 @@ export function customerDeepCompactGuidance(
     case "payout_ready":
     case "paid_out":
       return {
-        primary: "Home restoration complete — thank you.",
+        primary: "Home restoration complete. thank you.",
       };
     default:
       return null;

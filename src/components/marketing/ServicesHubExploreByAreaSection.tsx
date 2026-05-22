@@ -17,7 +17,7 @@ export function ServicesHubExploreByAreaSection({ compact = false }: Props) {
         </h2>
       ) : null}
       <p className={`text-sm leading-relaxed text-slate-600 ${compact ? "mt-0" : "mt-3"}`}>
-        Browse suburb pages for local service detail, pricing guidance, and booking — grouped by
+        Browse suburb pages for local service detail, pricing guidance, and booking. grouped by
         region.
       </p>
       <p className="mt-4">

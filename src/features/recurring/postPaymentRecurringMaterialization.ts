@@ -8,7 +8,7 @@ import { materializeRecurringSeriesFromBooking } from "./materializeRecurringSer
 
 /**
  * Runs after payment finalization (alongside assignment dispatch).
- * Does not modify finalizePaidBooking — extends the post-payment hook path only.
+ * Does not modify finalizePaidBooking. extends the post-payment hook path only.
  */
 export async function runPostPaymentRecurringMaterialization(
   client: SupabaseClient<Database>,

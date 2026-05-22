@@ -30,7 +30,7 @@ export default async function AdminRecurringHealthPage() {
           Recurring health
         </h1>
         <p className={ADMIN_OVERVIEW_MUTED_CLASS}>
-          Operational monitoring for the recurring booking engine — read-only, no destructive
+          Operational monitoring for the recurring booking engine. read-only, no destructive
           actions.
         </p>
         <Link

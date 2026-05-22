@@ -1,6 +1,6 @@
 /**
  * Move In/Out Cleaning customer-facing copy (payment return, bookings list, detail).
- * Presentation only — no payment, lifecycle, or dispatch behavior.
+ * Presentation only. no payment, lifecycle, or dispatch behavior.
  */
 
 import type { PaymentSuccessVariant } from "@/lib/app/paymentReturnDisplay";
@@ -245,7 +245,7 @@ export function customerMovingCompactGuidance(
     case "payout_ready":
     case "paid_out":
       return {
-        primary: "Property prepared for handover or move-in — thank you.",
+        primary: "Property prepared for handover or move-in. thank you.",
       };
     default:
       return null;

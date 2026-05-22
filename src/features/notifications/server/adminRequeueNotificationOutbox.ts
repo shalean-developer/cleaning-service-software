@@ -302,7 +302,7 @@ export async function adminRequeueNotificationOutbox(
     status: "pending",
     deliveryDedupeWouldBlock,
     message: deliveryDedupeWouldBlock
-      ? `Notification requeued. Worker may skip send if delivery dedupe applies — wait for cron.${dryRunSuffix}`
+      ? `Notification requeued. Worker may skip send if delivery dedupe applies. wait for cron.${dryRunSuffix}`
       : `Notification requeued to pending. Worker will process on the next cron run.${dryRunSuffix}`,
   };
 }

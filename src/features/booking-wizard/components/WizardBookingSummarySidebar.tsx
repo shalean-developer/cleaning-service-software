@@ -62,7 +62,7 @@ function BookingSummaryCard({ snapshot, footnote }: Props) {
         ) : (
           <p className="mt-0.5 text-sm text-zinc-600">Add home details to see an estimate.</p>
         )}
-        <p className={`mt-1 ${UI_HELPER_TEXT_CLASS}`}>Estimate only — confirmed on review.</p>
+        <p className={`mt-1 ${UI_HELPER_TEXT_CLASS}`}>Estimate only. confirmed on review.</p>
       </div>
 
       {footnote ? <p className={`mt-2.5 ${UI_HELPER_TEXT_CLASS}`}>{footnote}</p> : null}

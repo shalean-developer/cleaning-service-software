@@ -96,12 +96,12 @@ describe("CustomerBookingListCard", () => {
           display: {
             ...minimalBooking().display,
             isTwoCleanerRequest: true,
-            teamSupportLabel: "Team support requested — awaiting confirmation",
+            teamSupportLabel: "Team support requested. awaiting confirmation",
           },
         })}
       />,
     );
 
-    expect(html).toContain("Team support requested — awaiting confirmation");
+    expect(html).toContain("Team support requested. awaiting confirmation");
   });
 });

@@ -120,7 +120,7 @@ export function buildAssignmentLatencyTrends7d(
   const coverageComplete = coverageHours7d >= TRENDS_PARTIAL_COVERAGE_THRESHOLD;
   const partialCoverageNote = coverageComplete
     ? null
-    : `7-day latency uses ${coverageHours7d} of ${TRENDS_FULL_COVERAGE_HOURS} expected hourly buckets — run the rollup cron or backfill.`;
+    : `7-day latency uses ${coverageHours7d} of ${TRENDS_FULL_COVERAGE_HOURS} expected hourly buckets. run the rollup cron or backfill.`;
 
   return {
     timeToAssigned: buildAssignmentLatencyApproximateMetricDto(

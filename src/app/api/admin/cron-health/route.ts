@@ -5,7 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
  * Read-only cron health for Regular Cleaning launch ops (no secrets).
- * GET — admin session required.
+ * GET. admin session required.
  */
 export async function GET() {
   const user = await requireApiUser(["admin"]);

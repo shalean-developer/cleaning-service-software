@@ -1,4 +1,4 @@
-/** RC-5A — shared loading, fetch-error, and empty-state copy (presentation only). */
+/** RC-5A. shared loading, fetch-error, and empty-state copy (presentation only). */
 
 export const DASHBOARD_LOADING_SR_LABEL = "Loading…" as const;
 
@@ -67,7 +67,7 @@ export function dashboardFetchErrorTitle(
 
 /** List-card helper when payment is incomplete (customer bookings list). */
 export const CUSTOMER_PAYMENT_INCOMPLETE_LIST_HELPER =
-  "Payment not completed — open booking to pay" as const;
+  "Payment not completed. open booking to pay" as const;
 
 export function customerBookingPaymentLineClass(tone: "muted" | "attention"): string {
   return tone === "attention"

@@ -16,7 +16,7 @@ export function PricingHubAreaLinksSection() {
         Popular areas we serve
       </h2>
       <p className="mt-3 text-base leading-relaxed text-slate-600">
-        Metro-wide starting prices apply across Cape Town — suburb pages explain local service
+        Metro-wide starting prices apply across Cape Town. suburb pages explain local service
         options and booking for your neighbourhood.
       </p>
       <ul className="mt-5 flex flex-wrap gap-2">

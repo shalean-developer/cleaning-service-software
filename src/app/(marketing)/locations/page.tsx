@@ -20,7 +20,7 @@ import {
 export const metadata: Metadata = buildMarketingMetadata({
   title: "Cleaning Service Areas Cape Town | Shalean",
   description:
-    "Shalean cleaning services across Cape Town suburbs — Sea Point, Claremont, Camps Bay, Century City, Bellville, and more.",
+    "Shalean cleaning services across Cape Town suburbs. Sea Point, Claremont, Camps Bay, Century City, Bellville, and more.",
   path: LOCATIONS_HUB_PATH,
 });
 

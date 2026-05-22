@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isCustomerSignupEnabled } from "@/lib/auth/customerSignupFlag";
+import { buildAuthPathWithRedirect } from "@/lib/auth/bookingAuthPaths";
 import { SIGN_IN_PATH } from "@/lib/auth/redirects";
 
 export const metadata: Metadata = {
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 type PageProps = {
-  searchParams: Promise<{ email?: string }>;
+  searchParams: Promise<{ email?: string; redirectedFrom?: string }>;
 };
 
 export default async function SignUpCheckEmailPage({ searchParams }: PageProps) {
@@ -18,8 +19,9 @@ export default async function SignUpCheckEmailPage({ searchParams }: PageProps) 
     redirect(SIGN_IN_PATH);
   }
 
-  const { email } = await searchParams;
+  const { email, redirectedFrom } = await searchParams;
   const trimmedEmail = email?.trim();
+  const signInHref = buildAuthPathWithRedirect(SIGN_IN_PATH, redirectedFrom);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-4 py-16">
@@ -41,7 +43,7 @@ export default async function SignUpCheckEmailPage({ searchParams }: PageProps) 
       </section>
       <p className="text-center text-sm text-zinc-600">
         <Link
-          href={SIGN_IN_PATH}
+          href={signInHref}
           className="font-medium text-zinc-900 underline-offset-2 hover:underline"
         >
           Back to sign in

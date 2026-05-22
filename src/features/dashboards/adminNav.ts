@@ -6,7 +6,7 @@ export type AdminNavGroup = {
   readonly items: readonly NavItem[];
 };
 
-/** Primary destination — rendered separately from operational groups. */
+/** Primary destination. rendered separately from operational groups. */
 export const ADMIN_DASHBOARD_HOME: NavItem = {
   href: "/admin",
   label: "Overview",

@@ -25,18 +25,18 @@ const PRIMARY_PATHS: AssignmentAnalyticsPath[] = [
 ];
 
 function formatPercent(value: number | null): string {
-  if (value == null) return "—";
+  if (value == null) return "-";
   return `${value}%`;
 }
 
 function formatDeltaPercent(value: number | null): string {
-  if (value == null) return "—";
+  if (value == null) return "-";
   const arrow = value > 0 ? "↑" : value < 0 ? "↓" : "→";
   return `${arrow} ${Math.abs(value)}% vs prior week`;
 }
 
 function formatDeltaPoints(value: number | null): string {
-  if (value == null) return "—";
+  if (value == null) return "-";
   const arrow = value > 0 ? "↑" : value < 0 ? "↓" : "→";
   return `${arrow} ${Math.abs(value)} pts vs prior week`;
 }
@@ -154,7 +154,7 @@ export function AdminAssignmentAnalyticsPanel({ analytics }: Props) {
       <section className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-5">
         <h2 className="text-sm font-semibold text-zinc-900">Assignment funnel (24h live)</h2>
         <p className="mt-1 text-xs text-zinc-600">
-          Aggregated from assignment offers and booking audit events. Read-only — does not change
+          Aggregated from assignment offers and booking audit events. Read-only. does not change
           assignment behavior. Open offers are excluded from accept rate.
         </p>
 
@@ -183,7 +183,7 @@ export function AdminAssignmentAnalyticsPanel({ analytics }: Props) {
         <h2 className="text-sm font-semibold text-zinc-900">Assignment latency (24h live)</h2>
         <p className="mt-1 text-xs text-zinc-600">
           Median durations from booking and offer timestamps in the rolling 24h window. Open and
-          expired offers are excluded from cleaner response time. Figures are global — not split by
+          expired offers are excluded from cleaner response time. Figures are global. not split by
           assignment path.
         </p>
 
@@ -215,7 +215,7 @@ export function AdminAssignmentAnalyticsPanel({ analytics }: Props) {
         <h2 className="text-sm font-semibold text-zinc-900">Assignment latency (7d rollup)</h2>
         <p className="mt-1 text-xs text-zinc-600">
           Approximate median from hourly duration histograms on assignment_metrics_hourly. Values
-          use bucket midpoints — not exact medians. Run the rollup cron or a 168h backfill after
+          use bucket midpoints. not exact medians. Run the rollup cron or a 168h backfill after
           deploying histogram columns.
         </p>
 
@@ -242,7 +242,7 @@ export function AdminAssignmentAnalyticsPanel({ analytics }: Props) {
         ) : null}
 
         <p className="mt-3 text-xs text-zinc-500">
-          Path-specific latency deferred. Figures are global — not split by assignment path.
+          Path-specific latency deferred. Figures are global. not split by assignment path.
         </p>
       </section>
 

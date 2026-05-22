@@ -258,11 +258,11 @@ async function listFilteredNotificationRows(
 const WORKER_RUN_SELECT =
   "id, started_at, completed_at, ok, delivery_enabled, email_provider, trigger_source, reclaimed, scanned, sent, skipped, failed, dry_run, error_count, created_at";
 
-/** Worker fields for 24h analytics — must not include `errors` JSONB (5H-a). */
+/** Worker fields for 24h analytics. must not include `errors` JSONB (5H-a). */
 export const WORKER_RUN_ANALYTICS_SELECT =
   "ok, delivery_enabled, email_provider, reclaimed, scanned, sent, skipped, failed, dry_run, completed_at";
 
-/** Hourly rollup fields for 7d trends — counters only (5H-b). */
+/** Hourly rollup fields for 7d trends. counters only (5H-b). */
 export const METRICS_HOURLY_TRENDS_SELECT =
   "bucket_start, run_count, sent_count, failed_count, dry_run_count, live_sent_count, live_failed_count";
 
@@ -491,7 +491,7 @@ function buildDeliveryBanner(): AdminNotificationDeliveryBannerModel {
 
   let appBaseUrlWarning: string | null = null;
   if (isLocalhostAppBaseUrl(config.appBaseUrl)) {
-    appBaseUrlWarning = "APP_BASE_URL resolves to localhost — email links may be wrong in production.";
+    appBaseUrlWarning = "APP_BASE_URL resolves to localhost. email links may be wrong in production.";
   }
 
   const resendConfigured = Boolean(
@@ -503,7 +503,7 @@ function buildDeliveryBanner(): AdminNotificationDeliveryBannerModel {
     readinessHint =
       "Set NOTIFICATION_FROM_EMAIL and RESEND_API_KEY. Postmark and failover are not enabled yet.";
   } else if (deliveryEnabled && emailProvider === "dry_run") {
-    readinessHint = "Dry-run mode — no live email provider. Failover is not enabled yet.";
+    readinessHint = "Dry-run mode. no live email provider. Failover is not enabled yet.";
   }
 
   return {
@@ -610,5 +610,5 @@ export async function getAdminNotificationHealthPage(
   };
 }
 
-/** @internal Exported for tests — classifies a row without DB. */
+/** @internal Exported for tests. classifies a row without DB. */
 export { isDeliverableNotificationRow };

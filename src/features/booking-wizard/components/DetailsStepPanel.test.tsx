@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { DetailsStepPanel } from "./DetailsStepPanel";
 
-describe("DetailsStepPanel — regular cleaning hints", () => {
+describe("DetailsStepPanel. regular cleaning hints", () => {
   const noop = () => {};
 
   const baseProps = {

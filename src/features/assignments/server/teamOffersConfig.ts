@@ -1,7 +1,7 @@
 import "server-only";
 
 /**
- * NF-7D: Team slot offers and roster sync. Disabled by default — single-cleaner dispatch unchanged.
+ * NF-7D: Team slot offers and roster sync. Disabled by default. single-cleaner dispatch unchanged.
  * Set TEAM_OFFERS_ENABLED=true to allow primary+support open offers and roster wiring.
  */
 export function isTeamOffersEnabled(): boolean {

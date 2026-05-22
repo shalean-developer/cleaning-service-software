@@ -87,7 +87,7 @@ function resolveGroupActionsAllowed(
 }
 
 function weekdayLabel(weekday: number | null | undefined): string {
-  if (weekday == null || weekday < 0 || weekday > 6) return "—";
+  if (weekday == null || weekday < 0 || weekday > 6) return "-";
   return RECURRING_WEEKDAY_FULL_LABELS[weekday] ?? String(weekday);
 }
 
@@ -296,7 +296,7 @@ function buildGroupTimeline(input: {
       status: b.status,
       paymentStatus: payment?.status ?? null,
       priceCents,
-      priceLabel: priceCents != null ? formatZar(priceCents) : "—",
+      priceLabel: priceCents != null ? formatZar(priceCents) : "-",
       cleanerLabel: b.cleaner_id
         ? (input.cleanerLabels.get(b.cleaner_id) ?? null)
         : null,
@@ -466,7 +466,7 @@ export async function getAdminRecurringScheduleGroupDetail(
       groupId: req.groupId,
       weekdayLabel:
         req.targetWeekdayLabel ??
-        (req.seriesId ? (seriesWeekdayById.get(req.seriesId) ?? "—") : "All weekdays"),
+        (req.seriesId ? (seriesWeekdayById.get(req.seriesId) ?? "-") : "All weekdays"),
       requestType: req.requestType,
       requestTypeLabel: req.requestTypeLabel,
       scope: req.scope,
@@ -507,13 +507,13 @@ export async function getAdminRecurringScheduleGroupDetail(
             : {};
         const action =
           (meta.recurringSeries as Record<string, unknown> | undefined)?.action ?? a.command;
-        return `${a.created_at}: ${String(action)}${a.reason ? ` — ${a.reason}` : ""}`;
+        return `${a.created_at}: ${String(action)}${a.reason ? `. ${a.reason}` : ""}`;
       });
 
     const firstSeries = seriesList[0];
     const location = firstSeries
       ? parseSeriesLocation(firstSeries.template_metadata)
-      : { suburb: null as string | null, addressSummary: "—" };
+      : { suburb: null as string | null, addressSummary: "-" };
 
     const detail: AdminRecurringScheduleGroupDetail = {
       groupId: group.id,

@@ -70,7 +70,7 @@ export function CustomerHomeUpcomingCard({ featured, alsoScheduled }: Props) {
         </p>
         <h2 className="mt-2 font-serif text-2xl font-medium text-shalean-navy">No upcoming visits</h2>
         <p className="mt-2 max-w-md text-sm text-zinc-600">
-          Book your next clean in under 2 minutes — we will match a cleaner after checkout.
+          Book your next clean in under 2 minutes. we will match a cleaner after checkout.
         </p>
         <div className="mt-5">
           <CustomerBookACleanCta />

@@ -100,7 +100,7 @@ describe("parseBookingDisplay", () => {
     });
     expect(awaiting.isTwoCleanerRequest).toBe(true);
     expect(awaiting.teamSupportLabel).toBe(
-      "Team support requested — awaiting confirmation",
+      "Team support requested. awaiting confirmation",
     );
 
     const confirmed = parseBookingDisplay({
@@ -113,7 +113,7 @@ describe("parseBookingDisplay", () => {
         },
       },
     });
-    expect(confirmed.teamSupportLabel).toBe("Team support confirmed — 2 cleaners");
+    expect(confirmed.teamSupportLabel).toBe("Team support confirmed. 2 cleaners");
   });
 
   it("enriches customer calm copy during decline redispatch", () => {

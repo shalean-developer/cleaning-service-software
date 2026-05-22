@@ -28,7 +28,10 @@ describe("Sign-in page signup link gating", () => {
     expect(contentSource).toContain("resolveSignInPageCopy");
     expect(contentSource).toContain("isCleanerSignInIntent");
     expect(contentSource).toContain("copy.subtitle");
-    expect(contentSource).toContain("Create one");
+    expect(contentSource).toContain("Create an account");
+    expect(contentSource).toContain("New to Shalean?");
+    expect(contentSource).toContain("Shalean Cleaning Services • Cape Town");
+    expect(contentSource).not.toContain("Cleaner? Use the cleaner sign-in page");
     expect(contentSource).toContain("Reset your password");
     expect(contentSource).not.toContain("UI_AUTH_CARD_CLASS");
     expect(contentSource).not.toContain("SignInBrandMark");
@@ -64,8 +67,10 @@ describe("SignInForm server action", () => {
       "utf8",
     );
     expect(source).toContain("Email or mobile number");
-    expect(source).toContain('type="text"');
-    expect(source).toContain('autoComplete="username"');
+    expect(source).toContain("Phone number");
+    expect(source).not.toContain("Customers can use their email");
+    expect(source).toContain('cleanerIntent ? "tel" : "text"');
+    expect(source).toContain('autoComplete={cleanerIntent ? "tel" : "username"}');
     expect(source).not.toContain('type="email"');
   });
 
@@ -75,6 +80,8 @@ describe("SignInForm server action", () => {
       "utf8",
     );
     expect(source).toContain("Forgot password?");
+    expect(source).toContain("Contact support");
+    expect(source).toContain("cleanerIntent");
     expect(source).toContain("onForgotPassword");
   });
 
@@ -85,7 +92,9 @@ describe("SignInForm server action", () => {
     );
     expect(source).toContain("UI_AUTH_INPUT_CLASS");
     expect(source).toContain('name="password"');
-    expect(source).toContain('type="password"');
+    expect(source).toContain("Show password");
+    expect(source).toContain("Hide password");
+    expect(source).toContain("showPassword");
     expect(source).not.toContain("signInWithPassword");
   });
 });

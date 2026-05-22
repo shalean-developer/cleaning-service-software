@@ -22,7 +22,7 @@ async function fetchCustomerByProfileId(
 ) {
   const { data, error } = await serviceClient
     .from("customers")
-    .select("id, profile_id, company_name")
+    .select("id, profile_id, company_name, phone")
     .eq("profile_id", profileId)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -113,6 +113,19 @@ describe("customer auto-provisioning (Supabase integration)", () => {
     expect(customer).not.toBeNull();
     expect(customer?.profile_id).toBe(profileId);
     expect(customer?.company_name).toBe("Provisioned Customer");
+  });
+
+  it("stores normalized phone from signup metadata on the customers row", async (ctx) => {
+    skipUnlessReady(ctx);
+    const email = stage1cEmail(`cust_phone_${runId}`);
+    const profileId = await createAuthUserWithMetadata(serviceClient!, email, {
+      full_name: "Phone Customer",
+      phone: "+27821234567",
+    });
+    createdProfileIds.push(profileId);
+
+    const customer = await fetchCustomerByProfileId(serviceClient!, profileId);
+    expect(customer?.phone).toBe("+27821234567");
   });
 
   it("does not create a customers row when an admin profile is inserted", async (ctx) => {
@@ -236,7 +249,7 @@ describe("customer auto-provisioning (Supabase integration)", () => {
 
     const { data: byProfile } = await serviceClient!
       .from("customers")
-      .select("id, profile_id, company_name")
+      .select("id, profile_id, company_name, phone")
       .eq("profile_id", profileId)
       .maybeSingle();
 

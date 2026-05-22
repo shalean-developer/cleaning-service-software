@@ -15,7 +15,7 @@ export type AdminBookingsPreset = {
   filter?: AdminBookingFilter;
 };
 
-/** Preset chips for /admin/bookings — each maps to an existing server filter only. */
+/** Preset chips for /admin/bookings. each maps to an existing server filter only. */
 export const ADMIN_BOOKINGS_PRESETS: readonly AdminBookingsPreset[] = [
   { id: "needs_attention", label: "Needs attention", filter: "assignment_attention" },
   { id: "payment_issues", label: "Payment issues", filter: "payment_failed" },

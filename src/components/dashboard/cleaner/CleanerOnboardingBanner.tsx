@@ -40,10 +40,10 @@ export function CleanerOnboardingBanner({
             <li key={item}>{item}</li>
           ))}
           {!hasCapabilities ? (
-            <li className="text-sky-800">Service capabilities — pending</li>
+            <li className="text-sky-800">Service capabilities. pending</li>
           ) : null}
           {!hasAvailability ? (
-            <li className="text-sky-800">Weekly availability — pending</li>
+            <li className="text-sky-800">Weekly availability. pending</li>
           ) : null}
         </ul>
         <p className="mt-3 text-sky-800">

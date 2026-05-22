@@ -40,7 +40,7 @@ export function AdminAssignmentsOperationsHeader({
               <span className="text-zinc-500"> shown</span>
             ) : null}
             {" · "}
-            triage bookings below — open booking for actions
+            triage bookings below. open booking for actions
           </p>
         </div>
         <div className="flex flex-wrap gap-1.5">

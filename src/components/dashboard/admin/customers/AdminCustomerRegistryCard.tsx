@@ -90,7 +90,7 @@ export function AdminCustomerRegistryCard({ model }: Props) {
             ))
           ) : (
             <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
-              —
+              -
             </span>
           )}
         </div>

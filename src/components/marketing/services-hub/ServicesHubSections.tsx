@@ -309,7 +309,7 @@ export function ServicesHubSections({ heroAfterBreadcrumbs }: ServicesHubSection
             eyebrow="Service directory"
             id="ecosystem-heading"
             title="Cleaning services for every home and business"
-            subtitle="Browse Shalean's full Cape Town offering — from everyday home care to specialized commercial and host services."
+            subtitle="Browse Shalean's full Cape Town offering. from everyday home care to specialized commercial and host services."
           />
           <ul className="mt-10 grid auto-rows-fr grid-cols-1 gap-5 sm:grid-cols-2 lg:mt-12 lg:grid-cols-3 lg:gap-6">
             {SERVICES_HUB_ECOSYSTEM.map((card) => (
@@ -434,7 +434,7 @@ export function ServicesHubSections({ heroAfterBreadcrumbs }: ServicesHubSection
           <HubSectionHeader
             id="locations-heading"
             title="Explore by area"
-            subtitle="Suburb pages with local service detail — without leaving the services directory."
+            subtitle="Suburb pages with local service detail. without leaving the services directory."
           />
           <ServicesHubExploreByAreaSection compact />
         </MarketingContainer>

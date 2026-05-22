@@ -74,7 +74,7 @@ describe("priorityScoreForAdminBookingBadge", () => {
       tone: "danger",
     });
     const assignment = priorityScoreForAdminBookingBadge({
-      label: "Offer sent — awaiting acceptance",
+      label: "Offer sent. awaiting acceptance",
       tone: "warning",
     });
     const service = priorityScoreForAdminBookingBadge({

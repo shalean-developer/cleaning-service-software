@@ -5,7 +5,7 @@ import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 /**
  * Admin read-model helper: resolves auth email via service role (read-only).
- * Returns null when customer, profile, or auth user is missing — never throws.
+ * Returns null when customer, profile, or auth user is missing. never throws.
  */
 export async function resolveCustomerEmailOrNull(customerId: string): Promise<string | null> {
   try {

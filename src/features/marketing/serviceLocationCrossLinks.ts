@@ -29,7 +29,7 @@ export const SERVICE_LOCATION_CROSS_LINKS: Record<ServiceSlug, ServiceLocationCr
   "regular-cleaning": {
     serviceSlug: "regular-cleaning",
     introCopy:
-      "Regular home cleaning is popular across Cape Town suburbs — from Atlantic Seaboard apartments to Southern Suburbs family homes.",
+      "Regular home cleaning is popular across Cape Town suburbs. from Atlantic Seaboard apartments to Southern Suburbs family homes.",
     featuredAreas: [
       "Sea Point",
       "Claremont",

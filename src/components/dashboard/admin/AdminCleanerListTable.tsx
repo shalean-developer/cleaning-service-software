@@ -77,7 +77,7 @@ function CleanerListRowCells({ item }: { item: AdminCleanerListItem }) {
             className="text-zinc-600"
           />
         ) : (
-          "—"
+          "-"
         )}
       </div>
       <div className="min-w-0 px-3 text-zinc-600">
@@ -88,7 +88,7 @@ function CleanerListRowCells({ item }: { item: AdminCleanerListItem }) {
             className="whitespace-nowrap text-zinc-600"
           />
         ) : (
-          "—"
+          "-"
         )}
       </div>
       <div className="min-w-0 px-3">

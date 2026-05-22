@@ -4,12 +4,15 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import { IconCalendar, IconChevron } from "./icons";
 import {
   WEEKDAY_LABELS,
@@ -35,8 +38,12 @@ type MarketingDatePickerProps = {
 const triggerBaseClass =
   "marketing-focus-ring flex h-14 w-full items-center gap-2 rounded-2xl border border-slate-200/90 bg-white px-4 text-left text-[0.9375rem] text-shalean-navy outline-none transition hover:border-slate-300 focus:border-shalean-primary/80 focus:ring-[3px] focus:ring-shalean-primary/10";
 
+const PANEL_GAP_PX = 8;
+const PANEL_ESTIMATED_HEIGHT_PX = 340;
+const PANEL_Z_INDEX = 60;
+
 const panelClass =
-  "absolute z-50 mt-2 w-full min-w-[17.5rem] rounded-2xl border border-slate-200/90 bg-white p-4 shadow-[0_12px_40px_rgba(15,23,42,0.12),0_4px_12px_rgba(15,23,42,0.06)] sm:min-w-[19rem]";
+  "min-w-[17.5rem] rounded-2xl border border-slate-200/90 bg-white p-4 shadow-[0_12px_40px_rgba(15,23,42,0.12),0_4px_12px_rgba(15,23,42,0.06)] sm:min-w-[19rem]";
 
 function ChevronNavIcon({ direction }: { direction: "left" | "right" }) {
   return (
@@ -71,7 +78,11 @@ export function MarketingDatePicker({
   const [viewMonthIndex, setViewMonthIndex] = useState(initialView.monthIndex);
 
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const panelId = useId();
+  const [panelStyle, setPanelStyle] = useState<CSSProperties | null>(null);
+  const [portalReady, setPortalReady] = useState(false);
 
   const displayLabel = formatMarketingDisplayDate(value);
   const monthLabel = formatMonthYearLabel(viewYear, viewMonthIndex);
@@ -106,6 +117,41 @@ export function MarketingDatePicker({
 
   const close = useCallback(() => setOpen(false), []);
 
+  const updatePanelPosition = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const viewportPadding = 12;
+    const width = Math.max(rect.width, 280);
+    const maxLeft = window.innerWidth - width - viewportPadding;
+    const left = Math.max(viewportPadding, Math.min(rect.left, maxLeft));
+
+    const spaceBelow = window.innerHeight - rect.bottom - PANEL_GAP_PX;
+    const openAbove =
+      spaceBelow < PANEL_ESTIMATED_HEIGHT_PX &&
+      rect.top > PANEL_ESTIMATED_HEIGHT_PX + PANEL_GAP_PX;
+
+    if (openAbove) {
+      setPanelStyle({
+        position: "fixed",
+        left,
+        width,
+        bottom: window.innerHeight - rect.top + PANEL_GAP_PX,
+        zIndex: PANEL_Z_INDEX,
+      });
+      return;
+    }
+
+    setPanelStyle({
+      position: "fixed",
+      top: rect.bottom + PANEL_GAP_PX,
+      left,
+      width,
+      zIndex: PANEL_Z_INDEX,
+    });
+  }, []);
+
   const selectDate = useCallback(
     (iso: string) => {
       onChange(iso);
@@ -130,12 +176,36 @@ export function MarketingDatePicker({
   }, []);
 
   useEffect(() => {
+    setPortalReady(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setPanelStyle(null);
+      return;
+    }
+
+    updatePanelPosition();
+
+    const onReposition = () => updatePanelPosition();
+    window.addEventListener("resize", onReposition);
+    window.addEventListener("scroll", onReposition, true);
+
+    return () => {
+      window.removeEventListener("resize", onReposition);
+      window.removeEventListener("scroll", onReposition, true);
+    };
+  }, [open, updatePanelPosition]);
+
+  useEffect(() => {
     if (!open) return;
 
     const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        close();
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target) || panelRef.current?.contains(target)) {
+        return;
       }
+      close();
     };
 
     document.addEventListener("pointerdown", onPointerDown);
@@ -170,13 +240,87 @@ export function MarketingDatePicker({
     <IconCalendar className="h-[1.125rem] w-[1.125rem]" aria-hidden />
   );
 
+  const calendarPanel = open && panelStyle ? (
+    <div
+      ref={panelRef}
+      id={panelId}
+      role="dialog"
+      aria-label={ariaLabel}
+      className={panelClass}
+      style={panelStyle}
+    >
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <button
+          type="button"
+          aria-label="Previous month"
+          disabled={!canGoBack}
+          onClick={() => shiftMonth(-1)}
+          className="marketing-focus-ring inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-35"
+        >
+          <ChevronNavIcon direction="left" />
+        </button>
+        <p className="text-sm font-semibold text-shalean-navy">{monthLabel}</p>
+        <button
+          type="button"
+          aria-label="Next month"
+          disabled={!canGoForward}
+          onClick={() => shiftMonth(1)}
+          className="marketing-focus-ring inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-35"
+        >
+          <ChevronNavIcon direction="right" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1 text-center" role="grid" aria-label="Calendar">
+        {WEEKDAY_LABELS.map((label) => (
+          <div
+            key={label}
+            role="columnheader"
+            className="py-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400"
+          >
+            {label}
+          </div>
+        ))}
+        {cells.map((cell, index) => {
+          if (cell.iso == null) {
+            return <div key={`pad-${index}`} role="gridcell" aria-hidden />;
+          }
+
+          return (
+            <button
+              key={cell.iso}
+              type="button"
+              role="gridcell"
+              disabled={cell.disabled}
+              aria-label={formatMarketingDisplayDate(cell.iso)}
+              aria-selected={cell.isSelected}
+              onClick={() => selectDate(cell.iso!)}
+              className={`marketing-focus-ring mx-auto flex h-9 w-9 items-center justify-center rounded-xl text-sm font-medium transition ${
+                cell.isSelected
+                  ? "bg-shalean-primary text-white shadow-sm shadow-blue-500/25"
+                  : cell.isToday
+                    ? "text-shalean-primary ring-1 ring-shalean-primary/30 hover:bg-shalean-soft-blue/50"
+                    : cell.disabled
+                      ? "cursor-not-allowed text-slate-300"
+                      : "text-shalean-navy hover:bg-shalean-soft-blue/50"
+              }`}
+            >
+              {cell.day}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div
       ref={rootRef}
-      className={`relative ${className}`.trim()}
+      className={`relative overflow-visible ${className}`.trim()}
       onKeyDown={onKeyDown}
     >
       <button
+        ref={triggerRef}
         type="button"
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -195,76 +339,9 @@ export function MarketingDatePicker({
         />
       </button>
 
-      {open ? (
-        <div
-          id={panelId}
-          role="dialog"
-          aria-label={ariaLabel}
-          className={panelClass}
-        >
-          <div className="mb-4 flex items-center justify-between gap-2">
-            <button
-              type="button"
-              aria-label="Previous month"
-              disabled={!canGoBack}
-              onClick={() => shiftMonth(-1)}
-              className="marketing-focus-ring inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-35"
-            >
-              <ChevronNavIcon direction="left" />
-            </button>
-            <p className="text-sm font-semibold text-shalean-navy">{monthLabel}</p>
-            <button
-              type="button"
-              aria-label="Next month"
-              disabled={!canGoForward}
-              onClick={() => shiftMonth(1)}
-              className="marketing-focus-ring inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-35"
-            >
-              <ChevronNavIcon direction="right" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-7 gap-1 text-center" role="grid" aria-label="Calendar">
-            {WEEKDAY_LABELS.map((label) => (
-              <div
-                key={label}
-                role="columnheader"
-                className="py-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400"
-              >
-                {label}
-              </div>
-            ))}
-            {cells.map((cell, index) => {
-              if (cell.iso == null) {
-                return <div key={`pad-${index}`} role="gridcell" aria-hidden />;
-              }
-
-              return (
-                <button
-                  key={cell.iso}
-                  type="button"
-                  role="gridcell"
-                  disabled={cell.disabled}
-                  aria-label={formatMarketingDisplayDate(cell.iso)}
-                  aria-selected={cell.isSelected}
-                  onClick={() => selectDate(cell.iso!)}
-                  className={`marketing-focus-ring mx-auto flex h-9 w-9 items-center justify-center rounded-xl text-sm font-medium transition ${
-                    cell.isSelected
-                      ? "bg-shalean-primary text-white shadow-sm shadow-blue-500/25"
-                      : cell.isToday
-                        ? "text-shalean-primary ring-1 ring-shalean-primary/30 hover:bg-shalean-soft-blue/50"
-                        : cell.disabled
-                          ? "cursor-not-allowed text-slate-300"
-                          : "text-shalean-navy hover:bg-shalean-soft-blue/50"
-                  }`}
-                >
-                  {cell.day}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
+      {portalReady && calendarPanel
+        ? createPortal(calendarPanel, document.body)
+        : null}
     </div>
   );
 }

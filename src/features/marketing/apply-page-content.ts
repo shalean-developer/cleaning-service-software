@@ -90,7 +90,7 @@ export const APPLY_PROCESS_STEPS = [
   {
     step: 1,
     title: "Submit application",
-    description: "Complete the short multi-step form — no account required.",
+    description: "Complete the short multi-step form. no account required.",
   },
   {
     step: 2,
@@ -122,7 +122,7 @@ export const APPLY_REQUIREMENTS = [
 ] as const;
 
 export const APPLY_REQUIREMENTS_NOTE =
-  "ID verification, banking, and other sensitive documents are collected later during onboarding — not on this application form.";
+  "ID verification, banking, and other sensitive documents are collected later during onboarding. not on this application form.";
 
 export const APPLY_PAGE_FAQ = [
   {
@@ -141,7 +141,7 @@ export const APPLY_PAGE_FAQ = [
       "No. Approval and onboarding make you eligible for offers; actual work depends on demand, your areas, and availability.",
   },
   {
-    question: "I already work with Shalean — where do I sign in?",
+    question: "I already work with Shalean. where do I sign in?",
     answer: "Use Cleaner sign in for your dashboard. This page is for new applicants only.",
   },
 ] as const;

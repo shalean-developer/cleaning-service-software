@@ -15,7 +15,7 @@ import {
 } from "@/features/marketing/seo";
 
 const HUB_DESCRIPTION =
-  "Explore Shalean's professional cleaning services in Cape Town — regular, deep, move-in/out, Airbnb, office and carpet cleaning. Vetted cleaners, secure booking, and transparent pricing.";
+  "Explore Shalean's professional cleaning services in Cape Town. regular, deep, move-in/out, Airbnb, office and carpet cleaning. Vetted cleaners, secure booking, and transparent pricing.";
 
 export const metadata: Metadata = buildMarketingMetadata({
   title: "Cleaning Services Cape Town | Shalean",

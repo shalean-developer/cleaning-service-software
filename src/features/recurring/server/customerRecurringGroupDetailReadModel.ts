@@ -58,7 +58,7 @@ type SeriesBookingRow = {
 };
 
 function weekdayLabel(weekday: number | null | undefined): string {
-  if (weekday == null || weekday < 0 || weekday > 6) return "—";
+  if (weekday == null || weekday < 0 || weekday > 6) return "-";
   return RECURRING_WEEKDAY_FULL_LABELS[weekday] ?? String(weekday);
 }
 
@@ -221,7 +221,7 @@ export async function getCustomerRecurringScheduleGroupDetail(
     const firstSeries = seriesList[0];
     const location = firstSeries
       ? parseSeriesLocation(firstSeries.template_metadata)
-      : { suburb: null as string | null, addressSummary: "—" };
+      : { suburb: null as string | null, addressSummary: "-" };
     const sharedTimeLabel = firstSeries?.anchor_scheduled_start
       ? formatScheduleRange(
           firstSeries.anchor_scheduled_start,
@@ -279,7 +279,7 @@ export async function getCustomerRecurringScheduleGroupDetail(
         scheduleLabel: formatScheduleRange(b.scheduled_start, b.scheduled_end),
         status: b.status,
         paymentLabel: paymentLabelForBooking(b.status, payment?.status ?? null),
-        priceLabel: priceCents != null ? formatZar(priceCents) : "—",
+        priceLabel: priceCents != null ? formatZar(priceCents) : "-",
         paymentRequired,
         bookingDetailHref: `/customer/bookings/${b.id}`,
       };

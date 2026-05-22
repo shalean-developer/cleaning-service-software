@@ -100,7 +100,7 @@ export default async function CustomerRecurringGroupDetailPage({ params }: PageP
           </div>
           <div>
             <dt className="text-zinc-500">Shared time</dt>
-            <dd className="font-medium text-zinc-900">{g.sharedTimeLabel ?? "—"}</dd>
+            <dd className="font-medium text-zinc-900">{g.sharedTimeLabel ?? "-"}</dd>
           </div>
           <div>
             <dt className="text-zinc-500">Service</dt>

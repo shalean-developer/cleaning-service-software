@@ -71,7 +71,7 @@ export function AdminCleanerProfileForm({
     [values.serviceAreasInput],
   );
   const phoneDisplay = useMemo(
-    () => (readOnlyPhone ? formatZaMobileForDisplay(readOnlyPhone) : null) ?? readOnlyPhone ?? "—",
+    () => (readOnlyPhone ? formatZaMobileForDisplay(readOnlyPhone) : null) ?? readOnlyPhone ?? "-",
     [readOnlyPhone],
   );
 
@@ -177,15 +177,15 @@ export function AdminCleanerProfileForm({
           <output className={READONLY_CLASS} aria-label="Phone number (read-only)">
             {phoneDisplay}
           </output>
-          <p className="mt-1 text-xs text-zinc-500">Immutable in v1 — contact support to change.</p>
+          <p className="mt-1 text-xs text-zinc-500">Immutable in v1. contact support to change.</p>
         </div>
 
         <div className="block text-sm">
           <span className="font-medium text-zinc-800">Login email</span>
           <output className={READONLY_CLASS} aria-label="Login email (read-only)">
-            {readOnlyLoginEmail ?? "—"}
+            {readOnlyLoginEmail ?? "-"}
           </output>
-          <p className="mt-1 text-xs text-zinc-500">Generated from phone — not editable.</p>
+          <p className="mt-1 text-xs text-zinc-500">Generated from phone. not editable.</p>
         </div>
 
         <label className="block text-sm sm:col-span-2">

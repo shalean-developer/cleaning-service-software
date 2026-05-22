@@ -18,6 +18,10 @@ import {
 import { buildInitializeCheckoutPayload } from "../checkout";
 import { buildLockRequestPayload, shouldReturnToReview } from "../lockPayload";
 import { nextStep, previousStep } from "../navigation";
+import {
+  applyPendingBookingIntentToWizardState,
+  consumePendingBookingIntentForService,
+} from "../pendingBookingIntent";
 import { clearWizardStorage, loadWizardState, saveWizardState } from "../storage";
 import { initialContactPhoneField } from "../contactPhone";
 import {
@@ -112,17 +116,29 @@ export function BookingWizard({
     deferEffectWork(() => {
       const loaded = loadWizardState();
       const profilePhone = initialCustomerPhone?.trim() || null;
-      const merged = mergeLoadedWizardAddressDefaults(loaded, initialAddressDefaults);
-      const withPhone = {
+      let merged = mergeLoadedWizardAddressDefaults(loaded, initialAddressDefaults);
+      merged = {
         ...merged,
         profilePhone,
         contactPhone: initialContactPhoneField(loaded.contactPhone, profilePhone),
       };
-      if (initialServiceSlug) {
-        setState({ ...withPhone, ...wizardPatchForServiceSelection(initialServiceSlug) });
-      } else {
-        setState(withPhone);
+
+      const slug = initialServiceSlug ?? merged.serviceSlug;
+      const pendingIntent = slug ? consumePendingBookingIntentForService(slug) : null;
+
+      if (slug) {
+        const servicePatch = wizardPatchForServiceSelection(slug);
+        merged = pendingIntent
+          ? applyPendingBookingIntentToWizardState(
+              { ...merged, ...servicePatch },
+              pendingIntent,
+            )
+          : { ...merged, ...servicePatch };
+      } else if (pendingIntent) {
+        merged = applyPendingBookingIntentToWizardState(merged, pendingIntent);
       }
+
+      setState(merged);
       hydrated.current = true;
     });
   }, [initialServiceSlug, initialCustomerPhone, initialAddressDefaultsKey]);
