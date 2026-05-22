@@ -89,7 +89,7 @@ describe("location phase 2 UI", () => {
       path.join(process.cwd(), "src/app/(marketing)/cleaning-prices-cape-town/page.tsx"),
       "utf8",
     );
-    expect(source).toContain("LOCATIONS_HUB_PATH");
+    expect(source).toContain("PricingHubAreaLinksSection");
   });
 
   it("services hub lists all suburb areas", () => {
