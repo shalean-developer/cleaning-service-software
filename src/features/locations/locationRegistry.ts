@@ -1,4 +1,5 @@
 import { HOUSE_CLEANING_AREA_LABELS } from "./operationalAreaLabels";
+import { LOCATION_REVIEW_OVERRIDES } from "./locationReviewOverrides";
 import {
   SEO_LOCATION_NAMES,
   SEO_LOCATION_SEEDS,
@@ -67,29 +68,78 @@ const NAME_CANONICAL: Record<string, string> = {
   "d'urbanvale": "Durbanville",
   "d’urbanvale": "Durbanville",
   "cape town cbd": "Cape Town CBD",
+  "brooklyn chestnut": "Brooklyn",
 };
 
 const REGION_BY_KEYWORD: { pattern: RegExp; region: string; cityGroup: string; type: ServiceAreaType }[] = [
-  { pattern: /^(george|knysna|mossel bay|plettenberg|sedgefield|wilderness|still bay|albertinia)$/i, region: "Garden Route", cityGroup: "Garden Route", type: "garden_route" },
+  {
+    pattern:
+      /^(george|knysna|mossel bay|plettenberg bay|plettenberg|sedgefield|wilderness|still bay|albertinia)$/i,
+    region: "Garden Route",
+    cityGroup: "Garden Route",
+    type: "garden_route",
+  },
   { pattern: /^(stellenbosch|paarl|wellington|franschhoek|tulbagh|robertson|montagu|worcester|ceres)$/i, region: "Winelands", cityGroup: "Winelands", type: "winelands" },
   { pattern: /^(hermanus|gansbaai|kleinmond|betty's bay|rooi els|pringle bay|saldanha|langebaan|vredenburg|malmesbury)$/i, region: "Overberg & West Coast", cityGroup: "Western Cape", type: "western_cape_town" },
   { pattern: /^(beaufort west|oudtshoorn|swellendam|caledon|grabouw|bredasdorp|barrydale|prince albert)$/i, region: "Western Cape Interior", cityGroup: "Western Cape", type: "western_cape_town" },
-  { pattern: /^(atlantic seaboard|bantry bay|fresnaye|clifton|bakoven|llandudno|hout bay|sea point|green point|camps bay)/i, region: "Atlantic Seaboard", cityGroup: "Cape Town", type: "cape_town_suburb" },
-  { pattern: /^(claremont|rondebosch|wynberg|constantia|kenilworth|newlands|tokai|bergvliet|plumstead|diep river|ottery|retreat|steenberg|meadowridge|southfield|southern suburbs)/i, region: "Southern Suburbs", cityGroup: "Cape Town", type: "cape_town_suburb" },
-  { pattern: /^(bellville|durbanville|brackenfell|kraaifontein|parow|goodwood|kuils river|blue downs|eerste river|northern suburbs|amandelrug|belhar)/i, region: "Northern Suburbs", cityGroup: "Cape Town", type: "cape_town_suburb" },
-  { pattern: /^(century city|milnerton|table view|blouberg|parklands|west beach|big bay|sunset beach|melkbos)/i, region: "West Coast & Table Bay", cityGroup: "Cape Town", type: "cape_town_suburb" },
-  { pattern: /^(observatory|woodstock|gardens|mowbray|rosebank|salt river|foreshore|tamboerskloof|vredehoek|oranjezicht|de waterkant|city bowl|cape town cbd)/i, region: "City Bowl & nearby", cityGroup: "Cape Town", type: "cape_town_suburb" },
-  { pattern: /^(fish hoek|muizenberg|kommetjie|noordhoek|simon's town|scarborough|st james|somerset west|strand|gordon's bay|helderberg)/i, region: "False Bay & Helderberg", cityGroup: "Cape Town", type: "cape_town_suburb" },
-  { pattern: /^(athlone|lansdowne|crawford|mitchells plain|khayelitsha|nyanga|langa|philippi|delft|crossroads|grassy park|pelican park|capri|macassar)/i, region: "Cape Flats & surrounds", cityGroup: "Cape Town", type: "cape_town_suburb" },
+  {
+    pattern:
+      /^(atlantic seaboard|bantry bay|fresnaye|clifton|bakoven|llandudno|hout bay|sea point|green point|camps bay|mouille point|three anchor bay)/i,
+    region: "Atlantic Seaboard",
+    cityGroup: "Cape Town",
+    type: "cape_town_suburb",
+  },
+  {
+    pattern:
+      /^(claremont|rondebosch|wynberg|constantia|kenilworth|newlands|tokai|bergvliet|plumstead|diep river|ottery|retreat|steenberg|meadowridge|southfield|bishopscourt|heathfield|wetton|youngsfield|protea valley|southern suburbs)/i,
+    region: "Southern Suburbs",
+    cityGroup: "Cape Town",
+    type: "cape_town_suburb",
+  },
+  {
+    pattern:
+      /^(bellville|durbanville|brackenfell|kraaifontein|parow|goodwood|kuils river|blue downs|eerste river|northern suburbs|amandelrug|belhar|edgemead|elsies river|cape gate|bothasig|pinelands)/i,
+    region: "Northern Suburbs",
+    cityGroup: "Cape Town",
+    type: "cape_town_suburb",
+  },
+  {
+    pattern:
+      /^(century city|milnerton|table view|blouberg|parklands|west beach|big bay|sunset beach|melkbos|atlantis|montague gardens|sunningdale)/i,
+    region: "West Coast & Table Bay",
+    cityGroup: "Cape Town",
+    type: "cape_town_suburb",
+  },
+  {
+    pattern:
+      /^(observatory|woodstock|gardens|mowbray|rosebank|salt river|foreshore|tamboerskloof|vredehoek|oranjezicht|de waterkant|city bowl|cape town cbd|maitland|ndabeni|brooklyn|walmer estate)/i,
+    region: "City Bowl & nearby",
+    cityGroup: "Cape Town",
+    type: "cape_town_suburb",
+  },
+  {
+    pattern:
+      /^(fish hoek|muizenberg|kommetjie|noordhoek|simon's town|scarborough|st james|marina da gama|somerset west|strand|gordon's bay|helderberg)/i,
+    region: "False Bay & Helderberg",
+    cityGroup: "Cape Town",
+    type: "cape_town_suburb",
+  },
+  {
+    pattern:
+      /^(athlone|lansdowne|crawford|mitchells plain|khayelitsha|nyanga|langa|philippi|delft|crossroads|grassy park|pelican park|capri|macassar|rylands|zeekoevlei|joe slovo park|cape flats)/i,
+    region: "Cape Flats & surrounds",
+    cityGroup: "Cape Town",
+    type: "cape_town_suburb",
+  },
 ];
 
-const REVIEW_PATTERNS = [
-  /^northern suburbs$/i,
-  /^southern suburbs$/i,
-  /^cape flats$/i,
-  /^helderberg$/i,
-  /^cape town$/i,
-];
+/** Broad labels kept operational-only; classified in locationReviewOverrides.ts */
+const BROAD_REGION_LABELS = new Set([
+  "northern suburbs",
+  "southern suburbs",
+  "cape flats",
+  "helderberg",
+]);
 
 function stripHouseCleaningPrefix(label: string): string {
   return label.replace(/^house\s+cleaning\s+/i, "").trim();
@@ -130,14 +180,15 @@ function inferGeo(name: string): Pick<
   LocationRegistryEntry,
   "region" | "cityGroup" | "serviceAreaType" | "requiresReview"
 > {
-  const review = REVIEW_PATTERNS.some((p) => p.test(name));
+  const isBroad = BROAD_REGION_LABELS.has(normalizedNameKey(name));
   for (const rule of REGION_BY_KEYWORD) {
     if (rule.pattern.test(name)) {
+      const serviceAreaType = isBroad ? ("cape_town_area" as const) : rule.type;
       return {
         region: rule.region,
         cityGroup: rule.cityGroup,
-        serviceAreaType: rule.type,
-        requiresReview: review || undefined,
+        serviceAreaType,
+        requiresReview: undefined,
       };
     }
   }
@@ -146,14 +197,29 @@ function inferGeo(name: string): Pick<
       region: "Cape Town",
       cityGroup: "Cape Town",
       serviceAreaType: "cape_town_area",
-      requiresReview: review || undefined,
+      requiresReview: undefined,
     };
   }
   return {
     region: "Western Cape",
     cityGroup: "Western Cape",
     serviceAreaType: "western_cape_town",
-    requiresReview: review || true,
+    requiresReview: true,
+  };
+}
+
+function applyReviewOverride(entry: LocationRegistryEntry): LocationRegistryEntry {
+  const override = LOCATION_REVIEW_OVERRIDES[entry.slug];
+  if (!override) return entry;
+  return {
+    ...entry,
+    region: override.region,
+    cityGroup: override.cityGroup,
+    serviceAreaType: override.serviceAreaType,
+    aliases: override.aliases ? [...override.aliases] : entry.aliases,
+    nearbyAreas: override.nearbyAreas ? [...override.nearbyAreas] : entry.nearbyAreas,
+    requiresReview: false,
+    notes: override.notes,
   };
 }
 
@@ -193,7 +259,7 @@ function buildOperationalFromLabels(seoBySlug: Map<string, LocationRegistryEntry
     if (seoBySlug.has(slug)) continue;
 
     const geo = inferGeo(name);
-    const entry: LocationRegistryEntry = {
+    let entry: LocationRegistryEntry = {
       name,
       slug,
       normalizedName: normKey,
@@ -209,6 +275,7 @@ function buildOperationalFromLabels(seoBySlug: Map<string, LocationRegistryEntry
       serviceAreaType: geo.serviceAreaType,
       requiresReview: geo.requiresReview,
     };
+    entry = applyReviewOverride(entry);
     byNormalized.set(normKey, entry);
     seoBySlug.set(slug, entry);
   }

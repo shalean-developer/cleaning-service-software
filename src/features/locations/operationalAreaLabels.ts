@@ -79,7 +79,6 @@ export const HOUSE_CLEANING_AREA_LABELS = [
   "House Cleaning Bothasig",
   "House Cleaning Montague Gardens",
   "House Cleaning Brooklyn",
-  "House Cleaning Brooklyn Chestnut",
   "House Cleaning Amandelrug",
   "House Cleaning Belhar",
   "House Cleaning Bishopscourt",

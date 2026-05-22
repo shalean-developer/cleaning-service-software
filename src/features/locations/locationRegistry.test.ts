@@ -36,12 +36,13 @@ describe("locationRegistry normalization", () => {
     expect(findLocationByNameOrAlias("D'Urbanvale")?.name).toBe("Durbanville");
   });
 
-  it("flags broad geographic labels for review", () => {
-    const review = LOCATION_REGISTRY.filter((e) => e.requiresReview);
-    const names = review.map((e) => e.name);
-    expect(names).toContain("Northern Suburbs");
-    expect(names).toContain("Southern Suburbs");
-    expect(names).toContain("Cape Flats");
+  it("keeps broad geographic labels operational-only after review", () => {
+    for (const name of ["Northern Suburbs", "Southern Suburbs", "Cape Flats"]) {
+      const entry = findLocationByNameOrAlias(name);
+      expect(entry?.serviceAreaType).toBe("cape_town_area");
+      expect(entry?.requiresReview).toBeFalsy();
+      expect(entry?.isSeoLocation).toBe(false);
+    }
   });
 });
 
