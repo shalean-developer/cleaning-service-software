@@ -8,7 +8,7 @@ import {
   SERVICES_HUB_PATH,
 } from "@/features/marketing/marketing-routes";
 
-/** Route fallbacks when section scroll is unavailable (off homepage). */
+/** Canonical routes for section ids (in-page CTAs off homepage; main nav uses href directly). */
 export const MARKETING_SECTION_ROUTES: Partial<Record<MarketingSectionId, string>> = {
   services: SERVICES_HUB_PATH,
   about: ABOUT_PAGE_PATH,

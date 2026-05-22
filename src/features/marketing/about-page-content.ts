@@ -128,7 +128,7 @@ export const ABOUT_PAGE_LOCAL = {
   eyebrow: "Cape Town authority",
   title: "Local operations across the metro",
   subtitle: HOMEPAGE_LOCAL_SEO.paragraphs[1],
-  featuredAreas: CAPE_TOWN_AREAS.slice(0, 8),
+  featuredAreas: CAPE_TOWN_AREAS,
   audienceNote:
     "We serve families, Airbnb hosts, property managers, offices, and recurring households — with suburb pages and transparent pricing for every service type.",
 } as const;

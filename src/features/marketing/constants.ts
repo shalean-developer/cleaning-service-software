@@ -50,7 +50,7 @@ export const CLEANER_SIGN_IN_PATH =
 export const APPLY_PATH = "/apply" as const;
 
 export const FOOTER_SUPPORT_LINKS: readonly FooterSupportLink[] = [
-  { sectionId: "faq", label: "FAQ" },
+  { href: "/faq", label: "FAQ" },
   { label: "Apply to clean with Shalean", href: APPLY_PATH },
   { label: "Terms & Conditions", href: "/terms" },
   { label: "Privacy Policy", href: "/privacy" },
@@ -422,6 +422,24 @@ export function areaLocationPath(area: string): string {
   return `/locations/${slug}-cape-town`;
 }
 
+export type HeaderNavLink = {
+  label: string;
+  href?: string;
+  sectionId?: MarketingSectionId;
+  /** When false, rendered as non-interactive copy (no misleading href). */
+  enabled?: boolean;
+};
+
+/** Canonical marketing paths for header/footer nav (aligned with marketing-routes). */
+export const MARKETING_NAV_PATHS = {
+  services: "/services",
+  about: "/about",
+  locations: AREAS_HUB_PATH,
+  pricing: PRICING_AUTHORITY_PATH,
+  faq: "/faq",
+  contact: "/contact",
+} as const;
+
 export const CAPE_TOWN_AREAS = [
   "Sea Point",
   "Claremont",
@@ -439,42 +457,28 @@ export const CAPE_TOWN_AREAS = [
 
 export const BOOKING_PATH = "/sign-up?redirectedFrom=/customer/book" as const;
 
-/** Sign-up entry with optional post-auth redirect to a specific service booking flow. */
-export function marketingBookPath(serviceSlug?: ServiceSlug): string {
-  const redirect = serviceSlug ? `/customer/book/${serviceSlug}` : "/customer/book";
-  return `/sign-up?redirectedFrom=${encodeURIComponent(redirect)}`;
-}
-
-export type HeaderNavLink = {
-  label: string;
-  href?: string;
-  sectionId?: MarketingSectionId;
-  /** When false, rendered as non-interactive copy (no misleading href). */
-  enabled?: boolean;
-};
-
-/** Homepage FAQ section — used for Help nav (no URL hash). */
-export const HEADER_HELP_SECTION = "faq" as const satisfies MarketingSectionId;
-
 /** Product-first platform navigation (desktop center + mobile primary). */
 export const HEADER_PRIMARY_NAV: readonly HeaderNavLink[] = [
   { href: BOOKING_PATH, label: "Book Cleaning" },
-  { sectionId: "services", label: "Services" },
-  { href: "/about", label: "About" },
+  { href: MARKETING_NAV_PATHS.services, label: "Services" },
+  { href: MARKETING_NAV_PATHS.about, label: "About" },
   { href: APPLY_PATH, label: "Apply" },
-  { sectionId: "areas", label: "Locations" },
+  { href: MARKETING_NAV_PATHS.locations, label: "Locations" },
 ];
 
 /** Lower-priority links — mobile drawer & footer-style discovery. */
 export const HEADER_SECONDARY_NAV: readonly HeaderNavLink[] = [
   { href: CLEANER_SIGN_IN_PATH, label: "Cleaner sign in" },
-  { sectionId: HEADER_HELP_SECTION, label: "Help" },
-  { sectionId: "contact", label: "Contact" },
+  { href: MARKETING_NAV_PATHS.faq, label: "Help" },
+  { href: MARKETING_NAV_PATHS.contact, label: "Contact" },
   { label: "Blog", enabled: false },
 ];
 
-/** @deprecated Use HEADER_PRIMARY_NAV */
-export const NAV_LINKS: readonly HeaderNavLink[] = HEADER_PRIMARY_NAV;
+/** Sign-up entry with optional post-auth redirect to a specific service booking flow. */
+export function marketingBookPath(serviceSlug?: ServiceSlug): string {
+  const redirect = serviceSlug ? `/customer/book/${serviceSlug}` : "/customer/book";
+  return `/sign-up?redirectedFrom=${encodeURIComponent(redirect)}`;
+}
 
 export const FAQ_SECTION = {
   eyebrow: "FAQs",

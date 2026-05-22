@@ -4,15 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
-  HEADER_HELP_SECTION,
   HEADER_PRIMARY_NAV,
   HEADER_SECONDARY_NAV,
+  MARKETING_NAV_PATHS,
   SIGN_IN_PATH,
   SIGN_UP_PATH,
   type HeaderNavLink,
 } from "@/features/marketing/constants";
 import { IconClose, IconMenu } from "./icons";
-import { MarketingSectionLink, MarketingSectionOrRouteLink } from "./MarketingSectionLink";
+import { MarketingSectionOrRouteLink } from "./MarketingSectionLink";
 import { ShaleanLogo } from "./ShaleanLogo";
 
 function isNavLinkActive(href: string | undefined, pathname: string): boolean {
@@ -189,12 +189,12 @@ export function MarketingHeader() {
             </div>
 
             <div className="hidden shrink-0 items-center gap-2 xl:flex">
-              <MarketingSectionLink
-                sectionId={HEADER_HELP_SECTION}
-                className="marketing-focus-ring inline-flex shrink-0 rounded-lg px-2 py-2 text-sm font-normal text-slate-500 transition-colors duration-200 hover:text-slate-700"
+              <UtilityLink
+                href={MARKETING_NAV_PATHS.faq}
+                className="font-normal text-slate-500 hover:text-slate-700"
               >
                 Help
-              </MarketingSectionLink>
+              </UtilityLink>
               <span className="mx-1.5 h-4 w-px bg-slate-200/90" aria-hidden />
               <UtilityLink
                 href={SIGN_IN_PATH}

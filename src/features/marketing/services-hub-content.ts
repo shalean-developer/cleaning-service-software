@@ -2,6 +2,7 @@ import {
   BOOKING_PATH,
   areaLocationPath,
   APPLY_PATH,
+  CAPE_TOWN_AREAS,
   MARKETING_SERVICES,
   SERVICE_SEO_PATHS,
   marketingBookPath,
@@ -239,15 +240,8 @@ export const SERVICES_HUB_USE_CASES: ServicesHubUseCase[] = [
   },
 ];
 
-/** Featured suburbs for local discovery (SEO-aligned paths). */
-export const SERVICES_HUB_FEATURED_AREAS = [
-  "Claremont",
-  "Sea Point",
-  "Rondebosch",
-  "Camps Bay",
-  "Century City",
-  "Bellville",
-] as const;
+/** All Cape Town suburb pages linked from the services hub locations block. */
+export const SERVICES_HUB_FEATURED_AREAS = CAPE_TOWN_AREAS;
 
 export function cleaningServicesInAreaLabel(area: string): string {
   return `Cleaning services in ${area}`;

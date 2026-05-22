@@ -6,6 +6,7 @@ import { MarketingInternalLinks } from "@/components/marketing/MarketingInternal
 import { MarketingSeoPageLayout } from "@/components/marketing/MarketingSeoPageLayout";
 import { MarketingSeoShell } from "@/components/marketing/MarketingSeoShell";
 import { buildMarketingMetadata } from "@/features/marketing/metadata";
+import { LOCATIONS_HUB_PATH } from "@/features/marketing/marketing-routes";
 import {
   ALL_PRICING_ROWS,
   PRICING_PAGE_FAQS,
@@ -74,6 +75,27 @@ export default function CleaningPricesPage() {
             </ul>
             <p className="mt-4 text-sm text-slate-500">
               No hidden costs. Pay securely online when you book.
+            </p>
+          </section>
+
+          <section className="mt-12" aria-labelledby="pricing-areas-heading">
+            <h2
+              id="pricing-areas-heading"
+              className="text-xl font-bold tracking-tight text-shalean-navy sm:text-2xl"
+            >
+              Cleaning across Cape Town suburbs
+            </h2>
+            <p className="mt-3 text-base leading-relaxed text-slate-600">
+              Pricing applies across the metro — browse suburb pages for local service detail and
+              booking in your area.
+            </p>
+            <p className="mt-4">
+              <Link
+                href={LOCATIONS_HUB_PATH}
+                className="marketing-focus-ring text-sm font-semibold text-shalean-primary hover:underline"
+              >
+                View all Cape Town service areas
+              </Link>
             </p>
           </section>
 

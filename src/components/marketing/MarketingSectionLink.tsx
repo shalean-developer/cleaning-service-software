@@ -16,8 +16,9 @@ type MarketingSectionLinkProps = {
 };
 
 /**
- * In-page section navigation without hash URLs.
- * Renders a button on the homepage; falls back to `/` for other routes.
+ * In-page section navigation without hash URLs (homepage CTAs only).
+ * On the homepage, scrolls to a section; elsewhere, links to the canonical route.
+ * Main header/footer nav uses href-only links — not this component.
  */
 export function MarketingSectionLink({
   sectionId,
