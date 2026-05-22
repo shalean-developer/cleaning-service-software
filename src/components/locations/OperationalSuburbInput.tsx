@@ -9,7 +9,6 @@ import {
   formatLocationName,
   isKnownOperationalArea,
   normalizeLocationInput,
-  resolveOperationalLocation,
 } from "@/features/locations/locationDisplay";
 import { filterCleanerAreaOptionGroups } from "@/features/locations/operationalLocationSearch";
 
@@ -48,7 +47,6 @@ export function OperationalSuburbInput({
     [filteredGroups],
   );
 
-  const resolved = useMemo(() => resolveOperationalLocation(value), [value]);
   const showPopular = !value.trim();
 
   useEffect(() => {
@@ -110,15 +108,7 @@ export function OperationalSuburbInput({
         aria-invalid={ariaInvalid}
         placeholder="Search suburbs and areas…"
       />
-      <p className="mt-1 text-xs text-zinc-500">
-        Search 140+ Cape Town areas. Type an alias like &ldquo;Tableview&rdquo; or &ldquo;Bo Kaap&rdquo;.
-      </p>
-      {resolved && value.trim() ? (
-        <p className="mt-1 text-xs font-medium text-emerald-700" role="status">
-          Matched: {resolved.name}
-          {resolved.region ? ` · ${resolved.region}` : null}
-        </p>
-      ) : value.trim() && !isKnownOperationalArea(value) ? (
+      {value.trim() && !isKnownOperationalArea(value) ? (
         <p className="mt-1 text-xs text-zinc-600" role="status">
           We&apos;ll save &ldquo;{formatLocationName(value)}&rdquo;. can&apos;t find your area? Continue with
           your suburb name.

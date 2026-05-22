@@ -277,6 +277,12 @@ export type AdminBookingDetail = AdminBookingListItem & {
   display: BookingDisplayFields;
   operational: AdminOperationalStatus;
   notifications: AdminNotificationOutboxEntry[];
+  deletedAt: string | null;
+  hasEarningLines: boolean;
+  hardDelete: {
+    allowed: boolean;
+    blockedReasons: string[];
+  };
 };
 
 export type AdminAssignmentQueueItem = {

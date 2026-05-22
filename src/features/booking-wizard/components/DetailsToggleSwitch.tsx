@@ -15,8 +15,8 @@ export function DetailsToggleSwitch({ checked, label, onToggle }: DetailsToggleS
       aria-checked={checked}
       aria-label={label}
       onClick={onToggle}
-      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 motion-reduce:transition-none ${
-        checked ? "bg-zinc-900" : "bg-zinc-200"
+      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shalean-primary motion-reduce:transition-none ${
+        checked ? "bg-shalean-primary" : "bg-slate-200"
       }`}
     >
       <span

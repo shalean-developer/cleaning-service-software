@@ -62,24 +62,24 @@ function CleanerListCard({ card, selected, onSelect }: CleanerListCardProps) {
     >
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-          <span className="text-sm font-semibold text-zinc-900">{card.displayName}</span>
+          <span className="text-sm font-semibold text-shalean-navy">{card.displayName}</span>
           {card.rating != null ? (
-            <span className="inline-flex items-center gap-0.5 text-xs tabular-nums text-zinc-600">
+            <span className="inline-flex items-center gap-0.5 text-xs tabular-nums text-slate-600">
               <StarIcon className="h-3 w-3 shrink-0" />
               {card.rating.toFixed(1)}
             </span>
           ) : null}
           {selected ? (
-            <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-semibold text-white">
+            <span className="rounded-full bg-shalean-primary px-2 py-0.5 text-[10px] font-semibold text-white">
               Selected
             </span>
           ) : null}
         </div>
-        <p className="mt-0.5 line-clamp-1 text-xs leading-snug text-zinc-500">
+        <p className="mt-0.5 line-clamp-1 text-xs leading-snug text-slate-500">
           {cleanerCardSubtitle(card)}
         </p>
         {experienceHint ? (
-          <p className="mt-0.5 line-clamp-1 text-[11px] text-zinc-400">{experienceHint}</p>
+          <p className="mt-0.5 line-clamp-1 text-[11px] text-slate-400">{experienceHint}</p>
         ) : null}
       </div>
     </button>
@@ -113,19 +113,19 @@ function TeamOptionButton({
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           {showRecommendedBadge ? (
-            <span className="inline-flex rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+            <span className="inline-flex rounded-full bg-shalean-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
               Recommended
             </span>
           ) : null}
           <p
-            className={`text-sm font-semibold text-zinc-900 ${showRecommendedBadge ? "mt-1.5" : ""}`}
+            className={`text-sm font-semibold text-shalean-navy ${showRecommendedBadge ? "mt-1.5" : ""}`}
           >
             {title}
           </p>
-          <p className="mt-0.5 text-xs leading-snug text-zinc-500">{description}</p>
+          <p className="mt-0.5 text-xs leading-snug text-slate-500">{description}</p>
         </div>
         {selected ? (
-          <span className="shrink-0 rounded-full border border-zinc-900/15 bg-zinc-900/5 px-2 py-0.5 text-[10px] font-semibold text-zinc-800">
+          <span className="shrink-0 rounded-full border border-shalean-primary/15 bg-shalean-primary/5 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
             Selected
           </span>
         ) : null}
@@ -176,16 +176,16 @@ export function CleanerStepPanel({
       {showCleanerList ? (
         <>
           {cleanerPreferenceMode === "selected" ? (
-            <p className="mb-3 text-xs leading-snug text-zinc-600">{copy.selectedHint}</p>
+            <p className="mb-3 text-xs leading-snug text-slate-600">{copy.selectedHint}</p>
           ) : null}
 
           {loading && displayableCleaners.length === 0 ? (
-            <p className="text-sm text-zinc-600">{WIZARD_LOADING_CLEANERS_LABEL}</p>
+            <p className="text-sm text-slate-600">{WIZARD_LOADING_CLEANERS_LABEL}</p>
           ) : displayableCleaners.length > 0 ? (
             <section aria-labelledby="cleaner-list-heading" className="mb-3">
               <h3
                 id="cleaner-list-heading"
-                className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500"
+                className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500"
               >
                 Choose a cleaner
               </h3>
@@ -207,7 +207,7 @@ export function CleanerStepPanel({
                 <button
                   type="button"
                   onClick={() => setShowAllCleaners(true)}
-                  className="mt-2.5 w-full rounded-lg border border-zinc-200/90 bg-white py-2 text-sm font-medium text-zinc-800 hover:border-zinc-300 hover:bg-zinc-50"
+                  className="mt-2.5 w-full rounded-lg border border-slate-200/90 bg-white py-2 text-sm font-medium text-slate-700 hover:border-slate-300 hover:bg-shalean-soft-blue/50"
                 >
                   View all cleaners ({displayableCleaners.length})
                 </button>
@@ -216,14 +216,14 @@ export function CleanerStepPanel({
                 <button
                   type="button"
                   onClick={() => setShowAllCleaners(false)}
-                  className="mt-2.5 w-full py-1.5 text-sm font-medium text-zinc-600 hover:text-zinc-900"
+                  className="mt-2.5 w-full py-1.5 text-sm font-medium text-slate-600 hover:text-shalean-navy"
                 >
                   Show fewer
                 </button>
               ) : null}
             </section>
           ) : !loading ? (
-            <p className="mb-3 rounded-lg border border-zinc-200/90 bg-zinc-50/80 px-3 py-2.5 text-sm leading-snug text-zinc-600">
+            <p className="mb-3 rounded-lg border border-slate-200/90 bg-shalean-soft-blue/40 px-3 py-2.5 text-sm leading-snug text-slate-600">
               {NO_INDIVIDUAL_CLEANERS_EMPTY_STATE}
             </p>
           ) : null}
@@ -239,29 +239,29 @@ export function CleanerStepPanel({
       ) : null}
 
       <details className={`mt-4 ${UI_INSET_PANEL_CLASS} px-3 py-2`}>
-        <summary className={`${UI_DETAILS_SUMMARY_COMPACT_CLASS} py-2 text-zinc-700`}>
+        <summary className={`${UI_DETAILS_SUMMARY_COMPACT_CLASS} py-2 text-slate-700`}>
           How cleaner selection works
         </summary>
-        <div className="mt-2 space-y-2 text-xs leading-relaxed text-zinc-600">
+        <div className="mt-2 space-y-2 text-xs leading-relaxed text-slate-600">
           {selectionMode === "team_only" ? (
             <p>
-              <strong className="font-medium text-zinc-800">Shalean team</strong>{" "}
+              <strong className="font-medium text-slate-700">Shalean team</strong>{" "}
               {teamOptionCopy.description}
             </p>
           ) : (
             <>
               <p>
-                <strong className="font-medium text-zinc-800">{teamOptionCopy.title}</strong>{" "}
+                <strong className="font-medium text-slate-700">{teamOptionCopy.title}</strong>{" "}
                 {teamOptionCopy.description}
               </p>
               <p>
-                <strong className="font-medium text-zinc-800">Selected cleaner</strong>{" "}
+                <strong className="font-medium text-slate-700">Selected cleaner</strong>{" "}
                 {copy.disclosureSelected}
               </p>
             </>
           )}
           {showCleanerList ? (
-            <p className="text-zinc-500">
+            <p className="text-slate-500">
               Only cleaners available for your slot are shown. Ratings and availability hints help
               you compare.
             </p>

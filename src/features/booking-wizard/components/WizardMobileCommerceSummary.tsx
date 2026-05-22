@@ -6,12 +6,12 @@ type AmountProps = {
 };
 
 const stickySummaryAmountClass =
-  "mt-0.5 text-xl font-semibold tabular-nums tracking-tight text-zinc-900";
+  "mt-0.5 text-xl font-semibold tabular-nums tracking-tight text-shalean-navy";
 
 export function ReviewMobileCommerceSummary({ totalCents }: AmountProps) {
   return (
     <div className={WIZARD_STICKY_FOOTER_SUMMARY_SLOT_CLASS} aria-live="polite">
-      <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-zinc-500">
+      <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
         Total
       </p>
       <p className={stickySummaryAmountClass}>{formatZar(totalCents)}</p>
@@ -22,7 +22,7 @@ export function ReviewMobileCommerceSummary({ totalCents }: AmountProps) {
 export function CheckoutMobileCommerceSummary({ totalCents }: AmountProps) {
   return (
     <div className={WIZARD_STICKY_FOOTER_SUMMARY_SLOT_CLASS} aria-live="polite">
-      <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-zinc-500">
+      <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
         Amount due today
       </p>
       <p className={stickySummaryAmountClass}>{formatZar(totalCents)}</p>

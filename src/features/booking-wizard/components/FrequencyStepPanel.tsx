@@ -41,7 +41,7 @@ export function FrequencyStepPanel({ serviceSlug, value, onChange, error }: Prop
               onClick={() => onChange(option.value)}
               className={`flex min-h-[2.75rem] min-w-0 flex-col items-center justify-center rounded-lg border px-2 py-1.5 text-center ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${detailsCardClass(selected)}`}
             >
-              <span className="text-sm font-semibold leading-snug text-zinc-900">{option.label}</span>
+              <span className="text-sm font-semibold leading-snug text-shalean-navy">{option.label}</span>
               <span className={`${DETAILS_OPTION_DESC} text-center`}>{option.description}</span>
             </button>
           );

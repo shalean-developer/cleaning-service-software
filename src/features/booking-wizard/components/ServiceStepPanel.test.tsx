@@ -25,7 +25,7 @@ describe("ServiceStepPanel", () => {
     expect(html).toContain("-translate-y-1/2");
     expect(html).toContain("whitespace-nowrap");
     expect(html).toContain("bg-sky-50");
-    expect(html).not.toContain("bg-zinc-200/80");
+    expect(html).not.toContain("bg-slate-200/80");
     expect(html).toContain("Routine kitchens, bathrooms, and living areas");
     expect(html).toContain("Routine cleaning for kitchens, bathrooms, and living spaces.");
     expect(html).toContain("Fast property preparation before your next guest check-in.");
@@ -34,7 +34,7 @@ describe("ServiceStepPanel", () => {
     expect(html).toContain("Regular Cleaning");
     const enabledCount = WIZARD_SERVICE_OPTIONS.filter((s) => s.enabled).length;
     expect(html.match(/aria-pressed="true"/g)?.length).toBe(2);
-    expect(html).not.toContain("border-2 border-zinc-300");
+    expect(html).not.toContain("border-2 border-slate-300");
     expect(html.match(/aria-pressed="false"/g)?.length).toBe((enabledCount - 1) * 2);
   });
 

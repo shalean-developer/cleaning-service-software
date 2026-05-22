@@ -1,16 +1,19 @@
 #!/usr/bin/env node
 /**
  * Removes mock/test/demo data identified by ops:audit:mock-data.
- * Deletes in dependency order: booking deps → bookings → customers → cleaners → orphan profiles.
+ * Deletes in dependency order: bookings → customers → cleaners → orphan profiles.
  *
  * Usage:
  *   npm run ops:audit:mock-data
  *   CONFIRM_MOCK_DATA_DELETE=yes npm run ops:delete:mock-data
+ *   CONFIRM_MOCK_DATA_DELETE=yes npm run ops:delete:mock-data -- --allow-review
  */
 import { createClient } from "@supabase/supabase-js";
 import { assertDeleteBucketSafe, runMockDataAudit } from "./lib/mock-data-loader.mjs";
 import { purgeMockDataFromAudit } from "./lib/mock-data-purge.mjs";
 import { loadEnvFiles, requireServiceRoleClient } from "../e2e/lib/env.mjs";
+
+const allowReview = process.argv.includes("--allow-review");
 
 if (process.env.CONFIRM_MOCK_DATA_DELETE !== "yes") {
   console.error(
@@ -25,19 +28,70 @@ if (process.env.CONFIRM_MOCK_DATA_DELETE !== "yes") {
 loadEnvFiles();
 const client = requireServiceRoleClient(createClient);
 
+function printRowsToAffect(audit) {
+  console.log("\n--- Rows that will be affected ---\n");
+
+  if (audit.bookings.hardDelete?.length) {
+    console.log(`Bookings (hard_delete): ${audit.bookings.hardDelete.length}`);
+    for (const row of audit.bookings.hardDelete) {
+      console.log(`  ${row.bookingId}  status=${row.status}  match=${row.match}`);
+    }
+  }
+
+  if (audit.bookings.archive?.length) {
+    console.log(`\nBookings (archive): ${audit.bookings.archive.length}`);
+    for (const row of audit.bookings.archive) {
+      console.log(`  ${row.bookingId}  status=${row.status}  match=${row.match}`);
+    }
+  }
+
+  if (audit.customers.delete.length) {
+    console.log(`\nCustomers (delete/anonymize): ${audit.customers.delete.length}`);
+    for (const row of audit.customers.delete) {
+      console.log(`  ${row.customerId}  ${row.email}  bookings=${row.bookingCount}`);
+    }
+  }
+
+  if (audit.cleaners.delete.length) {
+    console.log(`\nCleaners (purge): ${audit.cleaners.delete.length}`);
+    for (const row of audit.cleaners.delete) {
+      console.log(`  ${row.cleanerId}  ${row.email}`);
+    }
+  }
+
+  if (audit.profiles.orphanDelete.length) {
+    console.log(`\nOrphan profiles: ${audit.profiles.orphanDelete.length}`);
+    for (const row of audit.profiles.orphanDelete) {
+      console.log(`  ${row.profileId}  ${row.email}`);
+    }
+  }
+
+  if (audit.impacts.reviewCount > 0) {
+    console.log(`\nSkipped REVIEW rows: ${audit.impacts.reviewCount}`);
+  }
+}
+
 async function main() {
   console.log("Mock data delete — preflight audit\n");
 
   const audit = await runMockDataAudit(client);
 
   console.log("Planned deletion scope:");
-  console.log(`  Mock profiles to delete:     ${audit.impacts.mockProfilesToDelete}`);
+  console.log(`  Bookings hard_delete:        ${audit.impacts.mockBookingsHardDelete}`);
+  console.log(`  Bookings archive:            ${audit.impacts.mockBookingsArchive}`);
   console.log(`  Mock customers to delete:    ${audit.impacts.mockCustomersToDelete}`);
-  console.log(`  Mock bookings to delete:     ${audit.impacts.mockBookingsToDelete}`);
   console.log(`  Mock cleaners to delete:     ${audit.impacts.mockCleanersToDelete}`);
-  console.log(`  Payments deletable:          ${audit.impacts.paymentsDeletable}`);
+  console.log(`  Orphan profiles:             ${audit.impacts.orphanProfilesToDelete}`);
   console.log(`  REVIEW (skipped):            ${audit.impacts.reviewCount}`);
-  console.log(`  Paid production blocked:     ${audit.impacts.paidProductionBlockedCount}\n`);
+
+  printRowsToAffect(audit);
+
+  if (audit.impacts.reviewCount > 0 && !allowReview) {
+    console.error(
+      `\nRefusing delete: ${audit.impacts.reviewCount} REVIEW row(s). Resolve manually or pass --allow-review.`,
+    );
+    process.exit(1);
+  }
 
   assertDeleteBucketSafe(audit);
 
@@ -48,21 +102,22 @@ async function main() {
     audit.impacts.mockCleanersToDelete > 0;
 
   if (!hasWork) {
-    console.log("Nothing in DELETE bucket. Exiting without changes.");
+    console.log("\nNothing in DELETE bucket. Exiting without changes.");
     return;
   }
 
-  console.log("Purging mock data in dependency order…\n");
+  console.log("\nPurging mock data in dependency order…\n");
   const summary = await purgeMockDataFromAudit(client, audit);
 
   console.log("\n--- Purge summary ---");
-  console.log(`  Bookings deleted:            ${summary.bookingsDeleted}`);
-  console.log(`  Payments deleted:            ${summary.paymentsDeleted}`);
+  console.log(`  Bookings hard-deleted:       ${summary.bookingsHardDeleted}`);
+  console.log(`  Bookings archived:           ${summary.bookingsArchived}`);
   console.log(`  Customers deleted:           ${summary.customersDeleted}`);
   console.log(`  Customers anonymized:        ${summary.customersAnonymized}`);
   console.log(`  Cleaners purged:             ${summary.cleanersPurged}`);
   console.log(`  Profiles deleted:            ${summary.profilesDeleted}`);
   console.log(`  Auth users deleted:          ${summary.authUsersDeleted}`);
+  console.log(`  Offers cancelled:            ${summary.offersCancelled}`);
   console.log(`  Operational audits deleted:  ${summary.operationalAuditsDeleted}`);
   console.log(`  Notifications deleted:       ${summary.notificationsDeleted}`);
 

@@ -21,9 +21,9 @@ const OFFICE_WORKSTATION_HINT = "Desks or seats we should plan around.";
 const WORKSTATION_CHIP_BASE =
   "inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-full border px-3 text-sm font-medium tabular-nums transition-colors duration-200 ease-out motion-reduce:transition-none";
 const WORKSTATION_CHIP_SELECTED =
-  "border-zinc-900 bg-zinc-900 text-white shadow-sm";
+  "border-shalean-primary bg-shalean-primary text-white shadow-sm";
 const WORKSTATION_CHIP_UNSELECTED =
-  "border-zinc-200/90 bg-white text-zinc-800 hover:border-zinc-300 hover:bg-zinc-50/80";
+  "border-slate-200/90 bg-white text-slate-700 hover:border-slate-300 hover:bg-shalean-soft-blue/30/80";
 
 type Props = {
   officeSizeTier: OfficeSizeTier | null;
@@ -73,10 +73,10 @@ export function OfficeSizingStepPanel({
                 onClick={() => onOfficeSizeChange(option.value)}
                 className={`flex min-h-[4rem] min-w-0 flex-col justify-center rounded-xl border px-3 py-2.5 text-left ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${detailsCardClass(selected)}`}
               >
-                <span className="block text-sm font-semibold leading-snug text-zinc-900">
+                <span className="block text-sm font-semibold leading-snug text-shalean-navy">
                   {option.label}
                 </span>
-                <span className="mt-0.5 block text-[11px] leading-snug text-zinc-500 sm:text-xs">
+                <span className="mt-0.5 block text-[11px] leading-snug text-slate-500 sm:text-xs">
                   {option.description}
                 </span>
               </button>

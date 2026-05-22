@@ -27,17 +27,17 @@ type AddonRowProps = {
 
 function AddonRow({ slug, label, description, checked, onToggle }: AddonRowProps) {
   const addon = ADDON_CATALOG[slug];
-  const rowClass = checked ? "bg-zinc-50/80" : "bg-white";
+  const rowClass = checked ? "bg-shalean-soft-blue/40" : "bg-white";
 
   return (
     <li
-      className={`flex min-w-0 items-center gap-2 border-b border-zinc-100 px-2.5 py-2 last:border-b-0 sm:gap-2.5 sm:px-3 ${rowClass}`}
+      className={`flex min-w-0 items-center gap-2 border-b border-slate-100 px-2.5 py-2 last:border-b-0 sm:gap-2.5 sm:px-3 ${rowClass}`}
     >
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium leading-snug text-zinc-900">{label}</p>
+        <p className="text-sm font-medium leading-snug text-shalean-navy">{label}</p>
         <p className={`${DETAILS_OPTION_DESC} line-clamp-2`}>{description}</p>
       </div>
-      <span className="shrink-0 text-[11px] font-medium tabular-nums text-zinc-500 sm:text-xs">
+      <span className="shrink-0 text-[11px] font-medium tabular-nums text-slate-500 sm:text-xs">
         {formatAddonPrice(addon.amountCents)}
       </span>
       <DetailsToggleSwitch
@@ -73,11 +73,11 @@ export function AddonsStepPanel({ serviceSlug, selected, onChange }: Props) {
         id="addons-step-label"
       />
       {getAddonsSectionHint(serviceSlug) ? (
-        <p className="mb-2 text-xs leading-snug text-zinc-500">{getAddonsSectionHint(serviceSlug)}</p>
+        <p className="mb-2 text-xs leading-snug text-slate-500">{getAddonsSectionHint(serviceSlug)}</p>
       ) : null}
 
       <div
-        className="overflow-hidden rounded-xl border border-zinc-200/90 bg-white shadow-sm"
+        className="overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm"
         role="group"
         aria-labelledby="addons-step-label"
       >

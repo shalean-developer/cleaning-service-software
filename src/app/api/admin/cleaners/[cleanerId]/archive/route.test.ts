@@ -10,8 +10,8 @@ vi.mock("@/features/dashboards/server/apiAuth", () => ({
     typeof user === "object" && user !== null && "ok" in user && (user as { ok: boolean }).ok === false,
 }));
 
-vi.mock("@/features/cleaners/server/lifecycle/archiveCleaner", () => ({
-  archiveCleaner: (...args: unknown[]) => archiveMock(...args),
+vi.mock("@/features/admin/server/entityArchive/archiveCleanerAdminCommand", () => ({
+  archiveCleanerAdminCommand: (...args: unknown[]) => archiveMock(...args),
 }));
 
 const adminUser: CurrentUser = {
@@ -26,7 +26,21 @@ describe("POST /api/admin/cleaners/[cleanerId]/archive", () => {
     requireApiUserMock.mockResolvedValue(adminUser);
   });
 
-  it("calls archiveCleaner for admin", async () => {
+  it("requires confirmation phrase", async () => {
+    const { POST } = await import("./route");
+    const response = await POST(
+      new Request("http://localhost", {
+        method: "POST",
+        body: JSON.stringify({ reason: "Left platform" }),
+      }),
+      { params: Promise.resolve({ cleanerId: "cleaner-1" }) },
+    );
+
+    expect(response.status).toBe(400);
+    expect(archiveMock).not.toHaveBeenCalled();
+  });
+
+  it("calls archiveCleanerAdminCommand for admin", async () => {
     archiveMock.mockResolvedValue({
       ok: true,
       outcome: "success",
@@ -44,7 +58,10 @@ describe("POST /api/admin/cleaners/[cleanerId]/archive", () => {
     const response = await POST(
       new Request("http://localhost", {
         method: "POST",
-        body: JSON.stringify({ reason: "Left platform" }),
+        body: JSON.stringify({
+          reason: "Left platform",
+          confirmPhrase: "DELETE CLEANER",
+        }),
       }),
       { params: Promise.resolve({ cleanerId: "cleaner-1" }) },
     );

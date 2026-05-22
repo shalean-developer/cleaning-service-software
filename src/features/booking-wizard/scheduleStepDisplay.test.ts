@@ -35,13 +35,41 @@ describe("scheduleStepDisplay", () => {
     expect(addDaysToDateString("2026-05-30", 2)).toBe("2026-06-01");
   });
 
-  it("formats time slots for display", () => {
-    expect(formatTimeSlotLabel("09:00")).toMatch(/9/);
+  it("defines 30-minute arrival slots from 7:00 am through 2:00 pm with no duplicates", () => {
+    expect(SCHEDULE_TIME_PRESETS).toEqual([
+      "07:00",
+      "07:30",
+      "08:00",
+      "08:30",
+      "09:00",
+      "09:30",
+      "10:00",
+      "10:30",
+      "11:00",
+      "11:30",
+      "12:00",
+      "12:30",
+      "13:00",
+      "13:30",
+      "14:00",
+    ]);
+    expect(new Set(SCHEDULE_TIME_PRESETS).size).toBe(SCHEDULE_TIME_PRESETS.length);
+  });
+
+  it("formats time slots for display in 12-hour am/pm", () => {
+    expect(formatTimeSlotLabel("07:00")).toMatch(/7:00\s*am/i);
+    expect(formatTimeSlotLabel("09:00")).toMatch(/9:00\s*am/i);
+    expect(formatTimeSlotLabel("12:00")).toMatch(/12:00\s*pm/i);
+    expect(formatTimeSlotLabel("13:30")).toMatch(/1:30\s*pm/i);
+    expect(formatTimeSlotLabel("14:00")).toMatch(/2:00\s*pm/i);
   });
 
   it("includes a non-preset selected time in the slot list", () => {
-    expect(resolveScheduleTimeSlots("07:30")).toContain("07:30");
+    const legacySlot = resolveScheduleTimeSlots("07:15");
+    expect(legacySlot).toHaveLength(SCHEDULE_TIME_PRESETS.length + 1);
+    expect(legacySlot).toContain("07:15");
     expect(resolveScheduleTimeSlots("09:00")).toEqual([...SCHEDULE_TIME_PRESETS]);
+    expect(resolveScheduleTimeSlots("17:00")).toContain("17:00");
   });
 
   it("detects horizontal overflow for the date scroller", () => {

@@ -49,7 +49,7 @@ function SelectedBadge({ size = "sm" }: { size?: "sm" | "md" }) {
 
   return (
     <span
-      className={`flex ${box} shrink-0 items-center justify-center rounded-full bg-zinc-900 text-white`}
+      className={`flex ${box} shrink-0 items-center justify-center rounded-full bg-shalean-primary text-white`}
       aria-hidden
     >
       <svg viewBox="0 0 12 12" className={icon} fill="none">
@@ -74,10 +74,10 @@ function ServiceCardMobile({ service, selected, onSelect }: ServiceCardProps) {
       type="button"
       onClick={() => onSelect(service.slug)}
       aria-pressed={selected}
-      className={`relative flex w-full min-w-0 items-center gap-3 rounded-lg border px-3 py-3 pr-10 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 active:scale-[0.99] ${
+      className={`relative flex w-full min-w-0 items-center gap-3 rounded-lg border px-3 py-3 pr-10 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shalean-primary active:scale-[0.99] ${
         selected
-          ? "border-zinc-900 bg-zinc-50 ring-1 ring-zinc-900/10"
-          : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50/50"
+          ? "border-shalean-primary bg-shalean-soft-blue/50 ring-1 ring-shalean-primary/10"
+          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-shalean-soft-blue/30/50"
       }`}
     >
       {showMostBooked ? (
@@ -99,10 +99,10 @@ function ServiceCardMobile({ service, selected, onSelect }: ServiceCardProps) {
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="block min-h-[2.25rem] text-[0.8125rem] font-semibold leading-snug text-zinc-900 [text-wrap:pretty] line-clamp-2">
+        <span className="block min-h-[2.25rem] text-[0.8125rem] font-semibold leading-snug text-shalean-navy [text-wrap:pretty] line-clamp-2">
           {service.label}
         </span>
-        <span className="mt-0.5 block min-h-[2.5rem] text-xs leading-snug text-zinc-500 [text-wrap:pretty] line-clamp-2">
+        <span className="mt-0.5 block min-h-[2.5rem] text-xs leading-snug text-slate-500 [text-wrap:pretty] line-clamp-2">
           {service.description}
         </span>
       </span>
@@ -119,10 +119,10 @@ function ServiceCardDesktop({ service, selected, onSelect }: ServiceCardProps) {
       type="button"
       onClick={() => onSelect(service.slug)}
       aria-pressed={selected}
-      className={`group relative flex h-full w-full min-w-0 flex-col gap-2 rounded-2xl border px-4 py-4 text-left transition-[border-color,box-shadow,background-color] duration-200 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 motion-reduce:transition-none ${
+      className={`group relative flex h-full w-full min-w-0 flex-col gap-2 rounded-2xl border px-4 py-4 text-left transition-[border-color,box-shadow,background-color] duration-200 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shalean-primary motion-reduce:transition-none ${
         selected
-          ? "border-zinc-900 bg-zinc-50 shadow-[0_1px_2px_rgba(24,24,27,0.06),0_4px_14px_rgba(24,24,27,0.08)]"
-          : "border-zinc-200/80 bg-white shadow-[0_1px_2px_rgba(24,24,27,0.04)] hover:border-zinc-300 hover:bg-zinc-50/40 hover:shadow-[0_2px_10px_rgba(24,24,27,0.07)]"
+          ? "border-shalean-primary bg-shalean-soft-blue/50 shadow-[0_1px_2px_rgba(24,24,27,0.06),0_4px_14px_rgba(24,24,27,0.08)]"
+          : "border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(24,24,27,0.04)] hover:border-slate-300 hover:bg-shalean-soft-blue/30/40 hover:shadow-[0_2px_10px_rgba(24,24,27,0.07)]"
       }`}
     >
       {showMostBooked ? (
@@ -134,12 +134,12 @@ function ServiceCardDesktop({ service, selected, onSelect }: ServiceCardProps) {
       <span className="flex min-w-0 items-center gap-3">
         <span
           className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ring-1 ring-inset transition-colors ${
-            selected ? "ring-zinc-900/10" : "ring-zinc-900/[0.06]"
+            selected ? "ring-shalean-primary/10" : "ring-shalean-primary/[0.06]"
           } ${serviceIconSurfaceClass(service.slug)} ${serviceIconColorClass(service.slug)}`}
         >
           <ServiceStepIcon slug={service.slug} className="h-5 w-5" />
         </span>
-        <span className="min-h-[2.75rem] min-w-0 flex-1 pt-0.5 text-[0.9375rem] font-semibold tracking-tight leading-snug text-zinc-900 [text-wrap:pretty] line-clamp-2">
+        <span className="min-h-[2.75rem] min-w-0 flex-1 pt-0.5 text-[0.9375rem] font-semibold tracking-tight leading-snug text-shalean-navy [text-wrap:pretty] line-clamp-2">
           {service.label}
         </span>
         {selected ? (
@@ -149,7 +149,7 @@ function ServiceCardDesktop({ service, selected, onSelect }: ServiceCardProps) {
         ) : null}
       </span>
 
-      <p className="m-0 block min-h-[2.625rem] w-full min-w-0 flex-none text-[0.8125rem] leading-relaxed text-zinc-600 [text-wrap:pretty] line-clamp-2">
+      <p className="m-0 block min-h-[2.625rem] w-full min-w-0 flex-none text-[0.8125rem] leading-relaxed text-slate-600 [text-wrap:pretty] line-clamp-2">
         {SERVICE_STEP_DESCRIPTIONS_DESKTOP[service.slug]}
       </p>
     </button>
@@ -177,8 +177,8 @@ export function ServiceStepPanel({ options, selectedSlug, onSelect, error }: Pro
   return (
     <div>
       <header className="mb-4 md:mb-5">
-        <h2 className="text-lg font-semibold tracking-tight text-zinc-900">Choose a service</h2>
-        <p className="mt-1 hidden text-sm leading-relaxed text-zinc-500 md:block">
+        <h2 className="text-lg font-semibold tracking-tight text-shalean-navy">Choose a service</h2>
+        <p className="mt-1 hidden text-sm leading-relaxed text-slate-500 md:block">
           Select the type of clean you need. You can change this later before checkout.
         </p>
       </header>

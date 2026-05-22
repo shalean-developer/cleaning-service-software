@@ -18,13 +18,13 @@ function SoonAddonRow({ label }: { label: string }) {
   return (
     <li
       aria-disabled="true"
-      className="flex min-w-0 cursor-not-allowed items-center gap-2 border-b border-zinc-100 px-2.5 py-2 opacity-60 last:border-b-0 sm:gap-2.5 sm:px-3"
+      className="flex min-w-0 cursor-not-allowed items-center gap-2 border-b border-slate-100 px-2.5 py-2 opacity-60 last:border-b-0 sm:gap-2.5 sm:px-3"
     >
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium leading-snug text-zinc-500">{label}</p>
+        <p className="text-sm font-medium leading-snug text-slate-500">{label}</p>
         <p className={`${DETAILS_OPTION_DESC} line-clamp-2`}>Coming soon</p>
       </div>
-      <span className="shrink-0 rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+      <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
         Soon
       </span>
     </li>
@@ -45,17 +45,17 @@ function PricedAddonRow({
   onToggle: (enabled: boolean) => void;
 }) {
   const addon = ADDON_CATALOG[slug];
-  const rowClass = checked ? "bg-zinc-50/80" : "bg-white";
+  const rowClass = checked ? "bg-shalean-soft-blue/40" : "bg-white";
 
   return (
     <li
-      className={`flex min-w-0 items-center gap-2 border-b border-zinc-100 px-2.5 py-2 last:border-b-0 sm:gap-2.5 sm:px-3 ${rowClass}`}
+      className={`flex min-w-0 items-center gap-2 border-b border-slate-100 px-2.5 py-2 last:border-b-0 sm:gap-2.5 sm:px-3 ${rowClass}`}
     >
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium leading-snug text-zinc-900">{label}</p>
+        <p className="text-sm font-medium leading-snug text-shalean-navy">{label}</p>
         <p className={`${DETAILS_OPTION_DESC} line-clamp-2`}>{description}</p>
       </div>
-      <span className="shrink-0 text-[11px] font-medium tabular-nums text-zinc-500 sm:text-xs">
+      <span className="shrink-0 text-[11px] font-medium tabular-nums text-slate-500 sm:text-xs">
         {formatAddonPrice(addon.amountCents)}
       </span>
       <DetailsToggleSwitch
@@ -85,13 +85,13 @@ export function CarpetAddonsStepPanel({ selected, onChange }: Props) {
         id="carpet-addons-step-label"
       />
       {getAddonsSectionHint("carpet-cleaning") ? (
-        <p className="mb-2 text-xs leading-snug text-zinc-500">
+        <p className="mb-2 text-xs leading-snug text-slate-500">
           {getAddonsSectionHint("carpet-cleaning")}
         </p>
       ) : null}
 
       <div
-        className="overflow-hidden rounded-xl border border-zinc-200/90 bg-white shadow-sm"
+        className="overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm"
         role="group"
         aria-labelledby="carpet-addons-step-label"
       >

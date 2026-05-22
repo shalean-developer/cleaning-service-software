@@ -5,13 +5,18 @@
  * Categories:
  *   KEEP   = real production data
  *   REVIEW = uncertain — do not delete automatically
- *   DELETE = safe mock/test/demo data
+ *   DELETE = safe mock/test/demo data (hard_delete or archive purge action)
  *
- * Usage: npm run ops:audit:mock-data
+ * Usage:
+ *   npm run ops:audit:mock-data
+ *   npm run ops:audit:mock-data -- --allow-review
  */
 import { createClient } from "@supabase/supabase-js";
 import { assertDeleteBucketSafe, runMockDataAudit } from "./lib/mock-data-loader.mjs";
+import { JSON_NAME, CSV_NAME, writeMockDataAuditReports } from "./lib/mock-data-audit-report.mjs";
 import { loadEnvFiles, requireServiceRoleClient } from "../e2e/lib/env.mjs";
+
+const allowReview = process.argv.includes("--allow-review");
 
 loadEnvFiles();
 const client = requireServiceRoleClient(createClient);
@@ -26,6 +31,24 @@ function printSection(title) {
   console.log("-".repeat(title.length));
 }
 
+function printClassificationCounts(label, audit) {
+  printSection(`${label} — DELETE / KEEP / REVIEW`);
+  const entity =
+    label === "Bookings"
+      ? audit.bookings
+      : label === "Customers"
+        ? audit.customers
+        : audit.cleaners;
+  console.log(`  DELETE: ${entity.delete.length}`);
+  console.log(`  KEEP:   ${entity.keep.length}`);
+  console.log(`  REVIEW: ${entity.review.length}`);
+  if (label === "Bookings") {
+    console.log(`    hard_delete purge: ${audit.bookings.hardDelete?.length ?? 0}`);
+    console.log(`    archive purge:     ${audit.bookings.archive?.length ?? 0}`);
+    console.log(`    blocked (→REVIEW): ${audit.bookings.blocked?.length ?? 0}`);
+  }
+}
+
 async function main() {
   console.log("Mock data audit (dry-run — no writes)\n");
   console.log("KEEP   = real production data");
@@ -35,11 +58,28 @@ async function main() {
   console.log("Scanning profiles, customers, cleaners, bookings, and related rows…");
   const audit = await runMockDataAudit(client);
 
+  printClassificationCounts("Bookings", audit);
+  printClassificationCounts("Customers", audit);
+  printClassificationCounts("Cleaners", audit);
+
+  printSection("Blocked due to payment / earnings / payout / history");
+  const blocked = audit.impacts.blockedByFinancialOrHistory ?? {};
+  console.log(`  payment:    ${blocked.payment ?? 0}`);
+  console.log(`  earning:    ${blocked.earning ?? 0}`);
+  console.log(`  payout:     ${blocked.payout ?? 0}`);
+  console.log(`  completed:  ${blocked.completed ?? 0}`);
+  console.log(`  assigned:   ${blocked.assigned ?? 0}`);
+  console.log(`  recurring:  ${blocked.recurring ?? 0}`);
+  console.log(`  support:    ${blocked.support ?? 0}`);
+  console.log(`  paid production in REVIEW: ${audit.impacts.paidProductionBlockedCount}`);
+
   printSection("DELETE impact summary (would remove if confirmed)");
   console.log(`  Mock profiles to delete:     ${audit.impacts.mockProfilesToDelete}`);
   console.log(`  Orphan mock profiles:        ${audit.impacts.orphanProfilesToDelete}`);
   console.log(`  Mock customers to delete:    ${audit.impacts.mockCustomersToDelete}`);
-  console.log(`  Mock bookings to delete:     ${audit.impacts.mockBookingsToDelete}`);
+  console.log(`  Mock bookings (total):       ${audit.impacts.mockBookingsToDelete}`);
+  console.log(`    hard_delete:               ${audit.impacts.mockBookingsHardDelete}`);
+  console.log(`    archive:                   ${audit.impacts.mockBookingsArchive}`);
   console.log(`  Mock cleaners to delete:     ${audit.impacts.mockCleanersToDelete}`);
   console.log(`  Payments affected:           ${audit.impacts.paymentsAffected}`);
   console.log(`  Payments deletable:          ${audit.impacts.paymentsDeletable}`);
@@ -47,8 +87,6 @@ async function main() {
   console.log(`  Earnings blocked (payout):   ${audit.impacts.earningsBlocked}`);
   console.log(`  Dispatch offers affected:    ${audit.impacts.dispatchOffersAffected}`);
   console.log(`  Payout items blocked:        ${audit.impacts.payoutItemsAffected}`);
-  console.log(`  Customer operational audits: ${audit.impacts.customerOperationalAuditsAffected}`);
-  console.log(`  Notifications affected:      ${audit.impacts.notificationsAffected}`);
 
   printSection("Safety summary");
   console.log(`  Protected KEEP count:        ${audit.impacts.protectedKeepCount}`);
@@ -60,43 +98,40 @@ async function main() {
     `  profiles=${audit.scanned.profiles}  customers=${audit.scanned.customers}  cleaners=${audit.scanned.cleaners}  bookings=${audit.scanned.bookings}`,
   );
 
-  if (audit.profiles.delete.length > 0) {
-    printSection("DELETE profiles (sample — up to 25)");
-    for (const row of audit.profiles.delete.slice(0, 25)) {
-      console.log(`  ${row.email}  ${row.profileId}  role=${row.role}  ${row.fullName ?? "—"}  match=${row.match}`);
+  if (audit.bookings.hardDelete?.length > 0) {
+    printSection("DELETE bookings — hard_delete (sample — up to 25)");
+    for (const row of audit.bookings.hardDelete.slice(0, 25)) {
+      console.log(
+        `  ${row.bookingId}  status=${row.status}  customer=${row.customerId ?? "—"}  match=${row.match}`,
+      );
     }
-    if (audit.profiles.delete.length > 25) {
-      console.log(`  … and ${audit.profiles.delete.length - 25} more`);
+    if (audit.bookings.hardDelete.length > 25) {
+      console.log(`  … and ${audit.bookings.hardDelete.length - 25} more`);
+    }
+  }
+
+  if (audit.bookings.archive?.length > 0) {
+    printSection("DELETE bookings — archive (sample — up to 15)");
+    for (const row of audit.bookings.archive.slice(0, 15)) {
+      console.log(
+        `  ${row.bookingId}  status=${row.status}  blocked_hard_delete=${row.hardDeleteBlockedReasons?.join("; ") ?? "—"}`,
+      );
     }
   }
 
   if (audit.customers.delete.length > 0) {
     printSection("DELETE customers");
-    const headers = ["email", "customer_id", "bookings", "payments", "match"];
-    const widths = [40, 38, 8, 8, 24];
-    console.log(headers.map((h, i) => pad(h, widths[i])).join(" | "));
     for (const row of audit.customers.delete) {
       console.log(
-        [
-          pad(row.email, widths[0]),
-          pad(row.customerId, widths[1]),
-          pad(row.bookingCount, widths[2]),
-          pad(row.paymentCount, widths[3]),
-          pad(row.match, widths[4]),
-        ].join(" | "),
+        `  ${row.email}  ${row.customerId}  bookings=${row.bookingCount}  payments=${row.paymentCount}  match=${row.match}`,
       );
     }
   }
 
-  if (audit.bookings.delete.length > 0) {
-    printSection("DELETE bookings (sample — up to 25)");
-    for (const row of audit.bookings.delete.slice(0, 25)) {
-      console.log(
-        `  ${row.bookingId}  status=${row.status}  customer=${row.customerId ?? "—"}  service_uid=${row.serviceUid ?? "—"}  match=${row.match}`,
-      );
-    }
-    if (audit.bookings.delete.length > 25) {
-      console.log(`  … and ${audit.bookings.delete.length - 25} more`);
+  if (audit.cleaners.delete.length > 0) {
+    printSection("DELETE cleaners");
+    for (const row of audit.cleaners.delete) {
+      console.log(`  ${row.email}  ${row.cleanerId}  ${row.relatedSummary}`);
     }
   }
 
@@ -113,7 +148,7 @@ async function main() {
     printSection("REVIEW bookings (sample — up to 15)");
     for (const row of audit.bookings.review.slice(0, 15)) {
       console.log(
-        `  ${row.bookingId}  paid=${row.hasPaidPayment}  status=${row.status}  match=${row.match}`,
+        `  ${row.bookingId}  paid=${row.hasPaidPayment}  status=${row.status}  ${(row.blockedReasons ?? row.hardDeleteBlockedReasons ?? []).join("; ")}  match=${row.match}`,
       );
     }
     if (audit.bookings.review.length > 15) {
@@ -121,21 +156,19 @@ async function main() {
     }
   }
 
-  if (audit.cleaners.delete.length > 0) {
-    printSection("DELETE cleaners");
-    for (const row of audit.cleaners.delete) {
-      console.log(`  ${row.email}  ${row.cleanerId}  ${row.relatedSummary}`);
-    }
-  }
-
   if (audit.cleaners.review.length > 0) {
     printSection("REVIEW cleaners (blocked from auto-delete)");
     for (const row of audit.cleaners.review) {
       console.log(
-        `  ${row.email}  paid_real_customer_bookings=${row.bookingSummary.paidRealCustomer}  ${row.relatedSummary}`,
+        `  ${row.email}  ${(row.blockedReasons ?? []).join("; ")}  ${row.relatedSummary}`,
       );
     }
   }
+
+  const { jsonPath, csvPath } = writeMockDataAuditReports(audit);
+  printSection("Audit reports written");
+  console.log(`  ${jsonPath}`);
+  console.log(`  ${csvPath}`);
 
   try {
     assertDeleteBucketSafe(audit);
@@ -146,6 +179,18 @@ async function main() {
       "\nDo NOT run delete until DELETE bucket is corrected. Inspect REVIEW rows and adjust patterns.",
     );
     process.exit(2);
+  }
+
+  const reviewCount = audit.impacts.reviewCount;
+  if (reviewCount > 0 && !allowReview) {
+    console.error(
+      `\n${reviewCount} REVIEW row(s) require manual inspection. Re-run with --allow-review to exit 0 anyway.`,
+    );
+    process.exit(1);
+  }
+
+  if (reviewCount > 0 && allowReview) {
+    console.log(`\n--allow-review: exiting 0 despite ${reviewCount} REVIEW row(s).`);
   }
 
   const hasDeletes =
@@ -165,7 +210,20 @@ async function main() {
   }
 }
 
+function printConnectionHelp(err) {
+  const text = err instanceof Error ? `${err.message}\n${err.cause ?? ""}` : String(err);
+  if (!/ENOTFOUND|fetch failed|ECONNREFUSED|ETIMEDOUT/i.test(text)) return false;
+
+  const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "(not set)";
+  console.error("\nCould not reach Supabase. Check:\n");
+  console.error(`  1. SUPABASE_URL in .env.local — currently: ${url}`);
+  console.error("  2. Internet / VPN / firewall (DNS must resolve *.supabase.co)");
+  console.error("  3. Project is active in the Supabase dashboard (not paused/deleted)");
+  console.error("  4. For local dev: npx supabase status → use http://127.0.0.1:54321\n");
+  return true;
+}
+
 main().catch((err) => {
-  console.error(err);
+  if (!printConnectionHelp(err)) console.error(err);
   process.exit(1);
 });

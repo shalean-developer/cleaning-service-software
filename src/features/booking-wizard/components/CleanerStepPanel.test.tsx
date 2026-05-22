@@ -42,9 +42,9 @@ describe("CleanerStepPanel", () => {
       />,
     );
 
-    expect(html).toContain("border-zinc-900");
-    expect(html).toContain("bg-zinc-50");
-    expect(html).not.toContain("bg-zinc-900 text-white");
+    expect(html).toContain("border-shalean-primary");
+    expect(html).toContain("bg-shalean-soft-blue/50");
+    expect(html).not.toContain("bg-shalean-primary text-white");
   });
 
   it("shows only Shalean team for deep cleaning", () => {

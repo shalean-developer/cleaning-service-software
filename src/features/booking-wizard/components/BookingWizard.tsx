@@ -462,6 +462,7 @@ export function BookingWizard({
     state.step !== "service" &&
     state.step !== "location" &&
     state.step !== "details" &&
+    state.step !== "cleaner" &&
     state.step !== "checkout" ? (
       <WizardContextStrip
         serviceLabel={serviceLabel}
@@ -608,7 +609,7 @@ export function BookingWizard({
                 return (
                   <Field label={accessCopy.label}>
                     {accessCopy.hint ? (
-                      <p className="mb-1.5 text-xs leading-snug text-zinc-500">{accessCopy.hint}</p>
+                      <p className="mb-1.5 text-xs leading-snug text-slate-500">{accessCopy.hint}</p>
                     ) : null}
                     <textarea
                       className={`${inputClass} min-h-[80px] ${WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS}`}
@@ -700,7 +701,6 @@ export function BookingWizard({
 
         {state.step === "cleaner" ? (
           <>
-            {wizardContextStrip}
             <CleanerStepPanel
               serviceSlug={state.serviceSlug}
               cleanerPreferenceMode={state.cleanerPreferenceMode}
@@ -732,7 +732,7 @@ export function BookingWizard({
               <>
                 {wizardContextStrip}
                 <WizardStepHeading title="Review" />
-                <p className="text-sm text-zinc-600">Calculating price…</p>
+                <p className="text-sm text-slate-600">Calculating price…</p>
               </>
             ) : state.quote ? (
               <>

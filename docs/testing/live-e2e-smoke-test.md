@@ -297,6 +297,23 @@ npm run e2e:seed
 
 Preserves `services` catalog rows.
 
+### Unified mock data cleanup (production-safe)
+
+Dry-run audit for mock bookings, customers, and cleaners (no writes). Writes `mock-data-audit-report.json` and `mock-data-audit-report.csv` in the project root. Exits non-zero when REVIEW rows exist unless `--allow-review` is passed.
+
+```bash
+npm run ops:audit:mock-data
+npm run ops:audit:mock-data -- --allow-review
+```
+
+Delete only rows in the DELETE bucket (requires explicit confirmation):
+
+```bash
+CONFIRM_MOCK_DATA_DELETE=yes npm run ops:delete:mock-data
+```
+
+Rules: real records (e.g. Princess Saidi, Farai Chitekedza, protected inboxes) are KEEP; paid/completed/earning/payout history blocks hard delete; mock bookings that cannot be hard-deleted may be archived when safe; each action writes `admin_delete_audit`.
+
 ### Mock cleaner ops (production-safe)
 
 Audit mock vs real cleaners (dry-run table, no writes):

@@ -105,7 +105,7 @@ const SERVICE_ICON_COLORS: Record<ServiceSlug, string> = {
   "deep-cleaning": "text-violet-600",
   "moving-cleaning": "text-amber-600",
   "airbnb-cleaning": "text-rose-600",
-  "office-cleaning": "text-zinc-700",
+  "office-cleaning": "text-slate-700",
   "carpet-cleaning": "text-teal-600",
 };
 
@@ -114,7 +114,7 @@ const SERVICE_ICON_SURFACES: Record<ServiceSlug, string> = {
   "deep-cleaning": "bg-violet-50",
   "moving-cleaning": "bg-amber-50",
   "airbnb-cleaning": "bg-rose-50",
-  "office-cleaning": "bg-zinc-100",
+  "office-cleaning": "bg-slate-100",
   "carpet-cleaning": "bg-teal-50",
 };
 

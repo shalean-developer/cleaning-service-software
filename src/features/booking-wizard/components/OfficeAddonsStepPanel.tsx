@@ -14,10 +14,10 @@ import { DetailsSectionHeading } from "./DetailsSectionHeading";
 import { DetailsToggleSwitch } from "./DetailsToggleSwitch";
 
 const OFFICE_GROUP_HEADING =
-  "px-2.5 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 first:pt-2.5 sm:px-3";
+  "px-2.5 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400 first:pt-2.5 sm:px-3";
 
 const OFFICE_ADDON_ROW =
-  "flex min-w-0 items-center gap-2 border-b border-zinc-100/90 px-2.5 py-1.5 last:border-b-0 sm:gap-2 sm:px-3";
+  "flex min-w-0 items-center gap-2 border-b border-slate-100/90 px-2.5 py-1.5 last:border-b-0 sm:gap-2 sm:px-3";
 
 type Props = {
   selected: AddonSlug[];
@@ -34,15 +34,15 @@ type OfficeAddonRowProps = {
 
 function OfficeAddonRow({ slug, label, description, checked, onToggle }: OfficeAddonRowProps) {
   const addon = ADDON_CATALOG[slug];
-  const rowClass = checked ? "bg-zinc-50/70" : "bg-white";
+  const rowClass = checked ? "bg-shalean-soft-blue/50" : "bg-white";
 
   return (
     <li className={`${OFFICE_ADDON_ROW} ${rowClass}`}>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium leading-tight text-zinc-900">{label}</p>
-        <p className="mt-0.5 line-clamp-1 text-[11px] leading-snug text-zinc-500">{description}</p>
+        <p className="text-sm font-medium leading-tight text-shalean-navy">{label}</p>
+        <p className="mt-0.5 line-clamp-1 text-[11px] leading-snug text-slate-500">{description}</p>
       </div>
-      <span className="shrink-0 text-[11px] font-medium tabular-nums text-zinc-500 sm:text-xs">
+      <span className="shrink-0 text-[11px] font-medium tabular-nums text-slate-500 sm:text-xs">
         {formatAddonPrice(addon.amountCents)}
       </span>
       <DetailsToggleSwitch
@@ -74,18 +74,18 @@ export function OfficeAddonsStepPanel({ selected, onChange }: Props) {
     <section className={`${DETAILS_STEP_SECTION} mb-3`} aria-labelledby="office-addons-step-label">
       <DetailsSectionHeading title={getAddonsSectionTitle(serviceSlug)} id="office-addons-step-label" />
       {sectionHint ? (
-        <p className="mb-1.5 text-[11px] leading-snug text-zinc-500 sm:text-xs">{sectionHint}</p>
+        <p className="mb-1.5 text-[11px] leading-snug text-slate-500 sm:text-xs">{sectionHint}</p>
       ) : null}
 
       <div
-        className="overflow-hidden rounded-lg border border-zinc-200/90 bg-white"
+        className="overflow-hidden rounded-lg border border-slate-200/90 bg-white"
         role="group"
         aria-labelledby="office-addons-step-label"
       >
         {OFFICE_ADDON_STEP_GROUPS.map((group, groupIndex) => (
           <div
             key={group.id}
-            className={groupIndex > 0 ? "border-t border-zinc-100" : undefined}
+            className={groupIndex > 0 ? "border-t border-slate-100" : undefined}
             role="group"
             aria-label={group.title}
           >

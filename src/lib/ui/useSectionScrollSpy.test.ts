@@ -13,5 +13,6 @@ describe("useSectionScrollSpy", () => {
     expect(source).not.toContain("addEventListener(\"scroll\"");
     expect(source).not.toContain("hashchange");
     expect(source).not.toContain("location.hash");
+    expect(source).not.toMatch(/typeof window === ["']undefined["']/);
   });
 });

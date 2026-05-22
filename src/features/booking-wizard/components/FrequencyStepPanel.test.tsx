@@ -20,8 +20,8 @@ describe("FrequencyStepPanel", () => {
     expect(html).toContain("Bi-weekly");
     expect(html).toContain("Monthly");
     expect(html).toContain('aria-checked="true"');
-    expect(html).toContain("border-zinc-900");
-    expect(html).toContain("bg-zinc-50");
+    expect(html).toContain("border-shalean-primary");
+    expect(html).toContain("bg-shalean-soft-blue/50");
     expect(html).not.toContain("sr-only");
     expect(html).not.toContain("border-blue-500");
   });

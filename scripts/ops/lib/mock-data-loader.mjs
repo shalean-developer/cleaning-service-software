@@ -16,6 +16,10 @@ import {
   resolveMockProfileDecision,
 } from "./mock-profile-patterns.mjs";
 import {
+  assessBookingArchiveEligibility,
+  assessBookingHardDeleteEligibility,
+} from "./mock-data-booking-eligibility.mjs";
+import {
   classifyMockBookingSignals,
   extractBookingFieldSignals,
   isCompletedPayoutEarning,
@@ -26,6 +30,8 @@ import {
 
 const CHUNK = 100;
 const BOOKING_PAGE = 500;
+
+const COMPLETED_JOB_STATUSES = ["completed", "payout_ready", "paid_out"];
 
 /**
  * @param {import('@supabase/supabase-js').SupabaseClient} client
@@ -120,7 +126,9 @@ async function loadAllBookings(client) {
   for (;;) {
     const { data, error } = await client
       .from("bookings")
-      .select("id, customer_id, cleaner_id, status, metadata")
+      .select(
+        "id, customer_id, cleaner_id, status, metadata, series_id, synthetic_anchor, deleted_at",
+      )
       .range(from, from + BOOKING_PAGE - 1);
     if (error) throw error;
     const page = data ?? [];
@@ -129,6 +137,34 @@ async function loadAllBookings(client) {
     from += BOOKING_PAGE;
   }
   return rows;
+}
+
+/**
+ * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {string} cleanerId
+ */
+async function countCleanerPurgeBlockers(client, cleanerId) {
+  const { count: payoutEarnings, error: payoutErr } = await client
+    .from("earning_lines")
+    .select("id", { count: "exact", head: true })
+    .eq("cleaner_id", cleanerId)
+    .not("payout_batch_id", "is", null);
+  if (payoutErr) throw payoutErr;
+
+  const { data: linkedBookings, error: bookingErr } = await client
+    .from("bookings")
+    .select("id, status")
+    .eq("cleaner_id", cleanerId);
+  if (bookingErr) throw bookingErr;
+
+  const completedJobCount = (linkedBookings ?? []).filter((b) =>
+    COMPLETED_JOB_STATUSES.includes(String(b.status)),
+  ).length;
+
+  return {
+    payoutEarningCount: payoutEarnings ?? 0,
+    completedJobCount,
+  };
 }
 
 /**
@@ -246,20 +282,38 @@ export async function runMockDataAudit(client) {
   for (const row of cleanerCandidates) {
     const related = await countCleanerRelatedRows(client, row.cleanerId);
     const bookingSummary = await summarizeBookingsForCleaner(client, row.cleanerId);
+    const purgeBlockers = await countCleanerPurgeBlockers(client, row.cleanerId);
     const alreadyPurged =
       row.deletedAt != null && row.lifecycleReason === "ops_mock_cleaner_purge";
     const decision = resolveMockCleanerDecision({
       classification: row.classification,
       paidRealCustomerBookings: bookingSummary.paidRealCustomer,
+      completedJobCount: purgeBlockers.completedJobCount,
+      payoutEarningCount: purgeBlockers.payoutEarningCount,
       alreadyPurged,
     });
     cleanerRows.push({
       ...row,
       related,
       bookingSummary,
+      purgeBlockers,
       relatedSummary: formatRelatedSummary(related, bookingSummary),
       decision,
       match: row.classification.reasons.join(",") || "-",
+      blockedReasons:
+        decision === "REVIEW"
+          ? [
+              ...(bookingSummary.paidRealCustomer > 0
+                ? [`paid_real_customer_bookings=${bookingSummary.paidRealCustomer}`]
+                : []),
+              ...(purgeBlockers.completedJobCount > 0
+                ? [`completed_jobs=${purgeBlockers.completedJobCount}`]
+                : []),
+              ...(purgeBlockers.payoutEarningCount > 0
+                ? [`payout_earnings=${purgeBlockers.payoutEarningCount}`]
+                : []),
+            ]
+          : [],
     });
   }
 
@@ -288,6 +342,15 @@ export async function runMockDataAudit(client) {
 
   const bookingAuditRows = [];
   let paidProductionBlocked = 0;
+  let blockedByFinancialOrHistory = {
+    payment: 0,
+    earning: 0,
+    payout: 0,
+    completed: 0,
+    assigned: 0,
+    recurring: 0,
+    support: 0,
+  };
 
   for (const booking of allBookings) {
     const id = String(booking.id);
@@ -345,15 +408,88 @@ export async function runMockDataAudit(client) {
       signals,
       decision,
       hasPaidPayment: flags.hasPaidPayment,
+      hasCompletedPayoutEarning: flags.hasCompletedPayoutEarning,
+      deletedAt: booking.deleted_at,
       match: signals.reasons.join(",") || "-",
+      purgeAction: null,
+      hardDeleteAllowed: null,
+      hardDeleteBlockedReasons: [],
+      archiveAllowed: null,
+      archiveBlockedReasons: [],
+      blockedReasons: [],
     });
   }
 
-  const deleteBookings = bookingAuditRows.filter((b) => b.decision === "DELETE");
-  const reviewBookings = bookingAuditRows.filter((b) => b.decision === "REVIEW");
-  const keepBookings = bookingAuditRows.filter((b) => b.decision === "KEEP");
+  const reviewBookings = [];
+  const keepBookings = [];
+  const hardDeleteBookings = [];
+  const archiveBookings = [];
+  const blockedBookings = [];
 
-  const deletableBookingIds = [...new Set(deleteBookings.map((b) => b.bookingId))];
+  for (const row of bookingAuditRows) {
+    if (row.decision === "KEEP") {
+      keepBookings.push(row);
+      continue;
+    }
+    if (row.decision === "REVIEW") {
+      if (row.hasPaidPayment) blockedByFinancialOrHistory.payment += 1;
+      if (row.hasCompletedPayoutEarning) blockedByFinancialOrHistory.payout += 1;
+      reviewBookings.push(row);
+      continue;
+    }
+
+    if (row.deletedAt) {
+      keepBookings.push({ ...row, decision: "KEEP", blockedReasons: ["already_archived"] });
+      continue;
+    }
+
+    const bookingRow = allBookings.find((b) => String(b.id) === row.bookingId);
+    if (!bookingRow) {
+      reviewBookings.push({ ...row, decision: "REVIEW", blockedReasons: ["booking_not_found"] });
+      continue;
+    }
+
+    const hardDelete = await assessBookingHardDeleteEligibility(client, bookingRow);
+    const archive = await assessBookingArchiveEligibility(client, bookingRow);
+
+    row.hardDeleteAllowed = hardDelete.hardDeleteAllowed;
+    row.hardDeleteBlockedReasons = hardDelete.blockedReasons;
+    row.archiveAllowed = archive.archiveAllowed;
+    row.archiveBlockedReasons = archive.blockedReasons;
+
+    if (hardDelete.hardDeleteAllowed) {
+      row.purgeAction = "hard_delete";
+      hardDeleteBookings.push(row);
+      continue;
+    }
+
+    if (archive.archiveAllowed) {
+      row.purgeAction = "archive";
+      archiveBookings.push(row);
+      if (hardDelete.blockers.settledPaymentCount > 0) blockedByFinancialOrHistory.payment += 1;
+      continue;
+    }
+
+    row.decision = "REVIEW";
+    row.purgeAction = "blocked";
+    row.blockedReasons = [
+      ...new Set([...hardDelete.blockedReasons, ...archive.blockedReasons]),
+    ];
+    if (hardDelete.blockers.settledPaymentCount > 0) blockedByFinancialOrHistory.payment += 1;
+    if (hardDelete.blockers.earningLineCount > 0) blockedByFinancialOrHistory.earning += 1;
+    if (hardDelete.blockers.isBlockedLifecycleStatus) blockedByFinancialOrHistory.completed += 1;
+    if (hardDelete.blockers.hasAssignedCleaner) blockedByFinancialOrHistory.assigned += 1;
+    if (hardDelete.blockers.hasSeriesId || hardDelete.blockers.recurringSeriesCount > 0) {
+      blockedByFinancialOrHistory.recurring += 1;
+    }
+    if (hardDelete.blockers.supportRequestCount > 0) blockedByFinancialOrHistory.support += 1;
+    reviewBookings.push(row);
+    blockedBookings.push(row);
+  }
+
+  const deleteBookings = [...hardDeleteBookings, ...archiveBookings];
+  const deletableBookingIds = hardDeleteBookings.map((b) => b.bookingId);
+  const archiveBookingIds = archiveBookings.map((b) => b.bookingId);
   const bookingImpacts = await countBookingScopedImpacts(client, deletableBookingIds);
 
   const deleteProfiles = profileRows.filter((p) => p.decision === "DELETE");
@@ -420,14 +556,14 @@ export async function runMockDataAudit(client) {
     }
   }
 
-  for (const row of deleteBookings) {
+  for (const row of hardDeleteBookings) {
     if (!row.hasPaidPayment) continue;
     const cc = customerClassById.get(row.customerId);
     const strongCustomer =
       cc?.strong === true || (row.customerId && mockCustomerIds.has(row.customerId));
     if (!strongCustomer) {
       safetyViolations.push(
-        `DELETE booking ${row.bookingId} has paid payment but weak mock classification`,
+        `hard_delete booking ${row.bookingId} has paid payment but weak mock classification`,
       );
     }
   }
@@ -468,17 +604,26 @@ export async function runMockDataAudit(client) {
     },
     bookings: {
       delete: deleteBookings,
+      hardDelete: hardDeleteBookings,
+      archive: archiveBookings,
+      blocked: blockedBookings,
       review: reviewBookings,
       keep: keepBookings,
+      all: bookingAuditRows,
       deletableIds: deletableBookingIds,
+      archiveIds: archiveBookingIds,
       deletableCount: deletableBookingIds.length,
+      archiveCount: archiveBookingIds.length,
       impacts: bookingImpacts,
     },
     impacts: {
       mockProfilesToDelete: deleteProfiles.length,
       mockCustomersToDelete: deleteCustomers.length,
-      mockBookingsToDelete: deletableBookingIds.length,
+      mockBookingsToDelete: deletableBookingIds.length + archiveBookingIds.length,
+      mockBookingsHardDelete: deletableBookingIds.length,
+      mockBookingsArchive: archiveBookingIds.length,
       mockCleanersToDelete: deleteCleaners.length,
+      blockedByFinancialOrHistory,
       orphanProfilesToDelete: orphanMockProfiles.length,
       paymentsAffected: bookingImpacts.payments,
       paymentsDeletable: bookingImpacts.paymentsDeletable,

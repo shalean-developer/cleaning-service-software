@@ -209,13 +209,22 @@ export function resolveMockBookingDecision(input) {
 }
 
 /**
- * @param {{ classification: import('./mock-cleaner-patterns.mjs').MockCleanerClassification; paidRealCustomerBookings?: number; alreadyPurged?: boolean }} input
+ * @param {{
+ *   classification: import('./mock-cleaner-patterns.mjs').MockCleanerClassification;
+ *   paidRealCustomerBookings?: number;
+ *   completedJobCount?: number;
+ *   payoutEarningCount?: number;
+ *   alreadyPurged?: boolean;
+ * }} input
  * @returns {"DELETE" | "KEEP" | "REVIEW" | "PURGED"}
  */
 export function resolveMockCleanerDecision(input) {
   if (input.alreadyPurged) return "PURGED";
+  if (input.classification.protected) return "KEEP";
   if (!input.classification.mock) return "KEEP";
   if ((input.paidRealCustomerBookings ?? 0) > 0) return "REVIEW";
+  if ((input.completedJobCount ?? 0) > 0) return "REVIEW";
+  if ((input.payoutEarningCount ?? 0) > 0) return "REVIEW";
   return "DELETE";
 }
 

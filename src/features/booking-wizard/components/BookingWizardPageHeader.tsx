@@ -14,8 +14,8 @@ export function BookingWizardPageHeader({ profileMenu }: Props) {
       className={`${WIZARD_PAGE_HEADER_CLASS} ${WIZARD_MAIN_COLUMN_CLASS} flex items-start justify-between gap-3`}
     >
       <div className="min-w-0 flex-1">
-        <h1 className="text-xl font-semibold text-zinc-900">Book a clean</h1>
-        <p className="text-sm text-zinc-600">Shalean Cleaning Services</p>
+        <h1 className="text-xl font-semibold text-shalean-navy">Book a clean</h1>
+        <p className="text-sm text-slate-600">Shalean Cleaning Services</p>
       </div>
       <CustomerProfileMenu {...profileMenu} />
     </header>

@@ -39,8 +39,8 @@ describe("WizardStepper (7P-1F)", () => {
   it("preserves active and completed chip styles on desktop", () => {
     const html = renderToStaticMarkup(<WizardStepper current="cleaner" />);
 
-    expect(html).toContain("bg-zinc-900 text-white");
-    expect(html).toContain("bg-zinc-200 text-zinc-800");
-    expect(html).toContain("bg-zinc-100 text-zinc-500");
+    expect(html).toContain("bg-shalean-primary text-white");
+    expect(html).toContain("bg-shalean-soft-blue text-shalean-primary");
+    expect(html).toContain("bg-slate-100 text-slate-500");
   });
 });

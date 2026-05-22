@@ -16,8 +16,8 @@ type Props = {
 function SecondaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex min-w-0 justify-between gap-3 text-xs leading-snug">
-      <dt className="shrink-0 text-zinc-500">{label}</dt>
-      <dd className="min-w-0 text-right font-medium text-zinc-700 [overflow-wrap:anywhere]">
+      <dt className="shrink-0 text-slate-500">{label}</dt>
+      <dd className="min-w-0 text-right font-medium text-slate-700 [overflow-wrap:anywhere]">
         {value}
       </dd>
     </div>
@@ -25,25 +25,19 @@ function SecondaryRow({ label, value }: { label: string; value: string }) {
 }
 
 function BookingSummaryCard({ snapshot, footnote }: Props) {
-  const { service, when, home, secondaryRows, estimatedTotalCents } = snapshot;
-  const scheduleMeta = [when, home].filter(Boolean).join(" · ");
+  const { secondaryRows, estimatedTotalCents } = snapshot;
 
   return (
     <div className={`${UI_CARD_SHELL_CLASS} p-4`}>
       <h2 className="sr-only">Booking summary</h2>
 
-      <p className="text-base font-semibold leading-snug text-zinc-900">{service}</p>
-      {scheduleMeta ? (
-        <p className="mt-1.5 text-sm leading-snug text-zinc-600">{scheduleMeta}</p>
-      ) : null}
-
       {secondaryRows.length > 0 ? (
         <details className="group mt-3">
-          <summary className="cursor-pointer list-none text-xs font-medium text-zinc-500 outline-none marker:content-none hover:text-zinc-700 focus-visible:rounded focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
+          <summary className="cursor-pointer list-none text-xs font-medium text-slate-500 outline-none marker:content-none hover:text-slate-700 focus-visible:rounded focus-visible:ring-2 focus-visible:ring-shalean-primary focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
             <span className="group-open:hidden">More details</span>
             <span className="hidden group-open:inline">Hide details</span>
           </summary>
-          <dl className="mt-2 space-y-1.5 border-t border-zinc-100 pt-2">
+          <dl className="mt-2 space-y-1.5 border-t border-slate-100 pt-2">
             {secondaryRows.map((row) => (
               <SecondaryRow key={row.label} label={row.label} value={row.value} />
             ))}
@@ -51,16 +45,16 @@ function BookingSummaryCard({ snapshot, footnote }: Props) {
         </details>
       ) : null}
 
-      <div className="mt-4 border-t border-zinc-100 pt-3" aria-live="polite">
-        <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-zinc-500">
+      <div className="mt-4 border-t border-slate-100 pt-3" aria-live="polite">
+        <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
           Estimated total
         </p>
         {estimatedTotalCents != null ? (
-          <p className="mt-0.5 text-xl font-semibold tabular-nums tracking-tight text-zinc-900">
+          <p className="mt-0.5 text-xl font-semibold tabular-nums tracking-tight text-shalean-navy">
             {formatZar(estimatedTotalCents)}
           </p>
         ) : (
-          <p className="mt-0.5 text-sm text-zinc-600">Add home details to see an estimate.</p>
+          <p className="mt-0.5 text-sm text-slate-600">Add home details to see an estimate.</p>
         )}
         <p className={`mt-1 ${UI_HELPER_TEXT_CLASS}`}>Estimate only. confirmed on review.</p>
       </div>

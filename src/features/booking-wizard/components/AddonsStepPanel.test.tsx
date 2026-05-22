@@ -12,14 +12,14 @@ describe("AddonsStepPanel", () => {
       />,
     );
 
-    expect(html).toContain("rounded-xl border border-zinc-200/90");
+    expect(html).toContain("rounded-xl border border-slate-200/90");
     expect(html).toContain("sm:grid-cols-2");
     expect(html).toContain("Couch cleaning");
     expect(html).toContain("fabric-safe");
     expect(html).toContain("+ R 150");
     expect(html).toContain('role="switch"');
     expect(html).toContain('aria-checked="true"');
-    expect(html).toContain("bg-zinc-900");
+    expect(html).toContain("bg-shalean-primary");
     expect(html).not.toContain("bg-blue-500");
     expect(html).toContain("Balcony cleaning");
     expect(html).toContain("Detailed cleaning extras");

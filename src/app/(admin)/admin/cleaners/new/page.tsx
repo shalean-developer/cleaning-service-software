@@ -14,9 +14,17 @@ export const metadata: Metadata = {
   title: "Create cleaner | Admin",
 };
 
-export default async function AdminCreateCleanerPage() {
+type PageProps = {
+  searchParams: Promise<{ fullName?: string; phone?: string }>;
+};
+
+export default async function AdminCreateCleanerPage({ searchParams }: PageProps) {
   const user = await getCurrentUser();
   if (!user) return null;
+
+  const params = await searchParams;
+  const initialFullName = params.fullName?.trim() ?? "";
+  const initialPhone = params.phone?.trim() ?? "";
 
   return (
     <AdminDashboardShell
@@ -51,7 +59,10 @@ export default async function AdminCreateCleanerPage() {
           title="Profile"
           description="Contact details and assignment eligibility. Lifecycle controls are not part of this form."
         >
-          <AdminCleanerCreateForm />
+          <AdminCleanerCreateForm
+            initialFullName={initialFullName}
+            initialPhone={initialPhone}
+          />
         </AdminDetailSection>
 
         <p className={ADMIN_SECTION_MUTED_CLASS}>

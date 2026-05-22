@@ -154,8 +154,8 @@ export function DetailsStepPanel({
   const carpetStep = getCarpetCleaningStepCopy(serviceSlug);
   const isCarpet = isCarpetCleaningSlug(serviceSlug);
   const isRegular = serviceSlug === "regular-cleaning";
-  const showExtraRoomsNearHomeSize =
-    serviceSlug != null && serviceSupportsExtraRooms(serviceSlug) && !isRegular;
+  const showExtraRoomsInHomeSize =
+    serviceSlug != null && serviceSupportsExtraRooms(serviceSlug);
 
   return (
     <div className="min-w-0">
@@ -181,7 +181,7 @@ export function DetailsStepPanel({
           isCarpet && carpetStep ? (
             <div className="min-w-0 sm:max-w-xs">
               <span className={DETAILS_STEP_LABEL}>{carpetStep.zonesFieldLabel}</span>
-              <p className="mb-1.5 text-xs leading-snug text-zinc-500">{carpetStep.zonesFieldHint}</p>
+              <p className="mb-1.5 text-xs leading-snug text-slate-500">{carpetStep.zonesFieldHint}</p>
               <DetailsQuantityStepper
                 value={bedrooms}
                 min={CARPET_ZONES_MIN}
@@ -194,7 +194,7 @@ export function DetailsStepPanel({
           ) : (
             <div
               className={
-                showExtraRoomsNearHomeSize
+                showExtraRoomsInHomeSize
                   ? "grid w-full min-w-0 grid-cols-1 gap-3 md:grid-cols-3"
                   : "grid grid-cols-2 gap-3 sm:max-w-md"
               }
@@ -221,7 +221,7 @@ export function DetailsStepPanel({
                 />
                 <FieldError message={stepErrors.bathrooms} />
               </div>
-              {showExtraRoomsNearHomeSize ? (
+              {showExtraRoomsInHomeSize ? (
                 <ExtraRoomsField
                   inline
                   extraRooms={extraRooms}
@@ -263,13 +263,6 @@ export function DetailsStepPanel({
         <section className={DETAILS_STEP_SECTION} aria-labelledby="details-supplies-support">
           <DetailsSectionHeading title="Supplies & support" id="details-supplies-support" />
           <div className={DETAILS_OPTION_ROW_GRID}>
-            <div className={DETAILS_OPTION_ROW_CELL}>
-              <ExtraRoomsField
-                extraRooms={extraRooms}
-                stepErrors={stepErrors}
-                onExtraRoomsChange={onExtraRoomsChange}
-              />
-            </div>
             <div className={DETAILS_OPTION_ROW_CELL}>
               <EquipmentSupplyStepPanel
                 value={equipmentSupply}

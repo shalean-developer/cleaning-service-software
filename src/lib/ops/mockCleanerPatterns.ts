@@ -1,5 +1,13 @@
 /** Mirrors scripts/ops/lib/mock-cleaner-patterns.mjs. keep classification in sync. */
 
+const PROTECTED_CLEANER_NAME_MARKERS = [/^princess\s+saidi$/i, /^farai\s+chitekedza$/i];
+
+export function isProtectedRealCleanerName(fullName: string | null | undefined): boolean {
+  const name = (fullName ?? "").trim();
+  if (!name) return false;
+  return PROTECTED_CLEANER_NAME_MARKERS.some((re) => re.test(name));
+}
+
 export function isMockCleanerEmail(email: string | null | undefined): boolean {
   if (typeof email !== "string" || !email.includes("@")) return false;
   const e = email.toLowerCase();
@@ -15,6 +23,7 @@ export function isMockCleanerEmail(email: string | null | undefined): boolean {
 
 export function isMockCleanerDisplayName(fullName: string | null | undefined): boolean {
   if (typeof fullName !== "string" || !fullName.trim()) return false;
+  if (isProtectedRealCleanerName(fullName)) return false;
   const n = fullName.toLowerCase();
   if (n.includes("test_e2e") || n.includes("test_phase")) return true;
   if (/\be2e\s+test\b/.test(n)) return true;

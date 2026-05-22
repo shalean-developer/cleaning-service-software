@@ -10,6 +10,8 @@ describe("AdminBookingDetailSectionNav", () => {
     expect(html).toContain('href="#admin-booking-payments"');
     expect(html).toContain('href="#admin-booking-timeline"');
     expect(html).toContain('href="#admin-booking-records"');
+    expect(html).toContain('href="#admin-booking-danger"');
+    expect(html).toContain("Danger zone");
     expect(html).toContain("Overview");
     expect(html).toContain("Assignment");
   });

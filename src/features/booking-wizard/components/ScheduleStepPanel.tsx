@@ -268,7 +268,7 @@ function DateScrollRow({
   const nextLabel = hasOverflow ? "Scroll dates forward" : "Next available date";
 
   const scrollButtonClass =
-    "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-zinc-200/90 bg-white text-zinc-600 shadow-[0_1px_2px_rgba(24,24,27,0.04)] transition-[border-color,background-color,color,opacity] hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:pointer-events-none disabled:opacity-35 motion-reduce:transition-none md:h-9 md:w-9";
+    "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200/90 bg-white text-slate-600 shadow-[0_1px_2px_rgba(24,24,27,0.04)] transition-[border-color,background-color,color,opacity] hover:border-slate-300 hover:bg-shalean-soft-blue/50 hover:text-shalean-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shalean-primary disabled:pointer-events-none disabled:opacity-35 motion-reduce:transition-none md:h-9 md:w-9";
 
   return (
     <div className="flex min-w-0 items-center justify-center gap-1.5 md:gap-3">
@@ -321,14 +321,14 @@ function DateCard({ option, selected, onSelect }: DateCardProps) {
     >
       <span
         className={`text-[0.6875rem] font-semibold uppercase leading-none tracking-wide md:text-xs ${
-          selected ? "text-zinc-900" : "text-zinc-600"
+          selected ? "text-shalean-navy" : "text-slate-600"
         }`}
       >
         {option.dayLabel}
       </span>
       <span
         className={`mt-1 text-[0.8125rem] font-medium leading-tight tabular-nums md:text-sm ${
-          selected ? "text-zinc-900" : "text-zinc-700"
+          selected ? "text-shalean-navy" : "text-slate-700"
         }`}
       >
         {option.dateLabel}
@@ -351,10 +351,10 @@ function TimeSlotButton({ slot, selected, disabled, onSelect }: TimeSlotButtonPr
       disabled={disabled}
       aria-pressed={selected}
       onClick={() => onSelect(slot)}
-      className={`min-h-[2.75rem] w-full rounded-lg border px-2.5 py-2 text-sm font-medium tabular-nums text-zinc-900 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-[2.5rem] sm:px-2.5 sm:py-1.5 sm:text-xs md:min-h-9 md:px-3 lg:min-h-8 lg:rounded-md lg:px-2.5 lg:py-1.5 lg:text-xs ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${
+      className={`min-h-[2.75rem] w-full rounded-lg border px-2.5 py-2 text-sm font-medium tabular-nums text-shalean-navy disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-[2.5rem] sm:px-2.5 sm:py-1.5 sm:text-xs md:min-h-9 md:px-3 lg:min-h-8 lg:rounded-md lg:px-2.5 lg:py-1.5 lg:text-xs ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${
         selected
           ? wizardCardClass(true)
-          : `${wizardCardClass(false)} hover:bg-zinc-50/60`
+          : `${wizardCardClass(false)} hover:bg-shalean-soft-blue/30/60`
       }`}
     >
       {formatTimeSlotLabel(slot)}
@@ -423,7 +423,7 @@ export function ScheduleStepPanel({
     <div className="w-full min-w-0">
       <WizardStepHeading title="Schedule" />
 
-      <p className="mt-2 text-xs leading-relaxed text-zinc-500">{scheduleHelperCopy}</p>
+      <p className="mt-2 text-xs leading-relaxed text-slate-500">{scheduleHelperCopy}</p>
 
       {envMismatchWarning ? (
         <p
@@ -437,7 +437,7 @@ export function ScheduleStepPanel({
       <section className="mt-6 min-w-0" aria-labelledby="schedule-date-heading">
         <h3
           id="schedule-date-heading"
-          className="text-sm font-medium text-zinc-800"
+          className="text-sm font-medium text-slate-700"
         >
           Date
         </h3>
@@ -464,16 +464,16 @@ export function ScheduleStepPanel({
         </div>
 
         {date && !selectedDateInList ? (
-          <p className="mt-2 text-xs text-zinc-500">
+          <p className="mt-2 text-xs text-slate-500">
             Selected date:{" "}
-            <time dateTime={date} className="font-medium text-zinc-700">
+            <time dateTime={date} className="font-medium text-slate-700">
               {date}
             </time>
           </p>
         ) : null}
 
         {deferredAssignmentHint ? (
-          <p className="mt-2 text-xs leading-relaxed text-zinc-600">{deferredAssignmentHint}</p>
+          <p className="mt-2 text-xs leading-relaxed text-slate-600">{deferredAssignmentHint}</p>
         ) : null}
 
         {dateError ? (
@@ -503,7 +503,7 @@ export function ScheduleStepPanel({
       >
         <h3
           id="schedule-time-heading"
-          className="text-sm font-medium text-zinc-800"
+          className="text-sm font-medium text-slate-700"
         >
           Arrival time
         </h3>

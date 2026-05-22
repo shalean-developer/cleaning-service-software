@@ -52,6 +52,7 @@ type CustomerRowSlice = {
   company_name: string | null;
   phone: string | null;
   notes: string | null;
+  deleted_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -433,7 +434,7 @@ async function loadCustomersForList(
   if (!search && inMemory) {
     let builder = client
       .from("customers")
-      .select("id, profile_id, company_name, phone, notes, created_at, updated_at")
+      .select("id, profile_id, company_name, phone, notes, deleted_at, created_at, updated_at")
       .order("updated_at", { ascending: false });
 
     builder = applyCreatedAtFloorToCustomerQuery(builder, query);
@@ -465,7 +466,7 @@ async function loadCustomersForList(
 
   let searchBuilder = client
     .from("customers")
-    .select("id, profile_id, company_name, phone, notes, created_at, updated_at")
+    .select("id, profile_id, company_name, phone, notes, deleted_at, created_at, updated_at")
     .or(orParts.join(","))
     .order("updated_at", { ascending: false });
 
@@ -740,7 +741,7 @@ export async function getAdminCustomerDetail(
 
   const { data: row, error } = await client
     .from("customers")
-    .select("id, profile_id, company_name, phone, notes, created_at, updated_at")
+    .select("id, profile_id, company_name, phone, notes, deleted_at, created_at, updated_at")
     .eq("id", customerId)
     .maybeSingle();
 
@@ -853,6 +854,7 @@ export async function getAdminCustomerDetail(
     profileCreatedAt: profile?.created_at ?? null,
     customerCreatedAt: customer.created_at,
     customerUpdatedAt: customer.updated_at,
+    deletedAt: customer.deleted_at ?? null,
   };
 
   return {

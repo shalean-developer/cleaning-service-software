@@ -179,15 +179,14 @@ export function AdminCleanerLifecycleActions({
           </button>
         ) : null}
 
-        <button
-          type="button"
-          className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-900 disabled:opacity-50"
-          disabled={loadingAction !== null || isArchived}
-          onClick={() => void submitAction("archive")}
-        >
-          {loadingAction === "archive" ? "Archiving…" : "Archive"}
-        </button>
       </div>
+
+      {!isArchived ? (
+        <p className="text-xs text-zinc-500">
+          To archive this cleaner, use the danger zone at the bottom of the page (requires
+          confirmation and a documented reason).
+        </p>
+      ) : null}
 
       {!isArchived && safetyCounts.activeBookingsCount > 0 ? (
         <p className="text-xs text-amber-800">

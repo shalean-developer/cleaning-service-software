@@ -18,11 +18,11 @@ describe("admin cleaners pages (PR-F)", () => {
     expect(source).not.toContain("requireServiceRoleClient");
   });
 
-  it("detail page wires lifecycle actions via client component and audit log", () => {
+  it("detail page wires remediation panel and audit log", () => {
     const source = readPage("src/app/(admin)/admin/cleaners/[cleanerId]/page.tsx");
 
     expect(source).toContain("getAdminCleanerDetail");
-    expect(source).toContain("AdminCleanerLifecycleActions");
+    expect(source).toContain("AdminCleanerRemediationPanel");
     expect(source).toContain("AdminCleanerAuditLog");
     expect(source).not.toMatch(/\.from\s*\(\s*["']cleaners["']\s*\)[\s\S]*?\.update/);
     expect(source).not.toContain("deactivateCleaner");
@@ -70,6 +70,33 @@ describe("admin cleaners pages (PR-F)", () => {
     expect(source).not.toContain("AdminCleanerLifecycleActions");
     expect(source).not.toContain("deactivateCleaner");
     expect(source).not.toMatch(/\.from\s*\(\s*["']cleaners["']\s*\)/);
+    expect(source).not.toContain('fetch("/api/admin/cleaners"');
+  });
+
+  it("create page supports query param prefill from onboarding leads", () => {
+    const source = readPage("src/app/(admin)/admin/cleaners/new/page.tsx");
+
+    expect(source).toContain("searchParams");
+    expect(source).toContain("initialFullName");
+    expect(source).toContain("initialPhone");
+  });
+
+  it("detail page rejects non-uuid cleanerId and redirects onboarding-leads slug", () => {
+    const source = readPage("src/app/(admin)/admin/cleaners/[cleanerId]/page.tsx");
+
+    expect(source).toContain('cleanerId === "onboarding-leads"');
+    expect(source).toContain('redirect("/admin/cleaners/onboarding-leads")');
+    expect(source).toContain("isUuid(cleanerId)");
+    expect(source).toContain("notFound()");
+  });
+
+  it("onboarding leads page is read-only file review without DB writes", () => {
+    const source = readPage("src/app/(admin)/admin/cleaners/onboarding-leads/page.tsx");
+
+    expect(source).toContain("loadCleanerOnboardingLeads");
+    expect(source).toContain("AdminCleanerOnboardingLeadsTable");
+    expect(source).not.toMatch(/\.from\s*\(\s*["']cleaners["']\s*\)/);
+    expect(source).not.toContain("requireServiceRoleClient");
     expect(source).not.toContain("/api/admin/cleaners");
   });
 });

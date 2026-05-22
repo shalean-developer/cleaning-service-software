@@ -8,7 +8,8 @@ export type AdminBookingDetailSectionId =
   | "assignment"
   | "payments"
   | "timeline"
-  | "records";
+  | "records"
+  | "danger";
 
 export const ADMIN_BOOKING_DETAIL_SECTION_IDS: readonly AdminBookingDetailSectionId[] = [
   "overview",
@@ -16,6 +17,7 @@ export const ADMIN_BOOKING_DETAIL_SECTION_IDS: readonly AdminBookingDetailSectio
   "payments",
   "timeline",
   "records",
+  "danger",
 ];
 
 const SECTIONS: readonly { id: AdminBookingDetailSectionId; label: string }[] = [
@@ -24,9 +26,20 @@ const SECTIONS: readonly { id: AdminBookingDetailSectionId; label: string }[] = 
   { id: "payments", label: "Payments" },
   { id: "timeline", label: "Timeline" },
   { id: "records", label: "Records" },
+  { id: "danger", label: "Danger zone" },
 ];
 
 const SECTION_ID_PREFIX = "admin-booking-";
+
+/** Danger zone uses `admin-booking-danger` (not `admin-booking-danger` from prefix + id). */
+const SECTION_HREF: Record<AdminBookingDetailSectionId, string> = {
+  overview: "#admin-booking-overview",
+  assignment: "#admin-booking-assignment",
+  payments: "#admin-booking-payments",
+  timeline: "#admin-booking-timeline",
+  records: "#admin-booking-records",
+  danger: "#admin-booking-danger",
+};
 
 type Props = {
   /** Override spy (tests); omit on the booking detail page for live scroll-spy. */
@@ -51,7 +64,7 @@ export function AdminBookingDetailSectionNav({ activeSection: activeSectionOverr
         return (
           <a
             key={section.id}
-            href={`#${SECTION_ID_PREFIX}${section.id}`}
+            href={SECTION_HREF[section.id]}
             aria-current={isActive ? "true" : undefined}
             className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
               isActive

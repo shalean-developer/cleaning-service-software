@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getAdminBookingDetail } from "@/features/dashboards/server/adminOperationsReadModel";
+import { formatAdminTimestamp } from "@/features/dashboards/server/parseBookingDisplay";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 import { AdminDeferredDispatchPanel } from "@/components/dashboard/AdminDeferredDispatchPanel";
@@ -74,6 +75,7 @@ import {
   toneForPayoutStatus,
 } from "@/features/bookings/server/statusLabels";
 import { AdminBookingSupportRequestsPanel } from "@/components/dashboard/admin/AdminBookingSupportRequestsPanel";
+import { AdminBookingDeleteDangerZone } from "@/components/dashboard/admin/AdminBookingDeleteDangerZone";
 import { listBookingSupportRequestsForBooking } from "@/features/bookings/server/bookingSupportRequestsService";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -518,6 +520,17 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
         </div>
 
         <div id="admin-booking-records" className="scroll-mt-20 space-y-2.5 sm:space-y-3">
+        <AdminBookingDeleteDangerZone
+          bookingId={b.id}
+          status={b.status}
+          paymentStatus={b.paymentStatus}
+          hasEarningLines={b.hasEarningLines}
+          deletedAt={b.deletedAt}
+          archivedAtLabel={b.deletedAt ? formatAdminTimestamp(b.deletedAt) : null}
+          hardDeleteAllowed={b.hardDelete?.allowed ?? false}
+          hardDeleteBlockedReasons={b.hardDelete?.blockedReasons ?? []}
+        />
+
         <AdminDetailSection
           title="Notifications"
           description="Outbox delivery for this booking (read-only)."

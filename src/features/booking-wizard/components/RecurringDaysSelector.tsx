@@ -30,10 +30,10 @@ export function RecurringDaysSelector({ selectedDays, onChange, error }: Props) 
 
   return (
     <section className="mt-6 min-w-0" aria-labelledby="recurring-days-label">
-      <h3 id="recurring-days-label" className="text-sm font-medium text-zinc-800">
+      <h3 id="recurring-days-label" className="text-sm font-medium text-slate-700">
         Preferred recurring days
       </h3>
-      <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+      <p className="mt-1 text-xs leading-relaxed text-slate-500">
         Choose which weekdays you want this service. One arrival time applies to all selected days.
       </p>
       <div
@@ -51,8 +51,8 @@ export function RecurringDaysSelector({ selectedDays, onChange, error }: Props) 
               onClick={() => toggle(value)}
               className={`min-h-10 min-w-[3rem] rounded-full border px-3 text-sm font-medium transition-colors ${WIZARD_FOCUS_RING} ${
                 selected
-                  ? "border-zinc-900 bg-zinc-900 text-white"
-                  : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
+                  ? "border-shalean-primary bg-shalean-primary text-white"
+                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
               }`}
             >
               {label}

@@ -51,7 +51,9 @@ describe("DetailsStepPanel. regular cleaning hints", () => {
     expect(html).not.toMatch(/<details[^>]*>[\s\S]*Add-ons/);
     expect(html).toContain("Supplies &amp; support");
     expect(html).toContain("Notes");
-    expect(html.indexOf("Home size")).toBeLessThan(html.indexOf("Cleaning intensity"));
+    expect(html).toContain("Extra rooms");
+    expect(html.indexOf("Home size")).toBeLessThan(html.indexOf("Extra rooms"));
+    expect(html.indexOf("Extra rooms")).toBeLessThan(html.indexOf("Cleaning intensity"));
     expect(html.indexOf("Cleaning intensity")).toBeLessThan(html.indexOf("Add-ons"));
     expect(html.indexOf("Add-ons")).toBeLessThan(html.indexOf("Supplies &amp; support"));
     expect(html.indexOf("Supplies &amp; support")).toBeLessThan(html.indexOf("Notes"));
@@ -122,7 +124,7 @@ describe("DetailsStepPanel. regular cleaning hints", () => {
     expect(html).toContain("Extras");
   });
 
-  it("renders visible extra rooms, equipment, and team support hints", () => {
+  it("renders extra rooms in home size and visible equipment and team support hints", () => {
     const html = renderToStaticMarkup(<DetailsStepPanel {...baseProps} />);
 
     expect(html).toContain("Shalean supplies equipment");
@@ -136,7 +138,8 @@ describe("DetailsStepPanel. regular cleaning hints", () => {
     expect(html).toContain("Post-event / extra dirty");
     expect(html).toContain("+30%");
     expect(html).toContain('role="switch"');
-    expect(html).toContain("md:grid-cols-3");
+    expect(html.indexOf("Bedrooms")).toBeLessThan(html.indexOf("Extra rooms"));
+    expect(html.indexOf("Extra rooms")).toBeLessThan(html.indexOf("Supplies &amp; support"));
     expect(html).not.toContain("sr-only");
   });
 });

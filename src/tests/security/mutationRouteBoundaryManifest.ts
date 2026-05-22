@@ -129,7 +129,22 @@ export const MUTATION_ROUTE_RULES: MutationRouteRule[] = [
   {
     routeFile: "admin/cleaners/[cleanerId]/archive/route.ts",
     category: "admin",
-    requiredFacadeImports: ["archiveCleaner"],
+    requiredFacadeImports: ["archiveCleanerAdminCommand"],
+  },
+  {
+    routeFile: "admin/bookings/[bookingId]/archive/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["archiveBookingAdminCommand"],
+  },
+  {
+    routeFile: "admin/bookings/[bookingId]/hard-delete/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["hardDeleteBookingAdminCommand"],
+  },
+  {
+    routeFile: "admin/customers/[customerId]/archive/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["archiveCustomerAdminCommand"],
   },
   {
     routeFile: "cron/expire-pending-payments/route.ts",

@@ -160,6 +160,41 @@ describe("mock-patterns", () => {
     ).toBe("REVIEW");
   });
 
+  it("KEEPs Princess Saidi and Farai Chitekedza by name", async () => {
+    const { classifyMockCleaner, isProtectedRealCleanerName } = await import(
+      "./mock-cleaner-patterns.mjs"
+    );
+    expect(isProtectedRealCleanerName({ fullName: "Princess Saidi" })).toBe(true);
+    expect(isProtectedRealCleanerName({ fullName: "Farai Chitekedza" })).toBe(true);
+    expect(
+      classifyMockCleaner({
+        email: "test_e2e@example.com",
+        fullName: "Princess Saidi",
+        phone: null,
+      }).mock,
+    ).toBe(false);
+    expect(
+      resolveMockCleanerDecision({
+        classification: classifyMockCleaner({
+          email: "test@example.com",
+          fullName: "Farai Chitekedza",
+          phone: null,
+        }),
+        alreadyPurged: false,
+      }),
+    ).toBe("KEEP");
+  });
+
+  it("REVIEWs mock cleaner with payout earnings", () => {
+    expect(
+      resolveMockCleanerDecision({
+        classification: { mock: true, reasons: ["email"] },
+        payoutEarningCount: 2,
+        alreadyPurged: false,
+      }),
+    ).toBe("REVIEW");
+  });
+
   it("does not treat protected admin as operational block incorrectly", () => {
     expect(isProtectedOperationalEmail("admin@shalean.co.za")).toBe(true);
     expect(isProtectedOperationalEmail("real.user@shalean.co.za")).toBe(false);

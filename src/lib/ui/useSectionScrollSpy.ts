@@ -17,9 +17,8 @@ export function useSectionScrollSpy<T extends string>({
   idPrefix,
   rootMargin = "-15% 0px -55% 0px",
 }: Options<T>): T | undefined {
-  const [active, setActive] = useState<T | undefined>(() =>
-    typeof window === "undefined" ? undefined : sectionIds[0],
-  );
+  // Always undefined on first render so SSR and client hydration match.
+  const [active, setActive] = useState<T | undefined>(undefined);
 
   useEffect(() => {
     const ratios = new Map<T, number>();
@@ -34,7 +33,11 @@ export function useSectionScrollSpy<T extends string>({
           best = id;
         }
       }
-      if (best !== undefined) setActive(best);
+      if (best !== undefined) {
+        setActive(best);
+        return;
+      }
+      setActive((current) => current ?? sectionIds[0]);
     };
 
     const observer = new IntersectionObserver(
@@ -54,6 +57,8 @@ export function useSectionScrollSpy<T extends string>({
       const el = document.getElementById(`${idPrefix}${id}`);
       if (el) observer.observe(el);
     }
+
+    pickActive();
 
     return () => observer.disconnect();
   }, [sectionIds, idPrefix, rootMargin]);

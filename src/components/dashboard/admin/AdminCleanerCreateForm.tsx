@@ -45,9 +45,21 @@ const EMPTY_VALUES = {
   ...defaultCleanerAvailabilityFormValues(),
 };
 
-export function AdminCleanerCreateForm() {
+export type AdminCleanerCreateFormProps = {
+  initialFullName?: string;
+  initialPhone?: string;
+};
+
+export function AdminCleanerCreateForm({
+  initialFullName = "",
+  initialPhone = "",
+}: AdminCleanerCreateFormProps) {
   const router = useRouter();
-  const [values, setValues] = useState(EMPTY_VALUES);
+  const [values, setValues] = useState({
+    ...EMPTY_VALUES,
+    fullName: initialFullName,
+    phone: initialPhone,
+  });
   const [errors, setErrors] = useState<CleanerCreateFormErrors>({});
   const [touched, setTouched] = useState<Partial<Record<CleanerCreateFormField, boolean>>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);

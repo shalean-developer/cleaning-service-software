@@ -9,12 +9,12 @@ export function equipmentSupplyVisibleHint(supply: EquipmentSupply): string {
   if (supply === "shalean") {
     return `Shalean supplies equipment · ${formatAddonPrice(CLEANING_EQUIPMENT_FEE_CENTS)}`;
   }
-  return "You provide supplies & equipment";
+  return "";
 }
 
 export function teamSupportVisibleHint(requestedTeamSize: 1 | 2): string {
   if (requestedTeamSize === 2) {
     return `Team support request · ${formatAddonPrice(TEAM_SUPPORT_REQUEST_SURCHARGE_CENTS)} · availability confirmed after payment`;
   }
-  return "Standard single-cleaner visit";
+  return "";
 }

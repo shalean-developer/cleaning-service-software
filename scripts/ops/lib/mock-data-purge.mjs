@@ -1,14 +1,91 @@
 import { isPaidProductionPaymentStatus } from "./mock-patterns.mjs";
 import { PROTECTED_CUSTOMER_EMAILS } from "./mock-customer-patterns.mjs";
 import { hasExplicitTestProfileEmail } from "./mock-profile-patterns.mjs";
+import {
+  recordOpsAdminDeleteAudit,
+  resolveOpsAdminProfileId,
+} from "./mock-data-admin-audit.mjs";
 
 const CHUNK = 50;
+const PURGE_REASON = "ops_mock_data_purge";
+
+/**
+ * Cancel open assignment offers for a booking (mock cleanup).
+ * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {string} bookingId
+ */
+async function cancelOpenOffersForBooking(client, bookingId) {
+  const { data: offers, error } = await client
+    .from("assignment_offers")
+    .select("id, status")
+    .eq("booking_id", bookingId);
+  if (error) throw error;
+  const openIds = (offers ?? [])
+    .filter((o) => !["cancelled", "declined", "expired"].includes(String(o.status)))
+    .map((o) => o.id);
+  if (openIds.length === 0) return 0;
+  const { error: updErr } = await client
+    .from("assignment_offers")
+    .update({ status: "cancelled", updated_at: new Date().toISOString() })
+    .in("id", openIds);
+  if (updErr) throw updErr;
+  return openIds.length;
+}
 
 /**
  * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {string} bookingId
+ * @param {string} adminProfileId
+ */
+async function hardDeleteBooking(client, bookingId, adminProfileId) {
+  const { error } = await client.rpc("admin_hard_delete_booking", {
+    p_booking_id: bookingId,
+  });
+  if (error) throw error;
+  await recordOpsAdminDeleteAudit(client, {
+    entityType: "booking",
+    entityId: bookingId,
+    adminProfileId,
+    action: "hard_delete",
+    outcome: "success",
+    reason: PURGE_REASON,
+  });
+}
+
+/**
+ * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {string} bookingId
+ * @param {string} adminProfileId
+ */
+async function archiveBooking(client, bookingId, adminProfileId) {
+  await cancelOpenOffersForBooking(client, bookingId);
+  const nowIso = new Date().toISOString();
+  const { error } = await client
+    .from("bookings")
+    .update({
+      deleted_at: nowIso,
+      deleted_by_profile_id: adminProfileId,
+      delete_reason: PURGE_REASON,
+      updated_at: nowIso,
+    })
+    .eq("id", bookingId);
+  if (error) throw error;
+  await recordOpsAdminDeleteAudit(client, {
+    entityType: "booking",
+    entityId: bookingId,
+    adminProfileId,
+    action: "archive",
+    outcome: "success",
+    reason: PURGE_REASON,
+  });
+}
+
+/**
+ * Legacy path: remove unpaid mock payment deps then booking row (only when RPC unavailable).
+ * @param {import('@supabase/supabase-js').SupabaseClient} client
  * @param {string[]} bookingIds
  */
-async function deleteBookingDependencies(client, bookingIds) {
+async function deleteBookingDependenciesLegacy(client, bookingIds) {
   if (bookingIds.length === 0) return { paymentsDeleted: 0, bookingsDeleted: 0 };
 
   let paymentsDeleted = 0;
@@ -64,7 +141,11 @@ async function deleteBookingDependencies(client, bookingIds) {
  * @param {Awaited<import('./mock-data-loader.mjs').runMockDataAudit>} audit
  */
 export async function purgeMockDataFromAudit(client, audit) {
+  const adminProfileId = await resolveOpsAdminProfileId(client);
+
   const summary = {
+    bookingsHardDeleted: 0,
+    bookingsArchived: 0,
     bookingsDeleted: 0,
     paymentsDeleted: 0,
     customersDeleted: 0,
@@ -74,17 +155,66 @@ export async function purgeMockDataFromAudit(client, audit) {
     authUsersDeleted: 0,
     operationalAuditsDeleted: 0,
     notificationsDeleted: 0,
+    offersCancelled: 0,
     warnings: [],
   };
 
-  const bookingIds = audit.bookings.deletableIds;
-  console.log(`  Removing ${bookingIds.length} mock booking(s) and dependencies…`);
-  const bookingResult = await deleteBookingDependencies(client, bookingIds);
-  summary.bookingsDeleted = bookingResult.bookingsDeleted;
-  summary.paymentsDeleted = bookingResult.paymentsDeleted;
+  const hardDeleteIds = audit.bookings.deletableIds ?? [];
+  const archiveIds = audit.bookings.archiveIds ?? [];
+
+  console.log(`  Hard-deleting ${hardDeleteIds.length} booking(s) via admin_hard_delete_booking…`);
+  for (const bookingId of hardDeleteIds) {
+    try {
+      await hardDeleteBooking(client, bookingId, adminProfileId);
+      summary.bookingsHardDeleted += 1;
+      summary.bookingsDeleted += 1;
+      console.log(`    hard_delete ${bookingId}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      summary.warnings.push(`hard_delete ${bookingId}: ${message}`);
+      await recordOpsAdminDeleteAudit(client, {
+        entityType: "booking",
+        entityId: bookingId,
+        adminProfileId,
+        action: "hard_delete",
+        outcome: "failed",
+        reason: PURGE_REASON,
+        blockedReason: message,
+      });
+    }
+  }
+
+  console.log(`  Archiving ${archiveIds.length} mock booking(s) (soft-delete)…`);
+  for (const bookingId of archiveIds) {
+    try {
+      const cancelled = await cancelOpenOffersForBooking(client, bookingId);
+      summary.offersCancelled += cancelled;
+      await archiveBooking(client, bookingId, adminProfileId);
+      summary.bookingsArchived += 1;
+      console.log(`    archive ${bookingId}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      summary.warnings.push(`archive ${bookingId}: ${message}`);
+      await recordOpsAdminDeleteAudit(client, {
+        entityType: "booking",
+        entityId: bookingId,
+        adminProfileId,
+        action: "archive",
+        outcome: "failed",
+        reason: PURGE_REASON,
+        blockedReason: message,
+      });
+    }
+  }
+
+  if (summary.bookingsHardDeleted === 0 && hardDeleteIds.length > 0) {
+    summary.warnings.push("No hard deletes succeeded; check admin_hard_delete_booking migration.");
+  }
 
   for (const customer of audit.customers.delete) {
     if (!customer.customerId) continue;
+
+    console.log(`  Customer ${customer.email} (${customer.customerId})`);
 
     const { count: auditCount, error: auditCountErr } = await client
       .from("customer_operational_audit")
@@ -115,7 +245,8 @@ export async function purgeMockDataFromAudit(client, audit) {
     const { count: remainingBookings, error: remainErr } = await client
       .from("bookings")
       .select("id", { count: "exact", head: true })
-      .eq("customer_id", customer.customerId);
+      .eq("customer_id", customer.customerId)
+      .is("deleted_at", null);
     if (remainErr) throw remainErr;
 
     if ((remainingBookings ?? 0) > 0) {
@@ -130,6 +261,15 @@ export async function purgeMockDataFromAudit(client, audit) {
       if (anonErr) throw anonErr;
       summary.customersAnonymized += 1;
       summary.warnings.push(`${customer.email}: preserved ${remainingBookings} booking(s)`);
+      await recordOpsAdminDeleteAudit(client, {
+        entityType: "customer",
+        entityId: customer.customerId,
+        adminProfileId,
+        action: "archive",
+        outcome: "success",
+        reason: PURGE_REASON,
+        metadata: { anonymized: true, remainingBookings },
+      });
       continue;
     }
 
@@ -143,10 +283,7 @@ export async function purgeMockDataFromAudit(client, audit) {
     if (profileDelErr) throw profileDelErr;
 
     const email = String(customer.email).toLowerCase().trim();
-    if (
-      !PROTECTED_CUSTOMER_EMAILS.has(email) &&
-      hasExplicitTestProfileEmail(email)
-    ) {
+    if (!PROTECTED_CUSTOMER_EMAILS.has(email) && hasExplicitTestProfileEmail(email)) {
       const { error: authDelErr } = await client.auth.admin.deleteUser(customer.userId);
       if (authDelErr) {
         summary.warnings.push(`auth delete ${customer.userId}: ${authDelErr.message}`);
@@ -157,17 +294,29 @@ export async function purgeMockDataFromAudit(client, audit) {
 
     summary.customersDeleted += 1;
     summary.profilesDeleted += 1;
+    await recordOpsAdminDeleteAudit(client, {
+      entityType: "customer",
+      entityId: customer.customerId,
+      adminProfileId,
+      action: "delete",
+      outcome: "success",
+      reason: PURGE_REASON,
+    });
   }
 
   for (const cleaner of audit.cleaners.delete) {
     const cleanerId = cleaner.cleanerId;
     const profileId = cleaner.profileId;
 
+    console.log(`  Cleaner ${cleaner.email} (${cleanerId})`);
+
     await client.from("cleaner_time_off").delete().eq("cleaner_id", cleanerId);
     await client.from("cleaner_availability").delete().eq("cleaner_id", cleanerId);
     await client.from("cleaner_service_capabilities").delete().eq("cleaner_id", cleanerId);
     await client.from("cleaner_service_areas").delete().eq("cleaner_id", cleanerId);
-    await client.from("assignment_offers").delete().eq("cleaner_id", cleanerId);
+
+    const cancelledOffers = await cancelOpenOffersForCleaner(client, cleanerId);
+    summary.offersCancelled += cancelledOffers;
 
     const { data: earnings, error: earnErr } = await client
       .from("earning_lines")
@@ -188,10 +337,13 @@ export async function purgeMockDataFromAudit(client, audit) {
       .eq("cleaner_id", cleanerId);
     if (auditCountErr) throw auditCountErr;
 
+    let cleanerAction = "delete";
     if ((auditCount ?? 0) === 0) {
-      await client.from("cleaners").delete().eq("id", cleanerId);
+      const { error: cleanerDelErr } = await client.from("cleaners").delete().eq("id", cleanerId);
+      if (cleanerDelErr) throw cleanerDelErr;
     } else {
-      await client
+      cleanerAction = "archive";
+      const { error: archiveErr } = await client
         .from("cleaners")
         .update({
           active: false,
@@ -199,6 +351,7 @@ export async function purgeMockDataFromAudit(client, audit) {
           lifecycle_reason: "ops_mock_cleaner_purge",
         })
         .eq("id", cleanerId);
+      if (archiveErr) throw archiveErr;
     }
 
     const email = cleaner.email?.toLowerCase().trim() ?? "";
@@ -221,6 +374,14 @@ export async function purgeMockDataFromAudit(client, audit) {
 
     summary.cleanersPurged += 1;
     summary.profilesDeleted += 1;
+    await recordOpsAdminDeleteAudit(client, {
+      entityType: "cleaner",
+      entityId: cleanerId,
+      adminProfileId,
+      action: cleanerAction,
+      outcome: "success",
+      reason: PURGE_REASON,
+    });
   }
 
   for (const profile of audit.profiles.orphanDelete) {
@@ -247,3 +408,27 @@ export async function purgeMockDataFromAudit(client, audit) {
 
   return summary;
 }
+
+/**
+ * @param {import('@supabase/supabase-js').SupabaseClient} client
+ * @param {string} cleanerId
+ */
+async function cancelOpenOffersForCleaner(client, cleanerId) {
+  const { data: offers, error } = await client
+    .from("assignment_offers")
+    .select("id, status")
+    .eq("cleaner_id", cleanerId);
+  if (error) throw error;
+  const openIds = (offers ?? [])
+    .filter((o) => !["cancelled", "declined", "expired"].includes(String(o.status)))
+    .map((o) => o.id);
+  if (openIds.length === 0) return 0;
+  const { error: updErr } = await client
+    .from("assignment_offers")
+    .update({ status: "cancelled", updated_at: new Date().toISOString() })
+    .in("id", openIds);
+  if (updErr) throw updErr;
+  return openIds.length;
+}
+
+export { deleteBookingDependenciesLegacy };

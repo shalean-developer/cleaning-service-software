@@ -62,10 +62,10 @@ type SummaryRowProps = {
   valueClassName?: string;
 };
 
-function SummaryRow({ label, value, valueClassName = "text-zinc-900" }: SummaryRowProps) {
+function SummaryRow({ label, value, valueClassName = "text-shalean-navy" }: SummaryRowProps) {
   return (
     <div className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
-      <span className="shrink-0 text-xs text-zinc-500">{label}</span>
+      <span className="shrink-0 text-xs text-slate-500">{label}</span>
       <span
         className={`min-w-0 break-words text-sm font-medium sm:text-right [overflow-wrap:anywhere] ${valueClassName}`}
       >
@@ -89,14 +89,14 @@ function ReviewSection({
   className?: string;
 }) {
   return (
-    <section className={`border-b border-zinc-100/90 py-2 last:border-b-0 md:py-2.5 ${className}`}>
+    <section className={`border-b border-slate-100/90 py-2 last:border-b-0 md:py-2.5 ${className}`}>
       <div className="mb-1.5 flex items-center justify-between gap-2 md:mb-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{title}</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</h3>
         {editStep && onEditStep ? (
           <button
             type="button"
             onClick={() => onEditStep(editStep)}
-            className="shrink-0 text-xs font-medium text-zinc-600 underline-offset-2 hover:text-zinc-900 hover:underline"
+            className="shrink-0 text-xs font-medium text-slate-600 underline-offset-2 hover:text-shalean-navy hover:underline"
           >
             Edit
           </button>
@@ -113,8 +113,8 @@ function ReviewCompactHero({
   segments: string[];
 }) {
   return (
-    <header className="mb-2.5 rounded-lg border border-zinc-100 bg-zinc-50/70 px-3 py-2 md:mb-3 md:rounded-xl md:px-3.5 md:py-2.5">
-      <p className="break-words text-sm font-medium leading-snug text-zinc-900 [overflow-wrap:anywhere]">
+    <header className="mb-2.5 rounded-lg border border-slate-100 bg-shalean-soft-blue/50 px-3 py-2 md:mb-3 md:rounded-xl md:px-3.5 md:py-2.5">
+      <p className="break-words text-sm font-medium leading-snug text-shalean-navy [overflow-wrap:anywhere]">
         {segments.join(" · ")}
       </p>
     </header>
@@ -282,11 +282,11 @@ export function ReviewStepPanel({
       <section aria-labelledby="review-pricing-summary-heading" className="mb-2.5 md:mb-3">
         <h3
           id="review-pricing-summary-heading"
-          className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500"
+          className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500"
         >
           Price breakdown
         </h3>
-        <ul className="divide-y divide-zinc-100/80 text-sm">
+        <ul className="divide-y divide-slate-100/80 text-sm">
           {quote.lineItems.map((item) => (
             <li
               key={item.code}
@@ -294,8 +294,8 @@ export function ReviewStepPanel({
                 item.code === "frequency_discount"
                   ? "text-emerald-700"
                   : item.code === "cleaning_intensity" || item.code === "team_support_request"
-                    ? "text-zinc-800"
-                    : "text-zinc-600"
+                    ? "text-slate-700"
+                    : "text-slate-600"
               }`}
             >
               <span className="min-w-0 break-words">{item.label}</span>
@@ -305,39 +305,39 @@ export function ReviewStepPanel({
             </li>
           ))}
         </ul>
-        <div className="mt-2 flex items-baseline justify-between gap-3 border-t border-zinc-200 pt-2">
-          <span className="text-sm font-semibold text-zinc-900">Total</span>
+        <div className="mt-2 flex items-baseline justify-between gap-3 border-t border-slate-200 pt-2">
+          <span className="text-sm font-semibold text-shalean-navy">Total</span>
           <span
-            className="text-lg font-semibold tabular-nums text-zinc-900 md:text-xl"
+            className="text-lg font-semibold tabular-nums text-shalean-navy md:text-xl"
             aria-label={`Total ${formatZar(quote.totalCents)}`}
           >
             {formatZar(quote.totalCents)}
           </span>
         </div>
         {showFrequency && isRecurringFrequency(frequency) ? (
-          <p className="mt-1.5 text-xs leading-snug text-zinc-500">
+          <p className="mt-1.5 text-xs leading-snug text-slate-500">
             {recurringScheduleNote ?? "Preferred cleaning schedule for this first booking."}{" "}
             Today&apos;s total is for this visit only.
           </p>
         ) : null}
       </section>
 
-      <p className="mb-2.5 text-xs leading-snug text-zinc-600 md:mb-3">
+      <p className="mb-2.5 text-xs leading-snug text-slate-600 md:mb-3">
         {getReviewNextStepsNoteForSlug(serviceSlug)}
       </p>
 
-      <details className="group mb-2.5 rounded-lg border border-zinc-100 bg-white open:mb-3 md:mb-3">
-        <summary className="min-h-11 cursor-pointer list-none px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-zinc-500 marker:content-none [&::-webkit-details-marker]:hidden">
+      <details className="group mb-2.5 rounded-lg border border-slate-100 bg-white open:mb-3 md:mb-3">
+        <summary className="min-h-11 cursor-pointer list-none px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-500 marker:content-none [&::-webkit-details-marker]:hidden">
           <span className="inline-flex items-center gap-1.5">
             Booking details
             <span
-              className="text-[0.625rem] font-normal normal-case tracking-normal text-zinc-400 group-open:hidden"
+              className="text-[0.625rem] font-normal normal-case tracking-normal text-slate-400 group-open:hidden"
               aria-hidden
             >
               (show)
             </span>
             <span
-              className="hidden text-[0.625rem] font-normal normal-case tracking-normal text-zinc-400 group-open:inline"
+              className="hidden text-[0.625rem] font-normal normal-case tracking-normal text-slate-400 group-open:inline"
               aria-hidden
             >
               (hide)
@@ -345,7 +345,7 @@ export function ReviewStepPanel({
           </span>
         </summary>
 
-        <div className="border-t border-zinc-100/90 px-3 pb-1 pt-0.5">
+        <div className="border-t border-slate-100/90 px-3 pb-1 pt-0.5">
           <ReviewSection title="Service options" editStep="datetime" onEditStep={onEditStep}>
             <div className="space-y-1.5">
               {intensityLabel ? (
@@ -353,8 +353,8 @@ export function ReviewStepPanel({
               ) : null}
               {showFrequency && isRecurringFrequency(frequency) ? (
                 <div className="flex flex-wrap items-center justify-end gap-2 sm:justify-between">
-                  <span className="text-xs text-zinc-500 sm:sr-only">Cadence</span>
-                  <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-white">
+                  <span className="text-xs text-slate-500 sm:sr-only">Cadence</span>
+                  <span className="rounded-full bg-shalean-primary px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-white">
                     Preferred schedule
                   </span>
                 </div>
@@ -388,12 +388,12 @@ export function ReviewStepPanel({
               ) : null}
             </div>
             <div className="mt-2">
-              <p className="text-xs text-zinc-500">{getReviewAddonsSectionLabel(serviceSlug)}</p>
+              <p className="text-xs text-slate-500">{getReviewAddonsSectionLabel(serviceSlug)}</p>
               {addonLabels.length > 0 ? (
-                <ul className="mt-0.5 space-y-0.5 text-sm font-medium text-zinc-900">
+                <ul className="mt-0.5 space-y-0.5 text-sm font-medium text-shalean-navy">
                   {addonLabels.map((label) => (
                     <li key={label} className="flex gap-2">
-                      <span className="text-zinc-400" aria-hidden>
+                      <span className="text-slate-400" aria-hidden>
                         {"\u2022"}
                       </span>
                       <span className="min-w-0 break-words">{label}</span>
@@ -401,7 +401,7 @@ export function ReviewStepPanel({
                   ))}
                 </ul>
               ) : (
-                <p className="mt-0.5 text-sm text-zinc-500">No add-ons selected</p>
+                <p className="mt-0.5 text-sm text-slate-500">No add-ons selected</p>
               )}
             </div>
           </ReviewSection>
@@ -421,19 +421,19 @@ export function ReviewStepPanel({
           </ReviewSection>
 
           <ReviewSection title="Cleaner preference" editStep="cleaner" onEditStep={onEditStep}>
-            <p className="text-sm text-zinc-700">{cleanerPreferenceLabel}</p>
+            <p className="text-sm text-slate-700">{cleanerPreferenceLabel}</p>
           </ReviewSection>
         </div>
       </details>
 
-      <label className="flex items-start gap-2.5 rounded-lg bg-zinc-50/80 px-3 py-2 text-sm ring-1 ring-zinc-100 md:py-2.5">
+      <label className="flex items-start gap-2.5 rounded-lg bg-shalean-soft-blue/40 px-3 py-2 text-sm ring-1 ring-slate-100 md:py-2.5">
         <input
           type="checkbox"
           checked={reviewConfirmed}
           onChange={(e) => onReviewConfirmedChange(e.target.checked)}
-          className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300"
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300"
         />
-        <span className="leading-snug text-zinc-700">
+        <span className="leading-snug text-slate-700">
           {getReviewConfirmationCopy(serviceSlug)}
         </span>
       </label>

@@ -36,7 +36,7 @@ describe("WizardBookingSummarySidebar", () => {
     expect(html).toContain("hidden");
     expect(html).toContain("md:block");
     expect(html).toContain("Estimated total");
-    expect(html).toContain(serviceLabel);
+    expect(html).not.toContain(serviceLabel);
     expect(html).toContain("More details");
   });
 

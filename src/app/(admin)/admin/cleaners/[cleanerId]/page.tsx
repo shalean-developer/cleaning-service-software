@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { isUuid } from "@/lib/validation/uuid";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import {
@@ -17,6 +18,7 @@ import { AdminCleanerProfileForm } from "@/components/dashboard/admin/AdminClean
 import { getAdminCleanerDetail } from "@/features/cleaners/server/admin/adminCleanersReadModel";
 import { buildCleanerOperationalDiagnostics } from "@/features/cleaners/server/admin/cleanerOperationalDiagnostics";
 import { AdminCleanerRemediationPanel } from "@/components/dashboard/admin/AdminCleanerRemediationPanel";
+import { AdminCleanerDeleteDangerZone } from "@/components/dashboard/admin/AdminCleanerDeleteDangerZone";
 import {
   labelForCleanerOperationalState,
   toneForCleanerOperationalState,
@@ -28,7 +30,10 @@ type PageProps = {
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { cleanerId } = await params;
+  const cleanerId = (await params).cleanerId.trim().replace(/,+$/g, "");
+  if (cleanerId === "onboarding-leads") {
+    return { title: "Cleaner onboarding leads | Admin" };
+  }
   return { title: `Cleaner ${cleanerId.slice(0, 8)} | Admin` };
 }
 
@@ -36,7 +41,17 @@ export default async function AdminCleanerDetailPage({ params }: PageProps) {
   const user = await getCurrentUser();
   if (!user) return null;
 
-  const { cleanerId } = await params;
+  const rawCleanerId = (await params).cleanerId;
+  const cleanerId = rawCleanerId.trim().replace(/,+$/g, "");
+
+  if (cleanerId === "onboarding-leads") {
+    redirect("/admin/cleaners/onboarding-leads");
+  }
+
+  if (!isUuid(cleanerId)) {
+    notFound();
+  }
+
   const result = await getAdminCleanerDetail(user, cleanerId);
 
   if (!result.ok) {
@@ -241,6 +256,14 @@ export default async function AdminCleanerDetailPage({ params }: PageProps) {
             ) : null}
           </AdminDetailSection>
         ) : null}
+
+        <AdminCleanerDeleteDangerZone
+          cleanerId={detail.id}
+          operationalState={detail.operationalState}
+          active={detail.active}
+          deletedAt={detail.deletedAt}
+          safetyCounts={detail.safetyCounts}
+        />
       </div>
     </AdminDashboardShell>
   );

@@ -14,7 +14,7 @@ export type CustomerProfileMenuProps = {
 };
 
 const menuLinkClass =
-  "inline-flex min-h-10 w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2";
+  "inline-flex min-h-10 w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-shalean-soft-blue/50 hover:text-shalean-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-shalean-primary focus-visible:ring-offset-2";
 
 function isNavItemActive(pathname: string | null, href: string): boolean {
   if (!pathname) return false;
@@ -44,7 +44,7 @@ export function CustomerProfileMenu({ fullName, email, avatarUrl }: CustomerProf
     <div className="relative shrink-0">
       <button
         type="button"
-        className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+        className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-shalean-primary focus-visible:ring-offset-2"
         aria-expanded={open}
         aria-controls={menuId}
         aria-label={`${displayName} account menu`}
@@ -87,9 +87,9 @@ export function CustomerProfileMenu({ fullName, email, avatarUrl }: CustomerProf
         aria-hidden={!open}
         inert={!open ? true : undefined}
       >
-        <div className="border-b border-zinc-100 px-3 py-2">
-          <p className="truncate text-sm font-semibold text-zinc-900">{displayName}</p>
-          <p className="truncate text-xs text-zinc-500">{email}</p>
+        <div className="border-b border-slate-100 px-3 py-2">
+          <p className="truncate text-sm font-semibold text-shalean-navy">{displayName}</p>
+          <p className="truncate text-xs text-slate-500">{email}</p>
         </div>
         <ul className="px-1.5 py-1">
           {CUSTOMER_DASHBOARD_NAV.map((item) => {
@@ -100,7 +100,7 @@ export function CustomerProfileMenu({ fullName, email, avatarUrl }: CustomerProf
                   href={item.href}
                   className={
                     active
-                      ? `${menuLinkClass} bg-zinc-100 font-semibold text-zinc-900`
+                      ? `${menuLinkClass} bg-shalean-soft-blue/50 font-semibold text-shalean-navy`
                       : menuLinkClass
                   }
                   aria-current={active ? "page" : undefined}
@@ -111,7 +111,7 @@ export function CustomerProfileMenu({ fullName, email, avatarUrl }: CustomerProf
               </li>
             );
           })}
-          <li className="mt-0.5 border-t border-zinc-100 pt-0.5">
+          <li className="mt-0.5 border-t border-slate-100 pt-0.5">
             <SignOutButton className={`${menuLinkClass} justify-start`} />
           </li>
         </ul>

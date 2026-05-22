@@ -1,4 +1,9 @@
 import { WIZARD_NAV_LOADING_LABEL } from "@/lib/app/dashboardEcosystemDisplay";
+import {
+  WIZARD_BTN_PRIMARY,
+  WIZARD_BTN_PRIMARY_SHADOW,
+  WIZARD_BTN_SECONDARY,
+} from "../wizardTheme";
 
 type Props = {
   onBack?: () => void;
@@ -27,8 +32,8 @@ export function WizardNav({
     : "mt-8 flex w-full min-w-0 gap-3";
   const continueClass =
     continueVariant === "secure"
-      ? "inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-zinc-900 px-4 py-3.5 text-sm font-semibold text-white shadow-[0_2px_10px_rgba(24,24,27,0.18)] disabled:cursor-not-allowed disabled:opacity-50"
-      : "inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50";
+      ? `min-h-11 flex-1 px-4 py-3.5 text-sm font-semibold ${WIZARD_BTN_PRIMARY} ${WIZARD_BTN_PRIMARY_SHADOW}`
+      : `min-h-11 flex-1 px-4 py-3 text-sm font-medium ${WIZARD_BTN_PRIMARY}`;
 
   return (
     <div className={rootClass}>
@@ -37,7 +42,7 @@ export function WizardNav({
           type="button"
           onClick={onBack}
           disabled={loading}
-          className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 disabled:opacity-50"
+          className={`min-h-11 flex-1 px-4 py-3 text-sm font-medium ${WIZARD_BTN_SECONDARY}`}
         >
           Back
         </button>

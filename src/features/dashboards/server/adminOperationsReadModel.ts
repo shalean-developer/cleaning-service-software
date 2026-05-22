@@ -70,6 +70,7 @@ import {
   parseBookingDisplay,
 } from "./parseBookingDisplay";
 import { resolveDeferredDispatchStatus } from "@/features/assignments/server/deferredDispatchStatus";
+import { assessBookingHardDeleteEligibility } from "@/features/admin/server/entityArchive/bookingHardDeleteQueries";
 import { listTeamRosterFoundationForBooking } from "./bookingCleanersReadModel";
 import { reconcileTeamEarningsForBooking } from "@/features/earnings/server/teamEarningsReconciliation";
 import {
@@ -837,6 +838,33 @@ export async function getAdminBookingDetail(
 
   const notifications = await listNotificationsForBooking(client, row.id);
   const teamRosterFoundation = await listTeamRosterFoundationForBooking(client, row.id);
+  let hardDeleteEligibility: Awaited<ReturnType<typeof assessBookingHardDeleteEligibility>> = {
+    hardDeleteAllowed: false,
+    blockedReasons: [],
+    blockers: {
+      settledPaymentCount: 0,
+      earningLineCount: 0,
+      assignmentOfferCount: 0,
+      nonTerminalOfferCount: 0,
+      bookingCleanerCount: 0,
+      supportRequestCount: 0,
+      recurringSeriesCount: 0,
+      recurringGroupAnchorCount: 0,
+      hasAssignedCleaner: false,
+      hasSeriesId: false,
+      isSyntheticAnchor: false,
+      isBlockedLifecycleStatus: false,
+      lifecycleStatus: row.status,
+    },
+  };
+  try {
+    hardDeleteEligibility = await assessBookingHardDeleteEligibility(client, row);
+  } catch {
+    hardDeleteEligibility = {
+      ...hardDeleteEligibility,
+      blockedReasons: ["Could not verify hard-delete eligibility."],
+    };
+  }
 
   return {
     ok: true,
@@ -900,6 +928,12 @@ export async function getAdminBookingDetail(
       paymentEvents,
       notifications,
       teamRosterFoundation,
+      deletedAt: row.deleted_at ?? null,
+      hasEarningLines: (earningRows ?? []).length > 0,
+      hardDelete: {
+        allowed: hardDeleteEligibility.hardDeleteAllowed,
+        blockedReasons: hardDeleteEligibility.blockedReasons,
+      },
     },
   };
 }

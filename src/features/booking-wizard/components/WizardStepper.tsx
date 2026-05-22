@@ -1,6 +1,16 @@
 import { WIZARD_STEPS, type WizardStep } from "../types";
 import { WIZARD_STEP_LABELS } from "../constants";
 import { stepIndex } from "../navigation";
+import {
+  WIZARD_PROGRESS_ACTIVE,
+  WIZARD_PROGRESS_DONE,
+  WIZARD_PROGRESS_PENDING,
+  WIZARD_STEPPER_ACTIVE,
+  WIZARD_STEPPER_DONE,
+  WIZARD_STEPPER_PENDING,
+  WIZARD_TEXT_MUTED,
+  WIZARD_TEXT_PRIMARY,
+} from "../wizardTheme";
 
 type Props = {
   current: WizardStep;
@@ -15,10 +25,10 @@ export function WizardStepper({ current }: Props) {
   return (
     <nav aria-label="Booking progress" className="mb-2.5 md:mb-6">
       <div className="md:hidden">
-        <p className="text-xs font-medium text-zinc-500">
+        <p className={`text-xs font-medium ${WIZARD_TEXT_MUTED}`}>
           Step {stepNumber} of {totalSteps}
         </p>
-        <p className="mt-0.5 text-sm font-semibold text-zinc-900" aria-current="step">
+        <p className={`mt-0.5 text-sm font-semibold ${WIZARD_TEXT_PRIMARY}`} aria-current="step">
           {currentLabel}
         </p>
         <ol className="mt-2 flex gap-1" aria-hidden>
@@ -29,7 +39,11 @@ export function WizardStepper({ current }: Props) {
               <li
                 key={step}
                 className={`h-1 flex-1 rounded-full ${
-                  active ? "bg-zinc-900" : done ? "bg-zinc-400" : "bg-zinc-200"
+                  active
+                    ? WIZARD_PROGRESS_ACTIVE
+                    : done
+                      ? WIZARD_PROGRESS_DONE
+                      : WIZARD_PROGRESS_PENDING
                 }`}
               />
             );
@@ -49,10 +63,10 @@ export function WizardStepper({ current }: Props) {
               aria-current={active ? "step" : undefined}
               className={`min-w-0 flex-1 rounded-lg px-2 py-1.5 text-center text-xs font-medium ${
                 active
-                  ? "bg-zinc-900 text-white"
+                  ? WIZARD_STEPPER_ACTIVE
                   : done
-                    ? "bg-zinc-200 text-zinc-800"
-                    : "bg-zinc-100 text-zinc-500"
+                    ? WIZARD_STEPPER_DONE
+                    : WIZARD_STEPPER_PENDING
               }`}
             >
               <span className="block truncate">{fullLabel}</span>

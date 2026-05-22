@@ -30,6 +30,7 @@ export default defineConfig({
       "src/**/*.test.ts",
       "src/**/*.test.tsx",
       "scripts/ops/**/*.test.mjs",
+      "scripts/import/**/*.test.ts",
     ],
   },
 });

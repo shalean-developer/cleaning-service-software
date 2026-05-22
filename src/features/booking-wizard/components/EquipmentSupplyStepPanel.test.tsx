@@ -9,7 +9,7 @@ describe("EquipmentSupplyStepPanel", () => {
     );
 
     expect(html).toContain("Cleaning equipment");
-    expect(html).toContain("You provide supplies");
+    expect(html).not.toContain("You provide supplies");
     expect(html).toContain("More information");
     expect(html).toContain('role="switch"');
     expect(html).toContain('aria-checked="false"');
@@ -23,7 +23,7 @@ describe("EquipmentSupplyStepPanel", () => {
     );
 
     expect(html).toContain('aria-checked="true"');
-    expect(html).toContain("bg-zinc-900");
+    expect(html).toContain("bg-shalean-primary");
     expect(html).toContain("Shalean supplies equipment");
     expect(html).toContain("+ R 100");
   });

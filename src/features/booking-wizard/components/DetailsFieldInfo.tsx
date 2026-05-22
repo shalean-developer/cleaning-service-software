@@ -19,7 +19,7 @@ export function DetailsFieldInfo({ text }: DetailsFieldInfoProps) {
     >
       <button
         type="button"
-        className="inline-flex h-4 w-4 items-center justify-center rounded-full text-zinc-400 transition-colors hover:text-zinc-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-zinc-400"
+        className="inline-flex h-4 w-4 items-center justify-center rounded-full text-slate-400 transition-colors hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-slate-400"
         aria-expanded={open}
         aria-controls={tooltipId}
         aria-label="More information"
@@ -48,7 +48,7 @@ export function DetailsFieldInfo({ text }: DetailsFieldInfoProps) {
       <span
         id={tooltipId}
         role="tooltip"
-        className={`pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 w-[min(16rem,calc(100vw-2rem))] -translate-x-1/2 rounded-lg border border-zinc-200/90 bg-white px-2.5 py-2 text-[11px] leading-snug text-zinc-600 shadow-md transition-opacity duration-150 ${
+        className={`pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 w-[min(16rem,calc(100vw-2rem))] -translate-x-1/2 rounded-lg border border-slate-200/90 bg-white px-2.5 py-2 text-[11px] leading-snug text-slate-600 shadow-md transition-opacity duration-150 ${
           open ? "opacity-100" : "opacity-0"
         }`}
       >
@@ -76,13 +76,13 @@ export function DetailsLabelWithInfo({
   return (
     <div className={className}>
       <div className="flex min-w-0 items-center gap-1.5">
-        <span id={id} className="min-w-0 break-words text-sm font-medium text-zinc-800">
+        <span id={id} className="min-w-0 break-words text-sm font-medium text-slate-700">
           {label}
         </span>
         <DetailsFieldInfo text={infoText} />
       </div>
       {visibleHint ? (
-        <p className="mt-0.5 text-[11px] leading-snug text-zinc-500 sm:text-xs">{visibleHint}</p>
+        <p className="mt-0.5 text-[11px] leading-snug text-slate-500 sm:text-xs">{visibleHint}</p>
       ) : null}
     </div>
   );

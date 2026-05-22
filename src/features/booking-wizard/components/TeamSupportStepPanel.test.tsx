@@ -7,7 +7,7 @@ describe("TeamSupportStepPanel", () => {
     const html = renderToStaticMarkup(<TeamSupportStepPanel value={1} onChange={() => {}} />);
 
     expect(html).toContain("Team support");
-    expect(html).toContain("single-cleaner");
+    expect(html).not.toContain("single-cleaner");
     expect(html).toContain("More information");
     expect(html).toContain('role="switch"');
     expect(html).toContain('aria-checked="false"');
@@ -19,7 +19,7 @@ describe("TeamSupportStepPanel", () => {
     const html = renderToStaticMarkup(<TeamSupportStepPanel value={2} onChange={() => {}} />);
 
     expect(html).toContain('aria-checked="true"');
-    expect(html).toContain("bg-zinc-900");
+    expect(html).toContain("bg-shalean-primary");
     expect(html).toContain("Team support request");
     expect(html).toContain("+ R 200");
     expect(html).toContain("availability confirmed after payment");

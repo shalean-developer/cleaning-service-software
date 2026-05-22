@@ -98,6 +98,23 @@ export async function archiveCleaner(
   );
   if (replay) return replay;
 
+  if (row.active) {
+    const affectedCounts = await gatherLifecycleAffectedCounts(client, params.cleanerId, 0);
+    return finalizeLifecycleCommand(client, {
+      cleanerId: params.cleanerId,
+      adminProfileId: params.adminProfileId,
+      action: "archived",
+      outcome: "rejected",
+      reason: params.reason,
+      beforeState,
+      afterState: beforeState,
+      affectedCounts,
+      idempotencyKey,
+      code: "CLEANER_MUST_DEACTIVATE_FIRST",
+      message: "Deactivate the cleaner before archiving. This removes them from the assignment pool first.",
+    });
+  }
+
   if (isCleanerArchived(row)) {
     return finalizeLifecycleCommand(client, {
       cleanerId: params.cleanerId,

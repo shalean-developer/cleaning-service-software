@@ -67,19 +67,19 @@ export function WizardContextStrip({
 
   return (
     <div
-      className="mb-3 flex min-w-0 flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full border border-zinc-200/90 bg-zinc-50/80 px-3.5 py-2 text-center text-sm leading-snug md:mb-4 sm:justify-start sm:text-left"
+      className="mb-3 flex min-w-0 flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full border border-slate-200/90 bg-shalean-soft-blue/40 px-3.5 py-2 text-center text-sm leading-snug md:mb-4 sm:justify-start sm:text-left"
       aria-label="Booking context"
     >
       {segments.map((segment, index) => (
         <span key={`${segment}-${index}`} className="inline-flex items-center gap-2">
           {index > 0 ? (
-            <span className="text-zinc-300" aria-hidden>
+            <span className="text-slate-300" aria-hidden>
               ·
             </span>
           ) : null}
           <span
             className={
-              index === 0 ? "font-medium text-sky-800" : "font-normal text-zinc-600"
+              index === 0 ? "font-medium text-sky-800" : "font-normal text-slate-600"
             }
           >
             {segment}

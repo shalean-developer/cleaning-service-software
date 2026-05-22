@@ -396,7 +396,25 @@ describe("cleaner lifecycle service commands", () => {
     expect(state.audits[0]?.outcome).toBe("rejected");
   });
 
+  it("archiveCleaner blocks when cleaner is still active", async () => {
+    const result = await archiveCleaner(
+      {
+        cleanerId: "cleaner-1",
+        adminProfileId: "admin-1",
+        reason: "Offboard",
+      },
+      client,
+    );
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("expected block");
+    expect(result.code).toBe("CLEANER_MUST_DEACTIVATE_FIRST");
+  });
+
   it("archiveCleaner soft-deletes and blocks when active bookings exist", async () => {
+    state.cleaners.set(
+      "cleaner-1",
+      baseCleaner({ active: false }),
+    );
     vi.mocked(countActiveBookingsForCleaner).mockResolvedValue(1);
     vi.spyOn(
       await import("@/features/assignments/server/offerRepository"),
@@ -416,6 +434,10 @@ describe("cleaner lifecycle service commands", () => {
     expect(blocked.code).toBe("ACTIVE_BOOKINGS_BLOCK");
 
     vi.mocked(countActiveBookingsForCleaner).mockResolvedValue(0);
+    state.cleaners.set(
+      "cleaner-1",
+      baseCleaner({ active: false }),
+    );
     const result = await archiveCleaner(
       {
         cleanerId: "cleaner-1",

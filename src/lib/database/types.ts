@@ -67,12 +67,22 @@ export type ProfileRow = {
   updated_at: string;
 };
 
+/** Default nulls for new customer rows (soft-delete columns). */
+export const CUSTOMER_SOFT_DELETE_DEFAULTS = {
+  deleted_at: null,
+  deleted_by_profile_id: null,
+  delete_reason: null,
+} as const;
+
 export type CustomerRow = {
   id: string;
   profile_id: string;
   company_name: string | null;
   phone: string | null;
   notes: string | null;
+  deleted_at: string | null;
+  deleted_by_profile_id: string | null;
+  delete_reason: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -137,6 +147,13 @@ export type ServiceRow = {
   updated_at: string;
 };
 
+/** Default nulls for new booking rows (soft-delete columns). */
+export const BOOKING_SOFT_DELETE_DEFAULTS = {
+  deleted_at: null,
+  deleted_by_profile_id: null,
+  delete_reason: null,
+} as const;
+
 export type BookingRow = {
   id: string;
   customer_id: string;
@@ -151,6 +168,9 @@ export type BookingRow = {
   series_id: string | null;
   synthetic_anchor: boolean;
   metadata: Json;
+  deleted_at: string | null;
+  deleted_by_profile_id: string | null;
+  delete_reason: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -615,6 +635,20 @@ export type CustomerOperationalAuditRow = {
   created_at: string;
 };
 
+export type AdminDeleteAuditRow = {
+  id: string;
+  entity_type: string;
+  entity_id: string;
+  admin_profile_id: string | null;
+  action: string;
+  reason: string | null;
+  blocked_reason: string | null;
+  outcome: string;
+  metadata: Json;
+  idempotency_key: string | null;
+  created_at: string;
+};
+
 /** Supabase client expects Insert/Update/Relationships on each table definition. */
 export type PublicTable<Row> = {
   Row: Row;
@@ -660,6 +694,7 @@ export type Database = {
       cleaner_operational_audit: PublicTable<CleanerOperationalAuditRow>;
       cleaner_applications: PublicTable<CleanerApplicationRow>;
       customer_operational_audit: PublicTable<CustomerOperationalAuditRow>;
+      admin_delete_audit: PublicTable<AdminDeleteAuditRow>;
     };
     Views: Record<
       string,
@@ -695,6 +730,10 @@ export type Database = {
       booking_record_payment_failure: {
         Args: Record<string, unknown>;
         Returns: Json;
+      };
+      admin_hard_delete_booking: {
+        Args: { p_booking_id: string };
+        Returns: undefined;
       };
     };
   };

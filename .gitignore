@@ -20,6 +20,17 @@
 # production
 /build
 
+# import reports
+/import-cleaners-report.json
+/cleaner-auth-linking-report.csv
+/cleaner-auth-linking-report.json
+/cleaner-auth-invites.csv
+/cleaner-auth-invites-summary.json
+/cleaner-onboarding-leads.csv
+/cleaner-onboarding-leads-report.json
+/mock-data-audit-report.json
+/mock-data-audit-report.csv
+
 # misc
 .DS_Store
 /tmp/

@@ -200,6 +200,27 @@ export function enrichBookingDisplayWithAssignmentVisibility(
   };
 }
 
+/** Stable admin audit timestamp (server-rendered; avoids client locale hydration drift). */
+export function formatAdminTimestamp(
+  iso: string,
+  timezone = "Africa/Johannesburg",
+): string {
+  try {
+    return new Intl.DateTimeFormat("en-ZA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
+
 export function formatScheduleRange(
   scheduledStart: string,
   scheduledEnd: string,

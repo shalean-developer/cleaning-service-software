@@ -9,7 +9,9 @@ import { ADMIN_DETAIL_STACK_CLASS } from "@/features/dashboards/adminDisplay";
 import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { AdminCustomerDetailSections } from "@/components/dashboard/admin/AdminCustomerDetailSections";
+import { AdminCustomerDeleteDangerZone } from "@/components/dashboard/admin/AdminCustomerDeleteDangerZone";
 import { getAdminCustomerDetail } from "@/features/customers/server/admin/adminCustomersReadModel";
+import { formatAdminTimestamp } from "@/features/dashboards/server/parseBookingDisplay";
 import { getCustomerOperationalTimeline } from "@/features/customers/server/admin/customerOperationalTimelineReadModel";
 import { parseAdminCustomerDetailQueryParams } from "@/features/customers/server/admin/parseAdminCustomerDetailQuery";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
@@ -105,6 +107,14 @@ export default async function AdminCustomerDetailPage({ params, searchParams }: 
             timelineResult.ok ? null : timelineResult.message
           }
           bookingFilter={bookingFilter}
+        />
+
+        <AdminCustomerDeleteDangerZone
+          customerId={detail.customerId}
+          deletedAt={detail.deletedAt}
+          archivedAtLabel={detail.deletedAt ? formatAdminTimestamp(detail.deletedAt) : null}
+          bookingCount={detail.bookingCount}
+          paidPaymentCount={detail.paymentSummary.paidCount}
         />
       </div>
     </AdminDashboardShell>

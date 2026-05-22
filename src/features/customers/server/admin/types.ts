@@ -136,6 +136,7 @@ export type AdminCustomerDetail = {
   profileCreatedAt: string | null;
   customerCreatedAt: string;
   customerUpdatedAt: string;
+  deletedAt: string | null;
 };
 
 export type AdminCustomersQuery = {

@@ -189,6 +189,38 @@ export const FACADE_BOUNDARY_RULES: FacadeBoundaryRule[] = [
     allowedDirectWriteException: false,
   },
   {
+    facadeFile: "features/admin/server/entityArchive/archiveBookingAdminCommand.ts",
+    exportSymbols: ["archiveBookingAdminCommand"],
+    tier: "command_required",
+    allowedOrchestratorSymbols: ["finalizeAdminArchiveCommand", "cancelBookingOpenOffers"],
+    allowedServiceRoleImport: true,
+    allowedDirectWriteException: false,
+  },
+  {
+    facadeFile: "features/admin/server/entityArchive/hardDeleteBookingAdminCommand.ts",
+    exportSymbols: ["hardDeleteBookingAdminCommand"],
+    tier: "command_required",
+    allowedOrchestratorSymbols: ["assessBookingHardDeleteEligibility", "recordAdminDeleteAudit"],
+    allowedServiceRoleImport: true,
+    allowedDirectWriteException: false,
+  },
+  {
+    facadeFile: "features/admin/server/entityArchive/archiveCustomerAdminCommand.ts",
+    exportSymbols: ["archiveCustomerAdminCommand"],
+    tier: "command_required",
+    allowedOrchestratorSymbols: ["finalizeAdminArchiveCommand"],
+    allowedServiceRoleImport: true,
+    allowedDirectWriteException: false,
+  },
+  {
+    facadeFile: "features/admin/server/entityArchive/archiveCleanerAdminCommand.ts",
+    exportSymbols: ["archiveCleanerAdminCommand"],
+    tier: "command_required",
+    allowedOrchestratorSymbols: ["archiveCleaner", "recordAdminDeleteAudit"],
+    allowedServiceRoleImport: true,
+    allowedDirectWriteException: false,
+  },
+  {
     facadeFile: "features/payments/server/expirePendingPayments.ts",
     exportSymbols: ["expireStalePendingPayments"],
     tier: "command_required",
@@ -291,6 +323,14 @@ export const ROUTE_FACADE_SYMBOL_TO_FILE: Record<string, string> = {
   reactivateCleaner: "features/cleaners/server/lifecycle/reactivateCleaner.ts",
   unsuspendCleaner: "features/cleaners/server/lifecycle/unsuspendCleaner.ts",
   archiveCleaner: "features/cleaners/server/lifecycle/archiveCleaner.ts",
+  archiveCleanerAdminCommand:
+    "features/admin/server/entityArchive/archiveCleanerAdminCommand.ts",
+  archiveBookingAdminCommand:
+    "features/admin/server/entityArchive/archiveBookingAdminCommand.ts",
+  hardDeleteBookingAdminCommand:
+    "features/admin/server/entityArchive/hardDeleteBookingAdminCommand.ts",
+  archiveCustomerAdminCommand:
+    "features/admin/server/entityArchive/archiveCustomerAdminCommand.ts",
   expireStalePendingPayments: "features/payments/server/expirePendingPayments.ts",
   expireStaleAssignmentOffers: "features/assignments/server/expireOffers.ts",
   runAssignmentRecoveryBatch: "features/assignments/server/runAssignmentRecovery.ts",

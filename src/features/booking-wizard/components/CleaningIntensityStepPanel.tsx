@@ -38,10 +38,10 @@ export function CleaningIntensityStepPanel({ value, onChange, error }: Props) {
               onClick={() => onChange(option.value)}
               className={`flex min-w-0 flex-col rounded-lg border px-2.5 py-2 text-left ${WIZARD_CARD_TRANSITION} ${WIZARD_FOCUS_RING} ${detailsCardClass(selected)}`}
             >
-              <span className="block text-sm font-semibold leading-snug text-zinc-900">
+              <span className="block text-sm font-semibold leading-snug text-shalean-navy">
                 {option.label}
               </span>
-              <span className="mt-0.5 block text-[11px] font-medium tabular-nums leading-snug text-zinc-500 sm:text-xs">
+              <span className="mt-0.5 block text-[11px] font-medium tabular-nums leading-snug text-slate-500 sm:text-xs">
                 {option.description}
               </span>
             </button>

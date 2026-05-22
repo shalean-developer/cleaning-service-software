@@ -23,7 +23,7 @@ function ToggleRow({
   onToggle: () => void;
 }) {
   return (
-    <li className="flex min-w-0 items-center gap-2 border-b border-zinc-100 px-2.5 py-2 last:border-b-0 sm:gap-2.5 sm:px-3">
+    <li className="flex min-w-0 items-center gap-2 border-b border-slate-100 px-2.5 py-2 last:border-b-0 sm:gap-2.5 sm:px-3">
       <div className="min-w-0 flex-1">
         <p className={DETAILS_OPTION_TITLE}>{label}</p>
         <p className={`${DETAILS_OPTION_DESC} line-clamp-2`}>{description}</p>
@@ -44,7 +44,7 @@ export function CarpetTogglesStepPanel({
       <DetailsSectionHeading title="Carpet details" id="carpet-toggles-label" />
 
       <div
-        className="overflow-hidden rounded-xl border border-zinc-200/90 bg-white shadow-sm"
+        className="overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm"
         role="group"
         aria-labelledby="carpet-toggles-label"
       >

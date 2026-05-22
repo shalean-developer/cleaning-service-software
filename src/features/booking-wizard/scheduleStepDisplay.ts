@@ -6,16 +6,21 @@ export { addDaysToDateString } from "./dateStringUtils";
 
 /** Display-only preset arrival times (HH:mm). same format as native `type="time"` value. */
 export const SCHEDULE_TIME_PRESETS = [
+  "07:00",
+  "07:30",
   "08:00",
+  "08:30",
   "09:00",
+  "09:30",
   "10:00",
+  "10:30",
   "11:00",
+  "11:30",
   "12:00",
+  "12:30",
   "13:00",
+  "13:30",
   "14:00",
-  "15:00",
-  "16:00",
-  "17:00",
 ] as const;
 
 export type ScheduleDateOption = {

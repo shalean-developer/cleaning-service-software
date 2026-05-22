@@ -4,6 +4,7 @@ import type {
   BookingRow,
   Json,
 } from "@/lib/database/types";
+import { BOOKING_SOFT_DELETE_DEFAULTS } from "@/lib/database/types";
 import { mergeBookingMetadataAssignment } from "@/features/assignments/server/assignmentMetadata";
 import {
   DEFAULT_OFFER_TEAM_ROLE,
@@ -227,6 +228,7 @@ export async function executeBookingCommand(
           series_id: null,
           synthetic_anchor: false,
           metadata: (cmd.metadata ?? {}) as BookingRow["metadata"],
+          ...BOOKING_SOFT_DELETE_DEFAULTS,
           created_at: ts,
           updated_at: ts,
         });
@@ -1046,6 +1048,7 @@ export async function executeBookingCommand(
               occurrenceKey: cmd.idempotencyKey,
             },
           } as BookingRow["metadata"],
+          ...BOOKING_SOFT_DELETE_DEFAULTS,
           created_at: ts,
           updated_at: ts,
         });
@@ -1090,6 +1093,7 @@ export async function executeBookingCommand(
               occurrenceKey: cmd.idempotencyKey,
             },
           } as BookingRow["metadata"],
+          ...BOOKING_SOFT_DELETE_DEFAULTS,
           created_at: ts,
           updated_at: ts,
         });
