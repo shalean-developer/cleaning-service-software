@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLdScript } from "@/components/marketing/JsonLdScript";
+import { ServiceLocationAreasSection } from "@/components/marketing/ServiceLocationAreasSection";
 import { MarketingBookCta } from "@/components/marketing/MarketingBookCta";
 import { MarketingInternalLinks } from "@/components/marketing/MarketingInternalLinks";
 import { MarketingSeoPageLayout } from "@/components/marketing/MarketingSeoPageLayout";
@@ -107,6 +108,8 @@ export default async function ServiceSeoPage({ params }: PageProps) {
             </section>
           ))}
 
+          <ServiceLocationAreasSection seoSlug={slug} />
+
           <section>
             <h2 className="text-xl font-bold tracking-tight text-shalean-navy sm:text-2xl">
               Book {content.title} in Cape Town
@@ -142,7 +145,11 @@ export default async function ServiceSeoPage({ params }: PageProps) {
           ) : null}
         </div>
 
-        <MarketingInternalLinks showServicesHub servicePaths={relatedPaths} />
+        <MarketingInternalLinks
+          showServicesHub
+          showLocations
+          servicePaths={relatedPaths}
+        />
       </MarketingSeoPageLayout>
     </MarketingSeoShell>
   );

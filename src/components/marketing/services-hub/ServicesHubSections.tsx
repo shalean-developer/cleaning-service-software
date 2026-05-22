@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ServicesHubExploreByAreaSection } from "@/components/marketing/ServicesHubExploreByAreaSection";
 import { MarketingButton } from "@/components/marketing/MarketingButton";
 import { MarketingContainer } from "@/components/marketing/MarketingContainer";
 import { MarketingInternalLinks } from "@/components/marketing/MarketingInternalLinks";
@@ -21,11 +22,9 @@ import {
   serviceFromPrice,
 } from "@/features/marketing/constants";
 import {
-  cleaningServicesInAreaLabel,
   SERVICES_HUB_BENEFITS,
   SERVICES_HUB_ECOSYSTEM,
   SERVICES_HUB_HERO,
-  SERVICES_HUB_FEATURED_AREAS,
   SERVICES_HUB_FINAL_CTA,
   SERVICES_HUB_POPULAR,
   SERVICES_HUB_RECURRING,
@@ -434,32 +433,10 @@ export function ServicesHubSections({ heroAfterBreadcrumbs }: ServicesHubSection
         <MarketingContainer>
           <HubSectionHeader
             id="locations-heading"
-            title="Find cleaners in your area"
-            subtitle="Local Cape Town suburb pages with service details and booking for your neighbourhood."
+            title="Explore by area"
+            subtitle="Suburb pages with local service detail — without leaving the services directory."
           />
-          <p className="mt-6">
-            <Link
-              href={LOCATIONS_HUB_PATH}
-              className="marketing-focus-ring inline-flex items-center gap-1.5 text-sm font-semibold text-shalean-primary hover:underline"
-              aria-label="View all Cape Town cleaning service areas"
-            >
-              View all Cape Town service areas
-              <IconArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-          </p>
-          <ul className="mt-8 flex flex-wrap gap-2">
-            {SERVICES_HUB_FEATURED_AREAS.map((area) => (
-              <li key={area}>
-                <Link
-                  href={areaLocationPath(area)}
-                  className="marketing-focus-ring inline-flex min-h-9 items-center justify-center rounded-full border border-shalean-soft-blue/80 bg-shalean-soft-blue/50 px-3.5 py-1.5 text-sm font-medium text-shalean-primary transition hover:border-shalean-primary/35 hover:bg-shalean-soft-blue"
-                  aria-label={cleaningServicesInAreaLabel(area)}
-                >
-                  {cleaningServicesInAreaLabel(area)}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <ServicesHubExploreByAreaSection compact />
         </MarketingContainer>
       </section>
 

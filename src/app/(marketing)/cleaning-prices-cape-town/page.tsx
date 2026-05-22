@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { JsonLdScript } from "@/components/marketing/JsonLdScript";
+import { PricingHubAreaLinksSection } from "@/components/marketing/PricingHubAreaLinksSection";
 import { MarketingBookCta } from "@/components/marketing/MarketingBookCta";
 import { MarketingInternalLinks } from "@/components/marketing/MarketingInternalLinks";
 import { MarketingSeoPageLayout } from "@/components/marketing/MarketingSeoPageLayout";
 import { MarketingSeoShell } from "@/components/marketing/MarketingSeoShell";
 import { buildMarketingMetadata } from "@/features/marketing/metadata";
-import { LOCATIONS_HUB_PATH } from "@/features/marketing/marketing-routes";
 import {
   ALL_PRICING_ROWS,
   PRICING_PAGE_FAQS,
@@ -78,26 +78,9 @@ export default function CleaningPricesPage() {
             </p>
           </section>
 
-          <section className="mt-12" aria-labelledby="pricing-areas-heading">
-            <h2
-              id="pricing-areas-heading"
-              className="text-xl font-bold tracking-tight text-shalean-navy sm:text-2xl"
-            >
-              Cleaning across Cape Town suburbs
-            </h2>
-            <p className="mt-3 text-base leading-relaxed text-slate-600">
-              Pricing applies across the metro — browse suburb pages for local service detail and
-              booking in your area.
-            </p>
-            <p className="mt-4">
-              <Link
-                href={LOCATIONS_HUB_PATH}
-                className="marketing-focus-ring text-sm font-semibold text-shalean-primary hover:underline"
-              >
-                View all Cape Town service areas
-              </Link>
-            </p>
-          </section>
+          <div className="mt-12">
+            <PricingHubAreaLinksSection />
+          </div>
 
           <section className="mt-12" aria-labelledby="pricing-faq-heading">
             <h2
@@ -121,6 +104,7 @@ export default function CleaningPricesPage() {
 
         <MarketingInternalLinks
           showServicesHub
+          showLocations
           servicePaths={ALL_PRICING_ROWS.map((r) => r.path)}
         />
       </MarketingSeoPageLayout>
