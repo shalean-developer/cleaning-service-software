@@ -90,19 +90,39 @@ function buildEmailPreview(payload: SupportNotificationPayload): {
       : recurringTypeLabel(payload.requestType);
 
   if (payload.event === "support_request_admin_urgent") {
+    const contextLink =
+      payload.bookingId != null
+        ? `${adminSupportInboxUrl()}?booking=${encodeURIComponent(payload.bookingId)}`
+        : payload.seriesId != null
+          ? `${adminSupportInboxUrl()}?series=${encodeURIComponent(payload.seriesId)}`
+          : payload.groupId != null
+            ? `${adminSupportInboxUrl()}?group=${encodeURIComponent(payload.groupId)}`
+            : null;
     return buildSupportAdminUrgentAlertEmail({
       reason: "Urgent support request",
+      requestSource: payload.source,
       requestTypeLabel,
+      requestStatus: payload.requestStatus,
       customerName: payload.customerName,
+      customerContact: payload.customerContact,
       messagePreview: payload.messagePreview,
       adminInboxUrl: adminSupportInboxUrl(),
+      contextLink,
     });
   }
+
+  const statusLabels: Record<string, string> = {
+    open: "Open",
+    acknowledged: "Being reviewed",
+    resolved: "Resolved",
+    rejected: "Not approved",
+  };
 
   return buildSupportCustomerNotificationEmail({
     event: payload.event as Exclude<SupportNotificationEvent, "support_request_admin_urgent">,
     requestTypeLabel,
     requestType: payload.requestType,
+    requestStatus: statusLabels[payload.requestStatus] ?? payload.requestStatus,
     customerName: payload.customerName,
     messagePreview: payload.messagePreview,
     customerResponse: payload.customerResponse,

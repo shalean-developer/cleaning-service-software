@@ -19,6 +19,7 @@ describe("supportNotificationTemplates", () => {
         event,
         requestTypeLabel: "Request reschedule",
         requestType: "reschedule",
+        requestStatus: "Open",
         customerName: "Jane",
         messagePreview: "Please move visit",
         customerResponse: null,
@@ -41,12 +42,28 @@ describe("supportNotificationTemplates", () => {
       event: "support_request_resolved",
       requestTypeLabel: "Payment help",
       requestType: "payment_help",
+      requestStatus: "Resolved",
       customerName: null,
       messagePreview: null,
       customerResponse: "We sent a payment link.",
-      ctaUrl: "https://example.com/booking",
+      ctaUrl: "https://example.com/customer/bookings/x",
     });
     expect(email.text).toContain("We sent a payment link.");
     expect(email.text).not.toContain("admin_notes");
+    expect(email.text).toContain("support request status only");
+  });
+
+  it("uses Shalean subject lines per event", () => {
+    const created = buildSupportCustomerNotificationEmail({
+      event: "support_request_created",
+      requestTypeLabel: "General message",
+      requestType: "general_message",
+      requestStatus: "Open",
+      customerName: null,
+      messagePreview: null,
+      customerResponse: null,
+      ctaUrl: "https://example.com/customer/bookings/x",
+    });
+    expect(created.subject).toBe("We received your Shalean support request");
   });
 });

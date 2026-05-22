@@ -6,6 +6,7 @@ import {
   canRunNotificationDelivery,
   getNotificationDeliveryConfig,
   isNotificationDryRunProvider,
+  isSupportNotificationTemplate,
   NOTIFICATION_MAX_ATTEMPTS,
   NOTIFICATION_OUTBOX_BATCH_SIZE,
   NOTIFICATION_RETRY_BASE_MINUTES,
@@ -13,6 +14,9 @@ import {
   PAYMENT_CONFIRMED_TEMPLATE,
   PAYMENT_FAILED_TEMPLATE,
 } from "./config";
+import { canDeliverSupportNotification } from "@/features/support/server/canDeliverSupportNotification";
+import { parseSupportOutboxPayload } from "@/features/support/server/parseSupportOutboxPayload";
+import { processSupportNotificationRow } from "./processSupportNotificationRow";
 import { hasSentAssignmentOfferForOffer } from "./hasSentAssignmentOfferForOffer";
 import { hasSentPaymentConfirmedForBooking } from "./hasSentPaymentConfirmedForBooking";
 import { hasSentPaymentFailedForBooking } from "./hasSentPaymentFailedForBooking";
@@ -32,6 +36,7 @@ import {
   type DryRunDeliveryPreview,
 } from "./dryRunDelivery";
 import type { EmailSender, SendEmailResult } from "./sendEmail";
+import { markOutboxFailure } from "./markOutboxFailure";
 import { reclaimStaleProcessingNotifications } from "./reclaimStaleProcessingNotifications";
 import { resolveNotificationEmailSender } from "./sendEmail";
 import type { Database, Json, NotificationOutboxRow } from "@/lib/database/types";
@@ -90,6 +95,9 @@ export function isDeliverableOutboxRow(row: NotificationOutboxRow): boolean {
   if (template === PAYMENT_CONFIRMED_TEMPLATE || template === PAYMENT_FAILED_TEMPLATE) {
     return row.channel === "email";
   }
+  if (isSupportNotificationTemplate(template)) {
+    return row.channel === "email" && parseSupportOutboxPayload(row.payload) != null;
+  }
   if (template === ASSIGNMENT_OFFER_TEMPLATE) {
     return (
       row.channel === "push" &&
@@ -141,31 +149,6 @@ async function markOutboxSent(
       updated_at: nowIso,
     })
     .eq("id", rowId);
-
-  if (error) throw new Error(error.message);
-}
-
-async function markOutboxFailure(
-  client: SupabaseClient<Database>,
-  row: NotificationOutboxRow,
-  errorMessage: string,
-  retryable: boolean,
-  now: Date,
-): Promise<void> {
-  const attempts = row.attempts + 1;
-  const nowIso = now.toISOString();
-  const exhausted = !retryable || attempts >= NOTIFICATION_MAX_ATTEMPTS;
-
-  const { error } = await client
-    .from("notification_outbox")
-    .update({
-      status: exhausted ? "failed" : "pending",
-      attempts,
-      next_retry_at: exhausted ? null : computeNextRetryAt(attempts, now),
-      last_error: sanitizeErrorMessage(errorMessage),
-      updated_at: nowIso,
-    })
-    .eq("id", row.id);
 
   if (error) throw new Error(error.message);
 }
@@ -448,6 +431,17 @@ async function processPaymentFailedRow(
 
 type RowOutcome = "sent" | "skipped" | "failed" | "dry_run";
 
+function logSupportDeliverySkip(payload: Record<string, unknown>): void {
+  console.warn(
+    JSON.stringify({
+      event: "support_notification_delivery",
+      at: new Date().toISOString(),
+      outcome: "skipped",
+      ...payload,
+    }),
+  );
+}
+
 async function processOneRow(
   client: SupabaseClient<Database>,
   row: NotificationOutboxRow,
@@ -458,17 +452,33 @@ async function processOneRow(
     return { outcome: "skipped" };
   }
 
+  const template = readTemplate(row.payload);
+  if (isSupportNotificationTemplate(template)) {
+    const supportPayload = parseSupportOutboxPayload(row.payload);
+    if (supportPayload) {
+      const deliveryGate = canDeliverSupportNotification(supportPayload);
+      if (!deliveryGate.ok) {
+        logSupportDeliverySkip({
+          reason: deliveryGate.reason,
+          template: supportPayload.template,
+          requestId: supportPayload.requestId,
+          outboxId: row.id,
+        });
+        return { outcome: "skipped" };
+      }
+    }
+  }
+
   const nowIso = now.toISOString();
   const claimed = await claimOutboxRow(client, row.id, nowIso);
   if (!claimed) {
     return { outcome: "skipped" };
   }
 
-  const template = readTemplate(row.payload);
-
   try {
-    const result =
-      template === ASSIGNMENT_OFFER_TEMPLATE
+    const result = isSupportNotificationTemplate(template)
+      ? await processSupportNotificationRow(client, row, emailSender, now)
+      : template === ASSIGNMENT_OFFER_TEMPLATE
         ? await processAssignmentOfferRow(client, row, emailSender, now)
         : template === PAYMENT_FAILED_TEMPLATE
           ? await processPaymentFailedRow(client, row, emailSender, now)
@@ -482,6 +492,9 @@ async function processOneRow(
     if (result.outcome === "skipped") {
       if (result.dryRunPreview) {
         return { outcome: "dry_run", dryRunPreview: result.dryRunPreview };
+      }
+      if (isSupportNotificationTemplate(template)) {
+        await releaseOutboxClaim(client, row.id, nowIso);
       }
       return { outcome: "skipped" };
     }
@@ -499,6 +512,8 @@ async function processOneRow(
       result.code === "RECIPIENT_MISMATCH"
     ) {
       await markOutboxFailure(client, row, result.message, false, now);
+    } else if (result.code === "SEND_FAILED") {
+      await markOutboxFailure(client, row, result.message, result.retryable ?? true, now);
     }
     return { outcome: "failed" };
   } catch (e) {
@@ -509,8 +524,9 @@ async function processOneRow(
 }
 
 /**
- * Processes pending payment_confirmed, payment_failed, and assignment_offer rows.
+ * Processes pending payment, assignment_offer, and support notification rows.
  * assignment_offer uses channel push as an email placeholder until real push ships.
+ * Support rows require ENABLE_SUPPORT_REQUEST_NOTIFICATIONS or ENABLE_SUPPORT_ADMIN_ALERTS.
  * Other templates stay pending.
  */
 export async function processNotificationOutbox(

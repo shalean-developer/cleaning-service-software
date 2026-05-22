@@ -8,11 +8,33 @@ export const PAYMENT_CONFIRMED_TEMPLATE = "payment_confirmed" as const;
 export const PAYMENT_FAILED_TEMPLATE = "payment_failed" as const;
 export const ASSIGNMENT_OFFER_TEMPLATE = "assignment_offer" as const;
 
+export const SUPPORT_REQUEST_CREATED_TEMPLATE = "support_request_created" as const;
+export const SUPPORT_REQUEST_ACKNOWLEDGED_TEMPLATE = "support_request_acknowledged" as const;
+export const SUPPORT_REQUEST_RESOLVED_TEMPLATE = "support_request_resolved" as const;
+export const SUPPORT_REQUEST_REJECTED_TEMPLATE = "support_request_rejected" as const;
+export const SUPPORT_REQUEST_ADMIN_URGENT_TEMPLATE = "support_request_admin_urgent" as const;
+
+export const SUPPORT_NOTIFICATION_TEMPLATES = [
+  SUPPORT_REQUEST_CREATED_TEMPLATE,
+  SUPPORT_REQUEST_ACKNOWLEDGED_TEMPLATE,
+  SUPPORT_REQUEST_RESOLVED_TEMPLATE,
+  SUPPORT_REQUEST_REJECTED_TEMPLATE,
+  SUPPORT_REQUEST_ADMIN_URGENT_TEMPLATE,
+] as const;
+
+export type SupportNotificationTemplateName =
+  (typeof SUPPORT_NOTIFICATION_TEMPLATES)[number];
+
 /** Templates the worker may poll and deliver (template + channel must match enqueue). */
 export const DELIVERABLE_NOTIFICATION_SPECS = [
   { template: PAYMENT_CONFIRMED_TEMPLATE, channel: "email" as const },
   { template: PAYMENT_FAILED_TEMPLATE, channel: "email" as const },
   { template: ASSIGNMENT_OFFER_TEMPLATE, channel: "push" as const },
+  { template: SUPPORT_REQUEST_CREATED_TEMPLATE, channel: "email" as const },
+  { template: SUPPORT_REQUEST_ACKNOWLEDGED_TEMPLATE, channel: "email" as const },
+  { template: SUPPORT_REQUEST_RESOLVED_TEMPLATE, channel: "email" as const },
+  { template: SUPPORT_REQUEST_REJECTED_TEMPLATE, channel: "email" as const },
+  { template: SUPPORT_REQUEST_ADMIN_URGENT_TEMPLATE, channel: "email" as const },
 ] as const;
 
 /**
@@ -20,10 +42,20 @@ export const DELIVERABLE_NOTIFICATION_SPECS = [
  * Used when polling `notification_outbox` so unsupported pending rows do not block the queue.
  */
 export function buildDeliverableOutboxTemplateOrFilter(): string {
+  const supportEmailTemplates = SUPPORT_NOTIFICATION_TEMPLATES.join(",");
   return [
-    `and(channel.eq.email,payload->>template.in.(${PAYMENT_CONFIRMED_TEMPLATE},${PAYMENT_FAILED_TEMPLATE}))`,
+    `and(channel.eq.email,payload->>template.in.(${PAYMENT_CONFIRMED_TEMPLATE},${PAYMENT_FAILED_TEMPLATE},${supportEmailTemplates}))`,
     `and(channel.eq.push,payload->>template.eq.${ASSIGNMENT_OFFER_TEMPLATE})`,
   ].join(",");
+}
+
+export function isSupportNotificationTemplate(
+  template: string | null,
+): template is SupportNotificationTemplateName {
+  return (
+    template != null &&
+    (SUPPORT_NOTIFICATION_TEMPLATES as readonly string[]).includes(template)
+  );
 }
 
 export const NOTIFICATION_OUTBOX_BATCH_SIZE = 25;
