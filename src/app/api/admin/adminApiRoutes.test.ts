@@ -14,6 +14,7 @@ const ALLOWED_ADMIN_POST_ROUTES = new Set([
   "bookings/[bookingId]/dispatch-support-offer/route.ts",
   "bookings/[bookingId]/replace-open-offer/route.ts",
   "cleaner-applications/[applicationId]/convert/route.ts",
+  "booking-support-requests/[requestId]/status/route.ts",
   "recurring/groups/[groupId]/cancel/route.ts",
   "recurring/groups/[groupId]/pause/route.ts",
   "recurring/groups/[groupId]/resume/route.ts",

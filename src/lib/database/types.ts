@@ -347,7 +347,11 @@ export type RecurringSeriesRequestType =
 
 export type RecurringSeriesRequestScope = "series" | "group";
 
-export type RecurringSeriesRequestStatus = "open" | "acknowledged" | "resolved";
+export type RecurringSeriesRequestStatus =
+  | "open"
+  | "acknowledged"
+  | "resolved"
+  | "rejected";
 
 export type RecurringSeriesRequestRow = {
   id: string;

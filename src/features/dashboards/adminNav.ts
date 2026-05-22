@@ -18,6 +18,7 @@ export const ADMIN_DASHBOARD_NAV_GROUPS: readonly AdminNavGroup[] = [
     label: "Operate",
     items: [
       { href: "/admin/bookings", label: "Bookings" },
+      { href: "/admin/support", label: "Support" },
       { href: "/admin/recurring", label: "Recurring" },
       { href: "/admin/assignments", label: "Dispatch" },
       { href: "/admin/cleaners", label: "Cleaners" },

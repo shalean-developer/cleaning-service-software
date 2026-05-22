@@ -91,6 +91,13 @@ describe("booking support request workflow contract", () => {
     expect(upcoming).toContain("supportLinks.message");
   });
 
+  it("admin support inbox page exists", async () => {
+    const fs = await import("node:fs/promises");
+    const page = await fs.readFile("src/app/(admin)/admin/support/page.tsx", "utf8");
+    expect(page).toContain("AdminSupportInboxList");
+    expect(page).toContain("listAdminSupportInbox");
+  });
+
   it("does not create a public /help route", async () => {
     const fs = await import("node:fs/promises");
     const routes = await fs.readFile(

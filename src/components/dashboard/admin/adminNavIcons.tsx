@@ -128,11 +128,20 @@ export function AdminNavDispatchIcon({ className }: IconProps) {
   return AdminNavAssignmentsIcon({ className });
 }
 
+export function AdminNavSupportIcon({ className }: IconProps) {
+  return strokeIcon(className, (
+    <>
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" />
+    </>
+  ));
+}
+
 const ADMIN_NAV_ICON_BY_HREF: Record<string, (props: IconProps) => ReactElement> = {
   "/admin": AdminNavHomeIcon,
   "/admin/cleaners": AdminNavCleanersIcon,
   "/admin/customers": AdminNavCustomersIcon,
   "/admin/bookings": AdminNavBookingsIcon,
+  "/admin/support": AdminNavSupportIcon,
   "/admin/assignments": AdminNavAssignmentsIcon,
   "/admin/analytics/assignments": AdminNavAnalyticsIcon,
   "/admin/analytics/team-support": AdminNavTeamSupportIcon,

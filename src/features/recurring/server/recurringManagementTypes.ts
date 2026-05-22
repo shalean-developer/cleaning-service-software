@@ -44,7 +44,7 @@ export type RecurringSeriesRequestBadge = {
   requestTypeLabel: string;
   scope: RecurringSeriesRequestScope;
   scopeLabel: string;
-  status: "open" | "acknowledged" | "resolved";
+  status: "open" | "acknowledged" | "resolved" | "rejected";
   statusLabel: string;
   createdAt: string;
   note: string | null;

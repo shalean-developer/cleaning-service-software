@@ -14,7 +14,7 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   const { requestId } = await context.params;
-  let body: { acknowledgeOnly?: boolean } = {};
+  let body: { acknowledgeOnly?: boolean; reject?: boolean } = {};
   try {
     body = (await request.json()) as typeof body;
   } catch {
@@ -23,6 +23,7 @@ export async function POST(request: Request, context: RouteContext) {
 
   const result = await adminResolveRecurringSeriesRequest(user, requestId, {
     acknowledgeOnly: body.acknowledgeOnly === true,
+    reject: body.reject === true,
   });
 
   if (!result.ok) {

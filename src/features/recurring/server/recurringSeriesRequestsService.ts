@@ -16,7 +16,11 @@ import type {
   RecurringSeriesRequestType as UiRequestType,
 } from "./recurringManagementTypes";
 
-export type RecurringSeriesRequestStatus = "open" | "acknowledged" | "resolved";
+export type RecurringSeriesRequestStatus =
+  | "open"
+  | "acknowledged"
+  | "resolved"
+  | "rejected";
 
 export type RecurringSeriesRequestSummary = {
   id: string;
@@ -58,6 +62,7 @@ const STATUS_LABELS: Record<RecurringSeriesRequestStatus, string> = {
   open: "Open",
   acknowledged: "Acknowledged",
   resolved: "Resolved",
+  rejected: "Rejected",
 };
 
 function weekdayLabel(weekday: number | null): string | null {
@@ -301,7 +306,7 @@ export async function loadLatestRequestForSeries(
 export async function adminResolveRecurringSeriesRequest(
   user: CurrentUser,
   requestId: string,
-  options: { acknowledgeOnly?: boolean } = {},
+  options: { acknowledgeOnly?: boolean; reject?: boolean } = {},
 ): Promise<
   | { ok: true; message: string }
   | { ok: false; code: string; message: string; httpStatus: number }
@@ -339,16 +344,45 @@ export async function adminResolveRecurringSeriesRequest(
   }
 
   const request = row as RecurringSeriesRequestRow;
-  if (request.status === "resolved") {
-    return { ok: true, message: "Request already resolved." };
+  if (options.acknowledgeOnly && options.reject) {
+    return {
+      ok: false,
+      code: "INVALID_PAYLOAD",
+      message: "Cannot acknowledge and reject in one action.",
+      httpStatus: 400,
+    };
   }
 
-  const nextStatus: RecurringSeriesRequestStatus = options.acknowledgeOnly
-    ? "acknowledged"
-    : "resolved";
+  let nextStatus: RecurringSeriesRequestStatus;
+  if (options.reject) {
+    nextStatus = "rejected";
+  } else if (options.acknowledgeOnly) {
+    nextStatus = "acknowledged";
+  } else {
+    nextStatus = "resolved";
+  }
+
+  if (request.status === nextStatus) {
+    return {
+      ok: true,
+      message: `Request already ${STATUS_LABELS[nextStatus].toLowerCase()}.`,
+    };
+  }
+
+  if (
+    (request.status === "resolved" || request.status === "rejected") &&
+    nextStatus !== request.status
+  ) {
+    return {
+      ok: false,
+      code: "INVALID_TRANSITION",
+      message: "Closed requests cannot be reopened from the inbox.",
+      httpStatus: 400,
+    };
+  }
 
   const patch: Record<string, unknown> = { status: nextStatus };
-  if (nextStatus === "resolved") {
+  if (nextStatus === "resolved" || nextStatus === "rejected") {
     patch.resolved_at = new Date().toISOString();
     patch.resolved_by = user.profileId;
   }
@@ -401,13 +435,14 @@ export async function adminResolveRecurringSeriesRequest(
     });
   }
 
-  return {
-    ok: true,
-    message:
-      nextStatus === "acknowledged"
-        ? "Request marked acknowledged."
-        : "Request marked resolved.",
+  const messages: Record<RecurringSeriesRequestStatus, string> = {
+    open: "Request marked open.",
+    acknowledged: "Request marked acknowledged.",
+    resolved: "Request marked resolved.",
+    rejected: "Request marked rejected.",
   };
+
+  return { ok: true, message: messages[nextStatus] };
 }
 
 /** @deprecated Use RecurringSeriesRequestType from recurringManagementTypes */

@@ -36,6 +36,7 @@
     "ops:audit:recurring-launch": "node scripts/ops/audit-recurring-launch-readiness.mjs",
     "ops:e2e:recurring-group": "node scripts/ops/e2e-recurring-group-check.mjs",
     "ops:audit:recurring-dashboard": "node scripts/ops/audit-recurring-dashboard-read-model.mjs",
+    "ops:audit:support-inbox": "node scripts/ops/audit-support-inbox.mjs",
     "ops:soak:recurring-bookings": "node scripts/ops/soak-recurring-bookings.mjs",
     "ops:repair:recurring-series": "node scripts/ops/repair-recurring-series-backfill.mjs",
     "ops:clear-operational-data": "node scripts/ops/clear-operational-data.mjs",
