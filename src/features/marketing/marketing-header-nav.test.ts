@@ -5,6 +5,7 @@ import {
   FOOTER_QUICK_LINKS,
   HEADER_PRIMARY_NAV,
   HEADER_SECONDARY_NAV,
+  HEADER_UTILITY_NAV,
   MARKETING_NAV_PATHS,
 } from "./constants";
 
@@ -26,14 +27,33 @@ describe("marketing header navigation", () => {
     expect(locations?.sectionId).toBeUndefined();
   });
 
-  it("secondary nav Help and Contact use canonical pages", () => {
-    const help = HEADER_SECONDARY_NAV.find((l) => l.label === "Help");
-    const contact = HEADER_SECONDARY_NAV.find((l) => l.label === "Contact");
+  it("utility nav exposes FAQ and Contact on canonical pages", () => {
+    const faq = HEADER_UTILITY_NAV.find((l) => l.label === "FAQ");
+    const contact = HEADER_UTILITY_NAV.find((l) => l.label === "Contact");
 
-    expect(help?.href).toBe("/faq");
-    expect(help?.sectionId).toBeUndefined();
+    expect(faq?.href).toBe("/faq");
+    expect(faq?.sectionId).toBeUndefined();
     expect(contact?.href).toBe("/contact");
     expect(contact?.sectionId).toBeUndefined();
+    expect(HEADER_UTILITY_NAV.map((l) => l.label)).toEqual(["FAQ", "Contact"]);
+  });
+
+  it("secondary nav FAQ and Contact use canonical pages", () => {
+    const faq = HEADER_SECONDARY_NAV.find((l) => l.label === "FAQ");
+    const contact = HEADER_SECONDARY_NAV.find((l) => l.label === "Contact");
+
+    expect(faq?.href).toBe("/faq");
+    expect(faq?.sectionId).toBeUndefined();
+    expect(contact?.href).toBe("/contact");
+    expect(contact?.sectionId).toBeUndefined();
+  });
+
+  it("does not use Help as a marketing nav label", () => {
+    const navLabels = [
+      ...HEADER_UTILITY_NAV.map((l) => l.label),
+      ...HEADER_SECONDARY_NAV.map((l) => l.label),
+    ];
+    expect(navLabels).not.toContain("Help");
   });
 
   it("marketing nav paths match required canonical URLs", () => {
@@ -45,11 +65,14 @@ describe("marketing header navigation", () => {
     expect(MARKETING_NAV_PATHS.contact).toBe("/contact");
   });
 
-  it("header component does not scroll primary nav on homepage", () => {
+  it("header component uses utility nav config and active states", () => {
     const source = readSource("src/components/marketing/MarketingHeader.tsx");
     expect(source).not.toContain('sectionId: "services"');
     expect(source).not.toContain('sectionId: "areas"');
-    expect(source).toContain("MARKETING_NAV_PATHS.faq");
+    expect(source).toContain("HEADER_UTILITY_NAV");
+    expect(source).toContain("showActiveState");
+    expect(source).toContain("aria-current");
+    expect(source).not.toMatch(/>\s*Help\s*</);
     expect(source).toContain("MarketingSectionOrRouteLink");
   });
 
@@ -78,8 +101,15 @@ describe("marketing header navigation", () => {
 
   it("section route fallbacks do not point main nav to homepage root", () => {
     const source = readSource("src/lib/ui/marketingSectionRoutes.ts");
-    expect(source).toContain('services: SERVICES_HUB_PATH');
-    expect(source).toContain('areas: LOCATIONS_HUB_PATH');
+    expect(source).toContain("services: SERVICES_HUB_PATH");
+    expect(source).toContain("areas: LOCATIONS_HUB_PATH");
     expect(source).not.toMatch(/services:\s*["']\/["']/);
+  });
+
+  it("does not define a /help marketing route", () => {
+    const marketingRoutes = readSource("src/features/marketing/marketing-routes.ts");
+    expect(marketingRoutes).not.toContain("/help");
+    const headerSource = readSource("src/components/marketing/MarketingHeader.tsx");
+    expect(headerSource).not.toContain('"/help"');
   });
 });

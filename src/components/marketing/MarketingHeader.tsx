@@ -6,7 +6,7 @@ import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 
 import {
   HEADER_PRIMARY_NAV,
   HEADER_SECONDARY_NAV,
-  MARKETING_NAV_PATHS,
+  HEADER_UTILITY_NAV,
   SIGN_IN_PATH,
   SIGN_UP_PATH,
   type HeaderNavLink,
@@ -79,22 +79,44 @@ function PlatformNavLink({
   );
 }
 
+const utilityLinkBase =
+  "marketing-focus-ring relative inline-flex shrink-0 whitespace-nowrap rounded-lg px-2 py-2 text-sm transition-colors duration-200";
+
+const utilityLinkActive =
+  "font-medium text-shalean-navy after:absolute after:inset-x-0 after:-bottom-0.5 after:h-[2px] after:rounded-full after:bg-shalean-primary/75";
+
+const utilityLinkMutedIdle = "font-normal text-slate-500 hover:text-slate-700";
+
+const utilityLinkDefaultIdle = "font-normal text-slate-600 hover:text-shalean-navy";
+
 function UtilityLink({
   href,
   children,
+  pathname,
   className = "",
   onNavigate,
+  showActiveState = false,
+  tone = "muted",
 }: {
   href: string;
   children: ReactNode;
+  pathname?: string;
   className?: string;
   onNavigate?: () => void;
+  /** When true, highlights on pathname match (FAQ, Contact). */
+  showActiveState?: boolean;
+  tone?: "muted" | "default";
 }) {
+  const isActive = showActiveState && pathname !== undefined && isNavLinkActive(href, pathname);
+  const idleClass = tone === "default" ? utilityLinkDefaultIdle : utilityLinkMutedIdle;
+  const stateClass = isActive ? utilityLinkActive : idleClass;
+
   return (
     <Link
       href={href}
-      className={`marketing-focus-ring inline-flex shrink-0 rounded-lg px-2 py-2 text-sm transition-colors duration-200 ${className}`.trim()}
+      className={`${utilityLinkBase} ${stateClass} ${className}`.trim()}
       onClick={onNavigate}
+      aria-current={isActive ? "page" : undefined}
     >
       {children}
     </Link>
@@ -178,32 +200,26 @@ export function MarketingHeader() {
           </nav>
 
           <div className="relative z-10 flex min-w-0 items-center justify-end justify-self-end gap-2 sm:gap-2.5 lg:gap-3">
-            <div className="hidden shrink-0 items-center gap-2 lg:flex xl:hidden">
-              <UtilityLink
-                href={SIGN_IN_PATH}
-                className="font-normal text-slate-600 hover:text-shalean-navy"
-              >
+            <nav
+              className="hidden shrink-0 items-center gap-1.5 lg:flex"
+              aria-label="Utility navigation"
+            >
+              {HEADER_UTILITY_NAV.map((link) => (
+                <UtilityLink
+                  key={link.label}
+                  href={link.href!}
+                  pathname={pathname}
+                  showActiveState
+                >
+                  {link.label}
+                </UtilityLink>
+              ))}
+              <span className="mx-1 h-4 w-px bg-slate-200/90" aria-hidden />
+              <UtilityLink href={SIGN_IN_PATH} tone="default">
                 Log in
               </UtilityLink>
               <SignUpButton />
-            </div>
-
-            <div className="hidden shrink-0 items-center gap-2 xl:flex">
-              <UtilityLink
-                href={MARKETING_NAV_PATHS.faq}
-                className="font-normal text-slate-500 hover:text-slate-700"
-              >
-                Help
-              </UtilityLink>
-              <span className="mx-1.5 h-4 w-px bg-slate-200/90" aria-hidden />
-              <UtilityLink
-                href={SIGN_IN_PATH}
-                className="font-normal text-slate-600 hover:text-shalean-navy"
-              >
-                Log in
-              </UtilityLink>
-              <SignUpButton />
-            </div>
+            </nav>
 
             <button
               ref={menuButtonRef}

@@ -454,10 +454,16 @@ export const HEADER_PRIMARY_NAV: readonly HeaderNavLink[] = [
   { href: MARKETING_NAV_PATHS.locations, label: "Locations" },
 ];
 
+/** Desktop header utility links (FAQ, contact — right of primary nav). */
+export const HEADER_UTILITY_NAV: readonly HeaderNavLink[] = [
+  { href: MARKETING_NAV_PATHS.faq, label: "FAQ" },
+  { href: MARKETING_NAV_PATHS.contact, label: "Contact" },
+];
+
 /** Lower-priority links — mobile drawer & footer-style discovery. */
 export const HEADER_SECONDARY_NAV: readonly HeaderNavLink[] = [
   { href: CLEANER_SIGN_IN_PATH, label: "Cleaner sign in" },
-  { href: MARKETING_NAV_PATHS.faq, label: "Help" },
+  { href: MARKETING_NAV_PATHS.faq, label: "FAQ" },
   { href: MARKETING_NAV_PATHS.contact, label: "Contact" },
   { label: "Blog", enabled: false },
 ];
