@@ -37,11 +37,17 @@ export type AdminCustomerListItem = {
   companyName: string;
   authEmail: string | null;
   phone: string | null;
+  notes: string | null;
   profileRole: UserRole | null;
   bookingCount: number;
   recurringCount: number;
   latestBooking: AdminCustomerLatestBooking | null;
   lastActivityAt: string;
+  areaLabel: string | null;
+  lifetimeValueCents: number;
+  lastVisitAt: string | null;
+  preferredCleanerId: string | null;
+  preferredCleanerLabel: string | null;
   domainHealth: CustomerDomainHealthStatus;
   provisioningHealthy: boolean;
   createdAt: string;

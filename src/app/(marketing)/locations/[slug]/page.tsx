@@ -92,7 +92,8 @@ export default async function LocationSeoPage({ params }: PageProps) {
         </div>
 
         <MarketingInternalLinks
-          servicePaths={MARKETING_SERVICES.slice(0, 3).map((s) => SERVICE_SEO_PATHS[s.slug])}
+          showServicesHub
+          servicePaths={MARKETING_SERVICES.map((s) => SERVICE_SEO_PATHS[s.slug])}
         />
       </MarketingSeoPageLayout>
     </MarketingSeoShell>

@@ -13,9 +13,10 @@ import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError"
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { AdminDetailSection } from "@/components/dashboard/admin/AdminDetailSection";
 import { AdminCleanerAuditLog } from "@/components/dashboard/admin/AdminCleanerAuditLog";
-import { AdminCleanerLifecycleActions } from "@/components/dashboard/admin/AdminCleanerLifecycleActions";
 import { AdminCleanerProfileForm } from "@/components/dashboard/admin/AdminCleanerProfileForm";
 import { getAdminCleanerDetail } from "@/features/cleaners/server/admin/adminCleanersReadModel";
+import { buildCleanerOperationalDiagnostics } from "@/features/cleaners/server/admin/cleanerOperationalDiagnostics";
+import { AdminCleanerRemediationPanel } from "@/components/dashboard/admin/AdminCleanerRemediationPanel";
 import {
   labelForCleanerOperationalState,
   toneForCleanerOperationalState,
@@ -51,6 +52,19 @@ export default async function AdminCleanerDetailPage({ params }: PageProps) {
   }
 
   const detail = result.detail;
+  const diagnostics = buildCleanerOperationalDiagnostics({
+    lifecycle: {
+      active: detail.active,
+      suspendedAt: detail.suspendedAt,
+      deletedAt: detail.deletedAt,
+      onboardingCompletedAt: detail.onboardingCompletedAt,
+    },
+    phone: detail.phone,
+    capabilities: detail.capabilities,
+    serviceAreaSlugs: detail.serviceAreaSlugs,
+    availabilityWindowCount: detail.availability.workingDays.length,
+    primaryAreaSlug: detail.serviceAreaSlugs[0] ?? null,
+  });
 
   return (
     <AdminDashboardShell
@@ -82,13 +96,35 @@ export default async function AdminCleanerDetailPage({ params }: PageProps) {
               Last documented reason: {detail.lifecycleReason}
             </p>
           ) : null}
+          {detail.operationalState === "onboarding" ? (
+            <p className="mt-3 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-900">
+              Onboarding incomplete — cleaner is excluded from dispatch pools and cannot receive
+              offers until onboarding is completed.
+            </p>
+          ) : null}
+          {detail.active && detail.onboardingCompletedAt == null ? (
+            <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+              Warning: active flag is set but onboarding is not complete. This state can make the
+              cleaner appear operational incorrectly — complete onboarding or deactivate.
+            </p>
+          ) : null}
         </AdminDetailSection>
 
-        <AdminDetailSection
-          title="Edit profile"
-          description="Name, capabilities, and service areas. Phone and lifecycle are read-only here."
-        >
-          <AdminCleanerProfileForm
+        <AdminCleanerRemediationPanel
+          cleanerId={detail.id}
+          operationalState={detail.operationalState}
+          active={detail.active}
+          onboardingCompletedAt={detail.onboardingCompletedAt}
+          diagnostics={diagnostics}
+          safetyCounts={detail.safetyCounts}
+        />
+
+        <div id="edit-profile">
+          <AdminDetailSection
+            title="Edit profile"
+            description="Name, capabilities, and service areas. Phone and lifecycle are read-only here."
+          >
+            <AdminCleanerProfileForm
             cleanerId={detail.id}
             initialFullName={detail.name}
             initialCapabilities={detail.capabilities}
@@ -97,7 +133,8 @@ export default async function AdminCleanerDetailPage({ params }: PageProps) {
             readOnlyPhone={detail.phone}
             readOnlyLoginEmail={detail.loginEmail}
           />
-        </AdminDetailSection>
+          </AdminDetailSection>
+        </div>
 
         <AdminDetailSection title="Profile summary">
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
@@ -156,18 +193,6 @@ export default async function AdminCleanerDetailPage({ params }: PageProps) {
               </dd>
             </div>
           </dl>
-        </AdminDetailSection>
-
-        <AdminDetailSection
-          title="Lifecycle actions"
-          description="All changes run through audited service commands — lifecycle columns are not edited from the UI."
-          tone="ops"
-        >
-          <AdminCleanerLifecycleActions
-            cleanerId={detail.id}
-            operationalState={detail.operationalState}
-            safetyCounts={detail.safetyCounts}
-          />
         </AdminDetailSection>
 
         <AdminDetailSection title="Audit log" collapsible defaultOpen>

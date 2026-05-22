@@ -2,15 +2,27 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { isCustomerSignupEnabled } from "@/lib/auth/customerSignupFlag";
+import { isCleanerSignInIntent } from "@/lib/auth/signInIntent";
 import { SignUpForm } from "./SignUpForm";
 import { SignUpUnavailable } from "./SignUpUnavailable";
+import { CleanerSignupRedirect } from "./CleanerSignupRedirect";
 
 export const metadata: Metadata = {
   title: "Create account",
   description: "Create your Shalean customer account",
 };
 
-export default function SignUpPage() {
+type PageProps = {
+  searchParams: Promise<{ redirectedFrom?: string }>;
+};
+
+export default async function SignUpPage({ searchParams }: PageProps) {
+  const { redirectedFrom } = await searchParams;
+
+  if (isCleanerSignInIntent(redirectedFrom)) {
+    return <CleanerSignupRedirect />;
+  }
+
   if (!isCustomerSignupEnabled()) {
     return <SignUpUnavailable />;
   }

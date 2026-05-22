@@ -23,7 +23,7 @@ function baseCleaner(overrides: Partial<CleanerRow> = {}): CleanerRow {
     id: "cleaner-1",
     profile_id: "profile-1",
     phone: "+27792022648",
-    active: true,
+    active: false,
     suspended_at: null,
     deleted_at: null,
     onboarding_completed_at: null,

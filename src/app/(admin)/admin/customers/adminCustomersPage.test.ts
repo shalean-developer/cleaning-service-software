@@ -15,17 +15,17 @@ vi.mock("@/lib/auth/getCurrentUser", () => ({
 }));
 
 describe("admin customers pages", () => {
-  it("list page links to create customer route and uses filter query parsing", () => {
+  it("list page renders customer registry layout and data hooks", () => {
     const source = readPage("src/app/(admin)/admin/customers/page.tsx");
 
+    expect(source).toContain("AdminCustomersRegistryHeader");
     expect(source).toContain('href="/admin/customers/new"');
-    expect(source).toContain("New customer");
     expect(source).toContain("listAdminCustomers");
-    expect(source).toContain("buildAdminCustomersListHref");
-    expect(source).toContain("adminCustomersEmptyState");
-    expect(source).toContain("bookings");
-    expect(source).toContain("health");
-    expect(source).toContain("activity");
+    expect(source).toContain("AdminCustomersRegistryHeader");
+    expect(source).toContain("AdminCustomersRegistryStats");
+    expect(source).toContain("AdminCustomersRegistryToolbar");
+    expect(source).toContain("filterAdminCustomersForRegistryView");
+    expect(source).toContain("normalizeAdminCustomerRegistryViewFilter");
   });
 
   it("create page uses client form without server provisioning imports", () => {

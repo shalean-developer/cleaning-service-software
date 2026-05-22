@@ -16,6 +16,8 @@ function sampleItem(overrides: Partial<AdminCleanerListItem> = {}): AdminCleaner
     operationalState: "onboarding",
     active: true,
     isSuspended: false,
+    averageRating: null,
+    primaryAreaLabel: "Cape Town",
     openOffersCount: 0,
     activeBookingsCount: 1,
     pendingEarningsCount: 2,

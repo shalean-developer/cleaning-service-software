@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { CustomerDashboardHeaderEndLoader } from "@/components/dashboard/customer/CustomerDashboardHeaderEndLoader";
 import { CustomerHomeContent } from "@/components/dashboard/customer/CustomerHomeContent";
-import {
-  getCustomerBookingDetail,
-  listCustomerBookings,
-} from "@/features/dashboards/server/customerBookingReadModel";
+import { CustomerHubShell } from "@/components/dashboard/customer/CustomerHubShell";
+import { listCustomerBookings } from "@/features/dashboards/server/customerBookingReadModel";
 import { pickFeaturedUpcomingBooking } from "@/features/dashboards/customerHomeDisplay";
-import { CUSTOMER_DASHBOARD_NAV } from "@/features/dashboards/customerNav";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -39,20 +35,15 @@ export default async function CustomerHomePage() {
   }
 
   const featured = pickFeaturedUpcomingBooking(bookings);
-  let featuredTimeline = null;
-  if (user && featured) {
-    const detail = await getCustomerBookingDetail(user, featured.id);
-    if (detail.ok) {
-      featuredTimeline = detail.booking.timeline;
-    }
-  }
+
+  const accountLabel =
+    profileFullName?.trim() || customerEmail.split("@")[0] || "Your account";
 
   return (
-    <DashboardShell
-      nav={[...CUSTOMER_DASHBOARD_NAV]}
-      stickyHeader
-      headerEnd={<CustomerDashboardHeaderEndLoader />}
-      mainClassName="mx-auto min-w-0 max-w-5xl px-4 py-4 sm:py-5"
+    <CustomerHubShell
+      accountLabel={accountLabel}
+      showLiveBadge={Boolean(featured)}
+      footerSlot={<CustomerDashboardHeaderEndLoader />}
     >
       {result && !result.ok ? (
         <DashboardFetchError
@@ -64,9 +55,8 @@ export default async function CustomerHomePage() {
           bookings={bookings}
           profileFullName={profileFullName}
           customerEmail={customerEmail}
-          featuredTimeline={featuredTimeline}
         />
       ) : null}
-    </DashboardShell>
+    </CustomerHubShell>
   );
 }

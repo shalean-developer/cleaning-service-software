@@ -12,14 +12,50 @@ import {
 import { locationSlugFromArea, type LocationSeoSlug } from "./marketing-routes";
 
 export {
+  ABOUT_PAGE_PATH,
   CONTACT_PAGE_PATH,
   FAQ_PAGE_PATH,
   LOCATION_SEO_SLUGS,
   LOCATIONS_HUB_PATH,
   PRICING_PAGE_PATH,
   REVIEWS_PAGE_PATH,
+  SERVICES_HUB_PATH,
   locationSlugFromArea,
 } from "./marketing-routes";
+
+/** FAQ preview on the services hub (links to full FAQ page). */
+export const SERVICES_HUB_FAQ_PREVIEW = [
+  {
+    question: "Which cleaning service should I choose?",
+    answer:
+      "Choose regular cleaning for ongoing upkeep, deep cleaning for intensive refreshes, move-in/out for handovers, Airbnb cleaning for guest turnovers, office cleaning for workspaces, and carpet cleaning for rugs and upholstery. Each service page explains scope and pricing.",
+  },
+  {
+    question: "What is the difference between regular and deep cleaning?",
+    answer:
+      "Regular cleaning maintains day-to-day freshness on kitchens, bathrooms, and living areas. Deep cleaning is more intensive — ideal for seasonal refreshes, neglected spaces, or before events. Compare both on our Cape Town cleaning prices page.",
+  },
+  {
+    question: "Do cleaners bring equipment and supplies?",
+    answer:
+      "Yes. Shalean cleaners typically arrive with professional-grade, eco-friendly products and equipment. For regular cleaning you can opt to use your own supplies when booking if you prefer.",
+  },
+  {
+    question: "How does recurring cleaning work?",
+    answer:
+      "Select weekly, bi-weekly, monthly, or multi-day schedules for regular home cleaning. Each visit is paid individually — pay per visit with no subscription lock-in. Future visits are booked and paid separately from your account.",
+  },
+  {
+    question: "How do Airbnb turnovers work?",
+    answer:
+      "Choose Airbnb Cleaning when booking, share your checklist, and align turnover times with check-in and check-out. Linen resets, bathroom refreshes, and guest-ready finishing are included in the service scope.",
+  },
+  {
+    question: "Which Cape Town areas do you serve?",
+    answer:
+      "We cover Sea Point, Claremont, Camps Bay, Century City, Bellville, Durbanville, Table View, Rondebosch, and suburbs across the metro. Browse suburb pages or contact us if your area is not listed.",
+  },
+] as const;
 
 /** URL segment after `/services/` (e.g. regular-cleaning-cape-town). */
 export type ServiceSeoSlug = (typeof SERVICE_SEO_SLUGS)[number];

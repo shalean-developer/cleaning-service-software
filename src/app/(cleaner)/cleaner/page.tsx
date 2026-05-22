@@ -15,6 +15,13 @@ import { CLEANER_LIST_CARD_PADDING } from "@/features/dashboards/cleanerDashboar
 import { formatOfferExpiryDisplay } from "@/features/dashboards/server/formatOfferExpiryDisplay";
 import { CLEANER_DETAIL_CARD_CLASS } from "@/features/dashboards/cleanerJobDetailDisplay";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
+import { CleanerDashboardOperationalIntro } from "@/components/dashboard/cleaner/CleanerDashboardOperationalIntro";
+import { getCleanerDashboardOperationalContext } from "@/features/dashboards/server/cleanerOperationalContext";
+import {
+  cleanerOperationalEmptyJobsCopy,
+  cleanerOperationalEmptyOffersCopy,
+} from "@/components/dashboard/cleaner/CleanerOnboardingBanner";
+import { EmptyState } from "@/components/dashboard/EmptyState";
 
 export const metadata: Metadata = {
   title: "Cleaner | Cleaning Services",
@@ -22,8 +29,11 @@ export const metadata: Metadata = {
 
 export default async function CleanerHomePage() {
   const user = await getCurrentUser();
+  const operational = user ? await getCleanerDashboardOperationalContext(user) : null;
   const offers = user ? await listCleanerOffersForDashboard(user) : null;
   const jobs = user ? await listCleanerJobs(user) : null;
+  const operationalState =
+    operational?.ok === true ? operational.context.operationalState : "active";
 
   const offersOk = offers?.ok === true;
   const jobsOk = jobs?.ok === true;
@@ -41,6 +51,10 @@ export default async function CleanerHomePage() {
       nav={[...CLEANER_NAV_ITEMS]}
       headerEnd={<CleanerDashboardHeaderEndLoader />}
     >
+      <div className="mb-6">
+        <CleanerDashboardOperationalIntro />
+      </div>
+
       <section className="grid gap-3 sm:grid-cols-2 sm:gap-4">
         <section className={`${CLEANER_DETAIL_CARD_CLASS} ${CLEANER_LIST_CARD_PADDING}`}>
           <h2 className="text-sm font-medium text-zinc-800">Open offers</h2>
@@ -109,6 +123,15 @@ export default async function CleanerHomePage() {
             })}
           </ul>
         </section>
+      ) : operationalState !== "active" && offersOk && openOffers.length === 0 ? (
+        <section className="mt-6">
+          <EmptyState
+            {...(cleanerOperationalEmptyOffersCopy(operationalState) ?? {
+              title: "No offers right now",
+              description: "Matching jobs in your area will show up here.",
+            })}
+          />
+        </section>
       ) : null}
 
       {jobs && !jobs.ok ? (
@@ -135,6 +158,15 @@ export default async function CleanerHomePage() {
               </li>
             ))}
           </ul>
+        </section>
+      ) : operationalState !== "active" && jobsOk && activeJobs.length === 0 ? (
+        <section className="mt-6">
+          <EmptyState
+            {...(cleanerOperationalEmptyJobsCopy(operationalState) ?? {
+              title: "No jobs yet",
+              description: "Accepted offers appear here with your schedule and pay.",
+            })}
+          />
         </section>
       ) : null}
     </DashboardShell>

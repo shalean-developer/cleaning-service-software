@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { SERVICE_SEO_PATHS } from "./constants";
+import { SERVICES_HUB_PATH } from "./marketing-routes";
 import {
   buildMarketingSitemap,
   PRICING_SITEMAP_PATH,
@@ -29,8 +30,11 @@ describe("buildMarketingSitemap", () => {
 
     expect(urls[0]).toBe(DEFAULT_MARKETING_SITE_URL);
     expect(urls.some((u) => u.endsWith(PRICING_SITEMAP_PATH))).toBe(true);
+    expect(urls.some((u) => u.endsWith(SERVICES_HUB_PATH))).toBe(true);
+    expect(urls.some((u) => u.endsWith("/service"))).toBe(false);
     expect(urls.some((u) => u.endsWith(SERVICE_SEO_PATHS["regular-cleaning"]))).toBe(true);
     expect(urls.some((u) => u.endsWith(SERVICE_SEO_PATHS["carpet-cleaning"]))).toBe(true);
+    expect(urls.some((u) => u.endsWith("/about"))).toBe(true);
     expect(urls.some((u) => u.endsWith("/faq"))).toBe(true);
     expect(urls.some((u) => u.endsWith("/contact"))).toBe(true);
     expect(urls.some((u) => u.endsWith("/reviews"))).toBe(true);

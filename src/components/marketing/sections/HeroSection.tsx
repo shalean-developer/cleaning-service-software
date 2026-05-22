@@ -1,4 +1,4 @@
-import { BOOKING_PATH, SHALEAN_CONTACT } from "@/features/marketing/constants";
+import { BOOKING_PATH, HOMEPAGE_HERO_SUBTITLE, SHALEAN_CONTACT } from "@/features/marketing/constants";
 import { HeroBookingCard } from "../HeroBookingCard";
 import { IconCalendar, IconMapPin, IconWhatsApp } from "../icons";
 import { MarketingButton } from "../MarketingButton";
@@ -41,8 +41,7 @@ export function HeroSection() {
               </h1>
 
               <p className="mt-5 max-w-[32rem] text-base leading-relaxed text-slate-600 sm:mt-6 sm:text-lg sm:leading-[1.65] lg:text-[1.125rem]">
-                House cleaning, deep cleaning, Airbnb turnovers, and office cleaning with
-                transparent Cape Town pricing and online booking.
+                {HOMEPAGE_HERO_SUBTITLE}
               </p>
 
               <p className="mt-5 text-sm font-medium tracking-wide text-slate-500 sm:mt-6">

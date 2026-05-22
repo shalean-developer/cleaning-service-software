@@ -63,6 +63,17 @@ function displayName(profile: Pick<ProfileRow, "full_name"> | null, cleanerId: s
   return name || `Cleaner ${cleanerId.slice(0, 8)}`;
 }
 
+function primaryAreaLabelFromSlugs(slugs: string[]): string | null {
+  if (slugs.length === 0) return "All areas";
+  const slug = slugs[0]?.trim();
+  if (!slug) return "All areas";
+  return slug
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 async function loadSafetyCounts(
   client: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
   cleanerId: string,
@@ -171,10 +182,28 @@ export async function listAdminCleaners(
   }
 
   const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
-  const lifecycleMap = await buildLatestLifecycleActionMap(
-    client,
-    rows.map((r) => r.id),
-  );
+  const cleanerIds = rows.map((r) => r.id);
+  const [lifecycleMap, areasResult] = await Promise.all([
+    buildLatestLifecycleActionMap(client, cleanerIds),
+    client
+      .from("cleaner_service_areas")
+      .select("cleaner_id, area_slug")
+      .in(
+        "cleaner_id",
+        cleanerIds.length > 0 ? cleanerIds : ["00000000-0000-0000-0000-000000000000"],
+      ),
+  ]);
+
+  if (areasResult.error) {
+    return { ok: false, code: "PERSISTENCE_ERROR", message: areasResult.error.message, status: 500 };
+  }
+
+  const areaSlugsByCleaner = new Map<string, string[]>();
+  for (const areaRow of areasResult.data ?? []) {
+    const existing = areaSlugsByCleaner.get(areaRow.cleaner_id) ?? [];
+    existing.push(areaRow.area_slug as string);
+    areaSlugsByCleaner.set(areaRow.cleaner_id, existing);
+  }
 
   const items: AdminCleanerListItem[] = [];
 
@@ -184,6 +213,7 @@ export async function listAdminCleaners(
 
     const profile = profileById.get(row.profile_id) ?? null;
     const safetyCounts = await loadSafetyCounts(client, row.id);
+    const areaSlugs = areaSlugsByCleaner.get(row.id) ?? [];
 
     const listItem: AdminCleanerListItem = {
       id: row.id,
@@ -193,6 +223,8 @@ export async function listAdminCleaners(
       operationalState,
       active: row.active,
       isSuspended: isCleanerSuspended(row.suspended_at),
+      averageRating: row.average_rating,
+      primaryAreaLabel: primaryAreaLabelFromSlugs(areaSlugs),
       openOffersCount: safetyCounts.openOffersCount,
       activeBookingsCount: safetyCounts.activeBookingsCount,
       pendingEarningsCount: safetyCounts.pendingEarningsCount,

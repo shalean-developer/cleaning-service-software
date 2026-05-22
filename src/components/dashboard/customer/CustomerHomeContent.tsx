@@ -3,47 +3,65 @@ import { CustomerHomeLifecycleProgress } from "@/components/dashboard/customer/C
 import { CustomerHomeQuickActions } from "@/components/dashboard/customer/CustomerHomeQuickActions";
 import { CustomerHomeRecentActivity } from "@/components/dashboard/customer/CustomerHomeRecentActivity";
 import { CustomerHomeRecurringCta } from "@/components/dashboard/customer/CustomerHomeRecurringCta";
-import { CustomerHomeSummaryCards } from "@/components/dashboard/customer/CustomerHomeSummaryCards";
 import { CustomerHomeUpcomingCard } from "@/components/dashboard/customer/CustomerHomeUpcomingCard";
 import {
   customerHomeDisplayName,
-  customerHomeHeroCopy,
-  customerHomeRecentActivity,
   customerHomeShowsRecurringCta,
-  customerHomeSummaryStats,
   pickFeaturedUpcomingBooking,
 } from "@/features/dashboards/customerHomeDisplay";
-import type { LifecycleEvent } from "@/features/dashboards/server/lifecycleTimeline";
+import {
+  customerHubHeroCopy,
+  customerHubRecentStays,
+  customerHubRebookHref,
+  pickAlsoScheduledUpcoming,
+} from "@/features/dashboards/customerHubDisplay";
 import type { CustomerBookingListItem } from "@/features/dashboards/server/types";
 
 type Props = {
   bookings: CustomerBookingListItem[];
   profileFullName: string | null;
   customerEmail: string;
-  featuredTimeline: LifecycleEvent[] | null;
 };
+
+function hubQuickActions(featured: CustomerBookingListItem | null) {
+  const detailHref = featured ? `/customer/bookings/${featured.id}` : "/customer/bookings";
+  const rebookHref = customerHubRebookHref(featured?.display.serviceSlug ?? null);
+
+  return [
+    { label: "Reschedule", href: detailHref, icon: "calendar" as const },
+    { label: "Message support", href: detailHref, icon: "message" as const },
+    { label: "Rebook", href: rebookHref, icon: "refresh" as const },
+    { label: "Cancel visit", href: detailHref, icon: "cancel" as const },
+  ];
+}
 
 export function CustomerHomeContent({
   bookings,
   profileFullName,
   customerEmail,
-  featuredTimeline,
 }: Props) {
   const featured = pickFeaturedUpcomingBooking(bookings);
+  const alsoScheduled = pickAlsoScheduledUpcoming(bookings, featured?.id ?? null);
   const displayName = customerHomeDisplayName(profileFullName, customerEmail);
-  const heroCopy = customerHomeHeroCopy({ displayName, featured });
-  const stats = customerHomeSummaryStats(bookings);
-  const activity = customerHomeRecentActivity(bookings, featuredTimeline);
+  const heroCopy = customerHubHeroCopy({
+    displayName,
+    hasUpcoming: Boolean(featured),
+  });
+  const recentStays = customerHubRecentStays(bookings);
   const showRecurringCta = customerHomeShowsRecurringCta(bookings);
 
   return (
-    <div className="space-y-4 sm:space-y-5">
-      <CustomerHomeHero copy={heroCopy} />
-      <CustomerHomeSummaryCards stats={stats} />
-      <CustomerHomeUpcomingCard featured={featured} />
-      {featured ? <CustomerHomeLifecycleProgress status={featured.status} /> : null}
-      <CustomerHomeQuickActions />
-      <CustomerHomeRecentActivity items={activity} />
+    <div className="mx-auto max-w-4xl space-y-5 sm:space-y-6">
+      <CustomerHomeHero copy={heroCopy} featured={featured} />
+      <CustomerHomeUpcomingCard featured={featured} alsoScheduled={alsoScheduled} />
+      {featured ? (
+        <CustomerHomeLifecycleProgress
+          status={featured.status}
+          bookingDetailHref={`/customer/bookings/${featured.id}`}
+        />
+      ) : null}
+      <CustomerHomeQuickActions actions={hubQuickActions(featured)} />
+      <CustomerHomeRecentActivity stays={recentStays} />
       {showRecurringCta ? <CustomerHomeRecurringCta /> : null}
     </div>
   );

@@ -5,6 +5,8 @@ export type CleanerEligibilityStatus = "eligible" | "ineligible";
 export type CleanerEligibilityCode =
   | "active"
   | "inactive"
+  | "onboarding"
+  | "archived"
   | "suspended"
   | "no_service_capability"
   | "outside_service_area"
@@ -30,6 +32,8 @@ export type CleanerCandidateRecord = {
   displayName: string;
   active: boolean;
   suspendedAt: string | null;
+  deletedAt: string | null;
+  onboardingCompletedAt: string | null;
   averageRating: number | null;
   hiredAt: string;
   phone: string | null;

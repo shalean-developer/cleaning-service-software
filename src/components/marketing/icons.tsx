@@ -72,6 +72,15 @@ export function IconHome({ className }: IconProps) {
   );
 }
 
+/** Grid / offerings icon for services hub breadcrumbs. */
+export function IconGrid({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 5h6v6H4V5zM14 5h6v6h-6V5zM4 13h6v6H4v-6zM14 13h6v6h-6v-6z" />
+    </svg>
+  );
+}
+
 export function IconUsers({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>

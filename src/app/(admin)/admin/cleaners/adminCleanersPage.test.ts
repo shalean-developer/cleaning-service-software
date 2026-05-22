@@ -11,8 +11,8 @@ describe("admin cleaners pages (PR-F)", () => {
     const source = readPage("src/app/(admin)/admin/cleaners/page.tsx");
 
     expect(source).toContain("listAdminCleaners");
-    expect(source).toContain("AdminCleanerListTable");
-    expect(source).toContain("AdminCleanersFilters");
+    expect(source).toContain("AdminCleanersNetworkGrid");
+    expect(source).toContain("AdminCleanersNetworkToolbar");
     expect(source).not.toMatch(/\.from\s*\(\s*["']cleaners["']\s*\)/);
     expect(source).not.toContain("deactivateCleaner");
     expect(source).not.toContain("requireServiceRoleClient");
@@ -59,7 +59,7 @@ describe("admin cleaners pages (PR-F)", () => {
     const source = readPage("src/app/(admin)/admin/cleaners/page.tsx");
 
     expect(source).toContain('href="/admin/cleaners/new"');
-    expect(source).toContain("Create cleaner");
+    expect(source).toMatch(/Create cleaner/);
   });
 
   it("create page uses profile form only without lifecycle mutations", () => {

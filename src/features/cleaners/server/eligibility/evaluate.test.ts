@@ -18,6 +18,8 @@ function baseCandidate(
     displayName: "Test Cleaner",
     active: true,
     suspendedAt: null,
+    deletedAt: null,
+    onboardingCompletedAt: "2024-01-01T00:00:00.000Z",
     averageRating: 4.5,
     hiredAt: "2024-01-01T00:00:00.000Z",
     serviceAreas: ["cape-town"],
@@ -57,6 +59,39 @@ describe("evaluateCleanerEligibility", () => {
     );
     expect(result.eligible).toBe(true);
     expect(result.code).toBe("active");
+  });
+
+  it("excludes onboarding cleaner", () => {
+    const result = evaluateCleanerEligibility(
+      baseCandidate({ onboardingCompletedAt: null }),
+      baseQuery(),
+      parsed,
+      new Set(),
+    );
+    expect(result.eligible).toBe(false);
+    expect(result.code).toBe("onboarding");
+  });
+
+  it("excludes active cleaner without completed onboarding", () => {
+    const result = evaluateCleanerEligibility(
+      baseCandidate({ active: true, onboardingCompletedAt: null }),
+      baseQuery(),
+      parsed,
+      new Set(),
+    );
+    expect(result.eligible).toBe(false);
+    expect(result.code).toBe("onboarding");
+  });
+
+  it("excludes archived cleaner", () => {
+    const result = evaluateCleanerEligibility(
+      baseCandidate({ deletedAt: "2026-01-01T00:00:00.000Z" }),
+      baseQuery(),
+      parsed,
+      new Set(),
+    );
+    expect(result.eligible).toBe(false);
+    expect(result.code).toBe("archived");
   });
 
   it("excludes inactive cleaner", () => {

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { AdminDashboardHeader } from "@/components/dashboard/admin/AdminDashboardHeader";
-import { AdminOperationsSidebar } from "@/components/dashboard/admin/AdminOperationsSidebar";
+import {
+  AdminOperationsSidebar,
+  AdminOperationsSidebarToggle,
+} from "@/components/dashboard/admin/AdminOperationsSidebar";
 import { useClientMounted } from "@/lib/react/useClientMounted";
 import type { NavItem } from "@/components/dashboard/DashboardShell";
 
@@ -18,24 +20,14 @@ type Props = {
 
 function AdminDashboardChromePlaceholder() {
   return (
-    <>
+    <div className="mx-auto flex min-w-0 max-w-[90rem]">
       <div
-        className="sticky top-0 z-50 border-b border-zinc-200/80 bg-zinc-50/95 backdrop-blur-md supports-[backdrop-filter]:bg-zinc-50/85"
+        className="hidden w-[17rem] shrink-0 px-3 py-4 lg:block"
         aria-hidden
       >
-        <div className="flex min-h-[3.75rem] items-center gap-2 px-3 sm:px-4">
-          <div className="h-9 w-9 shrink-0 rounded-lg bg-zinc-100 lg:hidden" />
-          <div className="h-9 min-w-0 flex-1 rounded-lg bg-zinc-100" />
-          <div className="h-9 w-9 shrink-0 rounded-full bg-zinc-100" />
-        </div>
+        <div className="h-[calc(100vh-2rem)] rounded-2xl border border-slate-200/80 bg-white" />
       </div>
-      <div className="mx-auto flex min-w-0 max-w-[90rem]">
-        <div
-          className="hidden w-[15.5rem] shrink-0 border-r border-zinc-200/80 bg-white lg:block"
-          aria-hidden
-        />
-      </div>
-    </>
+    </div>
   );
 }
 
@@ -53,14 +45,7 @@ export function AdminDashboardShell({
 
   return (
     <section className="min-h-screen overflow-x-clip bg-slate-50/80">
-      {mounted ? (
-        <AdminDashboardHeader
-          sidebarOpen={sidebarOpen}
-          onSidebarOpenChange={setSidebarOpen}
-        />
-      ) : (
-        <AdminDashboardChromePlaceholder />
-      )}
+      {!mounted ? <AdminDashboardChromePlaceholder /> : null}
 
       <div className="mx-auto flex min-w-0 max-w-[90rem]">
         {mounted ? (
@@ -70,13 +55,18 @@ export function AdminDashboardShell({
             chromeMounted={mounted}
           />
         ) : (
-          <div
-            className="hidden w-[15.5rem] shrink-0 border-r border-zinc-200/80 bg-white lg:block"
-            aria-hidden
-          />
+          <div className="hidden w-[17rem] shrink-0 px-3 py-4 lg:block" aria-hidden />
         )}
 
         <main className="min-w-0 flex-1 px-3 py-5 sm:px-5 sm:py-6 lg:px-8 lg:py-8">
+          {mounted ? (
+            <div className="mb-3 flex items-center lg:hidden">
+              <AdminOperationsSidebarToggle
+                open={sidebarOpen}
+                onToggle={() => setSidebarOpen(!sidebarOpen)}
+              />
+            </div>
+          ) : null}
           {showTitleBlock ? (
             <header className="mb-4 min-w-0">
               {title?.trim() ? (

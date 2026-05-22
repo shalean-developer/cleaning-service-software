@@ -198,7 +198,7 @@ export async function provisionCleanerIdentity(
 
     const { data: cleanerRow, error: cleanerError } = await client
       .from("cleaners")
-      .insert({ profile_id: profileId, phone: phoneE164 })
+      .insert({ profile_id: profileId, phone: phoneE164, active: false })
       .select("id")
       .single();
     if (cleanerError || !cleanerRow) {
@@ -311,7 +311,7 @@ export async function repairCleanerAuthIdentity(
 
   const { data: cleanerRow, error: cleanerError } = await client
     .from("cleaners")
-    .insert({ profile_id: profileId, phone: params.phoneE164 ?? null })
+    .insert({ profile_id: profileId, phone: params.phoneE164 ?? null, active: false })
     .select("id")
     .single();
   if (cleanerError || !cleanerRow) {

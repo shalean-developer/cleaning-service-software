@@ -66,7 +66,7 @@ export default function LocationsHubPage() {
           </ul>
         </section>
 
-        <MarketingInternalLinks showLocations={false} />
+        <MarketingInternalLinks showLocations={false} showServicesHub />
       </MarketingSeoPageLayout>
     </MarketingSeoShell>
   );

@@ -19,7 +19,7 @@ import {
   buildJsonLdGraph,
   buildServiceSchema,
 } from "@/features/marketing/seo";
-import { PRICING_PAGE_PATH } from "@/features/marketing/seo-pages";
+import { PRICING_PAGE_PATH, SERVICES_HUB_PATH } from "@/features/marketing/seo-pages";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -49,8 +49,8 @@ export default async function ServiceSeoPage({ params }: PageProps) {
   const relatedPaths = content.relatedSlugs.map((s) => `/services/${s}`);
 
   const breadcrumbs = [
-    { label: "Home", href: "/" },
-    { label: "Services", href: "/" },
+    { label: "Home", href: "/", icon: "home" as const },
+    { label: "Services", href: SERVICES_HUB_PATH, icon: "services" as const },
     { label: content.title },
   ];
 
@@ -58,7 +58,7 @@ export default async function ServiceSeoPage({ params }: PageProps) {
     buildServiceSchema(content),
     buildBreadcrumbSchema([
       { name: "Home", path: "/" },
-      { name: "Services", path: "/" },
+      { name: "Services", path: SERVICES_HUB_PATH },
       { name: content.title, path: content.path },
     ]),
   ]);
@@ -86,6 +86,16 @@ export default async function ServiceSeoPage({ params }: PageProps) {
         }
       >
         <div className="mx-auto max-w-3xl space-y-10">
+          <p className="text-sm text-slate-600">
+            <Link
+              href={SERVICES_HUB_PATH}
+              className="marketing-focus-ring font-medium text-shalean-primary hover:underline"
+              aria-label="View all Shalean cleaning services in Cape Town"
+            >
+              View all cleaning services in Cape Town
+            </Link>
+          </p>
+
           {content.sections.map((section) => (
             <section key={section.heading}>
               <h2 className="text-xl font-bold tracking-tight text-shalean-navy sm:text-2xl">
@@ -132,7 +142,7 @@ export default async function ServiceSeoPage({ params }: PageProps) {
           ) : null}
         </div>
 
-        <MarketingInternalLinks servicePaths={relatedPaths} />
+        <MarketingInternalLinks showServicesHub servicePaths={relatedPaths} />
       </MarketingSeoPageLayout>
     </MarketingSeoShell>
   );

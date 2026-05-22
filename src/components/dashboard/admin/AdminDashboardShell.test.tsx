@@ -20,8 +20,8 @@ describe("AdminDashboardShell", () => {
       </AdminDashboardShell>,
     );
 
-    expect(html).toContain("Cleaning Service");
-    expect(html).toContain("Admin Dashboard");
+    expect(html).toContain("Shalean");
+    expect(html).toContain("Ops console");
     expect(html).toContain('href="/admin"');
     expect(html).toContain('href="/admin/cleaners"');
     expect(html).toContain('href="/admin/bookings"');
@@ -33,13 +33,13 @@ describe("AdminDashboardShell", () => {
     expect(html).toContain("Content");
   });
 
-  it("uses a sticky header with backdrop so content does not show through", () => {
+  it("does not render the legacy top admin dashboard header bar", () => {
     const html = renderToStaticMarkup(
       <AdminDashboardShell testChromeMounted nav={[{ href: "/admin", label: "Home" }]}>Content</AdminDashboardShell>,
     );
 
-    expect(html).toContain("sticky top-0 z-50");
-    expect(html).toContain("backdrop-blur-md");
+    expect(html).not.toContain("Admin Dashboard");
+    expect(html).not.toContain("Cleaning Service");
   });
 
   it("uses a desktop sidebar and mobile drawer for navigation", () => {

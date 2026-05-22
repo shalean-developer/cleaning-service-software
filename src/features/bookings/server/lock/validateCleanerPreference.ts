@@ -1,7 +1,4 @@
-import {
-  evaluateCleanerEligibility,
-  isCleanerSuspended,
-} from "@/features/cleaners/server/eligibility/evaluate";
+import { evaluateCleanerEligibility } from "@/features/cleaners/server/eligibility/evaluate";
 import { parseBookingSlot } from "@/features/cleaners/server/eligibility/slot";
 import {
   loadCleanerCandidates,
@@ -28,10 +25,6 @@ export async function validateCleanerPreferenceForLock(
   const candidate = candidates.find((c) => c.cleanerId === cleanerId);
   if (!candidate) {
     return { ok: false, message: "Selected cleaner was not found." };
-  }
-
-  if (isCleanerSuspended(candidate.suspendedAt)) {
-    return { ok: false, message: "Selected cleaner is suspended." };
   }
 
   const slot = parseBookingSlot(

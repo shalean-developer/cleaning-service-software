@@ -13,6 +13,16 @@ const nextConfig: NextConfig = {
         destination: "/locations",
         permanent: true,
       },
+      {
+        source: "/service",
+        destination: "/services",
+        permanent: true,
+      },
+      {
+        source: "/about-us",
+        destination: "/about",
+        permanent: true,
+      },
     ];
   },
   images: {

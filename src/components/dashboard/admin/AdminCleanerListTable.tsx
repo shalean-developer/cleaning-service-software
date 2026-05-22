@@ -92,12 +92,20 @@ function CleanerListRowCells({ item }: { item: AdminCleanerListItem }) {
         )}
       </div>
       <div className="min-w-0 px-3">
-        <span className="inline-flex max-w-full [&_span]:whitespace-nowrap [&_span]:[overflow-wrap:normal]">
+        <span className="inline-flex max-w-full flex-wrap items-center gap-1.5 [&_span]:whitespace-nowrap [&_span]:[overflow-wrap:normal]">
           <StatusBadge
             label={labelForCleanerOperationalState(item.operationalState)}
             tone={toneForCleanerOperationalState(item.operationalState)}
             variant="soft"
           />
+          {item.active && item.operationalState === "onboarding" ? (
+            <span
+              className="text-xs font-medium text-amber-800"
+              title="Active flag set before onboarding completed"
+            >
+              ⚠
+            </span>
+          ) : null}
         </span>
       </div>
       <div className="whitespace-nowrap px-2 text-center text-zinc-700">

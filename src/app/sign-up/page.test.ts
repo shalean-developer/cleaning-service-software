@@ -62,9 +62,13 @@ describe("Sign-up page feature flag", () => {
 });
 
 describe("Sign-up page customer-only scope", () => {
-  it("does not expose role selection", () => {
-    expect(pageSource).not.toMatch(/role/i);
-    expect(pageSource).not.toContain("admin");
-    expect(pageSource).not.toContain("cleaner");
+  it("does not expose role selection on customer signup form", () => {
+    expect(pageSource).not.toMatch(/name="role"/i);
+    expect(pageSource).not.toContain("Sign up as admin");
+  });
+
+  it("redirects cleaner-intent sign-up away from customer registration", () => {
+    expect(pageSource).toContain("isCleanerSignInIntent");
+    expect(pageSource).toContain("CleanerSignupRedirect");
   });
 });

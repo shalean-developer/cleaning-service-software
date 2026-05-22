@@ -11,7 +11,9 @@ export async function loadCleanerCandidates(
 ): Promise<CleanerCandidateRecord[]> {
   const { data: cleaners, error } = await client
     .from("cleaners")
-    .select("id, profile_id, phone, active, suspended_at, average_rating, created_at, deleted_at");
+    .select(
+      "id, profile_id, phone, active, suspended_at, average_rating, created_at, deleted_at, onboarding_completed_at",
+    );
 
   if (error) throw new Error(error.message);
   if (!cleaners?.length) return [];
@@ -69,6 +71,8 @@ export async function loadCleanerCandidates(
     displayName: displayNameByProfile.get(row.profile_id) ?? "Cleaner",
     active: row.active,
     suspendedAt: row.suspended_at,
+    deletedAt: row.deleted_at,
+    onboardingCompletedAt: row.onboarding_completed_at,
     averageRating: row.average_rating,
     hiredAt: row.created_at,
     serviceAreas: (areasByCleaner[row.id] ?? []).map((a) => a.area_slug as string),

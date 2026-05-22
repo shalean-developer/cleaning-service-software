@@ -16,19 +16,18 @@ describe("admin payouts page (7P-1C)", () => {
     expect(source).not.toContain('className="text-sm text-red-600"');
   });
 
-  it("keeps success-state payout summary and queue rendering", () => {
+  it("loads real earnings data on success", () => {
     const source = readPage("src/app/(admin)/admin/payouts/page.tsx");
 
-    expect(source).toContain("formatZar(result.summary.pendingCents)");
-    expect(source).toContain("Payout-ready queue");
-    expect(source).toContain("No bookings awaiting payout");
-    expect(source).toContain("getAdminPayoutSummary");
+    expect(source).toContain("loadAdminEarningsView");
+    expect(source).toContain("AdminEarningsView");
+    expect(source).not.toContain("buildAdminEarningsView");
   });
 
   it("uses DashboardPageSkeleton while loading", () => {
     const loading = readPage("src/app/(admin)/admin/payouts/loading.tsx");
 
     expect(loading).toContain("DashboardPageSkeleton");
-    expect(loading).toContain('variant="list"');
+    expect(loading).toContain('variant="detail"');
   });
 });

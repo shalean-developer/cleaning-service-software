@@ -81,9 +81,20 @@ type BookingListRowSlice = {
   customer_id: string;
   status: string;
   scheduled_start: string;
+  price_cents: number;
   created_at: string;
   series_id: string | null;
   metadata: Json;
+};
+
+type BookingListSummary = {
+  bookingCount: number;
+  recurringCount: number;
+  latestBooking: AdminCustomerLatestBooking | null;
+  areaLabel: string | null;
+  lifetimeValueCents: number;
+  lastVisitAt: string | null;
+  preferredCleanerId: string | null;
 };
 
 type PaymentRowSlice = {
@@ -96,12 +107,6 @@ type PaymentRowSlice = {
   metadata: Json;
   created_at: string;
   updated_at: string;
-};
-
-type BookingListSummary = {
-  bookingCount: number;
-  recurringCount: number;
-  latestBooking: AdminCustomerLatestBooking | null;
 };
 
 function asRecord(metadata: Json | null | undefined): Record<string, unknown> {
@@ -307,15 +312,49 @@ function mapBookingHistoryItem(
   };
 }
 
+function pickMostRecentVisitRow(rows: BookingListRowSlice[]): BookingListRowSlice | null {
+  const completed = rows.filter((row) => row.status === "completed");
+  const pool = completed.length > 0 ? completed : rows;
+  if (pool.length === 0) return null;
+  return [...pool].sort(
+    (a, b) => new Date(b.scheduled_start).getTime() - new Date(a.scheduled_start).getTime(),
+  )[0]!;
+}
+
 function aggregateBookingListSummary(rows: BookingListRowSlice[]): BookingListSummary {
   let recurringCount = 0;
+  let lifetimeValueCents = 0;
+
   for (const row of rows) {
     if (isRecurringBooking(row)) recurringCount += 1;
+    if (row.status === "completed") {
+      lifetimeValueCents += row.price_cents;
+    }
   }
+
+  const visitRow = pickMostRecentVisitRow(rows);
+  let areaLabel: string | null = null;
+  let preferredCleanerId: string | null = null;
+  let lastVisitAt: string | null = null;
+
+  if (visitRow) {
+    const display = parseBookingDisplay(visitRow.metadata);
+    areaLabel =
+      display.suburb?.trim() ||
+      display.city?.trim() ||
+      (display.locationSummary !== "—" ? display.locationSummary : null);
+    preferredCleanerId = display.preferredCleanerId;
+    lastVisitAt = visitRow.scheduled_start;
+  }
+
   return {
     bookingCount: rows.length,
     recurringCount,
     latestBooking: pickLatestFromListRows(rows),
+    areaLabel,
+    lifetimeValueCents,
+    lastVisitAt,
+    preferredCleanerId,
   };
 }
 
@@ -457,6 +496,10 @@ async function loadBookingListSummariesByCustomerIds(
       bookingCount: 0,
       recurringCount: 0,
       latestBooking: null,
+      areaLabel: null,
+      lifetimeValueCents: 0,
+      lastVisitAt: null,
+      preferredCleanerId: null,
     });
     rowsByCustomer.set(id, []);
   }
@@ -468,7 +511,9 @@ async function loadBookingListSummariesByCustomerIds(
     const chunk = customerIds.slice(i, i + chunkSize);
     const { data, error } = await client
       .from("bookings")
-      .select("id, customer_id, status, scheduled_start, created_at, series_id, metadata")
+      .select(
+        "id, customer_id, status, scheduled_start, price_cents, created_at, series_id, metadata",
+      )
       .in("customer_id", chunk);
 
     if (error) throw new Error(error.message);
@@ -538,6 +583,7 @@ function buildListItem(input: {
     companyName: displayCompanyName(row.company_name, profile?.full_name ?? null, row.id),
     authEmail,
     phone: row.phone,
+    notes: row.notes,
     profileRole: profile?.role ?? null,
     bookingCount: bookingSummary.bookingCount,
     recurringCount: bookingSummary.recurringCount,
@@ -546,6 +592,11 @@ function buildListItem(input: {
       updatedAt: row.updated_at,
       latestBooking,
     }),
+    areaLabel: bookingSummary.areaLabel,
+    lifetimeValueCents: bookingSummary.lifetimeValueCents,
+    lastVisitAt: bookingSummary.lastVisitAt,
+    preferredCleanerId: bookingSummary.preferredCleanerId,
+    preferredCleanerLabel: null,
     domainHealth,
     provisioningHealthy: isProvisioningHealthy(domainHealth),
     createdAt: row.created_at,
@@ -613,9 +664,28 @@ export async function listAdminCustomers(
         bookingCount: 0,
         recurringCount: 0,
         latestBooking: null,
+        areaLabel: null,
+        lifetimeValueCents: 0,
+        lastVisitAt: null,
+        preferredCleanerId: null,
       },
     }),
   );
+
+  const preferredCleanerIds = [
+    ...new Set(
+      builtItems
+        .map((item) => item.preferredCleanerId)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+  const preferredCleanerLabels = await resolveCleanerLabelsById(client, preferredCleanerIds);
+  for (const item of builtItems) {
+    if (item.preferredCleanerId) {
+      item.preferredCleanerLabel =
+        preferredCleanerLabels.get(item.preferredCleanerId) ?? null;
+    }
+  }
 
   const inMemory = requiresInMemoryListPipeline(query);
   const filteredItems = inMemory

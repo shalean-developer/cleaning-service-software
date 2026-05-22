@@ -11,7 +11,12 @@ const authAdmin = {
 
 type MockState = {
   profiles: { id: string; role: string; full_name: string | null }[];
-  cleaners: { id: string; profile_id: string; phone: string | null }[];
+  cleaners: {
+    id: string;
+    profile_id: string;
+    phone: string | null;
+    active?: boolean;
+  }[];
 };
 
 function createMockClient(state: MockState): SupabaseClient<Database> {
@@ -55,7 +60,7 @@ function createMockClient(state: MockState): SupabaseClient<Database> {
               },
             }),
           }),
-          insert: (row: { profile_id: string; phone: string }) => ({
+          insert: (row: { profile_id: string; phone: string; active?: boolean }) => ({
             select: () => ({
               single: async () => {
                 const id = `cleaner-${state.cleaners.length + 1}`;
@@ -63,6 +68,7 @@ function createMockClient(state: MockState): SupabaseClient<Database> {
                   id,
                   profile_id: row.profile_id,
                   phone: row.phone,
+                  active: row.active,
                 });
                 return { data: { id }, error: null };
               },
@@ -105,7 +111,7 @@ function createStatefulClient(state: MockState): SupabaseClient<Database> {
     if (table === "cleaners") {
       return {
         ...api,
-        insert: (row: { profile_id: string; phone: string }) => ({
+        insert: (row: { profile_id: string; phone: string; active?: boolean }) => ({
           select: () => ({
             single: async () => {
               const id = `cleaner-${state.cleaners.length + 1}`;
@@ -113,6 +119,7 @@ function createStatefulClient(state: MockState): SupabaseClient<Database> {
                 id,
                 profile_id: row.profile_id,
                 phone: row.phone,
+                active: row.active,
               });
               return { data: { id }, error: null };
             },
@@ -161,6 +168,7 @@ describe("provisionCleanerIdentity", () => {
     expect(state.cleaners[0]).toMatchObject({
       profile_id: "profile-new",
       phone: "+27792022648",
+      active: false,
     });
     expect(authAdmin.createUser).toHaveBeenCalled();
   });

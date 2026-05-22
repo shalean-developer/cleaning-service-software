@@ -1,3 +1,7 @@
+import {
+  evaluateOperationalDispatchGate,
+  lifecycleSnapshotFromCandidate,
+} from "../lifecycle/dispatchEligibility";
 import type {
   CleanerCandidateRecord,
   CleanerEligibilityCode,
@@ -86,20 +90,11 @@ export function evaluateCleanerEligibility(
   parsedSlot: ParsedSlot,
   conflictingCleanerIds: ReadonlySet<string>,
 ): EligibilityEvaluation {
-  if (!candidate.active) {
-    return {
-      eligible: false,
-      code: "inactive",
-      message: "Cleaner is not active.",
-    };
-  }
-
-  if (isCleanerSuspended(candidate.suspendedAt)) {
-    return {
-      eligible: false,
-      code: "suspended",
-      message: "Cleaner is suspended.",
-    };
+  const operationalBlock = evaluateOperationalDispatchGate(
+    lifecycleSnapshotFromCandidate(candidate),
+  );
+  if (operationalBlock) {
+    return operationalBlock;
   }
 
   if (!matchesServiceCapability(candidate.serviceSlugs, query.serviceSlug)) {

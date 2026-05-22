@@ -107,6 +107,8 @@ When bedrooms/bathrooms (or booking `metadata.quote`) are supplied, eligible cle
 ## Phase 8 integration
 
 - `pickBestAvailable()` and `evaluateCleanerEligibility()` power `runAssignmentAfterPayment()`
+- `evaluateOperationalDispatchGate()` runs before slot/capability checks — only `active` operational state (onboarding complete, not suspended/archived, `active=true`) may enter dispatch pools
+- New cleaners provision with `active=false` until admin completes onboarding (`complete-onboarding` sets `onboarding_completed_at` and `active=true`)
 - See [assignment engine](../assignments/assignment-engine.md)
 
 ## Related

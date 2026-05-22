@@ -140,6 +140,81 @@ export function buildLocationBusinessSchema(content: LocationSeoContent) {
   });
 }
 
+export function buildOrganizationSchema(options?: { description?: string }) {
+  const siteUrl = getMarketingSiteUrl();
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${siteUrl}/#organization`,
+    name: ORGANIZATION_NAME,
+    url: siteUrl,
+    logo: `${siteUrl}/marketing/shalean-logo.png`,
+    description:
+      options?.description ??
+      "Cape Town home services platform for professional cleaning, recurring home care, and Airbnb turnovers.",
+    areaServed: {
+      "@type": "City",
+      name: "Cape Town",
+    },
+  };
+}
+
+export function buildAboutPageSchema(options: {
+  name: string;
+  description: string;
+  path: string;
+}) {
+  const siteUrl = getMarketingSiteUrl();
+  return {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    name: options.name,
+    description: options.description,
+    url: getMarketingCanonicalUrl(options.path),
+    isPartOf: {
+      "@type": "WebSite",
+      "@id": `${siteUrl}/#website`,
+    },
+    about: {
+      "@type": "LocalBusiness",
+      "@id": `${siteUrl}/#localbusiness`,
+      name: ORGANIZATION_NAME,
+    },
+  };
+}
+
+export function buildCollectionPageSchema(options: {
+  name: string;
+  description: string;
+  path: string;
+}) {
+  const siteUrl = getMarketingSiteUrl();
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: options.name,
+    description: options.description,
+    url: getMarketingCanonicalUrl(options.path),
+    isPartOf: {
+      "@type": "WebSite",
+      "@id": `${siteUrl}/#website`,
+    },
+  };
+}
+
+export function buildItemListSchema(items: { name: string; path: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      url: getMarketingCanonicalUrl(item.path),
+    })),
+  };
+}
+
 /** Homepage: single graph with LocalBusiness, WebSite, and FAQPage only. */
 export function buildHomePageJsonLd() {
   return buildJsonLdGraph([

@@ -20,6 +20,13 @@ export {
   type CleanerOperationalState,
 } from "./server/lifecycle/operationalState";
 export {
+  evaluateOperationalDispatchGate,
+  isCleanerOperationalForDispatch,
+  lifecycleSnapshotFromCandidate,
+} from "./server/lifecycle/dispatchEligibility";
+export { evaluateCleanerProfileCompleteness } from "./server/lifecycle/profileCompleteness";
+export { countOperationalCleaners } from "./server/lifecycle/countOperationalCleaners";
+export {
   archiveCleaner,
   cancelCleanerOpenOffers,
   deactivateCleaner,

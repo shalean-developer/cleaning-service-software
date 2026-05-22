@@ -16,6 +16,7 @@ import {
 } from "@/features/dashboards/cleanerEarningsPresentation";
 import { UI_BUTTON_PRIMARY_CLASS, UI_BUTTON_SECONDARY_CLASS } from "@/lib/ui/productUiTokens";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
+import { CleanerDashboardOperationalIntro } from "@/components/dashboard/cleaner/CleanerDashboardOperationalIntro";
 
 export const metadata: Metadata = {
   title: "Earnings | Cleaner",
@@ -34,6 +35,10 @@ export default async function CleanerEarningsPage() {
       nav={[...CLEANER_NAV_ITEMS]}
       headerEnd={<CleanerDashboardHeaderEndLoader />}
     >
+      <div className="mb-6">
+        <CleanerDashboardOperationalIntro />
+      </div>
+
       {!result.ok ? (
         <DashboardFetchError
           title={dashboardFetchErrorTitle("earnings", "cleaner")}

@@ -74,6 +74,10 @@ export function estimateBasePriceCents(
   );
 }
 
+/** Homepage hero subtitle (below H1). */
+export const HOMEPAGE_HERO_SUBTITLE =
+  "Professional cleaning services across Cape Town for homes, Airbnb properties, offices, and move-in or move-out support with transparent pricing and easy online booking." as const;
+
 export const HERO_TRUST_ITEMS = [
   {
     id: "vetted",
@@ -178,8 +182,8 @@ export const MARKETING_SERVICES: MarketingServiceCard[] = [
     description:
       "Fast turnover cleans between guests with checklist-ready attention to detail.",
     image:
-      "https://images.unsplash.com/photo-1560448204-e02f11c45751?w=800&q=80",
-    imageAlt: "Short-term rental property cleaning",
+      "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800&q=80",
+    imageAlt: "Bright short-term rental living space ready for guests",
   },
   {
     slug: "office-cleaning",
@@ -452,7 +456,7 @@ export const CLEANER_SIGN_IN_PATH =
 export const HEADER_PRIMARY_NAV: readonly HeaderNavLink[] = [
   { href: BOOKING_PATH, label: "Book Cleaning" },
   { sectionId: "services", label: "Services" },
-  { sectionId: "about", label: "Shalean" },
+  { href: "/about", label: "About" },
   { href: CLEANER_SIGN_IN_PATH, label: "Apply" },
   { sectionId: "areas", label: "Locations" },
 ];
@@ -515,6 +519,8 @@ export const FAQ_ITEMS = [
 ] as const;
 
 export const MARKETING_IMAGES = {
+  logo: "/marketing/shalean-logo.png",
+  logoAlt: "Shalean Cleaning Services",
   hero: "/marketing/hero-kitchen.png",
   heroAlt:
     "Shalean cleaning professionals in blue uniforms cleaning a modern Cape Town kitchen",

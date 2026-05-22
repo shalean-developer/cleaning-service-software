@@ -6,19 +6,23 @@ import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboard
 import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
+import { listAdminCleaners } from "@/features/cleaners/server/admin/adminCleanersReadModel";
 import {
-  listAdminCleaners,
-  normalizeAdminCleanerFilter,
-} from "@/features/cleaners/server/admin/adminCleanersReadModel";
-import { AdminCleanersFilters } from "@/components/dashboard/admin/AdminCleanersFilters";
-import { AdminCleanerListTable } from "@/components/dashboard/admin/AdminCleanerListTable";
+  computeAdminCleanerNetworkStats,
+  filterAdminCleanersForNetworkView,
+  normalizeAdminCleanerNetworkViewFilter,
+} from "@/features/cleaners/server/admin/adminCleanersNetworkDisplay";
+import { AdminCleanersNetworkHeader } from "@/components/dashboard/admin/cleaners/AdminCleanersNetworkHeader";
+import { AdminCleanersNetworkStats } from "@/components/dashboard/admin/cleaners/AdminCleanersNetworkStats";
+import { AdminCleanersNetworkToolbar } from "@/components/dashboard/admin/cleaners/AdminCleanersNetworkToolbar";
+import { AdminCleanersNetworkGrid } from "@/components/dashboard/admin/cleaners/AdminCleanersNetworkGrid";
 
 export const metadata: Metadata = {
   title: "Cleaners | Admin",
 };
 
 type PageProps = {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ view?: string; q?: string }>;
 };
 
 export default async function AdminCleanersPage({ searchParams }: PageProps) {
@@ -26,23 +30,25 @@ export default async function AdminCleanersPage({ searchParams }: PageProps) {
   if (!user) return null;
 
   const params = await searchParams;
-  const filter = normalizeAdminCleanerFilter(params.filter);
-  const result = await listAdminCleaners(user, filter);
+  const view = normalizeAdminCleanerNetworkViewFilter(params.view);
+  const result = await listAdminCleaners(user, "all");
+
+  const displayedItems =
+    result.ok
+      ? filterAdminCleanersForNetworkView({
+          items: result.items,
+          view,
+          search: params.q,
+        })
+      : [];
+
+  const networkStats = result.ok ? computeAdminCleanerNetworkStats(result.items) : null;
 
   return (
-    <AdminDashboardShell
-      title="Cleaners"
-      subtitle="Operational lifecycle, safety counts, and audit history."
-      nav={[...ADMIN_DASHBOARD_NAV]}
-    >
-      <div className="mt-4">
-        <Link
-          href="/admin/cleaners/new"
-          className="inline-flex min-h-10 items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
-        >
-          Create cleaner
-        </Link>
-      </div>
+    <AdminDashboardShell nav={[...ADMIN_DASHBOARD_NAV]}>
+      <AdminCleanersNetworkHeader
+        totalCount={result.ok ? result.items.length : 0}
+      />
 
       {!result.ok ? (
         <DashboardFetchError
@@ -51,16 +57,44 @@ export default async function AdminCleanersPage({ searchParams }: PageProps) {
         />
       ) : (
         <>
-          <AdminCleanersFilters filter={result.filter} totalCount={result.totalCount} />
-          {result.items.length === 0 ? (
-            <section className="mt-6">
-              <EmptyState
-                title="No cleaners match this filter"
-                description="Try another operational state or view all cleaners."
-              />
-            </section>
+          {networkStats ? (
+            <AdminCleanersNetworkStats
+              stats={networkStats}
+              activeView={view}
+              search={params.q}
+            />
+          ) : null}
+
+          <AdminCleanersNetworkToolbar view={view} search={params.q} />
+
+          {displayedItems.length === 0 ? (
+            <EmptyState
+              title="No cleaners match this view"
+              description={
+                params.q || view !== "all"
+                  ? "Try clearing search or choosing another filter."
+                  : "Cleaners appear here once profiles are created."
+              }
+              action={
+                params.q || view !== "all" ? (
+                  <Link
+                    href="/admin/cleaners"
+                    className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
+                  >
+                    Clear filters
+                  </Link>
+                ) : (
+                  <Link
+                    href="/admin/cleaners/new"
+                    className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
+                  >
+                    Create cleaner
+                  </Link>
+                )
+              }
+            />
           ) : (
-            <AdminCleanerListTable items={result.items} />
+            <AdminCleanersNetworkGrid items={displayedItems} />
           )}
         </>
       )}

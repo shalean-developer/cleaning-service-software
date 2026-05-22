@@ -98,6 +98,7 @@ export default function CleaningPricesPage() {
         </div>
 
         <MarketingInternalLinks
+          showServicesHub
           servicePaths={ALL_PRICING_ROWS.map((r) => r.path)}
         />
       </MarketingSeoPageLayout>

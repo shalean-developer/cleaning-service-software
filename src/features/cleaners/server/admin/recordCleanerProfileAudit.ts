@@ -15,7 +15,7 @@ export const CLEANER_PROFILE_AUDIT_ACTIONS = [
 export type CleanerProfileAuditAction = (typeof CLEANER_PROFILE_AUDIT_ACTIONS)[number];
 
 const EMPTY_LIFECYCLE_STATE: CleanerLifecycleStateJson = {
-  active: true,
+  active: false,
   suspended_at: null,
   suspension_ends_at: null,
   deleted_at: null,

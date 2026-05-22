@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Wand2 } from "lucide-react";
+import { AdminAccountBlock } from "@/components/dashboard/admin/AdminAccountBlock";
 import { AdminNavItem } from "@/components/dashboard/admin/AdminNavItem";
 import { AdminBrandIcon } from "@/components/dashboard/admin/adminNavIcons";
 import {
@@ -67,6 +68,9 @@ export function AdminSidebar({ pathname, onNavigate }: Props) {
       </nav>
 
       <div className="mt-auto border-t border-slate-200/80 px-3 py-4">
+        <div className="mb-3 flex justify-end">
+          <AdminAccountBlock />
+        </div>
         <Link
           href="/customer/book"
           onClick={onNavigate}

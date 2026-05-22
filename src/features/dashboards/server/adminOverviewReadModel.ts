@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { AdminOperationalAuditRow, BookingStateAuditRow } from "@/lib/database/types";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import { countActiveBookingSeries } from "@/features/recurring/bookingSeriesRepository";
+import { countOperationalCleaners } from "@/features/cleaners/server/lifecycle/countOperationalCleaners";
 import { getDeferredAssignmentConfig } from "@/features/assignments/server/assignmentDispatchConfig";
 import { getDeferredAssignmentDiagnostics } from "@/features/assignments/server/deferredAssignmentDiagnostics";
 import { getAdminPayoutSummary } from "@/features/earnings/server/payoutReadModel";
@@ -153,7 +154,7 @@ export async function loadAdminOverviewUpcomingContext(
   const [
     { count: upcomingCount, error: upcomingCountError },
     { data: nextRow, error: nextError },
-    { count: cleanersCount, error: cleanersError },
+    operationalCleanersCount,
   ] = await Promise.all([
     client
       .from("bookings")
@@ -168,12 +169,11 @@ export async function loadAdminOverviewUpcomingContext(
       .order("scheduled_start", { ascending: true })
       .limit(1)
       .maybeSingle(),
-    client.from("cleaners").select("*", { count: "exact", head: true }),
+    countOperationalCleaners(client),
   ]);
 
   if (upcomingCountError) throw new Error(upcomingCountError.message);
   if (nextError) throw new Error(nextError.message);
-  if (cleanersError) throw new Error(cleanersError.message);
 
   const nextScheduledStart = nextRow?.scheduled_start ?? null;
   const nextUpcomingDayLabel = nextScheduledStart
@@ -207,7 +207,7 @@ export async function loadAdminOverviewUpcomingContext(
     nextUpcomingScheduledStart: nextScheduledStart,
     nextUpcomingDayLabel,
     futurePaidBookingsCount,
-    cleanersInSystemCount: cleanersCount ?? 0,
+    cleanersInSystemCount: operationalCleanersCount,
   };
 }
 

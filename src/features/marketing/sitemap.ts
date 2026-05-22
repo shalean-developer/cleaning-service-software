@@ -3,9 +3,11 @@ import type { ServiceSlug } from "@/features/pricing/server/types";
 import { SERVICE_SEO_PATHS } from "./constants";
 import { LEGAL_PAGE_PATHS } from "./legal-pages";
 import {
+  ABOUT_PAGE_PATH,
   CONTACT_PAGE_PATH,
   FAQ_PAGE_PATH,
   REVIEWS_PAGE_PATH,
+  SERVICES_HUB_PATH,
 } from "./marketing-routes";
 import { LOCATION_SEO_SLUGS } from "./marketing-routes";
 import { getMarketingSiteUrl } from "./siteUrl";
@@ -30,6 +32,13 @@ const SERVICE_PRIORITY: Partial<Record<(typeof SITEMAP_SERVICE_SLUGS)[number], n
 export function buildMarketingSitemap(): MetadataRoute.Sitemap {
   const baseUrl = getMarketingSiteUrl();
   const lastModified = new Date();
+
+  const servicesHubEntry: MetadataRoute.Sitemap[number] = {
+    url: `${baseUrl}${SERVICES_HUB_PATH}`,
+    lastModified,
+    changeFrequency: "weekly",
+    priority: 0.85,
+  };
 
   const serviceEntries: MetadataRoute.Sitemap = SITEMAP_SERVICE_SLUGS.map((slug) => ({
     url: `${baseUrl}${SERVICE_SEO_PATHS[slug]}`,
@@ -66,7 +75,14 @@ export function buildMarketingSitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.9,
     },
+    servicesHubEntry,
     ...serviceEntries,
+    {
+      url: `${baseUrl}${ABOUT_PAGE_PATH}`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
     {
       url: `${baseUrl}${FAQ_PAGE_PATH}`,
       lastModified,
@@ -99,8 +115,9 @@ export function buildMarketingSitemap(): MetadataRoute.Sitemap {
 export const SITEMAP_ENTRY_COUNT =
   1 +
   1 +
+  1 +
   SITEMAP_SERVICE_SLUGS.length +
-  3 +
+  4 +
   LEGAL_PAGE_PATHS.length +
   1 +
   LOCATION_SEO_SLUGS.length;

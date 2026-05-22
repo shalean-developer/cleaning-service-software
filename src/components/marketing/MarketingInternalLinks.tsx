@@ -1,9 +1,12 @@
 import Link from "next/link";
 import {
+  ABOUT_PAGE_PATH,
   CONTACT_PAGE_PATH,
   FAQ_PAGE_PATH,
   LOCATIONS_HUB_PATH,
   PRICING_PAGE_PATH,
+  REVIEWS_PAGE_PATH,
+  SERVICES_HUB_PATH,
 } from "@/features/marketing/marketing-routes";
 import {
   serviceLinksFromPaths,
@@ -20,6 +23,9 @@ type MarketingInternalLinksProps = {
   showFaq?: boolean;
   showContact?: boolean;
   showLocations?: boolean;
+  showServicesHub?: boolean;
+  showAbout?: boolean;
+  showReviews?: boolean;
   showHome?: boolean;
 };
 
@@ -30,6 +36,9 @@ export function MarketingInternalLinks({
   showFaq = true,
   showContact = true,
   showLocations = true,
+  showServicesHub = false,
+  showAbout = true,
+  showReviews = false,
   showHome = true,
 }: MarketingInternalLinksProps) {
   const serviceLinks =
@@ -79,6 +88,39 @@ export function MarketingInternalLinks({
               aria-label="Contact Shalean Cleaning Services"
             >
               Contact Shalean
+            </Link>
+          </li>
+        ) : null}
+        {showServicesHub ? (
+          <li>
+            <Link
+              href={SERVICES_HUB_PATH}
+              className={linkClass}
+              aria-label="View all Shalean cleaning services in Cape Town"
+            >
+              All cleaning services
+            </Link>
+          </li>
+        ) : null}
+        {showAbout ? (
+          <li>
+            <Link
+              href={ABOUT_PAGE_PATH}
+              className={linkClass}
+              aria-label="About Shalean Cleaning Services"
+            >
+              About Shalean
+            </Link>
+          </li>
+        ) : null}
+        {showReviews ? (
+          <li>
+            <Link
+              href={REVIEWS_PAGE_PATH}
+              className={linkClass}
+              aria-label="Read Shalean customer reviews"
+            >
+              Customer reviews
             </Link>
           </li>
         ) : null}

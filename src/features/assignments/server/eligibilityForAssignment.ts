@@ -1,9 +1,6 @@
 import "server-only";
 
-import {
-  evaluateCleanerEligibility,
-  isCleanerSuspended,
-} from "@/features/cleaners/server/eligibility/evaluate";
+import { evaluateCleanerEligibility } from "@/features/cleaners/server/eligibility/evaluate";
 import { listEligibleCleaners } from "@/features/cleaners/server/eligibility/listEligibleCleaners";
 import { pickBestAvailable } from "@/features/cleaners/server/eligibility/rank";
 import { parseBookingSlot } from "@/features/cleaners/server/eligibility/slot";
@@ -23,7 +20,7 @@ export async function isCleanerEligibleForAssignment(
 ): Promise<boolean> {
   const candidates = await loadCleanerCandidates(client);
   const candidate = candidates.find((c) => c.cleanerId === cleanerId);
-  if (!candidate || isCleanerSuspended(candidate.suspendedAt)) {
+  if (!candidate) {
     return false;
   }
 

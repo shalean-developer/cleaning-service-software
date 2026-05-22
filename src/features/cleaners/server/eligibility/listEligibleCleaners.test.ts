@@ -22,6 +22,8 @@ function candidate(
     displayName: `Cleaner ${id.slice(0, 4)}`,
     active: true,
     suspendedAt: null,
+    deletedAt: null,
+    onboardingCompletedAt: "2024-01-01T00:00:00.000Z",
     averageRating: 4,
     hiredAt: "2024-06-01T00:00:00.000Z",
     serviceAreas: ["cape-town"],

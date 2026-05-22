@@ -11,6 +11,9 @@ import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { PastOffersCollapsible } from "@/components/dashboard/PastOffersCollapsible";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
+import { CleanerDashboardOperationalIntro } from "@/components/dashboard/cleaner/CleanerDashboardOperationalIntro";
+import { getCleanerDashboardOperationalContext } from "@/features/dashboards/server/cleanerOperationalContext";
+import { cleanerOperationalEmptyOffersCopy } from "@/components/dashboard/cleaner/CleanerOnboardingBanner";
 
 export const metadata: Metadata = {
   title: "Offers | Cleaner",
@@ -20,7 +23,11 @@ export default async function CleanerOffersPage() {
   const user = await getCurrentUser();
   if (!user) return null;
 
+  const operational = await getCleanerDashboardOperationalContext(user);
   const result = await listCleanerOffersForDashboard(user);
+  const operationalState =
+    operational.ok ? operational.context.operationalState : "active";
+  const operationalEmpty = cleanerOperationalEmptyOffersCopy(operationalState);
 
   return (
     <DashboardShell
@@ -29,6 +36,10 @@ export default async function CleanerOffersPage() {
       nav={[...CLEANER_NAV_ITEMS]}
       headerEnd={<CleanerDashboardHeaderEndLoader />}
     >
+      <div className="mb-6">
+        <CleanerDashboardOperationalIntro />
+      </div>
+
       {!result.ok ? (
         <DashboardFetchError
           title={dashboardFetchErrorTitle("offers", "cleaner")}
@@ -36,8 +47,11 @@ export default async function CleanerOffersPage() {
         />
       ) : result.offers.length === 0 ? (
         <EmptyState
-          title="No offers right now"
-          description="Matching jobs in your area will show up here."
+          title={operationalEmpty?.title ?? "No offers right now"}
+          description={
+            operationalEmpty?.description ??
+            "Matching jobs in your area will show up here."
+          }
         />
       ) : (
         <CleanerOffersList offers={result.offers} />

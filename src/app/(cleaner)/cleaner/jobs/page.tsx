@@ -9,6 +9,9 @@ import { EmptyState } from "@/components/dashboard/EmptyState";
 import { CleanerJobListCard } from "@/components/dashboard/cleaner/CleanerJobListCard";
 import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
+import { CleanerDashboardOperationalIntro } from "@/components/dashboard/cleaner/CleanerDashboardOperationalIntro";
+import { getCleanerDashboardOperationalContext } from "@/features/dashboards/server/cleanerOperationalContext";
+import { cleanerOperationalEmptyJobsCopy } from "@/components/dashboard/cleaner/CleanerOnboardingBanner";
 
 export const metadata: Metadata = {
   title: "Jobs | Cleaner",
@@ -18,7 +21,11 @@ export default async function CleanerJobsPage() {
   const user = await getCurrentUser();
   if (!user) return null;
 
+  const operational = await getCleanerDashboardOperationalContext(user);
   const result = await listCleanerJobs(user);
+  const operationalState =
+    operational.ok ? operational.context.operationalState : "active";
+  const operationalEmpty = cleanerOperationalEmptyJobsCopy(operationalState);
 
   return (
     <DashboardShell
@@ -27,6 +34,10 @@ export default async function CleanerJobsPage() {
       nav={[...CLEANER_NAV_ITEMS]}
       headerEnd={<CleanerDashboardHeaderEndLoader />}
     >
+      <div className="mb-6">
+        <CleanerDashboardOperationalIntro />
+      </div>
+
       {!result.ok ? (
         <DashboardFetchError
           title={dashboardFetchErrorTitle("jobs", "cleaner")}
@@ -34,15 +45,20 @@ export default async function CleanerJobsPage() {
         />
       ) : result.jobs.length === 0 ? (
         <EmptyState
-          title="No jobs yet"
-          description="Accepted offers appear here with your schedule and pay."
+          title={operationalEmpty?.title ?? "No jobs yet"}
+          description={
+            operationalEmpty?.description ??
+            "Accepted offers appear here with your schedule and pay."
+          }
           action={
-            <Link
-              href="/cleaner/offers"
-              className="rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800"
-            >
-              View offers
-            </Link>
+            operationalState === "active" ? (
+              <Link
+                href="/cleaner/offers"
+                className="rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800"
+              >
+                View offers
+              </Link>
+            ) : undefined
           }
         />
       ) : (

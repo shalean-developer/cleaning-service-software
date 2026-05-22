@@ -12,7 +12,7 @@ describe("Sign-in page signup link gating", () => {
   it("only links to sign-up when the feature flag is enabled on the page", () => {
     expect(pageSource).toContain("isCustomerSignupEnabled");
     expect(pageSource).toContain("signupEnabled");
-    expect(contentSource).toMatch(/signupEnabled \?/);
+    expect(contentSource).toMatch(/showCustomerSignup/);
     expect(pageSource).not.toMatch(/href=\{SIGN_UP_PATH\}[\s\S]*SignInPageContent/);
     expect(pageSource).toContain("SignInPageContent");
   });
@@ -24,11 +24,10 @@ describe("Sign-in page signup link gating", () => {
     expect(contentSource).not.toContain("E2E test accounts");
   });
 
-  it("uses simple centered sign-in layout copy", () => {
-    expect(contentSource).toContain("Sign in");
-    expect(contentSource).toContain(
-      "Sign in to manage your bookings, payments, and cleaner assignments.",
-    );
+  it("uses role-aware sign-in layout copy", () => {
+    expect(contentSource).toContain("resolveSignInPageCopy");
+    expect(contentSource).toContain("isCleanerSignInIntent");
+    expect(contentSource).toContain("copy.subtitle");
     expect(contentSource).toContain("Create one");
     expect(contentSource).toContain("Reset your password");
     expect(contentSource).not.toContain("UI_AUTH_CARD_CLASS");

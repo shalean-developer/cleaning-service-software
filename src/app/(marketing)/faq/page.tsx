@@ -46,7 +46,8 @@ export default function FaqPage() {
           <FaqAccordion items={FAQ_PAGE_ITEMS} />
         </div>
         <MarketingInternalLinks
-          servicePaths={Object.values(SERVICE_SEO_PATHS).slice(0, 4)}
+          servicePaths={Object.values(SERVICE_SEO_PATHS)}
+          showServicesHub
           showPricing
         />
       </MarketingSeoPageLayout>

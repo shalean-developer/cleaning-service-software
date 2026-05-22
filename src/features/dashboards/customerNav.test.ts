@@ -6,6 +6,7 @@ describe("CUSTOMER_DASHBOARD_NAV", () => {
     expect(CUSTOMER_DASHBOARD_NAV.map((item) => item.href)).toEqual([
       "/customer",
       "/customer/bookings",
+      "/customer/bookings/recurring",
       "/customer/book",
     ]);
     expect(CUSTOMER_DASHBOARD_NAV.find((item) => item.label === "Bookings")?.href).toBe(

@@ -17,7 +17,7 @@ export function CustomerHomeRecurringCta() {
       </div>
       <Link
         href={customerBookServicePath("regular-cleaning")}
-        className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl bg-zinc-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+        className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-full bg-shalean-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-shalean-primary focus-visible:ring-offset-2"
       >
         Book again
       </Link>

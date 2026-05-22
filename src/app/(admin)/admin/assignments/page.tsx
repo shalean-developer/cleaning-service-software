@@ -7,25 +7,24 @@ import {
   AdminCronHealthCriticalBanner,
   AdminCronHealthPanel,
 } from "@/components/dashboard/AdminCronHealthPanel";
-import { listAdminAssignmentQueue } from "@/features/dashboards/server/adminOperationsReadModel";
 import { AdminDeferredAssignmentDiagnosticsPanel } from "@/components/dashboard/AdminDeferredAssignmentDiagnosticsPanel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAdminOperationalQueueCounts } from "@/features/dashboards/server/adminOperationalQueueCounts";
 import { ADMIN_ASSIGNMENT_QUEUE_STRIP_FOOTNOTE_COPY } from "@/components/dashboard/AdminAssignmentQueueStripFootnote";
 import { AdminOperationalQueueStrip } from "@/components/dashboard/AdminOperationalQueueStrip";
-import { AdminAssignmentsOperationsHeader } from "@/components/dashboard/admin/AdminAssignmentsOperationsHeader";
-import { AdminAssignmentsQueueWorkbench } from "@/components/dashboard/admin/AdminAssignmentsQueueWorkbench";
 import { AdminDetailSection } from "@/components/dashboard/admin/AdminDetailSection";
+import { AdminDispatchOrchestration } from "@/components/dashboard/admin/dispatch/AdminDispatchOrchestration";
 import {
   deferredDiagnosticsNeedsAttention,
   summarizeCronHealth,
 } from "@/features/dashboards/adminAssignmentsPageDisplay";
+import { loadAdminDispatchOrchestration } from "@/features/dashboards/server/adminDispatchOrchestrationReadModel";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { ADMIN_DETAIL_STACK_CLASS } from "@/features/dashboards/adminDisplay";
 import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 
 export const metadata: Metadata = {
-  title: "Assignments | Admin",
+  title: "Orchestration | Admin",
 };
 
 export default async function AdminAssignmentsPage() {
@@ -35,8 +34,8 @@ export default async function AdminAssignmentsPage() {
   const client = await createSupabaseServerClient();
   const deferredConfig = getDeferredAssignmentConfig();
 
-  const [result, queueCounts, deferredDiagnostics, cronHealth] = await Promise.all([
-    listAdminAssignmentQueue(user),
+  const [orchestration, queueCounts, deferredDiagnostics, cronHealth] = await Promise.all([
+    loadAdminDispatchOrchestration(user),
     getAdminOperationalQueueCounts(user),
     client
       ? getDeferredAssignmentDiagnostics(client, { deferredEnabled: deferredConfig.enabled })
@@ -49,36 +48,22 @@ export default async function AdminAssignmentsPage() {
     cronSummary?.worstLevel === "critical" ||
     (deferredDiagnostics != null && deferredDiagnosticsNeedsAttention(deferredDiagnostics));
 
-  return (
-    <AdminDashboardShell
-      title="Assignment queue"
-      subtitle="Dispatch attention and open offers."
-      nav={[...ADMIN_DASHBOARD_NAV]}
-    >
-      <section className={ADMIN_DETAIL_STACK_CLASS}>
-        {queueCounts.ok ? (
-          <AdminAssignmentsOperationsHeader
-            workQueueCount={result.ok ? result.items.length : 0}
-            workQueueTotal={result.ok ? result.total : 0}
-            queues={queueCounts.queues}
-            cronSummary={cronSummary}
-            deferredDiagnostics={deferredDiagnostics}
-          />
-        ) : null}
+  if (!orchestration.ok) {
+    return (
+      <AdminDashboardShell nav={[...ADMIN_DASHBOARD_NAV]}>
+        <p className="text-sm text-zinc-600">Could not load dispatch orchestration.</p>
+      </AdminDashboardShell>
+    );
+  }
 
+  return (
+    <AdminDashboardShell nav={[...ADMIN_DASHBOARD_NAV]}>
+      <section className={ADMIN_DETAIL_STACK_CLASS}>
         {cronSummary?.criticalJobs.length ? (
           <AdminCronHealthCriticalBanner jobs={cronSummary.criticalJobs} />
         ) : null}
 
-        {result.ok ? (
-          <AdminAssignmentsQueueWorkbench
-            items={result.items}
-            total={result.total}
-            limit={result.limit}
-          />
-        ) : (
-          <p className="text-sm text-zinc-600">Could not load assignment queue.</p>
-        )}
+        <AdminDispatchOrchestration data={orchestration.data} />
 
         <details
           className="rounded-2xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]"

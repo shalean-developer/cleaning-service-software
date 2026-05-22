@@ -26,6 +26,8 @@ export type AdminCleanerListItem = {
   operationalState: CleanerOperationalState;
   active: boolean;
   isSuspended: boolean;
+  averageRating: number | null;
+  primaryAreaLabel: string | null;
   openOffersCount: number;
   activeBookingsCount: number;
   pendingEarningsCount: number;

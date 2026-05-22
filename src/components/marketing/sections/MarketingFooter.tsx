@@ -12,7 +12,12 @@ import {
   SERVICE_SEO_PATHS,
   SHALEAN_CONTACT,
 } from "@/features/marketing/constants";
-import { FAQ_PAGE_PATH, PRICING_PAGE_PATH } from "@/features/marketing/marketing-routes";
+import {
+  ABOUT_PAGE_PATH,
+  FAQ_PAGE_PATH,
+  PRICING_PAGE_PATH,
+  SERVICES_HUB_PATH,
+} from "@/features/marketing/marketing-routes";
 import type { MarketingSectionId } from "@/lib/ui/scrollToSection";
 import { MarketingSectionLink } from "../MarketingSectionLink";
 import {
@@ -201,6 +206,11 @@ export function MarketingFooter() {
               <span id="footer-services-heading">Services</span>
             </FooterColumnHeading>
             <ul className="mt-5 space-y-3.5">
+              <li>
+                <Link href={SERVICES_HUB_PATH} className={footerLinkClass}>
+                  All cleaning services
+                </Link>
+              </li>
               {MARKETING_SERVICES.map((item) => (
                 <li key={item.slug}>
                   <Link href={SERVICE_SEO_PATHS[item.slug]} className={footerLinkClass}>
@@ -219,15 +229,17 @@ export function MarketingFooter() {
             <ul className="mt-5 space-y-3.5">
               {FOOTER_QUICK_LINKS.map((item) => {
                 const routeHref =
-                  item.sectionId === "pricing"
-                    ? PRICING_PAGE_PATH
-                    : item.sectionId === "faq"
-                      ? FAQ_PAGE_PATH
-                      : item.sectionId === "areas"
-                        ? "/locations"
-                        : item.sectionId === "contact"
-                          ? "/contact"
-                          : undefined;
+                  item.sectionId === "about"
+                    ? ABOUT_PAGE_PATH
+                    : item.sectionId === "pricing"
+                      ? PRICING_PAGE_PATH
+                      : item.sectionId === "faq"
+                        ? FAQ_PAGE_PATH
+                        : item.sectionId === "areas"
+                          ? "/locations"
+                          : item.sectionId === "contact"
+                            ? "/contact"
+                            : undefined;
                 return (
                   <li key={item.label}>
                     {routeHref ? (

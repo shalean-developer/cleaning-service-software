@@ -80,7 +80,7 @@ export function AdminOperationsSidebar({
   return (
     <>
       <aside className={desktopSidebarClass} aria-label="Operations sidebar">
-        <div className="sticky top-[4.25rem] flex max-h-[calc(100vh-4.25rem)] min-h-0 flex-1 flex-col">
+        <div className="sticky top-4 flex max-h-[calc(100vh-2rem)] min-h-0 flex-1 flex-col">
           <div className={sidebarPanelClass}>
             <AdminSidebar pathname={pathname} />
           </div>
@@ -99,7 +99,7 @@ export function AdminOperationsSidebar({
       {mounted ? (
         <aside
           id={menuId}
-          className={`fixed bottom-0 left-0 top-[3.75rem] z-50 flex w-[min(19rem,90vw)] flex-col px-3 py-3 transition-transform duration-200 lg:hidden ${
+          className={`fixed bottom-0 left-0 top-0 z-50 flex w-[min(19rem,90vw)] flex-col px-3 py-3 transition-transform duration-200 lg:hidden ${
             mobileOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
           }`}
           aria-label="Operations menu"
