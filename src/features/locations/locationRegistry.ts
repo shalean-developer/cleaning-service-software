@@ -69,6 +69,8 @@ const NAME_CANONICAL: Record<string, string> = {
   "d’urbanvale": "Durbanville",
   "cape town cbd": "Cape Town CBD",
   "brooklyn chestnut": "Brooklyn",
+  "bo kaap": "De Waterkant",
+  "bo-kaap": "De Waterkant",
 };
 
 const REGION_BY_KEYWORD: { pattern: RegExp; region: string; cityGroup: string; type: ServiceAreaType }[] = [
@@ -361,6 +363,34 @@ export function getBookingLocationOptions(): BookingLocationOption[] {
   return getOperationalServiceAreas().map(locationToBookingOption);
 }
 
+/** Canonical region order for operational UX (booking, admin, apply, filters). */
+export const OPERATIONAL_REGION_ORDER: readonly string[] = [
+  "Atlantic Seaboard",
+  "Southern Suburbs",
+  "Northern Suburbs",
+  "City Bowl & nearby",
+  "West Coast & Table Bay",
+  "Cape Flats & surrounds",
+  "False Bay & Helderberg",
+  "Winelands",
+  "Garden Route",
+  "Overberg & West Coast",
+  "Western Cape Interior",
+  "Cape Town",
+  "Western Cape",
+] as const;
+
+function regionSortIndex(region: string): number {
+  const idx = OPERATIONAL_REGION_ORDER.indexOf(region);
+  return idx === -1 ? OPERATIONAL_REGION_ORDER.length : idx;
+}
+
+export function sortCleanerAreaOptionGroups(
+  groups: CleanerAreaOptionGroup[],
+): CleanerAreaOptionGroup[] {
+  return [...groups].sort((a, b) => regionSortIndex(a.region) - regionSortIndex(b.region));
+}
+
 export function getCleanerAreaOptionGroups(): CleanerAreaOptionGroup[] {
   const groups = new Map<string, CleanerAreaOption[]>();
   for (const entry of getOperationalServiceAreas()) {
@@ -368,12 +398,16 @@ export function getCleanerAreaOptionGroups(): CleanerAreaOptionGroup[] {
     list.push(locationToCleanerAreaOption(entry));
     groups.set(entry.region, list);
   }
-  return [...groups.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([region, options]) => ({
-      region,
-      options: options.sort((a, b) => a.label.localeCompare(b.label)),
-    }));
+  const built = [...groups.entries()].map(([region, options]) => ({
+    region,
+    options: options.sort((a, b) => a.label.localeCompare(b.label)),
+  }));
+  return sortCleanerAreaOptionGroups(built);
+}
+
+/** Twelve featured SEO suburbs — popular defaults for booking and apply. */
+export function getPopularOperationalAreas(): CleanerAreaOption[] {
+  return getFeaturedOperationalAreas().map(locationToCleanerAreaOption);
 }
 
 export function displayLabelForAreaSlug(slug: string): string {

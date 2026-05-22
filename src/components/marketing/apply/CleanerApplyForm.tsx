@@ -43,6 +43,7 @@ import {
 } from "@/features/cleaner-applications/applyFormModel";
 import { CLEANER_APPLY_EXPERIENCE_LEVELS } from "@/features/cleaner-applications/types";
 import { OperationalAreaChipGroups } from "@/components/locations/OperationalAreaChipGroups";
+import { OperationalSuburbInput } from "@/components/locations/OperationalSuburbInput";
 import {
   APPLY_CARD_CLASS,
   APPLY_CHIP_IDLE,
@@ -370,11 +371,11 @@ export function CleanerApplyForm() {
                   <label htmlFor="suburb" className={APPLY_LABEL_CLASS}>
                     Suburb <span className="text-red-500">*</span>
                   </label>
-                  <input
+                  <OperationalSuburbInput
                     id="suburb"
                     className={APPLY_INPUT_CLASS}
                     value={values.suburb}
-                    onChange={(e) => setValues((v) => ({ ...v, suburb: e.target.value }))}
+                    onChange={(suburb) => setValues((v) => ({ ...v, suburb }))}
                   />
                   {errors.suburb ? <p className={APPLY_ERROR_CLASS}>{errors.suburb}</p> : null}
                 </div>
@@ -436,6 +437,9 @@ export function CleanerApplyForm() {
                 <legend className={APPLY_LABEL_CLASS}>
                   Preferred work areas <span className="text-red-500">*</span>
                 </legend>
+                <p className={`${APPLY_HELPER_CLASS} -mt-2`}>
+                  Pick areas you&apos;d like to work in. Search or tap popular suburbs first.
+                </p>
                 <OperationalAreaChipGroups
                   selected={values.preferredAreas}
                   onToggle={(area) =>

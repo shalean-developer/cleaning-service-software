@@ -21,6 +21,7 @@ import {
   type CleanerLifecycleSnapshot,
   type CleanerOperationalState,
 } from "../lifecycle/operationalState";
+import { formatLocationName } from "@/features/locations/locationDisplay";
 import type { ServiceSlug } from "@/features/pricing/server/types";
 import {
   availabilityRowsToFormValues,
@@ -67,11 +68,7 @@ function primaryAreaLabelFromSlugs(slugs: string[]): string | null {
   if (slugs.length === 0) return "All areas";
   const slug = slugs[0]?.trim();
   if (!slug) return "All areas";
-  return slug
-    .split("-")
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+  return formatLocationName(slug);
 }
 
 async function loadSafetyCounts(

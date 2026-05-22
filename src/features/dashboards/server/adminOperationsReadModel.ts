@@ -37,6 +37,7 @@ import {
   renderAdminBookingsCsv,
   resolveBookingsExportScope,
 } from "./adminBookingsExport";
+import { locationSearchTokens } from "@/features/locations/locationDisplay";
 import { isRecurringAdminBooking } from "./adminBookingRecurring";
 import {
   ADMIN_ASSIGNMENT_QUEUE_LIMIT,
@@ -321,7 +322,14 @@ async function buildAdminBookingListItem(
     recoveryEligible: eligibility === "eligible",
     deferredDispatch,
     updatedAt: row.updated_at,
-    searchText: buildSearchText([row.id, customerLabel, ...providerRefs]),
+    searchText: buildSearchText([
+      row.id,
+      customerLabel,
+      ...providerRefs,
+      display.suburb,
+      display.city,
+      ...locationSearchTokens(display.suburb),
+    ]),
   };
 }
 

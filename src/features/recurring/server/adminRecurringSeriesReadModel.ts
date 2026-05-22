@@ -26,6 +26,7 @@ import type {
   AdminRecurringListQuery,
   AdminRecurringSeriesSummary,
 } from "./recurringManagementTypes";
+import { locationSearchTokens } from "@/features/locations/locationDisplay";
 import { formatSelectedDaysShort } from "../recurringScheduleDays";
 import type { RecurringScheduleGroupRow } from "@/lib/database/types";
 import { ARCHIVED_CUSTOMER_LABEL } from "./recurringReadModelLabels";
@@ -292,10 +293,11 @@ function mapListItem(
 function matchesSearch(item: AdminRecurringSeriesListItem, search: string): boolean {
   const q = search.trim().toLowerCase();
   if (!q) return true;
+  const suburbHaystack = [item.suburb ?? "", ...locationSearchTokens(item.suburb)].join(" ").toLowerCase();
   return (
     item.customerName.toLowerCase().includes(q) ||
     (item.customerEmail?.toLowerCase().includes(q) ?? false) ||
-    (item.suburb?.toLowerCase().includes(q) ?? false) ||
+    suburbHaystack.includes(q) ||
     item.serviceLabel.toLowerCase().includes(q) ||
     item.frequencyLabel.toLowerCase().includes(q)
   );

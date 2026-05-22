@@ -3,6 +3,7 @@ import "server-only";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { BookingSeriesRow, Json, PaymentRow } from "@/lib/database/types";
 import { formatScheduleRange, formatZar, parseBookingDisplay } from "@/features/dashboards/server/parseBookingDisplay";
+import { formatLocationName } from "@/features/locations/locationDisplay";
 import type { BookingSeriesStatus } from "../types";
 import { isSyntheticAnchorBooking } from "../syntheticAnchorBooking";
 import type {
@@ -129,8 +130,9 @@ export function parseSeriesLocation(templateMetadata: Json): {
   addressSummary: string;
 } {
   const display = parseBookingDisplay(templateMetadata);
+  const suburbRaw = display.suburb?.trim();
   return {
-    suburb: display.suburb,
+    suburb: suburbRaw ? formatLocationName(suburbRaw) : null,
     addressSummary: display.locationSummary,
   };
 }

@@ -35,10 +35,10 @@ const MAX_SERVICE_AREAS = 50;
 
 const VALID_CAPABILITY_SLUGS = new Set<string>(SERVICE_SLUGS);
 
-import { findLocationBySlug } from "@/features/locations/locationRegistry";
+import { formatLocationName } from "@/features/locations/locationDisplay";
 
 export function formatServiceAreaSlugsForInput(slugs: string[]): string {
-  return slugs.map((slug) => findLocationBySlug(slug)?.name ?? slug).join("\n");
+  return slugs.map((slug) => formatLocationName(slug)).join("\n");
 }
 
 export function validateCleanerEditForm(

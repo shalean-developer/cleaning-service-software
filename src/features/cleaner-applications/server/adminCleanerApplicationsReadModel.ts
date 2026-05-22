@@ -4,6 +4,7 @@ import type { CurrentUser } from "@/lib/auth/types";
 import type { Database } from "@/lib/database/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
+import { formatLocationName, locationSearchTokens } from "@/features/locations/locationDisplay";
 import type { CleanerApplicationRow, CleanerApplicationStatus } from "../types";
 
 export type AdminCleanerApplicationsFilter = CleanerApplicationStatus | "all";
@@ -21,12 +22,13 @@ export type AdminCleanerApplicationListItem = {
 };
 
 function mapRow(row: CleanerApplicationRow): AdminCleanerApplicationListItem {
+  const suburbRaw = row.suburb?.trim() || null;
   return {
     id: row.id,
     fullName: row.full_name,
     phone: row.phone,
     email: row.email,
-    suburb: row.suburb,
+    suburb: suburbRaw ? formatLocationName(suburbRaw) : null,
     city: row.city,
     status: row.status,
     createdAt: row.created_at,
@@ -84,6 +86,7 @@ export async function listAdminCleanerApplications(
         row.email ?? "",
         row.suburb ?? "",
         row.city,
+        ...locationSearchTokens(row.suburb),
       ]
         .join(" ")
         .toLowerCase();

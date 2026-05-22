@@ -8,6 +8,7 @@ import { resolveCustomerEmailOrNull } from "@/features/notifications/server/reso
 import { resolveCustomerEmailsOrNull } from "@/features/notifications/server/resolveCustomerEmailOrNull";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
+import { formatLocationName } from "@/features/locations/locationDisplay";
 import { parseBookingDisplay } from "@/features/dashboards/server/parseBookingDisplay";
 import {
   isProvisioningHealthy,
@@ -339,8 +340,9 @@ function aggregateBookingListSummary(rows: BookingListRowSlice[]): BookingListSu
 
   if (visitRow) {
     const display = parseBookingDisplay(visitRow.metadata);
+    const suburbRaw = display.suburb?.trim();
     areaLabel =
-      display.suburb?.trim() ||
+      (suburbRaw ? formatLocationName(suburbRaw) : null) ||
       display.city?.trim() ||
       (display.locationSummary !== "—" ? display.locationSummary : null);
     preferredCleanerId = display.preferredCleanerId;

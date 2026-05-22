@@ -1,3 +1,4 @@
+import { formatServiceAreaList } from "@/features/locations/locationDisplay";
 import type { BookingSlot } from "../types";
 
 const DEFAULT_TIMEZONE = "Africa/Johannesburg";
@@ -96,9 +97,7 @@ export function summarizeAvailability(windows: { dayOfWeek: number; startTime: s
 }
 
 export function summarizeServiceAreas(areas: string[]): string {
-  if (areas.length === 0) return "All service areas";
-  if (areas.length <= 3) return areas.join(", ");
-  return `${areas.slice(0, 3).join(", ")} +${areas.length - 3} more`;
+  return formatServiceAreaList(areas);
 }
 
 export { DEFAULT_TIMEZONE };

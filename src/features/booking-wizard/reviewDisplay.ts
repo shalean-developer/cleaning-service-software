@@ -1,3 +1,4 @@
+import { formatLocationName } from "@/features/locations/locationDisplay";
 import type {
   AddonSlug,
   CleaningIntensity,
@@ -102,7 +103,7 @@ export function formatCleanerPreference(
 }
 
 export function formatSuburbLocation(suburb: string, city: string): string {
-  const suburbTrimmed = suburb.trim();
+  const suburbTrimmed = formatLocationName(suburb);
   const cityTrimmed = city.trim();
   if (!suburbTrimmed && !cityTrimmed) return "\u2014";
   if (!suburbTrimmed) return cityTrimmed;
