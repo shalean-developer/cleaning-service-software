@@ -17,10 +17,8 @@ export function normalizeApplicationEmail(email: string | null | undefined): str
   return trimmed;
 }
 
+import { resolveAreaSlug } from "@/features/locations/locationRegistry";
+
 export function normalizePreferredAreaSlug(area: string): string {
-  return area
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  return resolveAreaSlug(area);
 }

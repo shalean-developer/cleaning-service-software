@@ -16,8 +16,8 @@ type MarketingSectionLinkProps = {
 };
 
 /**
- * In-page section navigation without hash URLs (homepage CTAs only).
- * On the homepage, scrolls to a section; elsewhere, links to the canonical route.
+ * Section CTAs without hash URLs. Always renders a Link (stable SSR/hydration).
+ * On the homepage, click scrolls to the section when present; otherwise follows href.
  * Main header/footer nav uses href-only links — not this component.
  */
 export function MarketingSectionLink({
@@ -29,29 +29,27 @@ export function MarketingSectionLink({
 }: MarketingSectionLinkProps) {
   const pathname = usePathname();
   const isHome = pathname === "/";
-  const fallbackHref = marketingSectionRoute(sectionId);
+  const href = marketingSectionRoute(sectionId);
 
-  if (!isHome) {
-    return (
-      <Link href={fallbackHref} className={className} onClick={onNavigate} aria-label={ariaLabel}>
-        {children}
-      </Link>
-    );
-  }
-
-  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    if (scrollToSection(sectionId)) {
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (isHome && scrollToSection(sectionId)) {
+      event.preventDefault();
       onNavigate?.();
-      return;
+    } else {
+      onNavigate?.();
     }
-    onNavigate?.();
   };
 
   return (
-    <button type="button" className={className} onClick={handleClick} aria-label={ariaLabel}>
+    <Link
+      href={href}
+      className={className}
+      onClick={handleClick}
+      aria-label={ariaLabel}
+      suppressHydrationWarning
+    >
       {children}
-    </button>
+    </Link>
   );
 }
 

@@ -1,6 +1,6 @@
 /**
  * Canonical location SEO slugs — no imports from pricing/catalog (safe for next.config).
- * Must stay aligned with CAPE_TOWN_AREAS in constants.ts.
+ * Must stay aligned with SEO seeds in `src/features/locations/seoLocationSeeds.ts`.
  */
 export const LOCATION_SEO_SLUG_LIST = [
   "sea-point-cape-town",

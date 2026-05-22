@@ -31,6 +31,7 @@ import {
 } from "../quoteInvalidation";
 import { wizardPatchForServiceSelection } from "../serviceSelection";
 import { INITIAL_WIZARD_STATE, type BookingWizardState } from "../types";
+import { OperationalSuburbInput } from "@/components/locations/OperationalSuburbInput";
 import { validateWizardStep } from "../validation";
 import {
   getWizardCardClass,
@@ -560,10 +561,11 @@ export function BookingWizard({
                 />
               </Field>
               <Field label="Suburb" error={stepErrors.suburb}>
-                <input
+                <OperationalSuburbInput
                   className={`${inputClass} ${WIZARD_KEYBOARD_SCROLL_MARGIN_CLASS}`}
                   value={state.suburb}
-                  onChange={(e) => patch({ suburb: e.target.value })}
+                  onChange={(suburb) => patch({ suburb })}
+                  aria-invalid={Boolean(stepErrors.suburb)}
                 />
               </Field>
               <Field label="City" error={stepErrors.city}>

@@ -11,6 +11,7 @@ import {
   type CleanerEditFormErrors,
   type CleanerEditFormField,
 } from "@/features/cleaners/admin/cleanerProfileEditValidation";
+import { AdminServiceAreasTextarea } from "@/components/dashboard/admin/AdminServiceAreasTextarea";
 import { CleanerAvailabilityFields } from "@/components/dashboard/admin/CleanerAvailabilityFields";
 import { parseServiceAreasInput } from "@/features/cleaners/admin/cleanerProfileFormValidation";
 import type { ServiceSlug } from "@/features/pricing/server/types";
@@ -191,14 +192,11 @@ export function AdminCleanerProfileForm({
           <span className="font-medium text-zinc-800">
             Service areas <span className="font-normal text-zinc-500">(optional)</span>
           </span>
-          <textarea
-            name="serviceAreas"
-            rows={3}
-            placeholder="e.g. Sea Point, Cape Town — one per line or comma-separated"
+          <AdminServiceAreasTextarea
             className={fieldClass(Boolean(showError("serviceAreasInput")))}
             value={values.serviceAreasInput}
-            onChange={(e) =>
-              setValues((prev) => ({ ...prev, serviceAreasInput: e.target.value }))
+            onChange={(serviceAreasInput) =>
+              setValues((prev) => ({ ...prev, serviceAreasInput }))
             }
             onBlur={() => touch("serviceAreasInput")}
             aria-invalid={Boolean(showError("serviceAreasInput"))}

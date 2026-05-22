@@ -440,20 +440,8 @@ export const MARKETING_NAV_PATHS = {
   contact: "/contact",
 } as const;
 
-export const CAPE_TOWN_AREAS = [
-  "Sea Point",
-  "Claremont",
-  "Camps Bay",
-  "Century City",
-  "Bellville",
-  "Durbanville",
-  "Table View",
-  "Observatory",
-  "Rondebosch",
-  "Wynberg",
-  "Green Point",
-  "Milnerton",
-] as const;
+/** Canonical 12 SEO suburb display names — sourced from location registry. */
+export { SEO_LOCATION_NAMES as CAPE_TOWN_AREAS } from "@/features/locations/locationRegistry";
 
 export const BOOKING_PATH = "/sign-up?redirectedFrom=/customer/book" as const;
 

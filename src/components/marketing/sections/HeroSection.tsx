@@ -1,9 +1,14 @@
-import { BOOKING_PATH, HOMEPAGE_HERO_SUBTITLE, SHALEAN_CONTACT } from "@/features/marketing/constants";
+import Link from "next/link";
+import {
+  BOOKING_PATH,
+  HOMEPAGE_HERO_SUBTITLE,
+  MARKETING_NAV_PATHS,
+  SHALEAN_CONTACT,
+} from "@/features/marketing/constants";
 import { HeroBookingCard } from "../HeroBookingCard";
 import { IconCalendar, IconMapPin, IconWhatsApp } from "../icons";
 import { MarketingButton } from "../MarketingButton";
 import { MarketingContainer } from "../MarketingContainer";
-import { MarketingSectionLink } from "../MarketingSectionLink";
 
 export function HeroSection() {
   const whatsappUrl = `https://wa.me/${SHALEAN_CONTACT.whatsappNumber}?text=${encodeURIComponent("Hi Shalean, I'd like to book a cleaning.")}`;
@@ -27,12 +32,12 @@ export function HeroSection() {
                   <IconMapPin className="h-4 w-4 shrink-0" aria-hidden />
                   Cape Town, ZA
                 </span>
-                <MarketingSectionLink
-                  sectionId="areas"
+                <Link
+                  href={MARKETING_NAV_PATHS.locations}
                   className="marketing-focus-ring font-normal text-shalean-navy underline decoration-slate-400 underline-offset-[3px] transition hover:decoration-shalean-navy"
                 >
                   Change location
-                </MarketingSectionLink>
+                </Link>
               </div>
 
               <h1 className="mt-5 text-[2rem] font-extrabold leading-[1.08] tracking-[-0.02em] text-shalean-navy sm:mt-6 sm:text-[2.75rem] lg:mt-7 lg:text-[3.25rem] xl:text-[3.5rem]">

@@ -1,4 +1,8 @@
-import { CAPE_TOWN_AREAS } from "./constants";
+import { SEO_LOCATION_NAMES, SEO_LOCATION_SLUG_LIST } from "@/features/locations/seoLocationSeeds";
+import {
+  findLocationByNameOrAlias,
+  slugFromLocationName,
+} from "@/features/locations/locationRegistry";
 import { LOCATION_SEO_SLUG_LIST } from "./locationSlugList";
 
 /** Lightweight route paths for marketing pages (safe for client imports). */
@@ -16,19 +20,20 @@ export const APPLY_FORM_PAGE_PATH = "/apply/application-form" as const;
 export type LocationSeoSlug = `${string}-cape-town`;
 
 export function locationSlugFromArea(area: string): LocationSeoSlug {
-  const slug = area.toLowerCase().replace(/\s+/g, "-");
+  const entry = findLocationByNameOrAlias(area);
+  if (entry?.seoSlug) return entry.seoSlug;
+  const slug = slugFromLocationName(area);
   return `${slug}-cape-town` as LocationSeoSlug;
 }
 
-export const LOCATION_SEO_SLUGS = CAPE_TOWN_AREAS.map((area) =>
-  locationSlugFromArea(area),
-);
+export const LOCATION_SEO_SLUGS = SEO_LOCATION_SLUG_LIST;
 
 if (
   LOCATION_SEO_SLUGS.length !== LOCATION_SEO_SLUG_LIST.length ||
   !LOCATION_SEO_SLUGS.every((slug, i) => slug === LOCATION_SEO_SLUG_LIST[i])
 ) {
   throw new Error(
-    "LOCATION_SEO_SLUG_LIST is out of sync with CAPE_TOWN_AREAS — update locationSlugList.ts",
+    "LOCATION_SEO_SLUG_LIST is out of sync with SEO_LOCATION_SLUG_LIST in seoLocationSeeds.ts",
   );
 }
+

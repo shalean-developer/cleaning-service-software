@@ -7,6 +7,7 @@ import { ADMIN_ACTION_ERROR_CLASS } from "@/lib/app/dashboardEcosystemDisplay";
 import { buildShaleanCleanerAuthEmail } from "@/lib/auth/cleanerAuthIdentity";
 import { defaultCleanerAvailabilityFormValues } from "@/features/cleaners/admin/cleanerAvailability";
 import { CLEANER_CAPABILITY_OPTIONS } from "@/features/cleaners/admin/cleanerCapabilityOptions";
+import { AdminServiceAreasTextarea } from "@/components/dashboard/admin/AdminServiceAreasTextarea";
 import { CleanerAvailabilityFields } from "@/components/dashboard/admin/CleanerAvailabilityFields";
 import {
   CLEANER_CREATE_MIN_PASSWORD_LENGTH,
@@ -267,18 +268,14 @@ export function AdminCleanerCreateForm() {
           <span className="font-medium text-zinc-800">
             Service areas <span className="font-normal text-zinc-500">(optional)</span>
           </span>
-          <textarea
-            name="serviceAreas"
-            rows={3}
-            placeholder="e.g. Sea Point, Cape Town — one per line or comma-separated"
+          <AdminServiceAreasTextarea
             className={fieldClass(Boolean(showError("serviceAreasInput")))}
             value={values.serviceAreasInput}
-            onChange={(e) =>
-              setValues((prev) => ({ ...prev, serviceAreasInput: e.target.value }))
+            onChange={(serviceAreasInput) =>
+              setValues((prev) => ({ ...prev, serviceAreasInput }))
             }
             onBlur={() => touch("serviceAreasInput")}
             aria-invalid={Boolean(showError("serviceAreasInput"))}
-            aria-describedby="service-areas-hint service-areas-error"
           />
           <p id="service-areas-hint" className="mt-1 text-xs text-zinc-500">
             Leave empty to match all areas. Slugs are normalized automatically.

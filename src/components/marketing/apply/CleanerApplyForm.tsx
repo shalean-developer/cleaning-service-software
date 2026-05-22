@@ -42,7 +42,7 @@ import {
   type CleanerApplyWorkPreference,
 } from "@/features/cleaner-applications/applyFormModel";
 import { CLEANER_APPLY_EXPERIENCE_LEVELS } from "@/features/cleaner-applications/types";
-import { CAPE_TOWN_AREAS } from "@/features/marketing/constants";
+import { OperationalAreaChipGroups } from "@/components/locations/OperationalAreaChipGroups";
 import {
   APPLY_CARD_CLASS,
   APPLY_CHIP_IDLE,
@@ -436,28 +436,20 @@ export function CleanerApplyForm() {
                 <legend className={APPLY_LABEL_CLASS}>
                   Preferred work areas <span className="text-red-500">*</span>
                 </legend>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {CAPE_TOWN_AREAS.map((area) => {
-                    const selected = values.preferredAreas.includes(area);
-                    return (
-                      <button
-                        key={area}
-                        type="button"
-                        className={`rounded-full border px-3.5 py-2 text-sm transition-all ${
-                          selected ? APPLY_CHIP_SELECTED : APPLY_CHIP_IDLE
-                        }`}
-                        onClick={() =>
-                          setValues((v) => ({
-                            ...v,
-                            preferredAreas: toggleInList(v.preferredAreas, area),
-                          }))
-                        }
-                      >
-                        {area}
-                      </button>
-                    );
-                  })}
-                </div>
+                <OperationalAreaChipGroups
+                  selected={values.preferredAreas}
+                  onToggle={(area) =>
+                    setValues((v) => ({
+                      ...v,
+                      preferredAreas: toggleInList(v.preferredAreas, area),
+                    }))
+                  }
+                  chipClass={(selected) =>
+                    `rounded-full border px-3.5 py-2 text-sm transition-all ${
+                      selected ? APPLY_CHIP_SELECTED : APPLY_CHIP_IDLE
+                    }`
+                  }
+                />
                 {errors.preferredAreas ? (
                   <p className={APPLY_ERROR_CLASS}>{errors.preferredAreas}</p>
                 ) : null}
