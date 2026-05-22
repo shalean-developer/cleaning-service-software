@@ -330,7 +330,7 @@ export function isLocationSeoSlug(slug: string): boolean {
 
 export type LocationSeoContent = {
   slug: LocationSeoSlug;
-  area: string;
+  area: (typeof CAPE_TOWN_AREAS)[number];
   path: string;
   metaTitle: string;
   metaDescription: string;
@@ -373,17 +373,54 @@ export function buildLocationContent(area: (typeof CAPE_TOWN_AREAS)[number]): Lo
     LOCATION_INTROS[area] ??
     `Shalean provides home, deep, Airbnb, office, and carpet cleaning across ${area} and nearby Cape Town suburbs.`;
 
+  const metaDescription = buildLocationMetaDescription(area);
+
   return {
     slug,
     area,
     path,
     metaTitle: `Cleaning Services ${area} Cape Town | Shalean`,
-    metaDescription: `Book trusted cleaning in ${area}, Cape Town. Regular, deep, Airbnb, office & carpet cleaning. Vetted cleaners, online booking, transparent pricing.`,
+    metaDescription,
     h1: `Cleaning Services in ${area}`,
     intro: `Professional home and office cleaning in ${area}, Cape Town — booked online with vetted, insured Shalean cleaners and upfront pricing.`,
     localNote,
   };
 }
+
+/** Unique suburb meta descriptions — shared structure, localized service emphasis. */
+export function buildLocationMetaDescription(area: (typeof CAPE_TOWN_AREAS)[number]): string {
+  const localized = LOCATION_META_LOCALIZED_PHRASE[area];
+  return `Book regular, deep, Airbnb, and move-out cleaning services in ${area}, Cape Town with online scheduling and transparent pricing. ${localized} Vetted Shalean cleaners for homes, rentals, and offices.`;
+}
+
+const LOCATION_META_LOCALIZED_PHRASE: Partial<
+  Record<(typeof CAPE_TOWN_AREAS)[number], string>
+> = {
+  "Sea Point":
+    "Atlantic Seaboard apartments and family homes — same-day slots often available.",
+  Claremont:
+    "Southern Suburbs homes, student rentals, and Cavendish-area handovers.",
+  "Camps Bay":
+    "Luxury homes and holiday rentals with guest-ready Airbnb turnovers.",
+  "Century City":
+    "Canalside townhouses, offices, and mixed-use buildings near Canal Walk.",
+  Bellville:
+    "Northern Suburbs households and small offices with reliable scheduling.",
+  Durbanville:
+    "Wine-route estates and family homes for deep cleans and move-out handovers.",
+  "Table View":
+    "Coastal homes in Table View and Blouberg with sand-aware regular cleaning.",
+  Observatory:
+    "Student rentals and family homes with affordable recurring cleans.",
+  Rondebosch:
+    "UCT-area hosts and homeowners — Airbnb turnovers and study-friendly regular cleans.",
+  Wynberg:
+    "Flexible one-off or recurring cleans across Wynberg and surrounds.",
+  "Green Point":
+    "CBD-edge apartments and Airbnb listings with fast guest turnovers.",
+  Milnerton:
+    "Table Bay homes for carpet care, regular cleaning, and office visits.",
+};
 
 export const LOCATION_SEO_CONTENT: Record<string, LocationSeoContent> =
   Object.fromEntries(

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { buildLocationLegacyRedirects } from "./src/features/marketing/locationRedirects";
 
 const nextConfig: NextConfig = {
   async redirects() {
@@ -13,6 +14,7 @@ const nextConfig: NextConfig = {
         destination: "/locations",
         permanent: true,
       },
+      ...buildLocationLegacyRedirects(),
       {
         source: "/service",
         destination: "/services",

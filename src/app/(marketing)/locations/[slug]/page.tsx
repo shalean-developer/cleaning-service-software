@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLdScript } from "@/components/marketing/JsonLdScript";
+import { LocationNearbyAreasSection } from "@/components/marketing/LocationNearbyAreasSection";
 import { MarketingBookCta } from "@/components/marketing/MarketingBookCta";
 import { MarketingInternalLinks } from "@/components/marketing/MarketingInternalLinks";
 import { MarketingSeoPageLayout } from "@/components/marketing/MarketingSeoPageLayout";
@@ -13,7 +14,8 @@ import { LOCATION_SEO_CONTENT, isLocationSeoSlug } from "@/features/marketing/se
 import {
   buildBreadcrumbSchema,
   buildJsonLdGraph,
-  buildLocationBusinessSchema,
+  buildLocationSuburbWebPageSchema,
+  buildOrganizationSchema,
 } from "@/features/marketing/seo";
 
 type PageProps = {
@@ -41,7 +43,8 @@ export default async function LocationSeoPage({ params }: PageProps) {
 
   const content = LOCATION_SEO_CONTENT[slug];
   const schema = buildJsonLdGraph([
-    buildLocationBusinessSchema(content),
+    buildOrganizationSchema(),
+    buildLocationSuburbWebPageSchema(content),
     buildBreadcrumbSchema([
       { name: "Home", path: "/" },
       { name: "Locations", path: LOCATIONS_HUB_PATH },
@@ -89,6 +92,8 @@ export default async function LocationSeoPage({ params }: PageProps) {
               ))}
             </ul>
           </section>
+
+          <LocationNearbyAreasSection slug={content.slug} />
         </div>
 
         <MarketingInternalLinks

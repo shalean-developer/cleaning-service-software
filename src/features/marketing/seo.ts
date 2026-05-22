@@ -133,11 +133,85 @@ export function buildServiceSchema(content: ServiceSeoContent) {
   };
 }
 
+/** @deprecated Suburb pages use buildLocationSuburbWebPageSchema — avoids duplicate LocalBusiness @id. */
 export function buildLocationBusinessSchema(content: LocationSeoContent) {
   return buildLocalBusinessSchema({
     description: `${content.intro} ${content.localNote}`,
     url: getMarketingCanonicalUrl(content.path),
   });
+}
+
+/** Suburb location page: unique WebPage entity linked to global Organization (no branch offices). */
+export function buildLocationSuburbWebPageSchema(content: LocationSeoContent) {
+  const siteUrl = getMarketingSiteUrl();
+  const pageUrl = getMarketingCanonicalUrl(content.path);
+  const description = `${content.intro} ${content.localNote}`.trim();
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${pageUrl}#webpage`,
+    url: pageUrl,
+    name: content.h1,
+    description,
+    inLanguage: "en-ZA",
+    isPartOf: {
+      "@type": "WebSite",
+      "@id": `${siteUrl}/#website`,
+    },
+    about: {
+      "@type": "Organization",
+      "@id": `${siteUrl}/#organization`,
+      name: ORGANIZATION_NAME,
+    },
+    mainEntity: {
+      "@type": "Organization",
+      "@id": `${siteUrl}/#organization`,
+    },
+    areaServed: {
+      "@type": "Place",
+      name: `${content.area}, Cape Town`,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: content.area,
+        addressRegion: "Western Cape",
+        addressCountry: "ZA",
+      },
+    },
+  };
+}
+
+/** Locations hub: collection page for the Cape Town service-area directory. */
+export function buildLocationsHubWebPageSchema(options: {
+  name: string;
+  description: string;
+  path: string;
+}) {
+  const siteUrl = getMarketingSiteUrl();
+  const pageUrl = getMarketingCanonicalUrl(options.path);
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${pageUrl}#webpage`,
+    url: pageUrl,
+    name: options.name,
+    description: options.description,
+    inLanguage: "en-ZA",
+    isPartOf: {
+      "@type": "WebSite",
+      "@id": `${siteUrl}/#website`,
+    },
+    about: {
+      "@type": "Organization",
+      "@id": `${siteUrl}/#organization`,
+      name: ORGANIZATION_NAME,
+    },
+    areaServed: {
+      "@type": "City",
+      name: "Cape Town",
+    },
+  };
 }
 
 export function buildOrganizationSchema(options?: { description?: string }) {

@@ -1,4 +1,5 @@
 import { CAPE_TOWN_AREAS } from "./constants";
+import { LOCATION_SEO_SLUG_LIST } from "./locationSlugList";
 
 /** Lightweight route paths for marketing pages (safe for client imports). */
 export const PRICING_PAGE_PATH = "/cleaning-prices-cape-town" as const;
@@ -22,3 +23,12 @@ export function locationSlugFromArea(area: string): LocationSeoSlug {
 export const LOCATION_SEO_SLUGS = CAPE_TOWN_AREAS.map((area) =>
   locationSlugFromArea(area),
 );
+
+if (
+  LOCATION_SEO_SLUGS.length !== LOCATION_SEO_SLUG_LIST.length ||
+  !LOCATION_SEO_SLUGS.every((slug, i) => slug === LOCATION_SEO_SLUG_LIST[i])
+) {
+  throw new Error(
+    "LOCATION_SEO_SLUG_LIST is out of sync with CAPE_TOWN_AREAS — update locationSlugList.ts",
+  );
+}

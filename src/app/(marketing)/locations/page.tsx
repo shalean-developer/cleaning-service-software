@@ -6,12 +6,15 @@ import { MarketingInternalLinks } from "@/components/marketing/MarketingInternal
 import { MarketingSeoPageLayout } from "@/components/marketing/MarketingSeoPageLayout";
 import { MarketingSeoShell } from "@/components/marketing/MarketingSeoShell";
 import { CAPE_TOWN_AREAS, areaLocationPath } from "@/features/marketing/constants";
+import { cleaningServicesInAreaLabel } from "@/features/marketing/locationNearbyAreas";
 import { buildMarketingMetadata } from "@/features/marketing/metadata";
 import { LOCATIONS_HUB_PATH } from "@/features/marketing/seo-pages";
 import {
   buildBreadcrumbSchema,
+  buildItemListSchema,
   buildJsonLdGraph,
-  buildLocalBusinessSchema,
+  buildLocationsHubWebPageSchema,
+  buildOrganizationSchema,
 } from "@/features/marketing/seo";
 
 export const metadata: Metadata = buildMarketingMetadata({
@@ -21,12 +24,23 @@ export const metadata: Metadata = buildMarketingMetadata({
   path: LOCATIONS_HUB_PATH,
 });
 
+const HUB_DESCRIPTION =
+  "Professional home and office cleaning across Cape Town suburbs. Book vetted Shalean cleaners online.";
+
 export default function LocationsHubPage() {
+  const locationListItems = CAPE_TOWN_AREAS.map((area) => ({
+    name: cleaningServicesInAreaLabel(area),
+    path: areaLocationPath(area),
+  }));
+
   const schema = buildJsonLdGraph([
-    buildLocalBusinessSchema({
-      description:
-        "Professional home and office cleaning across Cape Town suburbs. Book vetted Shalean cleaners online.",
+    buildOrganizationSchema({ description: HUB_DESCRIPTION }),
+    buildLocationsHubWebPageSchema({
+      name: "Cleaning Services Across Cape Town",
+      description: HUB_DESCRIPTION,
+      path: LOCATIONS_HUB_PATH,
     }),
+    buildItemListSchema(locationListItems),
     buildBreadcrumbSchema([
       { name: "Home", path: "/" },
       { name: "Locations", path: LOCATIONS_HUB_PATH },
@@ -57,9 +71,10 @@ export default function LocationsHubPage() {
               <li key={area}>
                 <Link
                   href={areaLocationPath(area)}
-                  className="marketing-focus-ring inline-flex min-h-9 items-center justify-center rounded-full border border-shalean-soft-blue/80 bg-shalean-soft-blue/50 px-3.5 py-1.5 text-sm font-medium text-shalean-primary transition hover:border-shalean-primary/35 hover:bg-shalean-soft-blue"
+                  className="marketing-focus-ring inline-flex min-h-9 max-w-full items-center justify-center rounded-full border border-shalean-soft-blue/80 bg-shalean-soft-blue/50 px-3.5 py-1.5 text-sm font-medium text-shalean-primary transition hover:border-shalean-primary/35 hover:bg-shalean-soft-blue"
+                  aria-label={cleaningServicesInAreaLabel(area)}
                 >
-                  {area}
+                  {cleaningServicesInAreaLabel(area)}
                 </Link>
               </li>
             ))}
