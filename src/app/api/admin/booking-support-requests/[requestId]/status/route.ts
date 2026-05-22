@@ -21,7 +21,7 @@ export async function POST(request: Request, context: RouteContext) {
 
   const { requestId } = await context.params;
 
-  let body: { status?: string };
+  let body: { status?: string; customerResponse?: string | null; adminNotes?: string | null };
   try {
     body = (await request.json()) as typeof body;
   } catch {
@@ -43,7 +43,10 @@ export async function POST(request: Request, context: RouteContext) {
     );
   }
 
-  const result = await adminUpdateBookingSupportRequestStatus(user, requestId.trim(), status);
+  const result = await adminUpdateBookingSupportRequestStatus(user, requestId.trim(), status, {
+    customerResponse: body.customerResponse,
+    adminNotes: body.adminNotes,
+  });
 
   if (!result.ok) {
     return NextResponse.json(

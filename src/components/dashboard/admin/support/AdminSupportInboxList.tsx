@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { AdminSupportInboxItem } from "@/features/support/server/adminSupportInboxReadModel";
 import { SUPPORT_INBOX_TRIAGE_NOTICE } from "@/features/support/server/supportInboxTriage";
+import { AdminSupportRequestResponseFields } from "@/components/dashboard/admin/support/AdminSupportRequestResponseFields";
 
 const STATUS_CLASS: Record<string, string> = {
   open: "bg-blue-50 text-blue-800",
@@ -50,6 +51,9 @@ function AdminSupportInboxCard({ item }: { item: AdminSupportInboxItem }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customerResponse, setCustomerResponse] = useState("");
+  const [adminNotes, setAdminNotes] = useState("");
+  const [showCloseFields, setShowCloseFields] = useState(false);
 
   async function updateBookingStatus(status: "acknowledged" | "resolved" | "rejected") {
     setLoading(true);
@@ -58,7 +62,12 @@ function AdminSupportInboxCard({ item }: { item: AdminSupportInboxItem }) {
       const res = await fetch(`/api/admin/booking-support-requests/${item.id}/status`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({
+          status,
+          customerResponse:
+            status === "resolved" || status === "rejected" ? customerResponse : undefined,
+          adminNotes: adminNotes || undefined,
+        }),
       });
       const body = (await res.json()) as { ok?: boolean; message?: string };
       if (!body.ok) {
@@ -80,7 +89,14 @@ function AdminSupportInboxCard({ item }: { item: AdminSupportInboxItem }) {
       const res = await fetch(`/api/admin/recurring/requests/${item.id}/resolve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(options),
+        body: JSON.stringify({
+          ...options,
+          customerResponse:
+            options.reject || (!options.acknowledgeOnly && customerResponse)
+              ? customerResponse
+              : undefined,
+          adminNotes: adminNotes || undefined,
+        }),
       });
       const body = (await res.json()) as { ok?: boolean; message?: string };
       if (!body.ok) {
@@ -139,6 +155,16 @@ function AdminSupportInboxCard({ item }: { item: AdminSupportInboxItem }) {
             >
               {item.priority}
             </span>
+            {item.staleOpen24h ? (
+              <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold text-orange-900">
+                Stale open
+              </span>
+            ) : null}
+            {item.staleAcknowledged48h ? (
+              <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold text-orange-900">
+                Stale ack
+              </span>
+            ) : null}
           </div>
           <p className="font-medium text-zinc-900">{item.customerName}</p>
           <p className="text-sm text-zinc-500">
@@ -226,6 +252,16 @@ function AdminSupportInboxCard({ item }: { item: AdminSupportInboxItem }) {
             Resolve
           </button>
         ) : null}
+        {item.canResolve || item.canReject ? (
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => setShowCloseFields((v) => !v)}
+            className="inline-flex min-h-9 items-center rounded-lg border border-zinc-200 px-3 text-sm text-zinc-700"
+          >
+            {showCloseFields ? "Hide response" : "Add response"}
+          </button>
+        ) : null}
         {item.canReject ? (
           <button
             type="button"
@@ -241,6 +277,13 @@ function AdminSupportInboxCard({ item }: { item: AdminSupportInboxItem }) {
           </button>
         ) : null}
       </div>
+      <AdminSupportRequestResponseFields
+        showResponse={showCloseFields && (item.canResolve || item.canReject)}
+        customerResponse={customerResponse}
+        adminNotes={adminNotes}
+        onCustomerResponseChange={setCustomerResponse}
+        onAdminNotesChange={setAdminNotes}
+      />
     </li>
   );
 }

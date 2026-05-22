@@ -12,6 +12,7 @@ import {
   type BookingSupportActionContext,
 } from "@/features/bookings/server/bookingSupportRequestTypes";
 import type { BookingSupportRequestSummary } from "@/features/bookings/server/bookingSupportRequestsService";
+import { CustomerSupportRequestTimeline } from "@/components/dashboard/customer/CustomerSupportRequestTimeline";
 
 type Props = {
   bookingId: string;
@@ -218,37 +219,22 @@ export function CustomerBookingSupportPanel({
         </div>
       ) : null}
 
-      {requests.length > 0 ? (
-        <div className="mt-5 border-t border-zinc-100 pt-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-            Your requests
-          </h3>
-          <ul className="mt-2 space-y-2">
-            {requests.map((r) => (
-              <li
-                key={r.id}
-                className="rounded-lg border border-zinc-100 bg-zinc-50/60 px-3 py-2 text-sm"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-medium text-zinc-900">{r.requestTypeLabel}</span>
-                  <span className="text-xs font-medium text-zinc-500">{r.statusLabel}</span>
-                </div>
-                {r.preferredNewTime ? (
-                  <p className="mt-1 text-xs text-zinc-600">
-                    Preferred: {new Date(r.preferredNewTime).toLocaleString("en-ZA")}
-                  </p>
-                ) : null}
-                {r.message ? (
-                  <p className="mt-1 text-xs text-zinc-600">&ldquo;{r.message}&rdquo;</p>
-                ) : null}
-                <p className="mt-1 text-[11px] text-zinc-400">
-                  {new Date(r.createdAt).toLocaleString("en-ZA")}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      <CustomerSupportRequestTimeline
+        requests={requests.map((r) => ({
+          id: r.id,
+          requestType: r.requestType,
+          requestTypeLabel: r.requestTypeLabel,
+          status: r.status,
+          statusLabel: r.statusLabel,
+          message: r.message,
+          preferredNewTime: r.preferredNewTime,
+          customerResponse: r.customerResponse,
+          createdAt: r.createdAt,
+          statusChangedAt: r.statusChangedAt,
+          resolvedAt: r.resolvedAt,
+        }))}
+        contactHref="/contact"
+      />
     </section>
   );
 }

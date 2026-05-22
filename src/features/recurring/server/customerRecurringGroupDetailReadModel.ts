@@ -115,7 +115,9 @@ function toRequestBadge(
     status: req.status,
     statusLabel: req.statusLabel,
     createdAt: req.createdAt,
+    statusChangedAt: req.statusChangedAt,
     note: req.note,
+    customerResponse: req.customerResponse,
     targetWeekday: req.targetWeekday,
     targetWeekdayLabel: req.targetWeekdayLabel,
     requestedDateTimeIso: req.requestedDateTimeIso,
@@ -374,6 +376,7 @@ export async function getCustomerRecurringScheduleGroupDetail(
           .filter((r) => r.status === "acknowledged")
           .map(toRequestItem),
         resolved: allRequests.filter((r) => r.status === "resolved").map(toRequestItem),
+        rejected: allRequests.filter((r) => r.status === "rejected").map(toRequestItem),
       },
       actions: resolveCustomerGroupRequestActionsAllowed(group.status),
     };

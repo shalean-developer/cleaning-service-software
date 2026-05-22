@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { BookingSupportRequestSummary } from "@/features/bookings/server/bookingSupportRequestsService";
+import { AdminSupportRequestResponseFields } from "@/components/dashboard/admin/support/AdminSupportRequestResponseFields";
 
 type Props = {
   requests: BookingSupportRequestSummary[];
@@ -13,6 +14,9 @@ export function AdminBookingSupportRequestsPanel({ requests }: Props) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [responseById, setResponseById] = useState<Record<string, string>>({});
+  const [notesById, setNotesById] = useState<Record<string, string>>({});
+  const [showFieldsId, setShowFieldsId] = useState<string | null>(null);
 
   if (requests.length === 0) {
     return (
@@ -23,7 +27,10 @@ export function AdminBookingSupportRequestsPanel({ requests }: Props) {
     );
   }
 
-  async function updateStatus(requestId: string, status: "acknowledged" | "resolved" | "rejected") {
+  async function updateStatus(
+    requestId: string,
+    status: "acknowledged" | "resolved" | "rejected",
+  ) {
     setLoadingId(requestId);
     setError(null);
     setMessage(null);
@@ -31,7 +38,14 @@ export function AdminBookingSupportRequestsPanel({ requests }: Props) {
       const res = await fetch(`/api/admin/booking-support-requests/${requestId}/status`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({
+          status,
+          customerResponse:
+            status === "resolved" || status === "rejected"
+              ? responseById[requestId]
+              : undefined,
+          adminNotes: notesById[requestId],
+        }),
       });
       const body = (await res.json()) as { ok?: boolean; message?: string };
       if (!body.ok) {
@@ -88,6 +102,12 @@ export function AdminBookingSupportRequestsPanel({ requests }: Props) {
               {r.message ? (
                 <p className="mt-2 text-sm text-amber-800">&ldquo;{r.message}&rdquo;</p>
               ) : null}
+              {r.customerResponse ? (
+                <p className="mt-2 text-sm text-amber-900">
+                  <span className="font-medium">Customer-visible: </span>
+                  {r.customerResponse}
+                </p>
+              ) : null}
               {r.status === "open" || r.status === "acknowledged" ? (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {r.status === "open" ? (
@@ -100,6 +120,16 @@ export function AdminBookingSupportRequestsPanel({ requests }: Props) {
                       Acknowledge
                     </button>
                   ) : null}
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() =>
+                      setShowFieldsId((id) => (id === r.id ? null : r.id))
+                    }
+                    className="inline-flex min-h-9 items-center rounded-lg border border-amber-300 bg-white px-3 text-sm font-medium text-amber-950"
+                  >
+                    {showFieldsId === r.id ? "Hide response" : "Add response"}
+                  </button>
                   <button
                     type="button"
                     disabled={loading}
@@ -118,6 +148,15 @@ export function AdminBookingSupportRequestsPanel({ requests }: Props) {
                   </button>
                 </div>
               ) : null}
+              <AdminSupportRequestResponseFields
+                showResponse={showFieldsId === r.id}
+                customerResponse={responseById[r.id] ?? ""}
+                adminNotes={notesById[r.id] ?? ""}
+                onCustomerResponseChange={(v) =>
+                  setResponseById((prev) => ({ ...prev, [r.id]: v }))
+                }
+                onAdminNotesChange={(v) => setNotesById((prev) => ({ ...prev, [r.id]: v }))}
+              />
             </li>
           );
         })}

@@ -10,6 +10,14 @@ import type {
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { RECURRING_WEEKDAY_FULL_LABELS } from "../recurringScheduleDays";
+import { resolveCustomerEmailOrNull } from "@/features/notifications/server/resolveCustomerEmailOrNull";
+import {
+  enqueueSupportNotification,
+  mapStatusToNotificationEvent,
+  voidEnqueueSupportNotification,
+} from "@/features/support/server/enqueueSupportNotification";
+import { recordRecurringSupportRequestAudit } from "@/features/support/server/recordSupportRequestAudit";
+import { computeSupportRequestStaleFlags } from "@/features/support/server/supportRequestStale";
 import { recordRecurringSeriesAudit } from "./recordRecurringSeriesAudit";
 import type {
   RecurringSeriesRequestScope as ScopeLabel,
@@ -34,11 +42,17 @@ export type RecurringSeriesRequestSummary = {
   status: RecurringSeriesRequestStatus;
   statusLabel: string;
   note: string | null;
+  customerResponse: string | null;
+  respondedAt: string | null;
   createdAt: string;
+  updatedAt: string;
+  statusChangedAt: string;
   resolvedAt: string | null;
   targetWeekday: number | null;
   targetWeekdayLabel: string | null;
   requestedDateTimeIso: string | null;
+  staleOpen24h: boolean;
+  staleAcknowledged48h: boolean;
 };
 
 const REQUEST_TYPE_LABELS: Record<RecurringSeriesRequestType, string> = {
@@ -80,6 +94,16 @@ function mapRow(row: RecurringSeriesRequestRow): RecurringSeriesRequestSummary {
     row.metadata != null && typeof row.metadata === "object" && !Array.isArray(row.metadata)
       ? (row.metadata as Record<string, unknown>)
       : {};
+  const stale = computeSupportRequestStaleFlags({
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at ?? row.created_at,
+  });
+  const statusChangedAt =
+    row.status === "open"
+      ? row.created_at
+      : row.responded_at ?? row.resolved_at ?? row.updated_at ?? row.created_at;
+
   return {
     id: row.id,
     seriesId: row.series_id,
@@ -92,11 +116,17 @@ function mapRow(row: RecurringSeriesRequestRow): RecurringSeriesRequestSummary {
     status: row.status,
     statusLabel: STATUS_LABELS[row.status],
     note: row.note,
+    customerResponse: row.customer_response,
+    respondedAt: row.responded_at,
     createdAt: row.created_at,
+    updatedAt: row.updated_at ?? row.created_at,
+    statusChangedAt,
     resolvedAt: row.resolved_at,
     targetWeekday: row.target_weekday,
     targetWeekdayLabel: weekdayLabel(row.target_weekday),
     requestedDateTimeIso: readRequestedDateTime(meta),
+    staleOpen24h: stale.staleOpen24h,
+    staleAcknowledged48h: stale.staleAcknowledged48h,
   };
 }
 
@@ -180,6 +210,24 @@ export async function insertScopedRecurringRequest(
       ...metadata,
     },
   });
+
+  const { data: insertedRow } = await client
+    .from("recurring_series_requests")
+    .select("*")
+    .eq("id", data.id)
+    .single();
+
+  if (insertedRow) {
+    voidEnqueueSupportNotification(
+      enqueueSupportNotification(client, {
+        event: "support_request_created",
+        source: "recurring_support",
+        request: insertedRow as RecurringSeriesRequestRow,
+        statusChangedAt: insertedRow.created_at,
+        recipientEmail: await resolveCustomerEmailOrNull(input.customerId),
+      }),
+    );
+  }
 
   return { ok: true, requestId: data.id as string };
 }
@@ -306,7 +354,12 @@ export async function loadLatestRequestForSeries(
 export async function adminResolveRecurringSeriesRequest(
   user: CurrentUser,
   requestId: string,
-  options: { acknowledgeOnly?: boolean; reject?: boolean } = {},
+  options: {
+    acknowledgeOnly?: boolean;
+    reject?: boolean;
+    customerResponse?: string | null;
+    adminNotes?: string | null;
+  } = {},
 ): Promise<
   | { ok: true; message: string }
   | { ok: false; code: string; message: string; httpStatus: number }
@@ -381,10 +434,19 @@ export async function adminResolveRecurringSeriesRequest(
     };
   }
 
+  const nowIso = new Date().toISOString();
   const patch: Record<string, unknown> = { status: nextStatus };
   if (nextStatus === "resolved" || nextStatus === "rejected") {
-    patch.resolved_at = new Date().toISOString();
+    patch.resolved_at = nowIso;
     patch.resolved_by = user.profileId;
+  }
+  if (options.adminNotes !== undefined) {
+    patch.admin_notes = options.adminNotes?.trim() || null;
+  }
+  const trimmedResponse = options.customerResponse?.trim();
+  if (trimmedResponse && (nextStatus === "resolved" || nextStatus === "rejected")) {
+    patch.customer_response = trimmedResponse;
+    patch.responded_at = nowIso;
   }
 
   const { error: updateError } = await client
@@ -419,20 +481,47 @@ export async function adminResolveRecurringSeriesRequest(
   }
 
   if (anchorBookingId) {
-    await recordRecurringSeriesAudit(client, {
-      anchorBookingId,
-      action: "RECURRING_CUSTOMER_REQUEST",
-      seriesId: request.series_id,
-      actorType: "admin",
-      actorProfileId: user.profileId,
-      metadata: {
+    try {
+      await recordRecurringSupportRequestAudit(client, {
+        anchorBookingId,
+        seriesId: request.series_id,
         requestId,
-        requestResolution: nextStatus,
+        oldStatus: request.status,
+        newStatus: nextStatus,
+        actorProfileId: user.profileId,
         requestType: request.request_type,
-        scope: request.scope,
-        groupId: request.group_id ?? undefined,
-      },
-    });
+        groupId: request.group_id,
+      });
+    } catch (auditErr) {
+      console.warn(
+        JSON.stringify({
+          event: "recurring_support_audit_failed",
+          requestId,
+          message: auditErr instanceof Error ? auditErr.message : String(auditErr),
+        }),
+      );
+    }
+  }
+
+  const notifyEvent = mapStatusToNotificationEvent(nextStatus);
+  if (notifyEvent) {
+    const { data: updatedRow } = await client
+      .from("recurring_series_requests")
+      .select("*")
+      .eq("id", requestId)
+      .single();
+
+    if (updatedRow) {
+      voidEnqueueSupportNotification(
+        enqueueSupportNotification(client, {
+          event: notifyEvent,
+          source: "recurring_support",
+          request: updatedRow as RecurringSeriesRequestRow,
+          statusChangedAt: nowIso,
+          recipientEmail: await resolveCustomerEmailOrNull(request.customer_id),
+        }),
+      );
+    }
   }
 
   const messages: Record<RecurringSeriesRequestStatus, string> = {

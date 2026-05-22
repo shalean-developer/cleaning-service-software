@@ -56,6 +56,63 @@ async function tableExists(table) {
   throw new Error(`${table}: ${error.message}`);
 }
 
+function isMissingColumnError(error) {
+  const msg = error?.message ?? "";
+  return msg.includes("does not exist") && msg.includes("column");
+}
+
+async function loadBookingSupportRows(issues) {
+  const fullSelect =
+    "id, booking_id, customer_id, request_type, status, created_at, updated_at, resolved_at";
+  const legacySelect =
+    "id, booking_id, customer_id, request_type, status, created_at, resolved_at";
+
+  let { data, error } = await client.from("booking_support_requests").select(fullSelect);
+  if (error && isMissingColumnError(error)) {
+    issues.push({
+      level: "WARN",
+      code: "PENDING_MIGRATION",
+      detail:
+        "booking_support_requests missing Phase 3 columns — run supabase/migrations/20260626120000_support_request_customer_response.sql",
+    });
+    ({ data, error } = await client.from("booking_support_requests").select(legacySelect));
+  }
+  if (error) {
+    issues.push({ level: "FAIL", code: "QUERY_ERROR", detail: error.message });
+    return [];
+  }
+  return (data ?? []).map((row) => ({
+    ...row,
+    updated_at: row.updated_at ?? row.created_at,
+  }));
+}
+
+async function loadRecurringSupportRows(issues) {
+  const fullSelect =
+    "id, series_id, group_id, customer_id, request_type, status, created_at, updated_at, resolved_at, metadata";
+  const legacySelect =
+    "id, series_id, group_id, customer_id, request_type, status, created_at, resolved_at, metadata";
+
+  let { data, error } = await client.from("recurring_series_requests").select(fullSelect);
+  if (error && isMissingColumnError(error)) {
+    issues.push({
+      level: "WARN",
+      code: "PENDING_MIGRATION",
+      detail:
+        "recurring_series_requests missing updated_at (Phase 3) — run migrations 20260625120000 and 20260626120000",
+    });
+    ({ data, error } = await client.from("recurring_series_requests").select(legacySelect));
+  }
+  if (error) {
+    issues.push({ level: "FAIL", code: "QUERY_ERROR", detail: error.message });
+    return [];
+  }
+  return (data ?? []).map((row) => ({
+    ...row,
+    updated_at: row.updated_at ?? row.created_at,
+  }));
+}
+
 async function main() {
   console.log("Support inbox audit\n");
 
@@ -65,7 +122,10 @@ async function main() {
     bookingUrgent: 0,
     recurringOpen: 0,
     recurringUrgent: 0,
+    staleOpen24h: 0,
+    staleAcknowledged48h: 0,
   };
+  const MS_48H = 48 * 60 * 60 * 1000;
 
   const bookingTableOk = await tableExists("booking_support_requests");
   const recurringTableOk = await tableExists("recurring_series_requests");
@@ -98,16 +158,8 @@ async function main() {
   let groupIds = new Set();
 
   if (bookingTableOk) {
-    const { data, error } = await client
-      .from("booking_support_requests")
-      .select(
-        "id, booking_id, customer_id, request_type, status, created_at, resolved_at",
-      );
-    if (error) {
-      issues.push({ level: "FAIL", code: "QUERY_ERROR", detail: error.message });
-    } else {
-      bookingRows = data ?? [];
-      for (const row of bookingRows) {
+    bookingRows = await loadBookingSupportRows(issues);
+    for (const row of bookingRows) {
         bookingIds.add(row.booking_id);
         customerIds.add(row.customer_id);
         if (!BOOKING_STATUSES.has(row.status)) {
@@ -119,29 +171,33 @@ async function main() {
         }
         if (OPEN_STATUSES.has(row.status)) {
           counts.bookingOpen += 1;
-          if (new Date(row.created_at).getTime() < Date.now() - MS_24H) {
+          if (row.status === "open" && new Date(row.created_at).getTime() < Date.now() - MS_24H) {
+            counts.staleOpen24h += 1;
             issues.push({
               level: "WARN",
               code: "STALE_OPEN",
               detail: `booking support ${row.id} open >24h`,
             });
           }
+          if (
+            row.status === "acknowledged" &&
+            row.updated_at &&
+            new Date(row.updated_at).getTime() < Date.now() - MS_48H
+          ) {
+            counts.staleAcknowledged48h += 1;
+            issues.push({
+              level: "WARN",
+              code: "STALE_ACKNOWLEDGED",
+              detail: `booking support ${row.id} acknowledged >48h`,
+            });
+          }
         }
-      }
     }
   }
 
   if (recurringTableOk) {
-    const { data, error } = await client
-      .from("recurring_series_requests")
-      .select(
-        "id, series_id, group_id, customer_id, request_type, status, created_at, resolved_at, metadata",
-      );
-    if (error) {
-      issues.push({ level: "FAIL", code: "QUERY_ERROR", detail: error.message });
-    } else {
-      recurringRows = data ?? [];
-      for (const row of recurringRows) {
+    recurringRows = await loadRecurringSupportRows(issues);
+    for (const row of recurringRows) {
         if (row.series_id) seriesIds.add(row.series_id);
         if (row.group_id) groupIds.add(row.group_id);
         customerIds.add(row.customer_id);
@@ -154,11 +210,24 @@ async function main() {
         }
         if (OPEN_STATUSES.has(row.status)) {
           counts.recurringOpen += 1;
-          if (new Date(row.created_at).getTime() < Date.now() - MS_24H) {
+          if (row.status === "open" && new Date(row.created_at).getTime() < Date.now() - MS_24H) {
+            counts.staleOpen24h += 1;
             issues.push({
               level: "WARN",
               code: "STALE_OPEN",
               detail: `recurring support ${row.id} open >24h`,
+            });
+          }
+          const updatedAt = row.updated_at ?? row.created_at;
+          if (
+            row.status === "acknowledged" &&
+            new Date(updatedAt).getTime() < Date.now() - MS_48H
+          ) {
+            counts.staleAcknowledged48h += 1;
+            issues.push({
+              level: "WARN",
+              code: "STALE_ACKNOWLEDGED",
+              detail: `recurring support ${row.id} acknowledged >48h`,
             });
           }
         }
@@ -169,7 +238,6 @@ async function main() {
             detail: `recurring_series_requests ${row.id} missing series_id and group_id`,
           });
         }
-      }
     }
   }
 
@@ -287,6 +355,8 @@ function printReport(overall, counts, issues, extras = {}) {
   console.log(`  booking urgent (open): ${counts.bookingUrgent}`);
   console.log(`  recurring open: ${counts.recurringOpen}`);
   console.log(`  recurring urgent (open): ${counts.recurringUrgent}`);
+  console.log(`  stale open >24h: ${counts.staleOpen24h}`);
+  console.log(`  stale acknowledged >48h: ${counts.staleAcknowledged48h}`);
   if (extras.mergedTotal != null) {
     console.log(`  booking_support_requests rows: ${extras.bookingTotal}`);
     console.log(`  recurring_series_requests rows: ${extras.recurringTotal}`);
@@ -319,6 +389,11 @@ function printReport(overall, counts, issues, extras = {}) {
   console.log("Recommendations:");
   if (grouped.FAIL.length) {
     console.log("  - Fix FAIL items before relying on inbox triage");
+  }
+  if (grouped.WARN.some((i) => i.code === "PENDING_MIGRATION")) {
+    console.log(
+      "  - Apply pending migrations: npx supabase db push (or paste SQL from supabase/migrations/ into Supabase SQL editor)",
+    );
   }
   if (grouped.WARN.some((i) => i.code === "STALE_OPEN")) {
     console.log("  - Acknowledge or resolve stale open requests in /admin/support");

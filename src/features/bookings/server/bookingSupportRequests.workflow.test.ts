@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BOOKING_SUPPORT_NOTIFICATIONS_ENABLED } from "./bookingSupportRequestNotifications";
+import { isSupportRequestNotificationsEnabled } from "@/features/support/server/supportNotificationConfig";
 
 /**
  * Booking support requests must never auto-execute booking lifecycle changes.
@@ -52,8 +52,28 @@ describe("booking support request workflow contract", () => {
     expect(sql).toContain("auth_is_admin()");
   });
 
-  it("notifications stay disabled until router is ready", () => {
-    expect(BOOKING_SUPPORT_NOTIFICATIONS_ENABLED).toBe(false);
+  it("notifications stay disabled by default feature flag", () => {
+    expect(isSupportRequestNotificationsEnabled()).toBe(false);
+  });
+
+  it("status route accepts customerResponse without booking mutation", async () => {
+    const fs = await import("node:fs/promises");
+    const route = await fs.readFile(
+      "src/app/api/admin/booking-support-requests/[requestId]/status/route.ts",
+      "utf8",
+    );
+    expect(route).toContain("customerResponse");
+    expect(route).not.toContain('from("bookings")');
+  });
+
+  it("support notification templates avoid misleading booking copy", async () => {
+    const fs = await import("node:fs/promises");
+    const source = await fs.readFile(
+      "src/features/support/server/supportNotificationTemplates.ts",
+      "utf8",
+    );
+    expect(source).toContain("assertNoMisleadingBookingMutationCopy");
+    expect(source).toContain("does not automatically cancel your booking");
   });
 
   it("customer booking detail includes support panel", async () => {

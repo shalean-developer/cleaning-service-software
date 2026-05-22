@@ -47,6 +47,7 @@
     "ops:demote-mock-admins": "node scripts/ops/demote-mock-admins.mjs",
     "ops:recover:assignments": "node scripts/recover-assignment-after-payment.mjs",
     "ops:backfill:notification-metrics": "node scripts/ops/backfill-notification-metrics-hourly.mjs",
+    "db:push": "npx supabase db push",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",

@@ -47,6 +47,23 @@ describe("admin support inbox workflow contract", () => {
     expect(nav).toContain('"/admin/support"');
   });
 
+  it("defines support notification feature flags default off", () => {
+    const config = readFileSync(
+      "src/features/support/server/supportNotificationConfig.ts",
+      "utf8",
+    );
+    expect(config).toContain("ENABLE_SUPPORT_REQUEST_NOTIFICATIONS");
+    expect(config).toContain("ENABLE_SUPPORT_ADMIN_ALERTS");
+  });
+
+  it("enqueue uses dedupe key in payload", () => {
+    const types = readFileSync(
+      "src/features/support/server/supportNotificationTypes.ts",
+      "utf8",
+    );
+    expect(types).toContain("support_request:");
+  });
+
   it("does not create public /help route", () => {
     const routes = readFileSync("src/features/marketing/marketing-routes.ts", "utf8");
     expect(routes).not.toContain("/help");

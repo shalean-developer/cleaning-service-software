@@ -47,7 +47,9 @@ export type RecurringSeriesRequestBadge = {
   status: "open" | "acknowledged" | "resolved" | "rejected";
   statusLabel: string;
   createdAt: string;
+  statusChangedAt: string;
   note: string | null;
+  customerResponse: string | null;
   targetWeekday: number | null;
   targetWeekdayLabel: string | null;
   requestedDateTimeIso: string | null;
@@ -277,6 +279,7 @@ export type CustomerRecurringScheduleGroupDetail = {
     open: CustomerRecurringGroupRequestItem[];
     acknowledged: CustomerRecurringGroupRequestItem[];
     resolved: CustomerRecurringGroupRequestItem[];
+    rejected: CustomerRecurringGroupRequestItem[];
   };
   actions: CustomerRecurringGroupActionsAllowed;
 };

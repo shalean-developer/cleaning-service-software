@@ -362,8 +362,12 @@ export type RecurringSeriesRequestRow = {
   customer_id: string;
   request_type: RecurringSeriesRequestType;
   note: string | null;
+  customer_response: string | null;
+  responded_at: string | null;
+  admin_notes: string | null;
   status: RecurringSeriesRequestStatus;
   created_at: string;
+  updated_at: string;
   resolved_at: string | null;
   resolved_by: string | null;
   metadata: Json;
@@ -396,6 +400,9 @@ export type BookingSupportRequestRow = {
   status: BookingSupportRequestStatus;
   message: string | null;
   preferred_new_time: string | null;
+  customer_response: string | null;
+  responded_at: string | null;
+  admin_notes: string | null;
   metadata: Json;
   created_at: string;
   updated_at: string;

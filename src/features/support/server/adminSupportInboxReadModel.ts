@@ -24,6 +24,7 @@ import {
   suggestedNextActionForBookingRequest,
   suggestedNextActionForRecurringRequest,
 } from "./supportInboxTriage";
+import { computeSupportRequestStaleFlags } from "./supportRequestStale";
 
 export type AdminSupportInboxSource = "booking_support" | "recurring_support";
 export type AdminSupportInboxPriority = "urgent" | "normal" | "low";
@@ -69,6 +70,8 @@ export type AdminSupportInboxItem = {
   canAcknowledge: boolean;
   canResolve: boolean;
   canReject: boolean;
+  staleOpen24h: boolean;
+  staleAcknowledged48h: boolean;
 };
 
 export type AdminSupportInboxSummary = {
@@ -76,6 +79,8 @@ export type AdminSupportInboxSummary = {
   urgent: number;
   acknowledged: number;
   resolvedToday: number;
+  staleOpen24h: number;
+  staleAcknowledged48h: number;
 };
 
 export type AdminSupportInboxResult = {
@@ -304,6 +309,11 @@ function mapBookingRequest(
     scheduledStart: booking?.scheduled_start ?? null,
     requestedDateTimeIso: null,
   });
+  const stale = computeSupportRequestStaleFlags({
+    status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  });
 
   const addressParts = [display?.suburb, display?.city].filter(Boolean);
   const addressSummary =
@@ -345,6 +355,8 @@ function mapBookingRequest(
     canAcknowledge: status === "open",
     canResolve: status === "open" || status === "acknowledged",
     canReject: status === "open" || status === "acknowledged",
+    staleOpen24h: stale.staleOpen24h,
+    staleAcknowledged48h: stale.staleAcknowledged48h,
   };
 }
 
@@ -367,6 +379,11 @@ function mapRecurringRequest(
     createdAt: row.created_at,
     scheduledStart: null,
     requestedDateTimeIso,
+  });
+  const stale = computeSupportRequestStaleFlags({
+    status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at ?? row.created_at,
   });
 
   return {
@@ -403,6 +420,8 @@ function mapRecurringRequest(
     canAcknowledge: status === "open",
     canResolve: status === "open" || status === "acknowledged",
     canReject: status === "open" || status === "acknowledged",
+    staleOpen24h: stale.staleOpen24h,
+    staleAcknowledged48h: stale.staleAcknowledged48h,
   };
 }
 
@@ -411,11 +430,15 @@ function buildSummary(items: AdminSupportInboxItem[]): AdminSupportInboxSummary 
   let urgent = 0;
   let acknowledged = 0;
   let resolvedToday = 0;
+  let staleOpen24h = 0;
+  let staleAcknowledged48h = 0;
 
   for (const item of items) {
     if (item.status === "open") open += 1;
     if (item.status === "acknowledged") acknowledged += 1;
     if (isOpenStatus(item.status) && item.priority === "urgent") urgent += 1;
+    if (item.staleOpen24h) staleOpen24h += 1;
+    if (item.staleAcknowledged48h) staleAcknowledged48h += 1;
     if (
       (item.status === "resolved" || item.status === "rejected") &&
       isResolvedToday(item.resolvedAt)
@@ -424,7 +447,7 @@ function buildSummary(items: AdminSupportInboxItem[]): AdminSupportInboxSummary 
     }
   }
 
-  return { open, urgent, acknowledged, resolvedToday };
+  return { open, urgent, acknowledged, resolvedToday, staleOpen24h, staleAcknowledged48h };
 }
 
 function applyFilter(items: AdminSupportInboxItem[], filter: AdminSupportInboxFilter): AdminSupportInboxItem[] {
@@ -498,32 +521,75 @@ export async function listAdminSupportInbox(
 
   const filter = params.filter ?? "all";
 
-  const [bookingRes, recurringRes] = await Promise.all([
-    client
+  let bookingRows: BookingSupportRequestRow[] = [];
+  const bookingFull = await client
+    .from("booking_support_requests")
+    .select(
+      "id, booking_id, customer_id, request_type, status, message, preferred_new_time, created_at, updated_at, resolved_at, customer_response, responded_at",
+    )
+    .order("created_at", { ascending: false })
+    .limit(300);
+
+  if (bookingFull.error) {
+    const legacyBooking = await client
       .from("booking_support_requests")
       .select(
         "id, booking_id, customer_id, request_type, status, message, preferred_new_time, created_at, resolved_at",
       )
       .order("created_at", { ascending: false })
-      .limit(300),
-    client
+      .limit(300);
+    if (legacyBooking.error) {
+      return {
+        ok: false,
+        code: "PERSISTENCE_ERROR",
+        message: legacyBooking.error.message,
+        status: 500,
+      };
+    }
+    bookingRows = (legacyBooking.data ?? []).map((row) => ({
+      ...(row as BookingSupportRequestRow),
+      updated_at: row.created_at,
+      customer_response: null,
+      responded_at: null,
+    }));
+  } else {
+    bookingRows = (bookingFull.data ?? []) as BookingSupportRequestRow[];
+  }
+
+  let recurringRows: RecurringSeriesRequestRow[] = [];
+  const recurringFull = await client
+    .from("recurring_series_requests")
+    .select(
+      "id, series_id, group_id, customer_id, request_type, scope, status, note, created_at, updated_at, resolved_at, target_weekday, metadata, customer_response, responded_at",
+    )
+    .order("created_at", { ascending: false })
+    .limit(300);
+
+  if (recurringFull.error) {
+    const legacyRecurring = await client
       .from("recurring_series_requests")
       .select(
         "id, series_id, group_id, customer_id, request_type, scope, status, note, created_at, resolved_at, target_weekday, metadata",
       )
       .order("created_at", { ascending: false })
-      .limit(300),
-  ]);
-
-  if (bookingRes.error) {
-    return { ok: false, code: "PERSISTENCE_ERROR", message: bookingRes.error.message, status: 500 };
+      .limit(300);
+    if (legacyRecurring.error) {
+      return {
+        ok: false,
+        code: "PERSISTENCE_ERROR",
+        message: legacyRecurring.error.message,
+        status: 500,
+      };
+    }
+    recurringRows = (legacyRecurring.data ?? []).map((row) => ({
+      ...(row as RecurringSeriesRequestRow),
+      updated_at: row.created_at,
+      customer_response: null,
+      responded_at: null,
+    }));
+  } else {
+    recurringRows = (recurringFull.data ?? []) as RecurringSeriesRequestRow[];
   }
-  if (recurringRes.error) {
-    return { ok: false, code: "PERSISTENCE_ERROR", message: recurringRes.error.message, status: 500 };
-  }
-
-  const bookingRows = (bookingRes.data ?? []) as BookingSupportRequestRow[];
-  const recurringRows = (recurringRes.data ?? []) as RecurringSeriesRequestRow[];
 
   const customerIds = [
     ...new Set([

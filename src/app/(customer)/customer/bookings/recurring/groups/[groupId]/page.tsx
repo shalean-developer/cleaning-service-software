@@ -175,6 +175,7 @@ export default async function CustomerRecurringGroupDetailPage({ params }: PageP
             open={g.supportRequests.open}
             acknowledged={g.supportRequests.acknowledged}
             resolved={g.supportRequests.resolved}
+            rejected={g.supportRequests.rejected}
           />
         </div>
       </section>

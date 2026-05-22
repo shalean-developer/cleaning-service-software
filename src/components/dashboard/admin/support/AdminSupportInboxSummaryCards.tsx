@@ -21,11 +21,21 @@ const CARDS: {
     label: "Resolved today",
     tone: "border-emerald-200 bg-emerald-50/80 text-emerald-900",
   },
+  {
+    key: "staleOpen24h",
+    label: "Stale open (24h+)",
+    tone: "border-orange-200 bg-orange-50/80 text-orange-950",
+  },
+  {
+    key: "staleAcknowledged48h",
+    label: "Stale ack (48h+)",
+    tone: "border-orange-200 bg-orange-50/70 text-orange-900",
+  },
 ];
 
 export function AdminSupportInboxSummaryCards({ summary }: Props) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       {CARDS.map((card) => (
         <div
           key={card.key}

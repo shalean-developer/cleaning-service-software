@@ -20,10 +20,14 @@ import {
   labelForBookingSupportRequestType,
   type BookingSupportActionContext,
 } from "./bookingSupportRequestTypes";
+import { resolveCustomerEmailOrNull } from "@/features/notifications/server/resolveCustomerEmailOrNull";
 import {
-  buildBookingSupportNotificationPayload,
-  BOOKING_SUPPORT_NOTIFICATIONS_ENABLED,
-} from "./bookingSupportRequestNotifications";
+  enqueueSupportNotification,
+  mapStatusToNotificationEvent,
+  voidEnqueueSupportNotification,
+} from "@/features/support/server/enqueueSupportNotification";
+import { recordBookingSupportRequestAudit } from "@/features/support/server/recordSupportRequestAudit";
+import { computeSupportRequestStaleFlags } from "@/features/support/server/supportRequestStale";
 
 export type BookingSupportRequestSummary = {
   id: string;
@@ -35,12 +39,27 @@ export type BookingSupportRequestSummary = {
   statusLabel: string;
   message: string | null;
   preferredNewTime: string | null;
+  customerResponse: string | null;
+  respondedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  statusChangedAt: string;
   resolvedAt: string | null;
+  staleOpen24h: boolean;
+  staleAcknowledged48h: boolean;
 };
 
 function mapRow(row: BookingSupportRequestRow): BookingSupportRequestSummary {
+  const stale = computeSupportRequestStaleFlags({
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  });
+  const statusChangedAt =
+    row.status === "open"
+      ? row.created_at
+      : row.responded_at ?? row.resolved_at ?? row.updated_at;
+
   return {
     id: row.id,
     bookingId: row.booking_id,
@@ -51,9 +70,14 @@ function mapRow(row: BookingSupportRequestRow): BookingSupportRequestSummary {
     statusLabel: labelForBookingSupportRequestStatus(row.status),
     message: row.message,
     preferredNewTime: row.preferred_new_time,
+    customerResponse: row.customer_response,
+    respondedAt: row.responded_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    statusChangedAt,
     resolvedAt: row.resolved_at,
+    staleOpen24h: stale.staleOpen24h,
+    staleAcknowledged48h: stale.staleAcknowledged48h,
   };
 }
 
@@ -306,12 +330,22 @@ export async function customerCreateBookingSupportRequest(
     };
   }
 
-  if (BOOKING_SUPPORT_NOTIFICATIONS_ENABLED) {
-    void buildBookingSupportNotificationPayload("booking_support_request_created", {
-      requestId: inserted.id,
-      bookingId,
-      requestType,
-    });
+  const { data: insertedRow } = await client
+    .from("booking_support_requests")
+    .select("*")
+    .eq("id", inserted.id)
+    .single();
+
+  if (insertedRow) {
+    voidEnqueueSupportNotification(
+      enqueueSupportNotification(client, {
+        event: "support_request_created",
+        source: "booking_support",
+        request: insertedRow as BookingSupportRequestRow,
+        statusChangedAt: insertedRow.created_at,
+        recipientEmail: await resolveCustomerEmailOrNull(scope.actingCustomerId),
+      }),
+    );
   }
 
   return {
@@ -325,6 +359,7 @@ export async function adminUpdateBookingSupportRequestStatus(
   user: CurrentUser,
   requestId: string,
   nextStatus: BookingSupportRequestStatus,
+  options: { customerResponse?: string | null; adminNotes?: string | null } = {},
 ): Promise<
   | { ok: true; message: string }
   | { ok: false; code: string; message: string; httpStatus: number }
@@ -375,10 +410,19 @@ export async function adminUpdateBookingSupportRequestStatus(
     return { ok: true, message: `Request already ${labelForBookingSupportRequestStatus(nextStatus).toLowerCase()}.` };
   }
 
+  const nowIso = new Date().toISOString();
   const patch: Record<string, unknown> = { status: nextStatus };
   if (nextStatus === "resolved" || nextStatus === "rejected") {
-    patch.resolved_at = new Date().toISOString();
+    patch.resolved_at = nowIso;
     patch.resolved_by = user.profileId;
+  }
+  if (options.adminNotes !== undefined) {
+    patch.admin_notes = options.adminNotes?.trim() || null;
+  }
+  const trimmedResponse = options.customerResponse?.trim();
+  if (trimmedResponse && (nextStatus === "resolved" || nextStatus === "rejected")) {
+    patch.customer_response = trimmedResponse;
+    patch.responded_at = nowIso;
   }
 
   const { error: updateError } = await client
@@ -395,16 +439,45 @@ export async function adminUpdateBookingSupportRequestStatus(
     };
   }
 
-  if (BOOKING_SUPPORT_NOTIFICATIONS_ENABLED) {
-    const event =
-      nextStatus === "acknowledged"
-        ? "booking_support_request_acknowledged"
-        : "booking_support_request_resolved";
-    void buildBookingSupportNotificationPayload(event, {
-      requestId,
+  try {
+    await recordBookingSupportRequestAudit(client, {
       bookingId: current.booking_id,
+      requestId,
+      source: "booking_support",
+      oldStatus: current.status,
+      newStatus: nextStatus,
+      actorProfileId: user.profileId,
       requestType: current.request_type,
     });
+  } catch (auditErr) {
+    console.warn(
+      JSON.stringify({
+        event: "support_request_audit_failed",
+        requestId,
+        message: auditErr instanceof Error ? auditErr.message : String(auditErr),
+      }),
+    );
+  }
+
+  const notifyEvent = mapStatusToNotificationEvent(nextStatus);
+  if (notifyEvent) {
+    const { data: updatedRow } = await client
+      .from("booking_support_requests")
+      .select("*")
+      .eq("id", requestId)
+      .single();
+
+    if (updatedRow) {
+      voidEnqueueSupportNotification(
+        enqueueSupportNotification(client, {
+          event: notifyEvent,
+          source: "booking_support",
+          request: updatedRow as BookingSupportRequestRow,
+          statusChangedAt: nowIso,
+          recipientEmail: await resolveCustomerEmailOrNull(current.customer_id),
+        }),
+      );
+    }
   }
 
   const label = labelForBookingSupportRequestStatus(nextStatus);
