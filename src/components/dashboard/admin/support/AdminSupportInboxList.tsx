@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { AdminSupportInboxItem } from "@/features/support/server/adminSupportInboxReadModel";
 import { SUPPORT_INBOX_TRIAGE_NOTICE } from "@/features/support/server/supportInboxTriage";
+import { AdminSupportRequestHistoryPanel } from "@/components/dashboard/admin/support/AdminSupportRequestHistoryPanel";
 import { AdminSupportRequestResponseFields } from "@/components/dashboard/admin/support/AdminSupportRequestResponseFields";
 
 const STATUS_CLASS: Record<string, string> = {
@@ -19,6 +20,26 @@ const PRIORITY_CLASS: Record<string, string> = {
   normal: "bg-zinc-100 text-zinc-700",
   low: "bg-slate-100 text-slate-600",
 };
+
+const SLA_CLASS: Record<string, string> = {
+  healthy: "bg-emerald-50 text-emerald-800",
+  warning: "bg-amber-100 text-amber-950",
+  breached: "bg-red-200 text-red-950",
+};
+
+const TRIAGE_LABEL: Record<string, string> = {
+  needs_action_today: "Needs action today",
+  upcoming_booking_at_risk: "Booking at risk",
+  awaiting_customer: "Awaiting customer",
+  awaiting_ops_action: "Awaiting ops",
+};
+
+function formatAge(minutes: number): string {
+  if (minutes < 60) return `${minutes}m`;
+  const h = Math.floor(minutes / 60);
+  if (h < 48) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
+}
 
 const SOURCE_LABEL = {
   booking_support: "One-off booking",
@@ -165,6 +186,21 @@ function AdminSupportInboxCard({ item }: { item: AdminSupportInboxItem }) {
                 Stale ack
               </span>
             ) : null}
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${SLA_CLASS[item.slaStatus] ?? ""}`}
+            >
+              SLA {item.slaStatus}
+            </span>
+            {item.triageLabel ? (
+              <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-900">
+                {TRIAGE_LABEL[item.triageLabel] ?? item.triageLabel}
+              </span>
+            ) : null}
+            {item.escalationReasons.length > 0 ? (
+              <span className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                Escalated
+              </span>
+            ) : null}
           </div>
           <p className="font-medium text-zinc-900">{item.customerName}</p>
           <p className="text-sm text-zinc-500">
@@ -175,13 +211,42 @@ function AdminSupportInboxCard({ item }: { item: AdminSupportInboxItem }) {
             <p className="text-xs text-zinc-500">
               Booking {item.bookingStatus ?? "—"}
               {item.paymentStatus ? ` · Payment ${item.paymentStatus}` : ""}
+              {item.paymentRisk ? " · Payment risk" : ""}
             </p>
           ) : null}
+          {item.cleanerLabel ? (
+            <p className="text-xs text-zinc-500">Cleaner: {item.cleanerLabel}</p>
+          ) : null}
+          {item.suburb ? <p className="text-xs text-zinc-500">Suburb: {item.suburb}</p> : null}
+          {item.urgencyReason ? (
+            <p className="text-xs font-medium text-red-800">{item.urgencyReason}</p>
+          ) : null}
         </div>
-        <time className="shrink-0 text-xs text-zinc-400" dateTime={item.createdAt}>
-          {new Date(item.createdAt).toLocaleString("en-ZA")}
-        </time>
+        <div className="shrink-0 text-right text-xs text-zinc-400">
+          <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleString("en-ZA")}</time>
+          <p className="mt-1 tabular-nums">Age {formatAge(item.ageMinutes)}</p>
+          {item.timeToFirstResponseMinutes != null ? (
+            <p className="tabular-nums">First response {formatAge(item.timeToFirstResponseMinutes)}</p>
+          ) : item.firstResponseDueAt && item.status === "open" ? (
+            <p className="text-amber-800">Due {new Date(item.firstResponseDueAt).toLocaleString("en-ZA", { timeStyle: "short" })}</p>
+          ) : null}
+        </div>
       </div>
+
+      {item.escalationReasons.length > 0 ? (
+        <ul className="mt-2 list-inside list-disc text-xs text-red-800">
+          {item.escalationReasons.map((reason) => (
+            <li key={reason}>{reason}</li>
+          ))}
+        </ul>
+      ) : null}
+
+      {item.customerResponse ? (
+        <p className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+          <span className="font-medium">Customer-facing response: </span>
+          {item.customerResponse}
+        </p>
+      ) : null}
 
       {item.messagePreview ? (
         <p className="mt-3 line-clamp-2 text-sm text-zinc-700">&ldquo;{item.messagePreview}&rdquo;</p>
@@ -283,6 +348,18 @@ function AdminSupportInboxCard({ item }: { item: AdminSupportInboxItem }) {
         adminNotes={adminNotes}
         onCustomerResponseChange={setCustomerResponse}
         onAdminNotesChange={setAdminNotes}
+      />
+
+      <AdminSupportRequestHistoryPanel
+        createdAt={item.createdAt}
+        updatedAt={item.updatedAt}
+        status={item.status}
+        statusChangedAt={item.respondedAt ?? item.updatedAt}
+        respondedAt={item.respondedAt}
+        resolvedAt={item.resolvedAt}
+        resolvedBy={item.resolvedBy}
+        customerResponse={item.customerResponse}
+        adminNotes={item.adminNotes}
       />
     </li>
   );

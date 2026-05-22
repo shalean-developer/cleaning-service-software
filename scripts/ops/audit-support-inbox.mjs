@@ -19,6 +19,34 @@ function isCancelOrReschedule(type) {
   return String(type).includes("cancel") || String(type).includes("reschedule");
 }
 
+const SLA_URGENT_FR_MIN = 60;
+const SLA_STANDARD_FR_MIN = 8 * 60;
+
+function slaCategoryFor(row, bookingScheduledStart) {
+  if (["payment_help", "cleaner_issue", "service_issue"].includes(row.request_type)) {
+    return "urgent";
+  }
+  if (isCancelOrReschedule(row.request_type)) {
+    const now = Date.now();
+    const meta = row.metadata && typeof row.metadata === "object" ? row.metadata : {};
+    const targetIso = bookingScheduledStart ?? meta.requestedDateTimeIso;
+    if (targetIso) {
+      const targetMs = new Date(targetIso).getTime();
+      if (targetMs > now && targetMs - now <= MS_24H) return "urgent";
+    }
+  }
+  return "standard";
+}
+
+function slaStatusForOpen(row, bookingScheduledStart) {
+  const category = slaCategoryFor(row, bookingScheduledStart);
+  const targetMin = category === "urgent" ? SLA_URGENT_FR_MIN : SLA_STANDARD_FR_MIN;
+  const ageMin = (Date.now() - new Date(row.created_at).getTime()) / 60_000;
+  if (ageMin >= targetMin) return "breached";
+  if (ageMin >= targetMin * 0.8) return "warning";
+  return "healthy";
+}
+
 function computePriority(row, bookingScheduledStart) {
   if (row.status === "resolved" || row.status === "rejected") return "low";
   if (row.status === "acknowledged") return "normal";
@@ -124,6 +152,10 @@ async function main() {
     recurringUrgent: 0,
     staleOpen24h: 0,
     staleAcknowledged48h: 0,
+    slaBreached: 0,
+    escalationCandidates: 0,
+    repeatedBookingRequests: 0,
+    volumeByType: {},
   };
   const MS_48H = 48 * 60 * 60 * 1000;
 
@@ -246,13 +278,14 @@ async function main() {
   const seriesIdList = [...seriesIds];
   const groupIdList = [...groupIds];
 
+  const bookingSchedule = new Map();
   const existingBookings = new Set();
   if (bookingIdList.length > 0) {
     const { data } = await client.from("bookings").select("id, scheduled_start").in("id", bookingIdList);
     for (const b of data ?? []) {
       existingBookings.add(b.id);
+      bookingSchedule.set(b.id, b.scheduled_start);
     }
-    const bookingSchedule = new Map((data ?? []).map((b) => [b.id, b.scheduled_start]));
     for (const row of bookingRows) {
       if (!existingBookings.has(row.booking_id)) {
         issues.push({
@@ -326,21 +359,108 @@ async function main() {
     }
   }
 
-  const mergedDbCount = bookingRows.length + recurringRows.length;
-  const readModelCount = mergedDbCount;
-  if (readModelCount !== mergedDbCount) {
-    issues.push({
-      level: "FAIL",
-      code: "READ_MODEL_COUNT",
-      detail: `expected ${mergedDbCount} merged items`,
-    });
+  const bookingRequestCounts = new Map();
+  for (const row of bookingRows) {
+    counts.volumeByType[row.request_type] = (counts.volumeByType[row.request_type] ?? 0) + 1;
+    bookingRequestCounts.set(row.booking_id, (bookingRequestCounts.get(row.booking_id) ?? 0) + 1);
+    if (OPEN_STATUSES.has(row.status) && row.status === "open") {
+      const sla = slaStatusForOpen(row, bookingSchedule.get(row.booking_id));
+      if (sla === "breached") {
+        counts.slaBreached += 1;
+        issues.push({
+          level: "WARN",
+          code: "SLA_BREACHED",
+          detail: `booking support ${row.id} first-response SLA breached`,
+        });
+      }
+      const ageH = (Date.now() - new Date(row.created_at).getTime()) / (60 * 60 * 1000);
+      if (
+        ["payment_help", "cleaner_issue", "service_issue"].includes(row.request_type) &&
+        ageH >= 1
+      ) {
+        counts.escalationCandidates += 1;
+        issues.push({
+          level: "WARN",
+          code: "ESCALATION_CANDIDATE",
+          detail: `urgent booking support ${row.id} open >1h`,
+        });
+      }
+    }
+    if (OPEN_STATUSES.has(row.status) && row.status === "acknowledged") {
+      const ackAgeH =
+        (Date.now() - new Date(row.updated_at ?? row.created_at).getTime()) / (60 * 60 * 1000);
+      if (ackAgeH >= 24) {
+        counts.escalationCandidates += 1;
+        issues.push({
+          level: "WARN",
+          code: "ESCALATION_CANDIDATE",
+          detail: `booking support ${row.id} acknowledged >24h`,
+        });
+      }
+    }
   }
+
+  for (const row of recurringRows) {
+    counts.volumeByType[row.request_type] = (counts.volumeByType[row.request_type] ?? 0) + 1;
+    if (OPEN_STATUSES.has(row.status) && row.status === "open") {
+      const sla = slaStatusForOpen(row, null);
+      if (sla === "breached") {
+        counts.slaBreached += 1;
+        issues.push({
+          level: "WARN",
+          code: "SLA_BREACHED",
+          detail: `recurring support ${row.id} first-response SLA breached`,
+        });
+      }
+    }
+    const meta = row.metadata && typeof row.metadata === "object" ? row.metadata : {};
+    const requested = meta.requestedDateTimeIso;
+    if (
+      OPEN_STATUSES.has(row.status) &&
+      typeof requested === "string" &&
+      new Date(requested).getTime() > Date.now() &&
+      new Date(requested).getTime() - Date.now() <= 48 * 60 * 60 * 1000
+    ) {
+      counts.escalationCandidates += 1;
+      issues.push({
+        level: "WARN",
+        code: "RECURRING_BEFORE_VISIT",
+        detail: `recurring support ${row.id} unresolved before requested window`,
+      });
+    }
+  }
+
+  for (const [bookingId, n] of bookingRequestCounts) {
+    if (n >= 2) {
+      counts.repeatedBookingRequests += 1;
+      issues.push({
+        level: "WARN",
+        code: "REPEATED_BOOKING_REQUESTS",
+        detail: `booking ${bookingId} has ${n} support requests`,
+      });
+    }
+  }
+
+  const openRows = [
+    ...bookingRows.filter((r) => OPEN_STATUSES.has(r.status)),
+    ...recurringRows.filter((r) => OPEN_STATUSES.has(r.status)),
+  ];
+  let oldestUnresolved = null;
+  for (const row of openRows) {
+    const age = Date.now() - new Date(row.created_at).getTime();
+    if (!oldestUnresolved || age > oldestUnresolved.ageMs) {
+      oldestUnresolved = { id: row.id, ageMs: age, source: row.booking_id ? "booking" : "recurring" };
+    }
+  }
+
+  const mergedDbCount = bookingRows.length + recurringRows.length;
 
   const overall = severityFor(issues);
   printReport(overall, counts, issues, {
     bookingTotal: bookingRows.length,
     recurringTotal: recurringRows.length,
     mergedTotal: mergedDbCount,
+    oldestUnresolved,
   });
 
   if (overall === "FAIL") process.exit(1);
@@ -357,6 +477,21 @@ function printReport(overall, counts, issues, extras = {}) {
   console.log(`  recurring urgent (open): ${counts.recurringUrgent}`);
   console.log(`  stale open >24h: ${counts.staleOpen24h}`);
   console.log(`  stale acknowledged >48h: ${counts.staleAcknowledged48h}`);
+  console.log(`  SLA breached (open): ${counts.slaBreached}`);
+  console.log(`  escalation candidates: ${counts.escalationCandidates}`);
+  console.log(`  bookings with repeated requests: ${counts.repeatedBookingRequests}`);
+  if (Object.keys(counts.volumeByType).length) {
+    console.log("  volume by type:");
+    for (const [type, n] of Object.entries(counts.volumeByType).sort((a, b) => b[1] - a[1])) {
+      console.log(`    ${type}: ${n}`);
+    }
+  }
+  if (extras.oldestUnresolved) {
+    const hours = Math.round(extras.oldestUnresolved.ageMs / (60 * 60 * 1000));
+    console.log(
+      `  oldest unresolved: ${extras.oldestUnresolved.id} (${extras.oldestUnresolved.source}, ~${hours}h)`,
+    );
+  }
   if (extras.mergedTotal != null) {
     console.log(`  booking_support_requests rows: ${extras.bookingTotal}`);
     console.log(`  recurring_series_requests rows: ${extras.recurringTotal}`);
@@ -400,6 +535,12 @@ function printReport(overall, counts, issues, extras = {}) {
   }
   if (counts.bookingUrgent + counts.recurringUrgent > 0) {
     console.log("  - Prioritize urgent queue in /admin/support");
+  }
+  if (counts.slaBreached > 0) {
+    console.log("  - Review SLA breached filter at /admin/support?filter=breached");
+  }
+  if (counts.escalationCandidates > 0) {
+    console.log("  - Review needs-attention view at /admin/support?filter=needs_attention");
   }
 }
 

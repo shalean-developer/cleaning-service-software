@@ -6,10 +6,16 @@ import type { AdminSupportInboxFilter } from "@/features/support/server/adminSup
 
 const FILTERS: { value: AdminSupportInboxFilter; label: string }[] = [
   { value: "all", label: "All" },
+  { value: "needs_attention", label: "Needs attention" },
+  { value: "breached", label: "SLA breached" },
+  { value: "aging", label: "Aging" },
   { value: "open", label: "Open" },
   { value: "urgent", label: "Urgent" },
+  { value: "payment_issues", label: "Payment issues" },
+  { value: "cleaner_service", label: "Cleaner / service" },
   { value: "booking", label: "One-off bookings" },
   { value: "recurring", label: "Recurring" },
+  { value: "recently_resolved", label: "Recently resolved" },
   { value: "resolved", label: "Resolved" },
 ];
 

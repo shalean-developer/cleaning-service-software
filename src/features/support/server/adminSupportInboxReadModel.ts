@@ -25,16 +25,45 @@ import {
   suggestedNextActionForRecurringRequest,
 } from "./supportInboxTriage";
 import { computeSupportRequestStaleFlags } from "./supportRequestStale";
+import {
+  supportRequestPriority,
+  supportRequestUrgencyReason,
+  type SupportRequestPriority,
+} from "./supportRequestPriority";
+import { supportRequestSlaStatus, type SupportAgeBucket, type SupportSlaStatus } from "./supportRequestSla";
+import type { SupportSlaCategory } from "./supportRequestPriority";
+import {
+  supportPaymentRisk,
+  supportTriageLabel,
+  upcomingVisitHoursFromScheduledStart,
+  type SupportTriageLabel,
+} from "./supportTriageIntelligence";
+import {
+  buildSupportEscalationContext,
+  detectSupportEscalations,
+} from "./supportEscalation";
+import { buildAdminSupportRequestHistory } from "./supportRequestHistory";
+import {
+  buildSupportOperationsSnapshot,
+  filterItemsByOperationsView,
+  type SupportOperationsSnapshot,
+} from "./supportOperationsReadModel";
 
 export type AdminSupportInboxSource = "booking_support" | "recurring_support";
-export type AdminSupportInboxPriority = "urgent" | "normal" | "low";
+export type AdminSupportInboxPriority = SupportRequestPriority;
 export type AdminSupportInboxFilter =
   | "all"
   | "open"
   | "urgent"
   | "booking"
   | "recurring"
-  | "resolved";
+  | "resolved"
+  | "needs_attention"
+  | "aging"
+  | "breached"
+  | "payment_issues"
+  | "cleaner_service"
+  | "recently_resolved";
 
 export type AdminSupportInboxItem = {
   id: string;
@@ -72,6 +101,27 @@ export type AdminSupportInboxItem = {
   canReject: boolean;
   staleOpen24h: boolean;
   staleAcknowledged48h: boolean;
+  updatedAt: string;
+  slaCategory: SupportSlaCategory;
+  slaStatus: SupportSlaStatus;
+  ageBucket: SupportAgeBucket;
+  ageMinutes: number;
+  firstResponseDueAt: string | null;
+  resolutionDueAt: string | null;
+  timeToFirstResponseMinutes: number | null;
+  timeToResolutionMinutes: number | null;
+  urgencyReason: string | null;
+  triageLabel: SupportTriageLabel | null;
+  escalationReasons: string[];
+  cleanerId: string | null;
+  cleanerLabel: string | null;
+  suburb: string | null;
+  paymentRisk: boolean;
+  upcomingVisitHours: number | null;
+  customerResponse: string | null;
+  respondedAt: string | null;
+  adminNotes: string | null;
+  resolvedBy: string | null;
 };
 
 export type AdminSupportInboxSummary = {
@@ -81,15 +131,19 @@ export type AdminSupportInboxSummary = {
   resolvedToday: number;
   staleOpen24h: number;
   staleAcknowledged48h: number;
+  slaBreached: number;
+  escalationCount: number;
+  avgAcknowledgeMinutes: number | null;
+  avgResolveMinutes: number | null;
 };
 
 export type AdminSupportInboxResult = {
   items: AdminSupportInboxItem[];
   summary: AdminSupportInboxSummary;
+  operations: SupportOperationsSnapshot;
   filter: AdminSupportInboxFilter;
 };
 
-const MS_24H = 24 * 60 * 60 * 1000;
 const WIZARD_TIMEZONE = "Africa/Johannesburg";
 
 const RECURRING_REQUEST_TYPE_LABELS: Record<RecurringSeriesRequestType, string> = {
@@ -112,10 +166,6 @@ const RECURRING_STATUS_LABELS: Record<RecurringSeriesRequestStatus, string> = {
 };
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-function isCancelOrRescheduleType(type: string): boolean {
-  return type.includes("cancel") || type.includes("reschedule");
-}
 
 function priorityRank(p: AdminSupportInboxPriority): number {
   if (p === "urgent") return 0;
@@ -145,36 +195,6 @@ function isResolvedToday(resolvedAt: string | null): boolean {
 
 function isOpenStatus(status: string): boolean {
   return status === "open" || status === "acknowledged";
-}
-
-function computePriority(input: {
-  status: string;
-  requestType: string;
-  createdAt: string;
-  scheduledStart: string | null;
-  requestedDateTimeIso: string | null;
-}): AdminSupportInboxPriority {
-  if (input.status === "resolved" || input.status === "rejected") return "low";
-  if (input.status === "acknowledged") return "normal";
-
-  const now = Date.now();
-  const createdMs = new Date(input.createdAt).getTime();
-  if (now - createdMs > MS_24H) return "urgent";
-
-  if (input.requestType === "payment_help") return "urgent";
-  if (input.requestType === "cleaner_issue" || input.requestType === "service_issue") {
-    return "urgent";
-  }
-
-  if (isCancelOrRescheduleType(input.requestType)) {
-    const targetIso = input.scheduledStart ?? input.requestedDateTimeIso;
-    if (targetIso) {
-      const targetMs = new Date(targetIso).getTime();
-      if (targetMs > now && targetMs - now <= MS_24H) return "urgent";
-    }
-  }
-
-  return "normal";
 }
 
 function readRequestedDateTime(metadata: Record<string, unknown>): string | null {
@@ -235,6 +255,7 @@ type BookingContext = {
   id: string;
   status: string;
   scheduled_start: string;
+  cleaner_id: string | null;
   metadata: Json;
 };
 
@@ -247,7 +268,7 @@ async function loadBookingContexts(
 
   const { data: bookings, error } = await client
     .from("bookings")
-    .select("id, status, scheduled_start, metadata")
+    .select("id, status, scheduled_start, cleaner_id, metadata")
     .in("id", bookingIds);
   if (error) throw new Error(error.message);
 
@@ -268,12 +289,146 @@ async function loadBookingContexts(
       id: b.id as string,
       status: b.status as string,
       scheduled_start: b.scheduled_start as string,
+      cleaner_id: (b.cleaner_id as string | null) ?? null,
       metadata: b.metadata as Json,
       paymentStatus: paymentByBooking.get(b.id as string) ?? null,
     });
   }
 
   return map;
+}
+
+async function loadCleanerLabels(
+  client: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+  cleanerIds: string[],
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  if (cleanerIds.length === 0) return map;
+
+  const { data: cleaners, error } = await client
+    .from("cleaners")
+    .select("id, profile_id")
+    .in("id", cleanerIds);
+  if (error) return map;
+
+  const profileIds = (cleaners ?? [])
+    .map((c) => c.profile_id)
+    .filter((id): id is string => Boolean(id));
+
+  const profileNames = new Map<string, string | null>();
+  if (profileIds.length > 0) {
+    const { data: profiles } = await client
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", profileIds);
+    for (const p of profiles ?? []) {
+      profileNames.set(p.id, p.full_name?.trim() ?? null);
+    }
+  }
+
+  for (const c of cleaners ?? []) {
+    const name = c.profile_id ? profileNames.get(c.profile_id) : null;
+    map.set(c.id as string, name ?? `Cleaner ${(c.id as string).slice(0, 8)}`);
+  }
+
+  return map;
+}
+
+function enrichInboxItem(
+  base: Omit<
+    AdminSupportInboxItem,
+    | "slaCategory"
+    | "slaStatus"
+    | "ageBucket"
+    | "ageMinutes"
+    | "firstResponseDueAt"
+    | "resolutionDueAt"
+    | "timeToFirstResponseMinutes"
+    | "timeToResolutionMinutes"
+    | "urgencyReason"
+    | "triageLabel"
+    | "escalationReasons"
+    | "cleanerId"
+    | "cleanerLabel"
+    | "suburb"
+    | "paymentRisk"
+    | "upcomingVisitHours"
+    | "customerResponse"
+    | "respondedAt"
+    | "adminNotes"
+    | "resolvedBy"
+    | "updatedAt"
+  >,
+  input: {
+    updatedAt: string;
+    requestedDateTimeIso: string | null;
+    customerResponse: string | null;
+    respondedAt: string | null;
+    adminNotes: string | null;
+    resolvedBy: string | null;
+    cleanerId: string | null;
+    cleanerLabel: string | null;
+    suburb: string | null;
+  },
+): AdminSupportInboxItem {
+  const acknowledgedAt =
+    base.status === "acknowledged" || base.status === "resolved" || base.status === "rejected"
+      ? input.respondedAt ?? input.updatedAt
+      : null;
+
+  const sla = supportRequestSlaStatus({
+    status: base.status,
+    requestType: base.requestType,
+    createdAt: base.createdAt,
+    updatedAt: input.updatedAt,
+    acknowledgedAt,
+    resolvedAt: base.resolvedAt,
+    scheduledStart: base.scheduledStart,
+    requestedDateTimeIso: input.requestedDateTimeIso,
+  });
+
+  const paymentRisk = supportPaymentRisk(base.paymentStatus);
+  const upcomingVisitHours = upcomingVisitHoursFromScheduledStart(base.scheduledStart);
+
+  const triageLabel = supportTriageLabel({
+    status: base.status,
+    slaStatus: sla.slaStatus,
+    paymentRisk,
+    upcomingVisitHours,
+    customerResponse: input.customerResponse,
+    respondedAt: input.respondedAt,
+  });
+
+  return {
+    ...base,
+    updatedAt: input.updatedAt,
+    slaCategory: sla.slaCategory,
+    slaStatus: sla.slaStatus,
+    ageBucket: sla.ageBucket,
+    ageMinutes: sla.ageMinutes,
+    firstResponseDueAt: sla.firstResponseDueAt,
+    resolutionDueAt: sla.resolutionDueAt,
+    timeToFirstResponseMinutes: sla.timeToFirstResponseMinutes,
+    timeToResolutionMinutes: sla.timeToResolutionMinutes,
+    urgencyReason: supportRequestUrgencyReason({
+      status: base.status,
+      requestType: base.requestType,
+      createdAt: base.createdAt,
+      scheduledStart: base.scheduledStart,
+      requestedDateTimeIso: input.requestedDateTimeIso,
+    }),
+    triageLabel,
+    escalationReasons: [],
+    cleanerId: input.cleanerId,
+    cleanerLabel: input.cleanerLabel,
+    suburb: input.suburb,
+    paymentRisk,
+    upcomingVisitHours,
+    customerResponse: input.customerResponse,
+    respondedAt: input.respondedAt,
+    adminNotes: input.adminNotes,
+    resolvedBy: input.resolvedBy,
+  };
 }
 
 async function loadSeriesFrequency(
@@ -302,7 +457,7 @@ function mapBookingRequest(
   const display = booking ? parseBookingDisplay(booking.metadata) : null;
   const requestType = row.request_type as BookingSupportRequestType;
   const status = row.status as BookingSupportRequestStatus;
-  const priority = computePriority({
+  const priority = supportRequestPriority({
     status,
     requestType,
     createdAt: row.created_at,
@@ -316,12 +471,36 @@ function mapBookingRequest(
   });
 
   const addressParts = [display?.suburb, display?.city].filter(Boolean);
+  const suburb = display?.suburb?.trim() || null;
   const addressSummary =
     addressParts.length > 0
       ? addressParts.join(", ")
       : display?.locationSummary?.trim() || null;
 
-  return {
+  const base: Omit<
+    AdminSupportInboxItem,
+    | "slaCategory"
+    | "slaStatus"
+    | "ageBucket"
+    | "ageMinutes"
+    | "firstResponseDueAt"
+    | "resolutionDueAt"
+    | "timeToFirstResponseMinutes"
+    | "timeToResolutionMinutes"
+    | "urgencyReason"
+    | "triageLabel"
+    | "escalationReasons"
+    | "cleanerId"
+    | "cleanerLabel"
+    | "suburb"
+    | "paymentRisk"
+    | "upcomingVisitHours"
+    | "customerResponse"
+    | "respondedAt"
+    | "adminNotes"
+    | "resolvedBy"
+    | "updatedAt"
+  > = {
     id: row.id,
     source: "booking_support",
     requestType,
@@ -358,6 +537,18 @@ function mapBookingRequest(
     staleOpen24h: stale.staleOpen24h,
     staleAcknowledged48h: stale.staleAcknowledged48h,
   };
+
+  return enrichInboxItem(base, {
+    updatedAt: row.updated_at,
+    requestedDateTimeIso: null,
+    customerResponse: row.customer_response ?? null,
+    respondedAt: row.responded_at ?? null,
+    adminNotes: row.admin_notes ?? null,
+    resolvedBy: row.resolved_by ?? null,
+    cleanerId: booking?.cleaner_id ?? null,
+    cleanerLabel: null,
+    suburb,
+  });
 }
 
 function mapRecurringRequest(
@@ -373,7 +564,7 @@ function mapRecurringRequest(
       : {};
   const requestedDateTimeIso = readRequestedDateTime(meta);
 
-  const priority = computePriority({
+  const priority = supportRequestPriority({
     status,
     requestType,
     createdAt: row.created_at,
@@ -386,7 +577,30 @@ function mapRecurringRequest(
     updatedAt: row.updated_at ?? row.created_at,
   });
 
-  return {
+  const base: Omit<
+    AdminSupportInboxItem,
+    | "slaCategory"
+    | "slaStatus"
+    | "ageBucket"
+    | "ageMinutes"
+    | "firstResponseDueAt"
+    | "resolutionDueAt"
+    | "timeToFirstResponseMinutes"
+    | "timeToResolutionMinutes"
+    | "urgencyReason"
+    | "triageLabel"
+    | "escalationReasons"
+    | "cleanerId"
+    | "cleanerLabel"
+    | "suburb"
+    | "paymentRisk"
+    | "upcomingVisitHours"
+    | "customerResponse"
+    | "respondedAt"
+    | "adminNotes"
+    | "resolvedBy"
+    | "updatedAt"
+  > = {
     id: row.id,
     source: "recurring_support",
     requestType,
@@ -423,9 +637,24 @@ function mapRecurringRequest(
     staleOpen24h: stale.staleOpen24h,
     staleAcknowledged48h: stale.staleAcknowledged48h,
   };
+
+  return enrichInboxItem(base, {
+    updatedAt: row.updated_at ?? row.created_at,
+    requestedDateTimeIso,
+    customerResponse: row.customer_response ?? null,
+    respondedAt: row.responded_at ?? null,
+    adminNotes: row.admin_notes ?? null,
+    resolvedBy: row.resolved_by ?? null,
+    cleanerId: null,
+    cleanerLabel: null,
+    suburb: null,
+  });
 }
 
-function buildSummary(items: AdminSupportInboxItem[]): AdminSupportInboxSummary {
+function buildSummary(
+  items: AdminSupportInboxItem[],
+  operations: SupportOperationsSnapshot,
+): AdminSupportInboxSummary {
   let open = 0;
   let urgent = 0;
   let acknowledged = 0;
@@ -447,7 +676,18 @@ function buildSummary(items: AdminSupportInboxItem[]): AdminSupportInboxSummary 
     }
   }
 
-  return { open, urgent, acknowledged, resolvedToday, staleOpen24h, staleAcknowledged48h };
+  return {
+    open,
+    urgent,
+    acknowledged,
+    resolvedToday,
+    staleOpen24h,
+    staleAcknowledged48h,
+    slaBreached: operations.slaBreached,
+    escalationCount: operations.escalationCount,
+    avgAcknowledgeMinutes: operations.avgAcknowledgeMinutes,
+    avgResolveMinutes: operations.avgResolveMinutes,
+  };
 }
 
 function applyFilter(items: AdminSupportInboxItem[], filter: AdminSupportInboxFilter): AdminSupportInboxItem[] {
@@ -462,6 +702,13 @@ function applyFilter(items: AdminSupportInboxItem[], filter: AdminSupportInboxFi
       return items.filter((i) => i.source === "recurring_support");
     case "resolved":
       return items.filter((i) => i.status === "resolved" || i.status === "rejected");
+    case "needs_attention":
+    case "aging":
+    case "breached":
+    case "payment_issues":
+    case "cleaner_service":
+    case "recently_resolved":
+      return filterItemsByOperationsView(items, filter);
     default:
       return items;
   }
@@ -491,11 +738,57 @@ function applySearch(items: AdminSupportInboxItem[], search: string | null | und
 }
 
 function sortItems(items: AdminSupportInboxItem[]): AdminSupportInboxItem[] {
+  const slaRank = (s: SupportSlaStatus) => (s === "breached" ? 0 : s === "warning" ? 1 : 2);
   return [...items].sort((a, b) => {
+    const sr = slaRank(a.slaStatus) - slaRank(b.slaStatus);
+    if (sr !== 0) return sr;
     const pr = priorityRank(a.priority) - priorityRank(b.priority);
     if (pr !== 0) return pr;
+    if (b.escalationReasons.length !== a.escalationReasons.length) {
+      return b.escalationReasons.length - a.escalationReasons.length;
+    }
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
+}
+
+function attachEscalations(items: AdminSupportInboxItem[]): AdminSupportInboxItem[] {
+  const context = buildSupportEscalationContext(
+    items.map((item) => ({
+      id: item.id,
+      source: item.source,
+      status: item.status,
+      requestType: item.requestType,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      bookingId: item.bookingId,
+      seriesId: item.seriesId,
+      customerId: item.customerId,
+      slaStatus: item.slaStatus,
+      ageMinutes: item.ageMinutes,
+      upcomingVisitHours: item.upcomingVisitHours,
+    })),
+  );
+
+  return items.map((item) => ({
+    ...item,
+    escalationReasons: detectSupportEscalations(
+      {
+        id: item.id,
+        source: item.source,
+        status: item.status,
+        requestType: item.requestType,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+        bookingId: item.bookingId,
+        seriesId: item.seriesId,
+        customerId: item.customerId,
+        slaStatus: item.slaStatus,
+        ageMinutes: item.ageMinutes,
+        upcomingVisitHours: item.upcomingVisitHours,
+      },
+      context,
+    ),
+  }));
 }
 
 export async function listAdminSupportInbox(
@@ -525,7 +818,7 @@ export async function listAdminSupportInbox(
   const bookingFull = await client
     .from("booking_support_requests")
     .select(
-      "id, booking_id, customer_id, request_type, status, message, preferred_new_time, created_at, updated_at, resolved_at, customer_response, responded_at",
+      "id, booking_id, customer_id, request_type, status, message, preferred_new_time, created_at, updated_at, resolved_at, resolved_by, customer_response, responded_at, admin_notes",
     )
     .order("created_at", { ascending: false })
     .limit(300);
@@ -560,7 +853,7 @@ export async function listAdminSupportInbox(
   const recurringFull = await client
     .from("recurring_series_requests")
     .select(
-      "id, series_id, group_id, customer_id, request_type, scope, status, note, created_at, updated_at, resolved_at, target_weekday, metadata, customer_response, responded_at",
+      "id, series_id, group_id, customer_id, request_type, scope, status, note, created_at, updated_at, resolved_at, resolved_by, target_weekday, metadata, customer_response, responded_at, admin_notes",
     )
     .order("created_at", { ascending: false })
     .limit(300);
@@ -608,10 +901,27 @@ export async function listAdminSupportInbox(
     loadSeriesFrequency(client, seriesIds),
   ]);
 
-  const allItems: AdminSupportInboxItem[] = [
-    ...bookingRows.map((row) =>
-      mapBookingRequest(row, customers.get(row.customer_id), bookings.get(row.booking_id)),
+  const cleanerIds = [
+    ...new Set(
+      [...bookings.values()]
+        .map((b) => b.cleaner_id)
+        .filter((id): id is string => Boolean(id)),
     ),
+  ];
+  const cleanerLabels = await loadCleanerLabels(client, cleanerIds);
+
+  let allItems: AdminSupportInboxItem[] = [
+    ...bookingRows.map((row) => {
+      const item = mapBookingRequest(
+        row,
+        customers.get(row.customer_id),
+        bookings.get(row.booking_id),
+      );
+      if (item.cleanerId) {
+        return { ...item, cleanerLabel: cleanerLabels.get(item.cleanerId) ?? null };
+      }
+      return item;
+    }),
     ...recurringRows.map((row) =>
       mapRecurringRequest(
         row,
@@ -621,12 +931,14 @@ export async function listAdminSupportInbox(
     ),
   ];
 
-  const summary = buildSummary(allItems);
+  allItems = attachEscalations(allItems);
+  const operations = buildSupportOperationsSnapshot(allItems);
+  const summary = buildSummary(allItems, operations);
   const filtered = applyFilter(allItems, filter);
   const searched = applySearch(filtered, params.search);
   const items = sortItems(searched);
 
-  return { ok: true, items, summary, filter };
+  return { ok: true, items, summary, operations, filter };
 }
 
 export async function countAdminSupportInboxBadges(
@@ -637,9 +949,5 @@ export async function countAdminSupportInboxBadges(
   return { open: result.summary.open, urgent: result.summary.urgent };
 }
 
-/** Exported for audit script parity checks. */
-export function computeSupportInboxPriorityForTest(
-  input: Parameters<typeof computePriority>[0],
-): AdminSupportInboxPriority {
-  return computePriority(input);
-}
+export { computeSupportInboxPriorityForTest } from "./supportRequestPriority";
+export { buildAdminSupportRequestHistory } from "./supportRequestHistory";

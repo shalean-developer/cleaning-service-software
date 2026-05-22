@@ -38,8 +38,22 @@ describe("admin support inbox workflow contract", () => {
     const script = readFileSync("scripts/ops/audit-support-inbox.mjs", "utf8");
     expect(script).toContain("ORPHAN_BOOKING");
     expect(script).toContain("STALE_OPEN");
+    expect(script).toContain("SLA_BREACHED");
+    expect(script).toContain("ESCALATION_CANDIDATE");
     expect(script).toContain("booking_support_requests");
     expect(script).toContain("recurring_series_requests");
+  });
+
+  it("operations intelligence modules exist without booking mutations", () => {
+    const sla = readFileSync("src/features/support/server/supportRequestSla.ts", "utf8");
+    const ops = readFileSync(
+      "src/features/support/server/supportOperationsReadModel.ts",
+      "utf8",
+    );
+    expect(sla).toContain("supportRequestSlaStatus");
+    expect(ops).toContain("buildSupportOperationsSnapshot");
+    expect(ops).not.toContain("booking_apply_transition");
+    expect(ops).not.toMatch(/\.update\(/);
   });
 
   it("admin nav includes support inbox", () => {

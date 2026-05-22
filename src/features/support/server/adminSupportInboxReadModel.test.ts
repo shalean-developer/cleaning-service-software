@@ -83,6 +83,13 @@ function createClient(fixture: Fixture) {
           }),
         };
       }
+      if (table === "cleaners") {
+        return {
+          select: () => ({
+            in: async () => ({ data: [], error: null }),
+          }),
+        };
+      }
       throw new Error(`unexpected table ${table}`);
     },
   };
@@ -106,6 +113,7 @@ describe("adminSupportInboxReadModel", () => {
             message: "Need help paying",
             preferred_new_time: null,
             created_at: "2026-05-20T10:00:00.000Z",
+            updated_at: "2026-05-20T10:00:00.000Z",
             resolved_at: null,
           },
         ],
@@ -120,6 +128,7 @@ describe("adminSupportInboxReadModel", () => {
             status: "open",
             note: "Going away",
             created_at: "2026-05-19T10:00:00.000Z",
+            updated_at: "2026-05-19T10:00:00.000Z",
             resolved_at: null,
             target_weekday: 2,
             metadata: {},
@@ -130,6 +139,7 @@ describe("adminSupportInboxReadModel", () => {
             id: "book-1",
             status: "confirmed",
             scheduled_start: "2026-05-25T08:00:00.000Z",
+            cleaner_id: null,
             metadata: {},
           },
         ],
@@ -161,6 +171,7 @@ describe("adminSupportInboxReadModel", () => {
             message: "Hi",
             preferred_new_time: null,
             created_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+            updated_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
             resolved_at: null,
           },
           {
@@ -172,6 +183,7 @@ describe("adminSupportInboxReadModel", () => {
             message: "Thanks",
             preferred_new_time: null,
             created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
             resolved_at: null,
           },
         ],
@@ -181,12 +193,14 @@ describe("adminSupportInboxReadModel", () => {
             id: "book-1",
             status: "confirmed",
             scheduled_start: "2026-12-01T08:00:00.000Z",
+            cleaner_id: null,
             metadata: {},
           },
           {
             id: "book-2",
             status: "confirmed",
             scheduled_start: "2026-12-02T08:00:00.000Z",
+            cleaner_id: null,
             metadata: {},
           },
         ],
@@ -288,6 +302,45 @@ describe("adminSupportInboxReadModel", () => {
     const search = await listAdminSupportInbox(adminUser, { search: "sea point" });
     if (!search.ok) throw new Error("expected ok");
     expect(search.items.some((i) => i.customerName.includes("Sea Point"))).toBe(true);
+  });
+
+  it("filters breached SLA view", async () => {
+    createSupabaseServerClientMock.mockResolvedValue(
+      createClient({
+        bookingRequests: [
+          {
+            id: "bsr-breach",
+            booking_id: "book-1",
+            customer_id: "cust-1",
+            request_type: "payment_help",
+            status: "open",
+            message: "Pay",
+            preferred_new_time: null,
+            created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            updated_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            resolved_at: null,
+          },
+        ],
+        recurringRequests: [],
+        bookings: [
+          {
+            id: "book-1",
+            status: "confirmed",
+            scheduled_start: "2026-12-01T08:00:00.000Z",
+            cleaner_id: null,
+            metadata: {},
+          },
+        ],
+        customers: [
+          { id: "cust-1", profile_id: null, company_name: "Acme", phone: null },
+        ],
+      }),
+    );
+
+    const result = await listAdminSupportInbox(adminUser, { filter: "breached" });
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.items.length).toBeGreaterThan(0);
+    expect(result.items.every((i) => i.slaStatus === "breached")).toBe(true);
   });
 
   it("computes urgent priority for payment_help and cleaner_issue", () => {
