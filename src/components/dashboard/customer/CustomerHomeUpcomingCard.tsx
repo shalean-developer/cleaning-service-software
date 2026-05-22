@@ -13,6 +13,7 @@ import {
 import { formatZar } from "@/features/dashboards/server/parseBookingDisplay";
 import type { CustomerBookingListItem } from "@/features/dashboards/server/types";
 import { labelForCustomerBookingStatus } from "@/features/bookings/server/paymentFailureDisplay";
+import { customerHubSupportQuickLinks } from "@/features/bookings/server/bookingSupportRequestTypes";
 
 type Props = {
   featured: CustomerBookingListItem | null;
@@ -92,6 +93,11 @@ export function CustomerHomeUpcomingCard({ featured, alsoScheduled }: Props) {
   const tags = customerHubVisitMetaTags(featured);
   const summaryLine = customerHubVisitSummaryLine(featured);
   const address = customerHubFullAddress(featured);
+  const supportLinks = customerHubSupportQuickLinks({
+    id: featured.id,
+    isSeriesVisit: featured.isSeriesVisit,
+    seriesId: featured.seriesId,
+  });
   const detailHref = `/customer/bookings/${featured.id}`;
   const rebookHref = customerHubRebookHref(featured.display.serviceSlug);
   const assigned = featured.assignedCleanerLabel?.trim();
@@ -156,10 +162,10 @@ export function CustomerHomeUpcomingCard({ featured, alsoScheduled }: Props) {
           </p>
 
           <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 border-t border-blue-100/80 pt-4">
-            <HubActionLink href={detailHref} label="Reschedule" icon="calendar" />
-            <HubActionLink href={detailHref} label="Message support" icon="message" />
+            <HubActionLink href={supportLinks.reschedule} label="Reschedule" icon="calendar" />
+            <HubActionLink href={supportLinks.message} label="Message support" icon="message" />
             <HubActionLink href={rebookHref} label="Rebook" icon="refresh" />
-            <HubActionLink href={detailHref} label="Cancel" icon="cancel" />
+            <HubActionLink href={supportLinks.cancel} label="Cancel" icon="cancel" />
           </div>
         </div>
 

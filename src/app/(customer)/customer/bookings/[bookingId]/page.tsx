@@ -32,23 +32,39 @@ import {
   isRegularCleaningSlug,
 } from "@/features/dashboards/regularCustomerDisplay";
 import { CUSTOMER_DASHBOARD_NAV } from "@/features/dashboards/customerNav";
+import { CustomerBookingSupportPanel } from "@/components/dashboard/customer/CustomerBookingSupportPanel";
+import { listCustomerBookingSupportRequests } from "@/features/bookings/server/bookingSupportRequestsService";
+import type { BookingSupportActionContext } from "@/features/bookings/server/bookingSupportRequestTypes";
 
-type PageProps = { params: Promise<{ bookingId: string }> };
+type PageProps = {
+  params: Promise<{ bookingId: string }>;
+  searchParams: Promise<{ support?: string }>;
+};
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { bookingId } = await params;
   return { title: `Booking ${bookingId.slice(0, 8)} | Customer` };
 }
 
-export default async function CustomerBookingDetailPage({ params }: PageProps) {
+export default async function CustomerBookingDetailPage({ params, searchParams }: PageProps) {
   const user = await getCurrentUser();
   if (!user) return null;
 
   const { bookingId } = await params;
+  const { support: supportQuery } = await searchParams;
   const result = await getCustomerBookingDetail(user, bookingId);
   if (!result.ok) notFound();
 
+  const supportResult = await listCustomerBookingSupportRequests(user, bookingId);
+  const supportRequests = supportResult.ok ? supportResult.requests : [];
+
   const b = result.booking;
+  const supportActionContext: BookingSupportActionContext = {
+    status: b.status,
+    paymentStatus: b.paymentStatus,
+    isSeriesVisit: b.isSeriesVisit,
+    hasAssignedCleaner: Boolean(b.assignedCleanerLabel?.trim()),
+  };
   const customerEmail = user.authUser.email?.trim() ?? "";
   const suppressAssignmentCallout = shouldSuppressAssignmentCalloutInDetails({
     deferredAssignmentMessage: b.deferredAssignmentMessage,
@@ -113,6 +129,14 @@ export default async function CustomerBookingDetailPage({ params }: PageProps) {
             deferredAssignmentMessage={b.deferredAssignmentMessage}
           />
         )}
+
+        <CustomerBookingSupportPanel
+          bookingId={b.id}
+          seriesId={b.seriesId}
+          actionContext={supportActionContext}
+          initialRequests={supportRequests}
+          initialSupportQuery={supportQuery ?? null}
+        />
 
         <details className={CUSTOMER_BOOKING_DETAIL_DISCLOSURE_CLASS}>
           <summary className={CUSTOMER_BOOKING_DETAIL_DISCLOSURE_SUMMARY_CLASS}>

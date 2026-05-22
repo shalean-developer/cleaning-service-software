@@ -16,6 +16,7 @@ import {
   pickAlsoScheduledUpcoming,
 } from "@/features/dashboards/customerHubDisplay";
 import type { CustomerBookingListItem } from "@/features/dashboards/server/types";
+import { customerHubSupportQuickLinks } from "@/features/bookings/server/bookingSupportRequestTypes";
 
 type Props = {
   bookings: CustomerBookingListItem[];
@@ -24,14 +25,27 @@ type Props = {
 };
 
 function hubQuickActions(featured: CustomerBookingListItem | null) {
-  const detailHref = featured ? `/customer/bookings/${featured.id}` : "/customer/bookings";
   const rebookHref = customerHubRebookHref(featured?.display.serviceSlug ?? null);
+  if (!featured) {
+    return [
+      { label: "Reschedule", href: "/customer/bookings", icon: "calendar" as const },
+      { label: "Message support", href: "/customer/bookings", icon: "message" as const },
+      { label: "Rebook", href: rebookHref, icon: "refresh" as const },
+      { label: "Cancel visit", href: "/customer/bookings", icon: "cancel" as const },
+    ];
+  }
+
+  const support = customerHubSupportQuickLinks({
+    id: featured.id,
+    isSeriesVisit: featured.isSeriesVisit,
+    seriesId: featured.seriesId,
+  });
 
   return [
-    { label: "Reschedule", href: detailHref, icon: "calendar" as const },
-    { label: "Message support", href: detailHref, icon: "message" as const },
+    { label: "Reschedule", href: support.reschedule, icon: "calendar" as const },
+    { label: "Message support", href: support.message, icon: "message" as const },
     { label: "Rebook", href: rebookHref, icon: "refresh" as const },
-    { label: "Cancel visit", href: detailHref, icon: "cancel" as const },
+    { label: "Cancel visit", href: support.cancel, icon: "cancel" as const },
   ];
 }
 

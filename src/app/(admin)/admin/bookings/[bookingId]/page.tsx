@@ -73,6 +73,9 @@ import {
   toneForPaymentStatus,
   toneForPayoutStatus,
 } from "@/features/bookings/server/statusLabels";
+import { AdminBookingSupportRequestsPanel } from "@/components/dashboard/admin/AdminBookingSupportRequestsPanel";
+import { listBookingSupportRequestsForBooking } from "@/features/bookings/server/bookingSupportRequestsService";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type PageProps = { params: Promise<{ bookingId: string }> };
 
@@ -196,6 +199,11 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
 
   const { activeOffers, pastOffers } = partitionAdminAssignmentOffers(b.offers);
 
+  const supabase = await createSupabaseServerClient();
+  const bookingSupportRequests = supabase
+    ? await listBookingSupportRequestsForBooking(supabase, bookingId)
+    : [];
+
   const contextRows = buildAdminBookingHeroContextRows({
     serviceSlug: b.display.serviceSlug,
     serviceLabel: b.serviceLabel,
@@ -259,6 +267,8 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
             earningsAttention,
           }}
         />
+
+        <AdminBookingSupportRequestsPanel requests={bookingSupportRequests} />
 
         {earningsAttention ? (
           <AdminBookingEarningsAttentionBanner reconciliation={b.teamEarningsReconciliation} />

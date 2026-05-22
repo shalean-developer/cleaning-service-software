@@ -365,6 +365,40 @@ export type RecurringSeriesRequestRow = {
   metadata: Json;
 };
 
+export const BOOKING_SUPPORT_REQUEST_TYPES = [
+  "reschedule",
+  "cancel",
+  "payment_help",
+  "cleaner_issue",
+  "service_issue",
+  "general_message",
+] as const;
+export type BookingSupportRequestType = (typeof BOOKING_SUPPORT_REQUEST_TYPES)[number];
+
+export const BOOKING_SUPPORT_REQUEST_STATUSES = [
+  "open",
+  "acknowledged",
+  "resolved",
+  "rejected",
+] as const;
+export type BookingSupportRequestStatus = (typeof BOOKING_SUPPORT_REQUEST_STATUSES)[number];
+
+export type BookingSupportRequestRow = {
+  id: string;
+  booking_id: string;
+  customer_id: string;
+  user_id: string | null;
+  request_type: BookingSupportRequestType;
+  status: BookingSupportRequestStatus;
+  message: string | null;
+  preferred_new_time: string | null;
+  metadata: Json;
+  created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+  resolved_by: string | null;
+};
+
 export type RecurringGenerationRunRow = {
   id: string;
   run_id: string;
@@ -607,6 +641,7 @@ export type Database = {
       deferred_dispatch_cron_runs: PublicTable<DeferredDispatchCronRunRow>;
       recurring_generation_runs: PublicTable<RecurringGenerationRunRow>;
       recurring_series_requests: PublicTable<RecurringSeriesRequestRow>;
+      booking_support_requests: PublicTable<BookingSupportRequestRow>;
       notification_metrics_hourly: PublicTable<NotificationMetricsHourlyRow>;
       assignment_metrics_hourly: PublicTable<AssignmentMetricsHourlyRow>;
       booking_state_audit: PublicTable<BookingStateAuditRow>;
