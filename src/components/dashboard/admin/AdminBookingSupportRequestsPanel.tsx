@@ -4,12 +4,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { BookingSupportRequestSummary } from "@/features/bookings/server/bookingSupportRequestsService";
 import { AdminSupportRequestResponseFields } from "@/components/dashboard/admin/support/AdminSupportRequestResponseFields";
+import { AdminSupportExecuteRescheduleForm } from "@/components/dashboard/admin/support/AdminSupportExecuteRescheduleForm";
 
 type Props = {
+  bookingId: string;
   requests: BookingSupportRequestSummary[];
 };
 
-export function AdminBookingSupportRequestsPanel({ requests }: Props) {
+export function AdminBookingSupportRequestsPanel({ bookingId, requests }: Props) {
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -66,8 +68,8 @@ export function AdminBookingSupportRequestsPanel({ requests }: Props) {
       <div>
         <h2 className="text-sm font-semibold text-zinc-900">Customer support requests</h2>
         <p className="mt-1 text-xs text-zinc-600">
-          Requests are not auto-applied. Change the booking using existing admin operations, then
-          update request status.
+          Reschedule requests can be executed here after review. Cancel and other types remain
+          review-only until a later phase.
         </p>
       </div>
       {message ? <p className="text-sm text-emerald-800">{message}</p> : null}
@@ -106,6 +108,23 @@ export function AdminBookingSupportRequestsPanel({ requests }: Props) {
                 <p className="mt-2 text-sm text-amber-900">
                   <span className="font-medium">Customer-visible: </span>
                   {r.customerResponse}
+                </p>
+              ) : null}
+              {r.requestType === "reschedule" &&
+              (r.status === "open" || r.status === "acknowledged") ? (
+                <AdminSupportExecuteRescheduleForm
+                  requestId={r.id}
+                  bookingId={bookingId}
+                  preferredNewTime={r.preferredNewTime}
+                  disabled={loading}
+                />
+              ) : null}
+              {r.status === "resolved" && r.requestType === "reschedule" ? (
+                <p className="mt-2 text-xs font-medium text-emerald-800">
+                  Reschedule executed —{" "}
+                  <a href={`/admin/bookings/${bookingId}`} className="underline">
+                    view booking
+                  </a>
                 </p>
               ) : null}
               {r.status === "open" || r.status === "acknowledged" ? (

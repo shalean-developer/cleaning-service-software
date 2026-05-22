@@ -279,12 +279,17 @@ async function main() {
   const groupIdList = [...groupIds];
 
   const bookingSchedule = new Map();
+  const bookingById = new Map();
   const existingBookings = new Set();
   if (bookingIdList.length > 0) {
-    const { data } = await client.from("bookings").select("id, scheduled_start").in("id", bookingIdList);
+    const { data } = await client
+      .from("bookings")
+      .select("id, scheduled_start, scheduled_end, cleaner_id, metadata")
+      .in("id", bookingIdList);
     for (const b of data ?? []) {
       existingBookings.add(b.id);
       bookingSchedule.set(b.id, b.scheduled_start);
+      bookingById.set(b.id, b);
     }
     for (const row of bookingRows) {
       if (!existingBookings.has(row.booking_id)) {
@@ -359,6 +364,20 @@ async function main() {
     }
   }
 
+  const openOffersByBooking = new Map();
+  if (bookingIdList.length > 0) {
+    const { data: offers } = await client
+      .from("assignment_offers")
+      .select("id, booking_id, status")
+      .in("booking_id", bookingIdList)
+      .eq("status", "offered");
+    for (const o of offers ?? []) {
+      const list = openOffersByBooking.get(o.booking_id) ?? [];
+      list.push(o);
+      openOffersByBooking.set(o.booking_id, list);
+    }
+  }
+
   const bookingRequestCounts = new Map();
   for (const row of bookingRows) {
     counts.volumeByType[row.request_type] = (counts.volumeByType[row.request_type] ?? 0) + 1;
@@ -395,6 +414,66 @@ async function main() {
           level: "WARN",
           code: "ESCALATION_CANDIDATE",
           detail: `booking support ${row.id} acknowledged >24h`,
+        });
+      }
+    }
+
+    if (row.request_type === "reschedule") {
+      const meta = row.metadata && typeof row.metadata === "object" ? row.metadata : {};
+      const executed = meta.executedReschedule;
+      const booking = bookingById.get(row.booking_id);
+      const bookingMeta =
+        booking?.metadata && typeof booking.metadata === "object" ? booking.metadata : {};
+      const bookingExec = bookingMeta.supportRescheduleExecution;
+
+      if (row.status === "resolved" && !executed) {
+        issues.push({
+          level: "WARN",
+          code: "RESCHEDULE_EXECUTION_METADATA_MISSING",
+          detail: `resolved reschedule ${row.id} missing metadata.executedReschedule`,
+        });
+      }
+
+      if (executed && booking) {
+        const execNewStart = executed.newScheduledStart;
+        if (
+          typeof execNewStart === "string" &&
+          booking.scheduled_start &&
+          new Date(booking.scheduled_start).getTime() !== new Date(execNewStart).getTime()
+        ) {
+          issues.push({
+            level: "FAIL",
+            code: "RESCHEDULE_EXECUTED_SCHEDULE_MISMATCH",
+            detail: `reschedule ${row.id} executed new time does not match booking schedule`,
+          });
+        }
+        if (!bookingExec) {
+          issues.push({
+            level: "WARN",
+            code: "BOOKING_RESCHEDULE_MARKER_MISSING",
+            detail: `booking ${row.booking_id} missing metadata.supportRescheduleExecution`,
+          });
+        }
+        const openOffers = openOffersByBooking.get(row.booking_id) ?? [];
+        if (openOffers.length > 0) {
+          issues.push({
+            level: "FAIL",
+            code: "OPEN_OFFERS_AFTER_RESCHEDULE",
+            detail: `booking ${row.booking_id} still has ${openOffers.length} open offer(s) after executed reschedule`,
+          });
+        }
+      }
+
+      if (
+        booking &&
+        bookingExec &&
+        typeof bookingExec.newScheduledStart === "string" &&
+        OPEN_STATUSES.has(row.status)
+      ) {
+        issues.push({
+          level: "WARN",
+          code: "RESCHEDULE_REQUEST_STILL_OPEN",
+          detail: `booking ${row.booking_id} schedule changed but support request ${row.id} still ${row.status}`,
         });
       }
     }

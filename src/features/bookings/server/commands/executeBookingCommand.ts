@@ -33,6 +33,12 @@ import type {
   BookingCommandResult,
 } from "./types";
 import { enqueueNotificationWhenNotIdempotent } from "./shouldEnqueueNotificationForCommandResult";
+import { createAdminCancelOpenOffer } from "@/features/assignments/server/createAdminCancelOpenOffer";
+import { loadAssignmentContext } from "@/features/assignments/server/assignmentContext";
+import { isCleanerEligibleForAssignment } from "@/features/assignments/server/eligibilityForAssignment";
+import { persistAssignmentDispatchAt } from "@/features/payments/server/postPaymentAssignmentDispatch";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database/types";
 
 export type BookingCommandRunContext = {
   /**
@@ -44,7 +50,44 @@ export type BookingCommandRunContext = {
    * Resolved cleaners.id for the current profile when the actor is a cleaner.
    */
   actingCleanerId?: string | null;
+  /** Required for RESCHEDULE_BOOKING (cleaner availability + assignment context). */
+  supabaseClient?: SupabaseClient<Database>;
 };
+
+const RESCHEDULE_ALLOWED_STATUSES = new Set<BookingStatus>([
+  "confirmed",
+  "pending_assignment",
+  "assigned",
+]);
+
+function validateRescheduleWindow(
+  newScheduledStart: string,
+  newScheduledEnd: string,
+): BookingCommandResult | null {
+  const startMs = new Date(newScheduledStart).getTime();
+  const endMs = new Date(newScheduledEnd).getTime();
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) {
+    return fail("INVALID_PAYLOAD", "Invalid schedule timestamps.");
+  }
+  if (endMs <= startMs) {
+    return fail("INVALID_PAYLOAD", "End time must be after start time.");
+  }
+  if (startMs <= Date.now()) {
+    return fail("INVALID_PAYLOAD", "New visit time must be in the future.");
+  }
+  return null;
+}
+
+function mergeSupportRescheduleBookingMetadata(
+  existing: Json,
+  patch: Record<string, unknown>,
+): Json {
+  const base =
+    existing && typeof existing === "object" && !Array.isArray(existing)
+      ? (existing as Record<string, unknown>)
+      : {};
+  return { ...base, ...patch } as Json;
+}
 
 function fail(
   code: BookingCommandFailure["code"],
@@ -1058,6 +1101,158 @@ export async function executeBookingCommand(
           return fail("PERSISTENCE_ERROR", "Synthetic anchor already exists for this slot.");
         }
         return fail("PERSISTENCE_ERROR", "Could not create synthetic series anchor.");
+      }
+    }
+
+    case "RESCHEDULE_BOOKING": {
+      if (cmd.actor.actorType !== "admin") {
+        return fail("FORBIDDEN", "Only admins may reschedule bookings.");
+      }
+      if (!cmd.idempotencyKey?.trim()) {
+        return fail("IDEMPOTENCY_REQUIRED", "RESCHEDULE_BOOKING requires idempotencyKey.");
+      }
+      const windowErr = validateRescheduleWindow(cmd.newScheduledStart, cmd.newScheduledEnd);
+      if (windowErr) return windowErr;
+
+      const booking = await backend.getBooking(cmd.bookingId);
+      if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
+
+      if (
+        (await backend.findAuditsByBookingAndKey(cmd.bookingId, cmd.idempotencyKey)).length > 0
+      ) {
+        return ok(booking.id, booking.status, true);
+      }
+
+      if (booking.series_id) {
+        return fail(
+          "RECURRING_NOT_SUPPORTED",
+          "Recurring series visits cannot be rescheduled via booking support execution.",
+        );
+      }
+      if (!RESCHEDULE_ALLOWED_STATUSES.has(booking.status)) {
+        return fail(
+          "INVALID_TRANSITION",
+          `Cannot reschedule booking in status "${booking.status}".`,
+        );
+      }
+      if (booking.status === "completed" || booking.status === "cancelled") {
+        return fail("TERMINAL_STATE", "Cannot reschedule a completed or cancelled booking.");
+      }
+
+      const client = ctx?.supabaseClient;
+      if (!client) {
+        return fail(
+          "PERSISTENCE_ERROR",
+          "Reschedule requires database context for assignment checks.",
+        );
+      }
+
+      const previousStart = booking.scheduled_start;
+      const previousEnd = booking.scheduled_end;
+      let statusAfter = booking.status;
+      let assignmentOutcome: "none" | "retained" | "unassigned" = "none";
+
+      if (booking.cleaner_id) {
+        const bookingForContext: BookingRow = {
+          ...booking,
+          scheduled_start: cmd.newScheduledStart,
+          scheduled_end: cmd.newScheduledEnd,
+        };
+        const assignCtx = await loadAssignmentContext(client, bookingForContext);
+        if (!assignCtx) {
+          return fail(
+            "INVALID_PAYLOAD",
+            "Could not load assignment context for availability check.",
+          );
+        }
+        const eligible = await isCleanerEligibleForAssignment(
+          client,
+          assignCtx,
+          booking.cleaner_id,
+        );
+        if (eligible) {
+          assignmentOutcome = "retained";
+        } else if (cmd.assignmentHandling === "block_if_unavailable") {
+          return fail(
+            "ASSIGNMENT_UNAVAILABLE",
+            "Assigned cleaner is not available at the new time. Choose another time or unassign.",
+          );
+        } else if (cmd.assignmentHandling === "unassign_if_unavailable") {
+          try {
+            await backend.releaseAssignedCleanerForReschedule(booking.id, "assigned");
+            assignmentOutcome = "unassigned";
+            statusAfter = "pending_assignment";
+          } catch {
+            return fail("PERSISTENCE_ERROR", "Could not release cleaner assignment.");
+          }
+        } else {
+          return fail(
+            "ASSIGNMENT_UNAVAILABLE",
+            "Assigned cleaner is not available at the new time.",
+          );
+        }
+      }
+
+      const offers = await backend.listOffersForBooking(booking.id);
+      const cancelReason =
+        cmd.reason?.trim() ||
+        "Schedule changed via approved support reschedule.";
+      for (const offer of offers) {
+        if (offer.status !== "offered") continue;
+        const cancelResult = await createAdminCancelOpenOffer(backend, {
+          bookingId: booking.id,
+          offerId: offer.id,
+          adminProfileId: cmd.actor.profileId ?? "",
+          reason: cancelReason,
+        });
+        if (!cancelResult.ok && cancelResult.code !== "OFFER_NOT_OPEN") {
+          return fail(
+            cancelResult.code,
+            cancelResult.message ?? "Could not cancel open assignment offer.",
+          );
+        }
+      }
+
+      try {
+        await backend.updateBookingSchedule(
+          booking.id,
+          cmd.newScheduledStart,
+          cmd.newScheduledEnd,
+        );
+        if (await backend.hasPaidPaymentForBooking(booking.id)) {
+          await persistAssignmentDispatchAt(backend, booking.id, cmd.newScheduledStart);
+        }
+        const executionMeta = {
+          supportRescheduleExecution: {
+            supportRequestId: cmd.supportRequestId ?? null,
+            executedAt: new Date().toISOString(),
+            assignmentOutcome,
+            previousScheduledStart: previousStart,
+            previousScheduledEnd: previousEnd,
+            newScheduledStart: cmd.newScheduledStart,
+            newScheduledEnd: cmd.newScheduledEnd,
+          },
+        };
+        await backend.updateBookingMetadata(
+          booking.id,
+          mergeSupportRescheduleBookingMetadata(booking.metadata, executionMeta),
+        );
+        const auditCmd: BookingCommand = {
+          ...cmd,
+          metadata: {
+            supportRequestId: cmd.supportRequestId ?? null,
+            assignmentOutcome,
+            previousScheduledStart: previousStart,
+            previousScheduledEnd: previousEnd,
+            newScheduledStart: cmd.newScheduledStart,
+            newScheduledEnd: cmd.newScheduledEnd,
+            ...(cmd.metadata && typeof cmd.metadata === "object" ? cmd.metadata : {}),
+          },
+        };
+        await backend.appendAudit(auditCmd, booking.id, booking.status, statusAfter);
+        return ok(booking.id, statusAfter, false);
+      } catch {
+        return fail("PERSISTENCE_ERROR", "Could not reschedule booking.");
       }
     }
 

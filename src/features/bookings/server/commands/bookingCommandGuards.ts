@@ -78,6 +78,8 @@ function commandActorPolicy(
     case "CREATE_RECURRING_OCCURRENCE":
     case "CREATE_SYNTHETIC_SERIES_ANCHOR":
       return systemish;
+    case "RESCHEDULE_BOOKING":
+      return adminOnly;
   }
 }
 
@@ -152,6 +154,7 @@ export function nextStatusForCommand(
     case "EXPIRE_ASSIGNMENT_OFFER":
     case "CREATE_RECURRING_OCCURRENCE":
     case "CREATE_SYNTHETIC_SERIES_ANCHOR":
+    case "RESCHEDULE_BOOKING":
       return null;
     default: {
       const _exhaustive: never = cmd;
@@ -170,7 +173,8 @@ export function assertTransitionShape(
     cmd.type === "RECORD_ASSIGNMENT_OFFER_EXPIRED" ||
     cmd.type === "EXPIRE_ASSIGNMENT_OFFER" ||
     cmd.type === "CREATE_RECURRING_OCCURRENCE" ||
-    cmd.type === "CREATE_SYNTHETIC_SERIES_ANCHOR"
+    cmd.type === "CREATE_SYNTHETIC_SERIES_ANCHOR" ||
+    cmd.type === "RESCHEDULE_BOOKING"
   ) {
     return null;
   }

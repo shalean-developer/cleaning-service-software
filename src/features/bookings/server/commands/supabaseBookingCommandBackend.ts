@@ -148,6 +148,53 @@ export class SupabaseBookingCommandBackend implements BookingCommandBackend {
     if (error) throw new Error(error.message);
   }
 
+  async updateBookingSchedule(
+    bookingId: string,
+    scheduledStart: string,
+    scheduledEnd: string,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("bookings")
+      .update({
+        scheduled_start: scheduledStart,
+        scheduled_end: scheduledEnd,
+        updated_at: nowIso(),
+      })
+      .eq("id", bookingId);
+    if (error) throw new Error(error.message);
+  }
+
+  async releaseAssignedCleanerForReschedule(
+    bookingId: string,
+    fromStatus: BookingStatus,
+  ): Promise<void> {
+    const booking = await this.getBooking(bookingId);
+    if (!booking || booking.status !== fromStatus || fromStatus !== "assigned") {
+      throw new Error("UNASSIGN_NOT_APPLICABLE");
+    }
+    if (!booking.cleaner_id) {
+      throw new Error("UNASSIGN_NOT_APPLICABLE");
+    }
+    const cleanerId = booking.cleaner_id;
+    const { error } = await this.client
+      .from("bookings")
+      .update({
+        cleaner_id: null,
+        status: "pending_assignment",
+        updated_at: nowIso(),
+      })
+      .eq("id", bookingId)
+      .eq("status", "assigned");
+    if (error) throw new Error(error.message);
+
+    const roster = await this.listBookingCleanersForBooking(bookingId);
+    for (const row of roster) {
+      if (row.cleaner_id === cleanerId && row.status === "accepted") {
+        await this.updateBookingCleanerRosterStatus(row.id, "removed");
+      }
+    }
+  }
+
   async updateAssignmentDispatchAt(
     bookingId: string,
     assignmentDispatchAt: string | null,

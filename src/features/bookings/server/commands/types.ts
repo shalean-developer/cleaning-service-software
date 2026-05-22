@@ -35,7 +35,16 @@ export const BOOKING_COMMAND_TYPES = [
   "EXPIRE_ASSIGNMENT_OFFER",
   "CREATE_RECURRING_OCCURRENCE",
   "CREATE_SYNTHETIC_SERIES_ANCHOR",
+  "RESCHEDULE_BOOKING",
 ] as const;
+
+export const RESCHEDULE_ASSIGNMENT_HANDLING = [
+  "keep_if_available",
+  "unassign_if_unavailable",
+  "block_if_unavailable",
+] as const;
+
+export type RescheduleAssignmentHandling = (typeof RESCHEDULE_ASSIGNMENT_HANDLING)[number];
 
 export type BookingCommandType = (typeof BOOKING_COMMAND_TYPES)[number];
 
@@ -223,6 +232,16 @@ export type CreateSyntheticSeriesAnchorCommand = BaseCommand & {
   idempotencyKey: string;
 };
 
+/** Admin-only — updates visit schedule without payment or finalize side effects. */
+export type RescheduleBookingCommand = BaseCommand & {
+  type: "RESCHEDULE_BOOKING";
+  bookingId: BookingId;
+  newScheduledStart: string;
+  newScheduledEnd: string;
+  assignmentHandling: RescheduleAssignmentHandling;
+  supportRequestId?: string | null;
+};
+
 export type BookingCommand =
   | CreateBookingDraftCommand
   | MarkPaymentPendingCommand
@@ -245,7 +264,8 @@ export type BookingCommand =
   | RecordAssignmentOfferExpiredCommand
   | ExpireAssignmentOfferCommand
   | CreateRecurringOccurrenceCommand
-  | CreateSyntheticSeriesAnchorCommand;
+  | CreateSyntheticSeriesAnchorCommand
+  | RescheduleBookingCommand;
 
 export type BookingCommandErrorCode =
   | "FORBIDDEN"
@@ -257,6 +277,8 @@ export type BookingCommandErrorCode =
   | "OFFER_NOT_FOUND"
   | "OFFER_NOT_OPEN"
   | "ASSIGNMENT_CONFLICT"
+  | "ASSIGNMENT_UNAVAILABLE"
+  | "RECURRING_NOT_SUPPORTED"
   | "OPEN_OFFER_EXISTS"
   | "TERMINAL_STATE"
   | "PERSISTENCE_ERROR"

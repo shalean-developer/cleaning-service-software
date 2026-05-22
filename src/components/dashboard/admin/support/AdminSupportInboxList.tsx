@@ -7,6 +7,7 @@ import type { AdminSupportInboxItem } from "@/features/support/server/adminSuppo
 import { SUPPORT_INBOX_TRIAGE_NOTICE } from "@/features/support/server/supportInboxTriage";
 import { AdminSupportRequestHistoryPanel } from "@/components/dashboard/admin/support/AdminSupportRequestHistoryPanel";
 import { AdminSupportRequestResponseFields } from "@/components/dashboard/admin/support/AdminSupportRequestResponseFields";
+import { AdminSupportExecuteRescheduleForm } from "@/components/dashboard/admin/support/AdminSupportExecuteRescheduleForm";
 
 const STATUS_CLASS: Record<string, string> = {
   open: "bg-blue-50 text-blue-800",
@@ -263,6 +264,18 @@ function AdminSupportInboxCard({ item }: { item: AdminSupportInboxItem }) {
       </p>
 
       {error ? <p className="mt-2 text-sm text-red-800">{error}</p> : null}
+
+      {item.source === "booking_support" &&
+      item.requestType === "reschedule" &&
+      (item.status === "open" || item.status === "acknowledged") &&
+      item.bookingId ? (
+        <AdminSupportExecuteRescheduleForm
+          requestId={item.id}
+          bookingId={item.bookingId}
+          preferredNewTime={item.preferredNewTime}
+          disabled={loading}
+        />
+      ) : null}
 
       <div className="mt-4 flex flex-wrap gap-2">
         {item.bookingHref ? (

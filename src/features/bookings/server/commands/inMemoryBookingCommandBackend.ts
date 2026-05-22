@@ -110,6 +110,48 @@ export class InMemoryBookingCommandBackend implements BookingCommandBackend {
     this.bookings.set(bookingId, booking);
   }
 
+  async updateBookingSchedule(
+    bookingId: string,
+    scheduledStart: string,
+    scheduledEnd: string,
+  ): Promise<void> {
+    const booking = this.bookings.get(bookingId);
+    if (!booking) throw new Error("BOOKING_NOT_FOUND");
+    booking.scheduled_start = scheduledStart;
+    booking.scheduled_end = scheduledEnd;
+    booking.updated_at = nowIso();
+    this.bookings.set(bookingId, booking);
+  }
+
+  async releaseAssignedCleanerForReschedule(
+    bookingId: string,
+    fromStatus: BookingStatus,
+  ): Promise<void> {
+    const booking = this.bookings.get(bookingId);
+    if (!booking || booking.status !== fromStatus || fromStatus !== "assigned") {
+      throw new Error("UNASSIGN_NOT_APPLICABLE");
+    }
+    if (!booking.cleaner_id) throw new Error("UNASSIGN_NOT_APPLICABLE");
+    const cleanerId = booking.cleaner_id;
+    booking.cleaner_id = null;
+    booking.status = "pending_assignment";
+    booking.updated_at = nowIso();
+    this.bookings.set(bookingId, booking);
+    for (const row of this.bookingCleaners.values()) {
+      if (
+        row.booking_id === bookingId &&
+        row.cleaner_id === cleanerId &&
+        row.status === "accepted"
+      ) {
+        this.bookingCleaners.set(row.id, {
+          ...row,
+          status: "removed",
+          updated_at: nowIso(),
+        });
+      }
+    }
+  }
+
   async updateAssignmentDispatchAt(
     bookingId: string,
     assignmentDispatchAt: string | null,

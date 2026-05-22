@@ -268,7 +268,10 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           }}
         />
 
-        <AdminBookingSupportRequestsPanel requests={bookingSupportRequests} />
+        <AdminBookingSupportRequestsPanel
+          bookingId={bookingId}
+          requests={bookingSupportRequests}
+        />
 
         {earningsAttention ? (
           <AdminBookingEarningsAttentionBanner reconciliation={b.teamEarningsReconciliation} />

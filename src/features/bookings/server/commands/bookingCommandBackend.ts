@@ -41,6 +41,16 @@ export interface BookingCommandBackend {
 
   insertBooking(row: BookingRow): Promise<void>;
   updateBookingMetadata(bookingId: string, metadata: Json): Promise<void>;
+  updateBookingSchedule(
+    bookingId: string,
+    scheduledStart: string,
+    scheduledEnd: string,
+  ): Promise<void>;
+  /** Clears primary cleaner and returns booking to pending_assignment (assigned only). */
+  releaseAssignedCleanerForReschedule(
+    bookingId: string,
+    fromStatus: BookingStatus,
+  ): Promise<void>;
   updateAssignmentDispatchAt(
     bookingId: string,
     assignmentDispatchAt: string | null,
