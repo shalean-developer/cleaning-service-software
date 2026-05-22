@@ -8,6 +8,8 @@ export const CONTACT_PAGE_PATH = "/contact" as const;
 export const REVIEWS_PAGE_PATH = "/reviews" as const;
 export const LOCATIONS_HUB_PATH = "/locations" as const;
 export const SERVICES_HUB_PATH = "/services" as const;
+export const APPLY_PAGE_PATH = "/apply" as const;
+export const APPLY_FORM_PAGE_PATH = "/apply/application-form" as const;
 
 /** URL segment after `/locations/` (e.g. sea-point-cape-town). */
 export type LocationSeoSlug = `${string}-cape-town`;

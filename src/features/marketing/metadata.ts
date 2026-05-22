@@ -50,6 +50,23 @@ export function buildMarketingMetadata({
   };
 }
 
+/** Conversion/form pages — allow follow links, omit from sitemap. */
+export function buildMarketingNoindexMetadata({
+  title,
+  description,
+  path,
+}: BuildMarketingMetadataOptions): Metadata {
+  const base = buildMarketingMetadata({ title, description, path });
+  return {
+    ...base,
+    robots: {
+      index: false,
+      follow: true,
+      googleBot: { index: false, follow: true },
+    },
+  };
+}
+
 /** Dashboard and auth surfaces — keep out of public search indexes. */
 export const PLATFORM_NOINDEX_METADATA: Metadata = {
   robots: {

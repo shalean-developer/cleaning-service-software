@@ -1,7 +1,7 @@
 import {
   BOOKING_PATH,
   areaLocationPath,
-  CLEANER_SIGN_IN_PATH,
+  APPLY_PATH,
   MARKETING_SERVICES,
   SERVICE_SEO_PATHS,
   marketingBookPath,
@@ -273,7 +273,7 @@ export const SERVICES_HUB_FINAL_CTA = {
   apply: {
     title: "Become a cleaner",
     description: "Join Shalean's vetted network and accept offers across Cape Town.",
-    href: CLEANER_SIGN_IN_PATH,
+    href: APPLY_PATH,
     label: "Apply to clean with Shalean",
   },
 } as const;

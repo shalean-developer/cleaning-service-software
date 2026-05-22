@@ -22,7 +22,10 @@ import {
   summarizeCronHealth,
   type CronHealthSummary,
 } from "@/features/dashboards/adminAssignmentsPageDisplay";
-import { getAdminOperationalQueueCounts } from "@/features/dashboards/server/adminOperationalQueueCounts";
+import {
+  getAdminOperationalQueueCounts,
+  type AdminOperationalQueueCountItem,
+} from "@/features/dashboards/server/adminOperationalQueueCounts";
 import {
   listAdminAssignmentQueue,
   listAdminBookings,
@@ -49,9 +52,7 @@ export type AdminDispatchOrchestrationData = {
   workQueue: AdminAssignmentQueueItem[];
   workQueueTotal: number;
   today: AdminOverviewTodayCounts;
-  queues: Awaited<ReturnType<typeof getAdminOperationalQueueCounts>> extends { ok: true; queues: infer Q }
-    ? Q
-    : never;
+  queues: AdminOperationalQueueCountItem[];
   cronSummary: CronHealthSummary | null;
   deferredDiagnostics: DeferredAssignmentDiagnostics | null;
 };

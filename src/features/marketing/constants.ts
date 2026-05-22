@@ -40,8 +40,18 @@ export type FooterSupportLink = {
   href?: string;
 };
 
+export const SIGN_IN_PATH = "/sign-in" as const;
+export const SIGN_UP_PATH = "/sign-up" as const;
+
+export const CLEANER_SIGN_IN_PATH =
+  `/sign-in?redirectedFrom=${encodeURIComponent("/cleaner/offers")}` as const;
+
+/** Public cleaner recruitment funnel (not sign-in). */
+export const APPLY_PATH = "/apply" as const;
+
 export const FOOTER_SUPPORT_LINKS: readonly FooterSupportLink[] = [
   { sectionId: "faq", label: "FAQ" },
+  { label: "Apply to clean with Shalean", href: APPLY_PATH },
   { label: "Terms & Conditions", href: "/terms" },
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Refund Policy", href: "/refund-policy" },
@@ -446,23 +456,18 @@ export type HeaderNavLink = {
 /** Homepage FAQ section — used for Help nav (no URL hash). */
 export const HEADER_HELP_SECTION = "faq" as const satisfies MarketingSectionId;
 
-export const SIGN_IN_PATH = "/sign-in" as const;
-export const SIGN_UP_PATH = "/sign-up" as const;
-
-export const CLEANER_SIGN_IN_PATH =
-  `/sign-in?redirectedFrom=${encodeURIComponent("/cleaner/offers")}` as const;
-
 /** Product-first platform navigation (desktop center + mobile primary). */
 export const HEADER_PRIMARY_NAV: readonly HeaderNavLink[] = [
   { href: BOOKING_PATH, label: "Book Cleaning" },
   { sectionId: "services", label: "Services" },
   { href: "/about", label: "About" },
-  { href: CLEANER_SIGN_IN_PATH, label: "Apply" },
+  { href: APPLY_PATH, label: "Apply" },
   { sectionId: "areas", label: "Locations" },
 ];
 
 /** Lower-priority links — mobile drawer & footer-style discovery. */
 export const HEADER_SECONDARY_NAV: readonly HeaderNavLink[] = [
+  { href: CLEANER_SIGN_IN_PATH, label: "Cleaner sign in" },
   { sectionId: HEADER_HELP_SECTION, label: "Help" },
   { sectionId: "contact", label: "Contact" },
   { label: "Blog", enabled: false },

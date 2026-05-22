@@ -2,7 +2,7 @@ import {
   areaLocationPath,
   BOOKING_PATH,
   CAPE_TOWN_AREAS,
-  CLEANER_SIGN_IN_PATH,
+  APPLY_PATH,
   HOMEPAGE_LOCAL_SEO,
   MARKETING_SERVICES,
   REVIEWS_SECTION,
@@ -215,7 +215,7 @@ export const ABOUT_PAGE_CAREERS = {
     "Apply to join our network if you are a professional cleaner looking for consistent opportunities without building your own client pipeline from scratch.",
   ],
   ctaLabel: "Apply to clean with Shalean",
-  ctaHref: CLEANER_SIGN_IN_PATH,
+  ctaHref: APPLY_PATH,
 } as const;
 
 export const ABOUT_PAGE_FINAL_CTA = {

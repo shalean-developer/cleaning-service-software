@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { CurrentUser } from "@/lib/auth/types";
-import type { EarningPayoutStatus } from "@/lib/database/types";
+import type { EarningPayoutStatus, Json } from "@/lib/database/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resolveCleanerLabels } from "@/features/dashboards/server/bookingCleanersReadModel";
 import { isRecurringAdminBooking } from "@/features/dashboards/server/adminBookingRecurring";
@@ -24,13 +24,15 @@ import {
 } from "./adminEarningsPeriod";
 import { formatEarningsZar } from "./adminEarningsDisplay";
 
-type PaidPaymentRow = {
+type PaidPaymentSlice = {
   amount_cents: number;
   booking_id: string;
-  bookings: {
-    metadata: unknown;
-    series_id: string | null;
-  } | null;
+};
+
+type BookingRevenueSlice = {
+  id: string;
+  metadata: Json;
+  series_id: string | null;
 };
 
 type EarningLineSlice = {
@@ -147,7 +149,7 @@ export async function loadAdminEarningsView(
   ] = await Promise.all([
     client
       .from("payments")
-      .select("amount_cents, booking_id, bookings(metadata, series_id)")
+      .select("amount_cents, booking_id")
       .eq("status", "paid")
       .gte("created_at", bounds.startIso)
       .lt("created_at", bounds.endExclusiveIso),
@@ -188,13 +190,37 @@ export async function loadAdminEarningsView(
     return { ok: false, code: "PERSISTENCE_ERROR", message: queuedError.message, status: 500 };
   }
 
+  const paymentRows = (periodPayments ?? []) as PaidPaymentSlice[];
+  const bookingIds = [...new Set(paymentRows.map((p) => p.booking_id).filter(Boolean))];
+  const bookingById = new Map<string, BookingRevenueSlice>();
+
+  if (bookingIds.length > 0) {
+    const { data: bookingRows, error: bookingsError } = await client
+      .from("bookings")
+      .select("id, metadata, series_id")
+      .in("id", bookingIds);
+
+    if (bookingsError) {
+      return {
+        ok: false,
+        code: "PERSISTENCE_ERROR",
+        message: bookingsError.message,
+        status: 500,
+      };
+    }
+
+    for (const row of (bookingRows ?? []) as BookingRevenueSlice[]) {
+      bookingById.set(row.id, row);
+    }
+  }
+
   let revenueCents = 0;
   let recurringRevenueCents = 0;
   const revenueByService = new Map<string, { label: string; cents: number }>();
 
-  for (const payment of (periodPayments ?? []) as PaidPaymentRow[]) {
+  for (const payment of paymentRows) {
     revenueCents += payment.amount_cents;
-    const booking = payment.bookings;
+    const booking = bookingById.get(payment.booking_id) ?? null;
     if (
       booking &&
       isRecurringAdminBooking({ seriesId: booking.series_id, metadata: booking.metadata })

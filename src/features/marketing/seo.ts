@@ -159,6 +159,29 @@ export function buildOrganizationSchema(options?: { description?: string }) {
   };
 }
 
+export function buildWebPageSchema(options: {
+  name: string;
+  description: string;
+  path: string;
+}) {
+  const siteUrl = getMarketingSiteUrl();
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: options.name,
+    description: options.description,
+    url: getMarketingCanonicalUrl(options.path),
+    isPartOf: {
+      "@type": "WebSite",
+      "@id": `${siteUrl}/#website`,
+    },
+    about: {
+      "@type": "LocalBusiness",
+      "@id": `${siteUrl}/#localbusiness`,
+    },
+  };
+}
+
 export function buildAboutPageSchema(options: {
   name: string;
   description: string;

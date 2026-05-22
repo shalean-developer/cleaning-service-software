@@ -4,6 +4,7 @@ import { SERVICE_SEO_PATHS } from "./constants";
 import { LEGAL_PAGE_PATHS } from "./legal-pages";
 import {
   ABOUT_PAGE_PATH,
+  APPLY_PAGE_PATH,
   CONTACT_PAGE_PATH,
   FAQ_PAGE_PATH,
   REVIEWS_PAGE_PATH,
@@ -84,6 +85,12 @@ export function buildMarketingSitemap(): MetadataRoute.Sitemap {
       priority: 0.75,
     },
     {
+      url: `${baseUrl}${APPLY_PAGE_PATH}`,
+      lastModified,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}${FAQ_PAGE_PATH}`,
       lastModified,
       changeFrequency: "monthly",
@@ -117,7 +124,7 @@ export const SITEMAP_ENTRY_COUNT =
   1 +
   1 +
   SITEMAP_SERVICE_SLUGS.length +
-  4 +
+  5 +
   LEGAL_PAGE_PATHS.length +
   1 +
   LOCATION_SEO_SLUGS.length;

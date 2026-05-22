@@ -509,6 +509,40 @@ export type AdminOperationalAuditRow = {
   created_at: string;
 };
 
+export type CleanerApplicationStatus =
+  | "new"
+  | "reviewing"
+  | "approved"
+  | "rejected"
+  | "duplicate";
+
+export type CleanerApplicationRow = {
+  id: string;
+  full_name: string;
+  email: string | null;
+  phone: string;
+  phone_normalized: string;
+  suburb: string | null;
+  city: string;
+  experience_level: string | null;
+  has_own_transport: boolean | null;
+  has_cleaning_experience: boolean | null;
+  service_interests: string[];
+  availability_days: number[];
+  preferred_areas: string[];
+  status: CleanerApplicationStatus;
+  source: string;
+  notes: string | null;
+  admin_notes: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_profile_id: string | null;
+  created_cleaner_id: string | null;
+  metadata: Json;
+  created_at: string;
+  updated_at: string;
+};
+
 export type CleanerOperationalAuditRow = {
   id: string;
   cleaner_id: string;
@@ -578,6 +612,7 @@ export type Database = {
       booking_state_audit: PublicTable<BookingStateAuditRow>;
       admin_operational_audit: PublicTable<AdminOperationalAuditRow>;
       cleaner_operational_audit: PublicTable<CleanerOperationalAuditRow>;
+      cleaner_applications: PublicTable<CleanerApplicationRow>;
       customer_operational_audit: PublicTable<CustomerOperationalAuditRow>;
     };
     Views: Record<

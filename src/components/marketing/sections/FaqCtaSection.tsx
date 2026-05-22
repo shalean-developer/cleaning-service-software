@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
+  APPLY_PATH,
   BOOKING_PATH,
   BOOKING_SIGNUP_HINT,
   FAQ_SECTION,
@@ -112,6 +113,15 @@ export function FaqCtaSection() {
               </a>
             </div>
             <p className="text-xs leading-relaxed text-white/75">{BOOKING_SIGNUP_HINT}</p>
+            <p className="text-xs text-white/70">
+              Looking for work?{" "}
+              <Link
+                href={APPLY_PATH}
+                className="font-semibold text-white underline-offset-2 hover:underline"
+              >
+                Apply to clean with Shalean
+              </Link>
+            </p>
           </div>
 
           <div className="relative h-48 shrink-0 overflow-hidden sm:h-56 lg:h-auto lg:min-h-0 lg:w-[42%] lg:self-stretch">

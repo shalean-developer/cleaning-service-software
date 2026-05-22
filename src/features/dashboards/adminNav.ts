@@ -21,6 +21,7 @@ export const ADMIN_DASHBOARD_NAV_GROUPS: readonly AdminNavGroup[] = [
       { href: "/admin/recurring", label: "Recurring" },
       { href: "/admin/assignments", label: "Dispatch" },
       { href: "/admin/cleaners", label: "Cleaners" },
+      { href: "/admin/cleaner-applications", label: "Applications" },
       { href: "/admin/customers", label: "Customers" },
     ],
   },
