@@ -1,44 +1,51 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AdminBookingWizard } from "./components/AdminBookingWizard";
-import { AdminBookingWizardStepPanel } from "./components/steps/AdminBookingWizardStepPanels";
+import { AdminBookingWizardConfirmationActions } from "./components/AdminBookingWizardConfirmationActions";
+import { EMPTY_ADMIN_BOOKING_WIZARD_FORM } from "./draftFormState";
 
-vi.mock("@/lib/app/adminAssistedBookingFlag", () => ({
-  isAdminAssistedBookingEnabled: () => false,
-}));
-
-describe("AdminBookingWizard (Phase 1 read-only)", () => {
-  it("renders design-mode banner and eight-step stepper", () => {
-    const html = renderToStaticMarkup(<AdminBookingWizard />);
-
+describe("AdminBookingWizard", () => {
+  it("renders design-mode banner", () => {
+    const html = renderToStaticMarkup(<AdminBookingWizard featureEnabled={false} />);
     expect(html).toContain('data-testid="admin-booking-design-mode-banner"');
-    expect(html).toContain("read-only shell");
-    expect(html).toContain('aria-label="Admin booking progress"');
-    expect(html).toContain("Customer");
-    expect(html).toContain("Confirmation");
   });
 
-  it("renders sticky summary on desktop and mobile summary sheet", () => {
-    const html = renderToStaticMarkup(<AdminBookingWizard />);
-
-    expect(html).toContain('data-testid="admin-booking-summary-sidebar"');
-    expect(html).toContain('data-testid="admin-booking-summary-mobile"');
-    expect(html).toContain("No audit events (read-only)");
+  it("disables save draft when feature flag is off", () => {
+    const html = renderToStaticMarkup(
+      <AdminBookingWizardConfirmationActions
+        featureEnabled={false}
+        form={{
+          ...EMPTY_ADMIN_BOOKING_WIZARD_FORM,
+          customerId: "11111111-1111-4111-8111-111111111111",
+          selectedCustomer: {
+            customerId: "11111111-1111-4111-8111-111111111111",
+            label: "Test Customer",
+            email: null,
+            phone: null,
+          },
+          serviceSlug: "regular-cleaning",
+          date: "2099-06-01",
+          time: "09:00",
+          addressLine1: "12 Main",
+          suburb: "Sea Point",
+          city: "Cape Town",
+        }}
+      />,
+    );
+    expect(html).toContain('data-testid="admin-booking-save-draft"');
+    expect(html).toContain('disabled=""');
   });
 
-  it("disables all confirmation mutation buttons on the confirmation step", () => {
-    const html = renderToStaticMarkup(<AdminBookingWizardStepPanel step="confirmation" />);
-
-    expect(html).toContain('data-testid="admin-booking-confirmation-actions"');
-    expect(html).toContain("Save draft");
+  it("keeps payment and finalize actions disabled when flag is on", () => {
+    const html = renderToStaticMarkup(
+      <AdminBookingWizardConfirmationActions
+        featureEnabled={true}
+        form={EMPTY_ADMIN_BOOKING_WIZARD_FORM}
+      />,
+    );
     expect(html).toContain("Finalize paid booking");
-    expect((html.match(/\bdisabled\b/g) ?? []).length).toBeGreaterThanOrEqual(4);
-  });
-
-  it("does not expose enabled create-booking submit actions", () => {
-    const html = renderToStaticMarkup(<AdminBookingWizard />);
-
-    expect(html).not.toMatch(/type="submit"[^>]*>(?!.*disabled)/);
-    expect(html).not.toContain('action="/api/admin/bookings"');
+    expect(html).toContain("Send payment request");
+    const disabledCount = (html.match(/\bdisabled\b/g) ?? []).length;
+    expect(disabledCount).toBeGreaterThanOrEqual(3);
   });
 });

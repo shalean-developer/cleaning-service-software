@@ -260,6 +260,8 @@ export type TeamRosterFoundationRow = import("./bookingCleanersReadModel").TeamR
 
 export type AdminBookingDetail = AdminBookingListItem & {
   customerId: string;
+  /** True when metadata.adminAssist marks an admin wizard draft. */
+  adminAssistedDraft: boolean;
   cleanerId: string | null;
   /** NF-7C display-only roster rows when booking_cleaners has data. */
   teamRosterFoundation: TeamRosterFoundationRow[];

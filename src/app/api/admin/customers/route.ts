@@ -81,7 +81,7 @@ export async function POST(request: Request) {
 
   const result = await createCustomer({
     adminProfileId: user.profileId,
-    email: parsed.values.email,
+    email: parsed.values.email?.trim() || null,
     fullName: parsed.values.full_name,
     companyName: parsed.values.company_name,
     phone: parsed.values.phone,

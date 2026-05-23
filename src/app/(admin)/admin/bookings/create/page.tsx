@@ -3,23 +3,38 @@ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { AdminBookingWizard } from "@/features/admin-booking-wizard/components/AdminBookingWizard";
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
+import { isAdminAssistedBookingEnabled } from "@/lib/app/adminAssistedBookingFlag";
 
 export const metadata: Metadata = {
-  title: "Create booking (preview) | Admin",
-  description: "Admin-assisted booking wizard — Phase 1 read-only preview",
+  title: "Create booking | Admin",
+  description: "Admin-assisted booking wizard — draft creation",
 };
 
-export default async function AdminBookingsCreatePage() {
+type PageProps = {
+  searchParams: Promise<{ customerId?: string }>;
+};
+
+export default async function AdminBookingsCreatePage({ searchParams }: PageProps) {
   const user = await getCurrentUser();
   if (!user) return null;
+
+  const featureEnabled = isAdminAssistedBookingEnabled();
+  const { customerId } = await searchParams;
 
   return (
     <AdminDashboardShell
       title="Create booking for customer"
-      subtitle="Admin-assisted booking — read-only preview. No production mutations."
+      subtitle={
+        featureEnabled
+          ? "Admin-assisted booking — draft creation enabled (no payment or assignment)."
+          : "Admin-assisted booking — preview only. Enable ADMIN_ASSISTED_BOOKING_ENABLED to save drafts."
+      }
       nav={[...ADMIN_DASHBOARD_NAV]}
     >
-      <AdminBookingWizard />
+      <AdminBookingWizard
+        featureEnabled={featureEnabled}
+        initialCustomerId={customerId ?? null}
+      />
     </AdminDashboardShell>
   );
 }

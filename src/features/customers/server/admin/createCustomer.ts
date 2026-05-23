@@ -23,14 +23,14 @@ export async function createCustomer(
   params: CreateCustomerParams,
   client: SupabaseClient<Database> = requireServiceRoleClient(),
 ): Promise<CreateCustomerResult> {
-  const email = normalizeCustomerEmail(params.email);
   const fullName = params.fullName.trim();
   const companyName = params.companyName?.trim() || null;
   const notes = params.notes?.trim() || null;
   const phoneRaw = params.phone?.trim() || null;
+  const emailInput = params.email?.trim() ?? "";
 
-  if (!email || !fullName) {
-    return { ok: false, code: "INVALID_PAYLOAD", message: "Email and full name are required." };
+  if (!fullName) {
+    return { ok: false, code: "INVALID_PAYLOAD", message: "Full name is required." };
   }
 
   let phoneE164: string | null = null;
@@ -43,6 +43,18 @@ export async function createCustomer(
       };
     }
     phoneE164 = normalizeZaMobilePhone(phoneRaw);
+  }
+
+  let email = emailInput ? normalizeCustomerEmail(emailInput) : "";
+  if (!email) {
+    if (!phoneE164) {
+      return {
+        ok: false,
+        code: "INVALID_PAYLOAD",
+        message: "Email or phone is required.",
+      };
+    }
+    email = `assist+${phoneE164.replace(/\D/g, "")}@no-reply.shalean.co.za`;
   }
 
   if (params.sendInvite) {

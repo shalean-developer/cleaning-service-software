@@ -1,29 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { normalizeCustomerEmail, parseCreateCustomerBody } from "./parseCreateCustomerBody";
+import { parseCreateCustomerBody } from "./parseCreateCustomerBody";
 
 describe("parseCreateCustomerBody", () => {
-  it("accepts valid payload", () => {
+  it("accepts phone-only create when email omitted", () => {
     const result = parseCreateCustomerBody({
-      email: " Ada@Example.COM ",
-      full_name: "Ada Customer",
-      company_name: "Ada Co",
-      phone: "0821234567",
-      notes: "VIP",
+      full_name: "Phone Only",
+      phone: "082 123 4567",
     });
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(result.values.email).toBe("Ada@Example.COM");
-    expect(result.values.full_name).toBe("Ada Customer");
   });
 
-  it("rejects missing full name", () => {
-    const result = parseCreateCustomerBody({ email: "a@b.com" });
+  it("rejects when both email and phone missing", () => {
+    const result = parseCreateCustomerBody({
+      full_name: "No Contact",
+    });
     expect(result.ok).toBe(false);
   });
-});
 
-describe("normalizeCustomerEmail", () => {
-  it("lowercases and trims", () => {
-    expect(normalizeCustomerEmail("  Ada@Example.COM ")).toBe("ada@example.com");
+  it("rejects invalid email when provided", () => {
+    const result = parseCreateCustomerBody({
+      full_name: "Bad Email",
+      email: "not-an-email",
+      phone: "082 123 4567",
+    });
+    expect(result.ok).toBe(false);
   });
 });

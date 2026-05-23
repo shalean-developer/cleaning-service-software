@@ -870,6 +870,25 @@ export type AdminDeleteAuditRow = {
   created_at: string;
 };
 
+export type AdminBookingAssistAuditRow = {
+  id: string;
+  admin_profile_id: string;
+  customer_id: string;
+  booking_id: string | null;
+  action: string;
+  idempotency_key: string;
+  payload: Json;
+  created_at: string;
+};
+
+export type AdminBookingAssistIdempotencyRow = {
+  idempotency_key: string;
+  admin_profile_id: string;
+  customer_id: string;
+  result: Json;
+  created_at: string;
+};
+
 /** Supabase client expects Insert/Update/Relationships on each table definition. */
 export type PublicTable<Row> = {
   Row: Row;
@@ -938,6 +957,8 @@ export type Database = {
       cleaner_applications: PublicTable<CleanerApplicationRow>;
       customer_operational_audit: PublicTable<CustomerOperationalAuditRow>;
       admin_delete_audit: PublicTable<AdminDeleteAuditRow>;
+      admin_booking_assist_audit: PublicTable<AdminBookingAssistAuditRow>;
+      admin_booking_assist_idempotency: PublicTable<AdminBookingAssistIdempotencyRow>;
     };
     Views: Record<
       string,

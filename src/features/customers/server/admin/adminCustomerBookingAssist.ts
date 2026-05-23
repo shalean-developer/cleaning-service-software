@@ -1,13 +1,21 @@
-/**
- * Admin-assisted booking audit (Phase 3F).
- *
- * Production booking creation requires a customer session with actingCustomerId;
- * lock/paystack routes reject admin roles. Command-layer CREATE_BOOKING_DRAFT
- * allows admin actors in tests only. no safe admin HTTP flow exists yet.
- */
-export const ADMIN_CUSTOMER_ASSISTED_BOOKING_SUPPORTED = false;
+import { isAdminAssistedBookingEnabled } from "@/lib/app/adminAssistedBookingFlag";
 
-export const ADMIN_CUSTOMER_ASSISTED_BOOKING_LABEL = "Create booking for customer";
+/** Draft creation is available when the server feature flag is enabled. */
+export function isAdminAssistedBookingDraftEnabled(): boolean {
+  return isAdminAssistedBookingEnabled();
+}
+
+export const ADMIN_CUSTOMER_ASSISTED_BOOKING_LABEL = "Create draft booking";
 
 export const ADMIN_CUSTOMER_ASSISTED_BOOKING_DEFERRED_MESSAGE =
-  "Admin-assisted booking coming soon";
+  "Enable ADMIN_ASSISTED_BOOKING_ENABLED to create draft bookings for customers.";
+
+/** @deprecated Use isAdminAssistedBookingDraftEnabled() */
+export const ADMIN_CUSTOMER_ASSISTED_BOOKING_SUPPORTED = false;
+
+export function buildAdminBookingCreateHref(customerId?: string | null): string {
+  if (customerId?.trim()) {
+    return `/admin/bookings/create?customerId=${encodeURIComponent(customerId.trim())}`;
+  }
+  return "/admin/bookings/create";
+}

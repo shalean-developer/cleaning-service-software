@@ -1,6 +1,6 @@
 export type CreateCustomerParams = {
   adminProfileId: string;
-  email: string;
+  email?: string | null;
   fullName: string;
   companyName?: string | null;
   phone?: string | null;

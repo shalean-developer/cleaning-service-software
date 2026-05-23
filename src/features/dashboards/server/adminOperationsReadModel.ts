@@ -14,6 +14,7 @@ import type {
 import { mapAdminOperationalAuditRow } from "@/features/admin/server/mapAdminOperationalAuditRow";
 import { listNotificationsForBooking } from "@/features/notifications/server/listNotificationsForBooking";
 import type { BookingStatus } from "@/features/bookings/server/types";
+import { isAdminAssistedBookingMetadata } from "@/features/bookings/server/admin/adminAssistMetadata";
 import { resolvePaymentFailureReason } from "@/features/bookings/server/paymentFailureDisplay";
 import { buildLifecycleTimeline } from "./lifecycleTimeline";
 import {
@@ -874,6 +875,7 @@ export async function getAdminBookingDetail(
       paymentStatus: payment?.status ?? null,
       paymentFailureReason,
       customerId: row.customer_id,
+      adminAssistedDraft: isAdminAssistedBookingMetadata(row.metadata),
       cleanerId: row.cleaner_id,
       customerLabel,
       customerPhone: customerPhone.display,

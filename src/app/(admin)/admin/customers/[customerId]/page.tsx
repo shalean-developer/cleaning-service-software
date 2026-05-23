@@ -15,6 +15,7 @@ import { formatAdminTimestamp } from "@/features/dashboards/server/parseBookingD
 import { getCustomerOperationalTimeline } from "@/features/customers/server/admin/customerOperationalTimelineReadModel";
 import { parseAdminCustomerDetailQueryParams } from "@/features/customers/server/admin/parseAdminCustomerDetailQuery";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
+import { isAdminAssistedBookingDraftEnabled } from "@/features/customers/server/admin/adminCustomerBookingAssist";
 
 type PageProps = {
   params: Promise<{ customerId: string }>;
@@ -107,6 +108,7 @@ export default async function AdminCustomerDetailPage({ params, searchParams }: 
             timelineResult.ok ? null : timelineResult.message
           }
           bookingFilter={bookingFilter}
+          draftBookingEnabled={isAdminAssistedBookingDraftEnabled()}
         />
 
         <AdminCustomerDeleteDangerZone

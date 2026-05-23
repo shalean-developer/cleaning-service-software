@@ -1,12 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { isAdminAssistedBookingEnabled } from "@/lib/app/adminAssistedBookingFlag";
+import { useCallback, useMemo, useState } from "react";
 import {
   WIZARD_SHELL_WIDE_WITH_SIDEBAR_CLASS,
   WIZARD_STEP_CARD_MIN_HEIGHT_CLASS,
 } from "@/features/booking-wizard/wizardLayout";
 import { WIZARD_BTN_PRIMARY, WIZARD_BTN_SECONDARY } from "@/features/booking-wizard/wizardTheme";
+import {
+  EMPTY_ADMIN_BOOKING_WIZARD_FORM,
+  type AdminBookingWizardFormState,
+} from "../draftFormState";
 import { adminWizardNextStep, adminWizardPreviousStep } from "../navigation";
 import type { AdminBookingWizardStep, AdminBookingWizardSummary } from "../types";
 import { AdminBookingWizardDesignModeBanner } from "./AdminBookingWizardDesignModeBanner";
@@ -17,20 +20,62 @@ import {
 } from "./AdminBookingWizardSummarySidebar";
 import { AdminBookingWizardStepPanel } from "./steps/AdminBookingWizardStepPanels";
 
-const DEFAULT_SUMMARY: AdminBookingWizardSummary = {
-  customerLabel: "Not selected",
-  serviceLabel: "Not selected",
-  scheduleLabel: "Not scheduled",
-  addressLabel: "Not entered",
-  totalLabel: "—",
-  paymentLabel: "Not selected",
-  lifecyclePreview: "draft → pending_payment → confirmed → …",
+type Props = {
+  featureEnabled: boolean;
+  initialCustomerId?: string | null;
+  initialCustomerLabel?: string | null;
 };
 
-export function AdminBookingWizard() {
-  const featureEnabled = isAdminAssistedBookingEnabled();
+function buildSummary(form: AdminBookingWizardFormState): AdminBookingWizardSummary {
+  return {
+    customerLabel: form.selectedCustomer?.label ?? "Not selected",
+    serviceLabel: form.serviceSlug || "Not selected",
+    scheduleLabel:
+      form.date && form.time ? `${form.date} ${form.time}` : "Not scheduled",
+    addressLabel:
+      form.addressLine1 && form.suburb
+        ? `${form.addressLine1}, ${form.suburb}`
+        : "Not entered",
+    totalLabel: "Calculated on save",
+    paymentLabel: "None (draft only)",
+    lifecyclePreview: "draft (stops here — Phase 2)",
+  };
+}
+
+function buildInitialForm(
+  initialCustomerId?: string | null,
+  initialCustomerLabel?: string | null,
+): AdminBookingWizardFormState {
+  const customerId = initialCustomerId?.trim() ?? "";
+  if (!customerId) return EMPTY_ADMIN_BOOKING_WIZARD_FORM;
+
+  const label = initialCustomerLabel?.trim() || customerId.slice(0, 8);
+  return {
+    ...EMPTY_ADMIN_BOOKING_WIZARD_FORM,
+    customerId,
+    selectedCustomer: {
+      customerId,
+      label,
+      email: null,
+      phone: null,
+    },
+  };
+}
+
+export function AdminBookingWizard({
+  featureEnabled,
+  initialCustomerId,
+  initialCustomerLabel,
+}: Props) {
   const [step, setStep] = useState<AdminBookingWizardStep>("customer");
-  const summary = DEFAULT_SUMMARY;
+  const [form, setForm] = useState<AdminBookingWizardFormState>(() =>
+    buildInitialForm(initialCustomerId, initialCustomerLabel),
+  );
+  const summary = useMemo(() => buildSummary(form), [form]);
+
+  const onFormChange = useCallback((patch: Partial<AdminBookingWizardFormState>) => {
+    setForm((prev) => ({ ...prev, ...patch }));
+  }, []);
 
   const isFirstStep = step === "customer";
   const isLastStep = step === "confirmation";
@@ -55,7 +100,12 @@ export function AdminBookingWizard() {
           <div
             className={`w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5 ${WIZARD_STEP_CARD_MIN_HEIGHT_CLASS}`}
           >
-            <AdminBookingWizardStepPanel step={step} />
+            <AdminBookingWizardStepPanel
+              step={step}
+              featureEnabled={featureEnabled}
+              form={form}
+              onFormChange={onFormChange}
+            />
           </div>
 
           <div className="mt-4 flex w-full min-w-0 gap-3">

@@ -57,6 +57,13 @@ export const FACADE_BOUNDARY_RULES: FacadeBoundaryRule[] = [
     allowedDirectWriteException: false,
   },
   {
+    facadeFile: "features/bookings/server/admin/adminCreateBookingDraftFacade.ts",
+    exportSymbols: ["adminCreateBookingDraftFacade"],
+    tier: "command_required",
+    allowedServiceRoleImport: true,
+    allowedDirectWriteException: false,
+  },
+  {
     facadeFile: "features/bookings/server/lock/createPaymentRetryLock.ts",
     exportSymbols: ["createPaymentRetryLock"],
     tier: "lock_infra",
@@ -302,6 +309,8 @@ export const ADMIN_OVERRIDE_PATTERN = /\bADMIN_OVERRIDE_STATUS\b/;
 /** Route manifest symbols → facade file (for cross-check tests). */
 export const ROUTE_FACADE_SYMBOL_TO_FILE: Record<string, string> = {
   createBookingPaymentLock: "features/bookings/server/lock/createBookingPaymentLock.ts",
+  adminCreateBookingDraftFacade:
+    "features/bookings/server/admin/adminCreateBookingDraftFacade.ts",
   createPaymentRetryLock: "features/bookings/server/lock/createPaymentRetryLock.ts",
   initializePayment: "features/payments/server/initializePayment.ts",
   verifyPayment: "features/payments/server/verifyPayment.ts",

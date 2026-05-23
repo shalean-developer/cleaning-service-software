@@ -1,6 +1,6 @@
 # Admin-assisted booking system — architecture
 
-**Status:** Phase 1 — read-only UI shell  
+**Status:** Phase 2 — draft-only backend (`ADMIN_CREATE_BOOKING` via facade + `CREATE_BOOKING_DRAFT`)  
 **Last updated:** 2026-05-23
 
 ## Purpose
@@ -22,7 +22,7 @@ Admin/customer facades
 | Phase | Scope | Mutations |
 |-------|--------|-----------|
 | **1** | Read-only wizard, docs, flag, nav fixes | None |
-| **2** | `ADMIN_CREATE_BOOKING_DRAFT`, audit table, admin API | Draft only |
+| **2** | `adminCreateBookingDraftFacade`, audit + idempotency tables, `POST /api/admin/bookings/draft` | Draft only (shipped) |
 | **3** | Full wizard wiring | Create pending |
 | **4** | Payment links | Paystack init |
 | **5** | Offline payments | → `finalizePaidBooking` |

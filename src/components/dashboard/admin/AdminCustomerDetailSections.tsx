@@ -5,9 +5,8 @@ import { AdminCustomerBookingCard } from "@/components/dashboard/admin/AdminCust
 import { AdminCustomerBookingFilters } from "@/components/dashboard/admin/AdminCustomerBookingFilters";
 import { formatAdminCustomerLastActivity } from "@/features/customers/server/admin/adminCustomersListDisplay";
 import {
-  ADMIN_CUSTOMER_ASSISTED_BOOKING_DEFERRED_MESSAGE,
   ADMIN_CUSTOMER_ASSISTED_BOOKING_LABEL,
-  ADMIN_CUSTOMER_ASSISTED_BOOKING_SUPPORTED,
+  buildAdminBookingCreateHref,
 } from "@/features/customers/server/admin/adminCustomerBookingAssist";
 import {
   adminCustomerBookingFilterEmptyMessage,
@@ -28,6 +27,7 @@ type Props = {
   timeline: CustomerOperationalTimelineEvent[];
   timelineError?: string | null;
   bookingFilter: AdminCustomerDetailBookingFilter;
+  draftBookingEnabled?: boolean;
 };
 
 function formatZar(cents: number): string {
@@ -112,6 +112,7 @@ export function AdminCustomerDetailSections({
   timeline,
   timelineError,
   bookingFilter,
+  draftBookingEnabled = false,
 }: Props) {
   const { paymentSummary, lifecycleSummary, bookingOperations, paymentSupport } = detail;
   const pendingFailed = paymentSummary.pendingCount + paymentSummary.failedCount;
@@ -147,21 +148,15 @@ export function AdminCustomerDetailSections({
         defaultOpen
       >
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          {ADMIN_CUSTOMER_ASSISTED_BOOKING_SUPPORTED ? (
+          {draftBookingEnabled ? (
             <Link
-              href={`/customer/book?customerId=${detail.customerId}`}
+              href={buildAdminBookingCreateHref(detail.customerId)}
               className="inline-flex min-h-10 items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+              data-testid="admin-customer-create-draft-booking"
             >
               {ADMIN_CUSTOMER_ASSISTED_BOOKING_LABEL}
             </Link>
-          ) : (
-            <span
-              className="inline-flex min-h-10 cursor-not-allowed items-center justify-center rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-500"
-              title={ADMIN_CUSTOMER_ASSISTED_BOOKING_DEFERRED_MESSAGE}
-            >
-              {ADMIN_CUSTOMER_ASSISTED_BOOKING_DEFERRED_MESSAGE}
-            </span>
-          )}
+          ) : null}
         </div>
 
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

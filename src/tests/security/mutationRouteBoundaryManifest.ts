@@ -97,8 +97,14 @@ export const MUTATION_ROUTE_RULES: MutationRouteRule[] = [
     requiredFacadeImports: ["revokeAdminPaymentMethod"],
   },
   {
+    routeFile: "admin/bookings/[bookingId]/payout-ready/route.ts",
     category: "admin",
     requiredFacadeImports: ["markBookingPayoutReadyAdmin"],
+  },
+  {
+    routeFile: "admin/bookings/draft/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["adminCreateBookingDraftFacade"],
   },
   {
     routeFile: "admin/bookings/[bookingId]/mark-paid-out/route.ts",
@@ -240,6 +246,10 @@ export const CLEANER_POST_ALLOWLIST = [
 
 /** Matches 5B-2a `adminApiRoutes.test.ts` (paths relative to `admin/`). */
 export const ADMIN_POST_ALLOWLIST = [
+  "bookings/draft/route.ts",
+  "zoho-invoice-payments/audit-export/route.ts",
+  "zoho-invoice-payments/charge-saved-card/route.ts",
+  "zoho-invoice-payments/payment-methods/[paymentMethodId]/revoke/route.ts",
   "bookings/[bookingId]/payout-ready/route.ts",
   "bookings/[bookingId]/mark-paid-out/route.ts",
   "bookings/[bookingId]/recover-assignment/route.ts",

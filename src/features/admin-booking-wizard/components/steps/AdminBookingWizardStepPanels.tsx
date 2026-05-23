@@ -1,6 +1,13 @@
 import type { ReactNode } from "react";
-import type { AdminBookingWizardStep } from "../../types";
+import { WIZARD_SERVICE_OPTIONS } from "@/features/booking-wizard/constants";
 import { WIZARD_TEXT_MUTED, WIZARD_TEXT_PRIMARY } from "@/features/booking-wizard/wizardTheme";
+import { PRICING_FREQUENCIES } from "@/features/pricing/server/types";
+import type { AdminBookingWizardFormState } from "../../draftFormState";
+import type { AdminBookingWizardStep } from "../../types";
+import { AdminBookingWizardConfirmationActions } from "../AdminBookingWizardConfirmationActions";
+import { AdminBookingWizardConfirmationReview } from "../AdminBookingWizardConfirmationReview";
+import { AdminBookingWizardCustomerStep } from "../AdminBookingWizardCustomerStep";
+import { AdminBookingWizardPricingPreview } from "../AdminBookingWizardPricingPreview";
 
 function StepShell({
   title,
@@ -20,91 +27,168 @@ function StepShell({
   );
 }
 
-function PlaceholderField({ label }: { label: string }) {
+function FieldLabel({ children }: { children: ReactNode }) {
+  return <span className={`block text-xs font-medium ${WIZARD_TEXT_MUTED}`}>{children}</span>;
+}
+
+function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <div>
-      <span className={`block text-xs font-medium ${WIZARD_TEXT_MUTED}`}>{label}</span>
-      <div
-        className="mt-1 min-h-10 rounded-lg border border-dashed border-slate-200 bg-slate-50/80 px-3 py-2 text-sm text-slate-400"
-        aria-disabled="true"
-      >
-        Preview — not interactive in Phase 1
-      </div>
-    </div>
+    <input
+      {...props}
+      className={`mt-1 w-full min-h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 ${props.className ?? ""}`}
+    />
   );
 }
 
 type Props = {
   step: AdminBookingWizardStep;
+  featureEnabled: boolean;
+  form: AdminBookingWizardFormState;
+  onFormChange: (patch: Partial<AdminBookingWizardFormState>) => void;
 };
 
-export function AdminBookingWizardStepPanel({ step }: Props) {
+export function AdminBookingWizardStepPanel({
+  step,
+  featureEnabled,
+  form,
+  onFormChange,
+}: Props) {
   switch (step) {
     case "customer":
       return (
         <StepShell
           title="Customer"
-          description="Search existing customers, create inline, duplicate detection, and customer notes."
+          description="Search for an existing customer or create one inline. Required before saving a draft."
         >
-          <PlaceholderField label="Search customer" />
-          <PlaceholderField label="Create customer inline" />
-          <PlaceholderField label="Customer notes" />
+          <AdminBookingWizardCustomerStep form={form} onFormChange={onFormChange} />
         </StepShell>
       );
     case "service":
       return (
-        <StepShell
-          title="Service"
-          description="Service type, extras, team support, frequency, and estimated duration."
-        >
-          <PlaceholderField label="Service type" />
-          <PlaceholderField label="Add-ons" />
-          <PlaceholderField label="Team support" />
-          <PlaceholderField label="Frequency" />
+        <StepShell title="Service" description="Service type and frequency for server-side pricing.">
+          <label className="block">
+            <FieldLabel>Service</FieldLabel>
+            <select
+              value={form.serviceSlug}
+              onChange={(e) =>
+                onFormChange({
+                  serviceSlug: e.target.value as AdminBookingWizardFormState["serviceSlug"],
+                })
+              }
+              className="mt-1 w-full min-h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+            >
+              <option value="">Select service</option>
+              {WIZARD_SERVICE_OPTIONS.map((opt) => (
+                <option key={opt.slug} value={opt.slug}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <FieldLabel>Frequency</FieldLabel>
+            <select
+              value={form.frequency}
+              onChange={(e) =>
+                onFormChange({
+                  frequency: e.target.value as AdminBookingWizardFormState["frequency"],
+                })
+              }
+              className="mt-1 w-full min-h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+            >
+              {PRICING_FREQUENCIES.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <FieldLabel>Bedrooms</FieldLabel>
+              <TextInput
+                type="number"
+                min={0}
+                max={20}
+                value={form.bedrooms}
+                onChange={(e) => onFormChange({ bedrooms: Number(e.target.value) })}
+              />
+            </label>
+            <label className="block">
+              <FieldLabel>Bathrooms</FieldLabel>
+              <TextInput
+                type="number"
+                min={0}
+                max={20}
+                value={form.bathrooms}
+                onChange={(e) => onFormChange({ bathrooms: Number(e.target.value) })}
+              />
+            </label>
+          </div>
         </StepShell>
       );
     case "schedule":
       return (
-        <StepShell
-          title="Schedule"
-          description="Date, start time, recurring options, and availability validation."
-        >
-          <PlaceholderField label="Date" />
-          <PlaceholderField label="Start time" />
-          <PlaceholderField label="Recurring options" />
+        <StepShell title="Schedule" description="Visit date and start time (Africa/Johannesburg).">
+          <label className="block">
+            <FieldLabel>Date</FieldLabel>
+            <TextInput
+              type="date"
+              value={form.date}
+              onChange={(e) => onFormChange({ date: e.target.value })}
+            />
+          </label>
+          <label className="block">
+            <FieldLabel>Start time</FieldLabel>
+            <TextInput
+              type="time"
+              value={form.time}
+              onChange={(e) => onFormChange({ time: e.target.value })}
+            />
+          </label>
         </StepShell>
       );
     case "address":
       return (
-        <StepShell
-          title="Address"
-          description="Suburb, city, access notes, and geolocation."
-        >
-          <PlaceholderField label="Street address" />
-          <PlaceholderField label="Suburb / city" />
-          <PlaceholderField label="Access notes" />
+        <StepShell title="Address" description="Service location for the booking record.">
+          <label className="block">
+            <FieldLabel>Street address</FieldLabel>
+            <TextInput
+              value={form.addressLine1}
+              onChange={(e) => onFormChange({ addressLine1: e.target.value })}
+            />
+          </label>
+          <label className="block">
+            <FieldLabel>Suburb</FieldLabel>
+            <TextInput
+              value={form.suburb}
+              onChange={(e) => onFormChange({ suburb: e.target.value })}
+            />
+          </label>
+          <label className="block">
+            <FieldLabel>City</FieldLabel>
+            <TextInput value={form.city} onChange={(e) => onFormChange({ city: e.target.value })} />
+          </label>
         </StepShell>
       );
     case "pricing":
       return (
         <StepShell
           title="Pricing"
-          description="Canonical calculateQuote(), admin discounts, manual adjustments with audit trail, invoice preview."
+          description="Live quote preview from the server. Saving a draft recalculates pricing authoritatively."
         >
-          <PlaceholderField label="Line items (server quote)" />
-          <PlaceholderField label="Admin discount" />
-          <PlaceholderField label="Invoice preview" />
+          <AdminBookingWizardPricingPreview form={form} />
         </StepShell>
       );
     case "payment":
       return (
         <StepShell
           title="Payment"
-          description="Paystack link, EFT, cash, card machine, monthly invoice, or unpaid pending."
+          description="Payment rails are disabled in Phase 2 (draft only)."
         >
-          <PlaceholderField label="Payment rail" />
           <p className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
-            Payment state: <strong className="text-slate-800">Not configured</strong> (read-only)
+            Payment state: <strong className="text-slate-800">Not configured</strong> — no payment
+            link, EFT, or finalize actions in this phase.
           </p>
         </StepShell>
       );
@@ -112,48 +196,20 @@ export function AdminBookingWizardStepPanel({ step }: Props) {
       return (
         <StepShell
           title="Review"
-          description="Lifecycle preview, cleaner assignment preview, and customer notification preview."
+          description="Confirm details, then save a draft on the next step when the feature flag is enabled."
         >
-          <PlaceholderField label="Lifecycle preview" />
-          <PlaceholderField label="Assignment preview" />
-          <PlaceholderField label="Notifications preview" />
+          <AdminBookingWizardConfirmationReview form={form} />
         </StepShell>
       );
     case "confirmation":
       return (
         <StepShell
           title="Confirmation"
-          description="Create draft, unpaid booking, finalize paid booking, or send payment request — disabled in Phase 1."
+          description="Save draft when enabled. Other actions remain disabled until later phases."
         >
-          <div className="flex flex-col gap-2" data-testid="admin-booking-confirmation-actions">
-            <button
-              type="button"
-              disabled
-              className="min-h-11 rounded-xl border border-slate-200 bg-slate-100 px-4 text-sm font-medium text-slate-500"
-            >
-              Save draft
-            </button>
-            <button
-              type="button"
-              disabled
-              className="min-h-11 rounded-xl border border-slate-200 bg-slate-100 px-4 text-sm font-medium text-slate-500"
-            >
-              Create unpaid booking
-            </button>
-            <button
-              type="button"
-              disabled
-              className="min-h-11 rounded-xl border border-slate-200 bg-slate-100 px-4 text-sm font-medium text-slate-500"
-            >
-              Finalize paid booking
-            </button>
-            <button
-              type="button"
-              disabled
-              className="min-h-11 rounded-xl border border-slate-200 bg-slate-100 px-4 text-sm font-medium text-slate-500"
-            >
-              Send payment request
-            </button>
+          <AdminBookingWizardConfirmationReview form={form} />
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <AdminBookingWizardConfirmationActions featureEnabled={featureEnabled} form={form} />
           </div>
         </StepShell>
       );

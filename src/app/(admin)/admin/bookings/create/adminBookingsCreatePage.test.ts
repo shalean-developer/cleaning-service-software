@@ -18,21 +18,14 @@ describe("/admin/bookings/create (Phase 1)", () => {
     expect(page).not.toContain("finalizePaidBooking");
   });
 
-  it("does not add POST /api/admin/bookings creation route", () => {
+  it("exposes POST /api/admin/bookings/draft but not full POST /api/admin/bookings", () => {
     const listRoute = readSource("src/app/api/admin/bookings/route.ts");
     expect(listRoute).toContain("export async function GET");
     expect(listRoute).not.toContain("export async function POST");
 
-    const createApiPath = path.join(
-      process.cwd(),
-      "src/app/api/admin/bookings/create/route.ts",
-    );
-    let exists = true;
-    try {
-      readFileSync(createApiPath, "utf8");
-    } catch {
-      exists = false;
-    }
-    expect(exists).toBe(false);
+    const draftRoute = readSource("src/app/api/admin/bookings/draft/route.ts");
+    expect(draftRoute).toContain("export async function POST");
+    expect(draftRoute).toContain("adminCreateBookingDraftFacade");
+    expect(draftRoute).not.toContain("finalizePaidBooking");
   });
 });

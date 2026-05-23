@@ -42,6 +42,7 @@ export const ALLOWED_SERVICE_ROLE_LIFECYCLE_IMPORTERS = new Set([
   "features/support/server/executeApprovedBookingRescheduleRequest.ts",
   "app/api/cron/generate-recurring-occurrences/route.ts",
   "features/bookings/server/lock/createBookingPaymentLock.ts",
+  "features/bookings/server/admin/adminCreateBookingDraftFacade.ts",
   "features/bookings/server/lock/createPaymentRetryLock.ts",
   "features/bookings/server/lock/assertActiveLock.ts",
   "features/bookings/server/lock/validateCleanerPreference.ts",

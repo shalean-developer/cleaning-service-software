@@ -137,6 +137,9 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
 
   const heroBadges = dedupeAdminBookingListBadgesByLabel([
     { label: labelForBookingStatus(b.status), tone: toneForBookingStatus(b.status) },
+    ...(b.adminAssistedDraft
+      ? [{ label: "Admin-assisted draft", tone: "info" as const }]
+      : []),
     ...getAirbnbAdminListBadges({
       serviceLabel: b.serviceLabel,
       scheduledStart: b.scheduledStart,

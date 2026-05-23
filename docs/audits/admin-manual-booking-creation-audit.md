@@ -78,9 +78,15 @@ See [admin-assisted-booking-system.md](../architecture/admin-assisted-booking-sy
 - [x] Read-only wizard at `/admin/bookings/create`  
 - [x] Feature flag `ADMIN_ASSISTED_BOOKING_ENABLED=false`  
 - [x] Nav label corrections  
-- [ ] `ADMIN_CREATE_BOOKING` command (Phase 2)  
-- [ ] `POST /api/admin/bookings` (Phase 2)  
+
+## Phase 2 deliverables
+
+- [x] `admin_booking_assist_audit` + `admin_booking_assist_idempotency` migrations  
+- [x] `adminCreateBookingDraftFacade` → `CREATE_BOOKING_DRAFT` only  
+- [x] `POST /api/admin/bookings/draft` (no `POST /api/admin/bookings`)  
+- [x] Wizard “Save draft” when `ADMIN_ASSISTED_BOOKING_ENABLED=true`  
 - [ ] Payment links / offline record (Phase 4–5)  
+- [ ] `ADMIN_CREATE_BOOKING` full create (Phase 3+)  
 
 ## Related code
 
