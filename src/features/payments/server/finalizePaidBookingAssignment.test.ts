@@ -17,6 +17,10 @@ vi.mock("./postPaymentAssignmentDispatch", () => ({
   runPostPaymentAssignmentDispatch: dispatchMock.runPostPaymentAssignmentDispatch,
 }));
 
+vi.mock("@/features/zoho-sales-sync/server/runPostPaymentZohoSalesSync", () => ({
+  runPostPaymentZohoSalesSync: vi.fn(),
+}));
+
 const systemActor = { actorType: "system" as const, profileId: null };
 
 function createPaymentStoreMock(initial: PaymentRow) {

@@ -4,10 +4,12 @@ const HUB_ICON_BY_HREF = {
   "/customer": "home",
   "/customer/bookings": "bookings",
   "/customer/bookings/recurring": "recurring",
+  "/customer/payment-methods": "payment-methods",
+  "/customer/payments": "payments",
   "/customer/book": "book",
 } as const satisfies Record<
   (typeof CUSTOMER_DASHBOARD_NAV)[number]["href"],
-  "home" | "bookings" | "recurring" | "book"
+  "home" | "bookings" | "recurring" | "payment-methods" | "payments" | "book"
 >;
 
 /** Customer hub sidebar navigation (same destinations as dashboard top nav). */

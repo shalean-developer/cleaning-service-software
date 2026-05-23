@@ -77,7 +77,7 @@ export function AdminSidebar({ pathname, onNavigate }: Props) {
           className="inline-flex w-full min-h-10 items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
         >
           <Wand2 className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-          Booking flow
+          Customer booking flow
         </Link>
         <Link
           href="/"

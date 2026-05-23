@@ -1,15 +1,13 @@
 import "server-only";
 
 import { verifyPaystackWebhookSignature } from "./paystackClient";
-import { mapPaystackWebhookChargeFailed, mapPaystackWebhookChargeSuccess } from "./mapPaystackCharge";
 import type { PaystackWebhookEvent } from "./paystackTypes";
-import { processPaystackChargeFailure } from "./processPaystackChargeFailure";
-import { processPaystackChargeSuccess } from "./upsertBookingFromPaystack";
+import {
+  routePaystackWebhookEvent,
+  type WebhookHandlerResult,
+} from "./routePaystackWebhookEvent";
 
-export type WebhookHandlerResult =
-  | { ok: true; handled: true; idempotent: boolean; bookingId: string; status: string }
-  | { ok: true; handled: false; reason: string }
-  | { ok: false; code: string; message: string; status: number };
+export type { WebhookHandlerResult };
 
 export async function handlePaystackWebhook(
   rawBody: string,
@@ -36,79 +34,5 @@ export async function handlePaystackWebhook(
     };
   }
 
-  if (event.event === "charge.failed") {
-    const failedCharge = mapPaystackWebhookChargeFailed(event);
-    if (!failedCharge) {
-      return {
-        ok: false,
-        code: "INVALID_PAYLOAD",
-        message: "charge.failed payload could not be mapped.",
-        status: 400,
-      };
-    }
-
-    const failureResult = await processPaystackChargeFailure(failedCharge);
-    if (!failureResult.ok) {
-      return {
-        ok: false,
-        code: failureResult.code,
-        message: failureResult.message,
-        status: failureResult.code === "PERSISTENCE_ERROR" ? 500 : 400,
-      };
-    }
-
-    if (!failureResult.handled) {
-      return {
-        ok: true,
-        handled: false,
-        reason: failureResult.reason,
-      };
-    }
-
-    return {
-      ok: true,
-      handled: true,
-      idempotent: failureResult.idempotent,
-      bookingId: failureResult.bookingId,
-      status: failureResult.status,
-    };
-  }
-
-  if (event.event !== "charge.success") {
-    return { ok: true, handled: false, reason: `ignored:${event.event}` };
-  }
-
-  const charge = mapPaystackWebhookChargeSuccess(event);
-  if (!charge) {
-    return {
-      ok: false,
-      code: "INVALID_PAYLOAD",
-      message: "charge.success payload could not be mapped.",
-      status: 400,
-    };
-  }
-
-  const result = await processPaystackChargeSuccess(charge, "webhook");
-  if (!result.ok) {
-    const status =
-      result.code === "AMOUNT_MISMATCH"
-        ? 409
-        : result.code === "PAYMENT_NOT_FOUND"
-          ? 404
-          : 400;
-    return {
-      ok: false,
-      code: result.code,
-      message: result.message,
-      status,
-    };
-  }
-
-  return {
-    ok: true,
-    handled: true,
-    idempotent: result.idempotent,
-    bookingId: result.bookingId,
-    status: result.status,
-  };
+  return routePaystackWebhookEvent(event);
 }

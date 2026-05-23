@@ -7,11 +7,15 @@ const ALLOWED_CRON_POST_ROUTES = new Set([
   "dispatch-deferred-assignments/route.ts",
   "expire-assignment-offers/route.ts",
   "expire-pending-payments/route.ts",
+  "generate-recurring-occurrences/route.ts",
   "recover-assignment-after-payment/route.ts",
   "process-notification-outbox/route.ts",
   "rollup-assignment-metrics/route.ts",
   "rollup-notification-metrics/route.ts",
   "cleanup-notification-retention/route.ts",
+  "reconcile-zoho-invoice-payments/route.ts",
+  "sync-shalean-sales-to-zoho/route.ts",
+  "sync-zoho-refunds-credits/route.ts",
 ]);
 
 describe("cron mutation API routes", () => {

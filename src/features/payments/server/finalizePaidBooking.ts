@@ -18,6 +18,7 @@ import {
 } from "./paymentFinalizeRecovery";
 import { runPostPaymentRecurringMaterialization } from "@/features/recurring/postPaymentRecurringMaterialization";
 import { runPostPaymentAssignmentDispatch } from "./postPaymentAssignmentDispatch";
+import { runPostPaymentZohoSalesSync } from "@/features/zoho-sales-sync/server/runPostPaymentZohoSalesSync";
 
 export type FinalizePaidBookingInput = {
   bookingId: string;
@@ -145,6 +146,14 @@ export async function finalizePaidBookingWithDeps(
           } catch {
             // best-effort on recovery path
           }
+          try {
+            await runPostPaymentZohoSalesSync(client, recoveredBooking, {
+              paymentId: payment.id,
+              charge: input.charge,
+            });
+          } catch {
+            // best-effort on recovery path
+          }
         }
         return {
           ok: true,
@@ -180,6 +189,15 @@ export async function finalizePaidBookingWithDeps(
       await runPostPaymentRecurringMaterialization(client, backend, bookingAfterFinalize);
     } catch {
       // Recurring materialization is best-effort; payment stays finalized.
+    }
+
+    try {
+      await runPostPaymentZohoSalesSync(client, bookingAfterFinalize, {
+        paymentId: payment.id,
+        charge: input.charge,
+      });
+    } catch {
+      // Zoho sales sync is best-effort; payment stays finalized.
     }
   }
 

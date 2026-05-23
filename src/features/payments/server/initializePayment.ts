@@ -355,6 +355,7 @@ async function completePaystackInitialize(params: {
     currency: booking.currency,
     callback_url: resolvedCallbackUrl,
     metadata: {
+      source: "booking",
       booking_id: bookingId,
       payment_id: payment.id,
       customer_id: booking.customer_id,

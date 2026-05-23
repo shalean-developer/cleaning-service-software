@@ -78,6 +78,24 @@ export async function paystackVerifyTransaction(
   return result;
 }
 
+export async function paystackChargeAuthorization(
+  payload: PaystackChargeAuthorizationRequest,
+): Promise<PaystackChargeAuthorizationResponse> {
+  const result = await paystackFetch<PaystackChargeAuthorizationResponse>(
+    "/transaction/charge_authorization",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!result.status || !result.data?.reference) {
+    throw new PaystackApiError(502, result.message || "Paystack charge authorization failed.");
+  }
+
+  return result;
+}
+
 /**
  * Validates Paystack `x-paystack-signature` (HMAC SHA512 of raw body).
  */

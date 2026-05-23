@@ -25,11 +25,28 @@ Use before promoting staging to production or onboarding real customers.
 
 Remove or unset E2E-only vars (`E2E_TEST_*`) in production.
 
+### Zoho invoice payments (manual invoices)
+
+| Variable | Production |
+|----------|------------|
+| `APP_BASE_URL` | Canonical HTTPS origin, e.g. `https://www.shalean.com` (required for payment links + Paystack callbacks) |
+| `ZOHO_BOOKS_ENABLED` | `true` |
+| `ZOHO_BOOKS_ORGANIZATION_ID` | Production Zoho Books org ID |
+| `ZOHO_CLIENT_ID` | Production OAuth client ID |
+| `ZOHO_CLIENT_SECRET` | Server-only |
+| `ZOHO_REFRESH_TOKEN` | Server-only long-lived token |
+| `CRON_SECRET` | Required for `/api/cron/reconcile-zoho-invoice-payments` |
+
+Apply migrations: `20260701140000`, `20260701150000`, `20260701160000`.
+
+See [Zoho production readiness audit](../payments/zoho-invoice-production-readiness-audit.md).
+
 ## Paystack
 
 - [ ] Live keys in production environment
 - [ ] Webhook URL: `https://<production-domain>/api/paystack/webhook`
-- [ ] Webhook events: charge success (and failure if used)
+- [ ] Webhook events: **`charge.success`** and **`charge.failed`**
+- [ ] Zoho invoice webhook routing: same endpoint; `metadata.source: zoho_invoice` or `zi_` reference prefix
 - [ ] Verify redirect URL allowed in Paystack dashboard
 - [ ] Test one **live** small transaction in controlled window (optional)
 
@@ -76,6 +93,14 @@ Remove or unset E2E-only vars (`E2E_TEST_*`) in production.
 - [ ] `/cleaner/offers` — accept/decline offers
 - [ ] `/admin` — all bookings, assignments, payouts
 - [ ] `/admin/payouts` — payout queue
+- [ ] `/admin/operations/zoho-payments` — Zoho invoice payment link helper + diagnostics (admin only)
+
+## Zoho invoice payments (live QA)
+
+- [ ] One low-value live Zoho invoice → payment link → Paystack live payment → Zoho marked paid
+- [ ] Reconcile cron scheduled (`docs/operations/reconcile-zoho-invoice-payments-cron.md`)
+- [ ] Duplicate webhook replay does not duplicate Zoho customer payment
+- [ ] Declined card does not update Zoho invoice balance
 
 ## Observability & errors
 

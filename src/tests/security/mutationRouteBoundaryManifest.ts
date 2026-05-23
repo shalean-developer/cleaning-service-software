@@ -25,7 +25,7 @@ export type MutationRouteRule = {
   mayImportServiceRole?: boolean;
 };
 
-/** Lifecycle-mutating POST routes (24). */
+/** Lifecycle-mutating POST routes (29). */
 export const MUTATION_ROUTE_RULES: MutationRouteRule[] = [
   {
     routeFile: "bookings/lock/route.ts",
@@ -41,6 +41,11 @@ export const MUTATION_ROUTE_RULES: MutationRouteRule[] = [
     routeFile: "paystack/initialize/route.ts",
     category: "paystack",
     requiredFacadeImports: ["initializePayment"],
+  },
+  {
+    routeFile: "paystack/initialize-zoho-invoice/route.ts",
+    category: "paystack",
+    requiredFacadeImports: ["initializeZohoInvoicePayment"],
   },
   {
     routeFile: "paystack/verify/route.ts",
@@ -77,7 +82,21 @@ export const MUTATION_ROUTE_RULES: MutationRouteRule[] = [
     requiredFacadeImports: ["completeCleanerJob"],
   },
   {
-    routeFile: "admin/bookings/[bookingId]/payout-ready/route.ts",
+    routeFile: "admin/zoho-invoice-payments/charge-saved-card/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["adminChargeZohoInvoiceSavedMethod"],
+  },
+  {
+    routeFile: "admin/zoho-invoice-payments/audit-export/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["exportZohoInvoicePaymentAudit"],
+  },
+  {
+    routeFile: "admin/zoho-invoice-payments/payment-methods/[paymentMethodId]/revoke/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["revokeAdminPaymentMethod"],
+  },
+  {
     category: "admin",
     requiredFacadeImports: ["markBookingPayoutReadyAdmin"],
   },
@@ -174,6 +193,13 @@ export const MUTATION_ROUTE_RULES: MutationRouteRule[] = [
     requiredAdditionalImports: ["verifyCronSecret", "createBookingCommandBackend"],
     mayImportServiceRole: true,
   },
+  {
+    routeFile: "cron/reconcile-zoho-invoice-payments/route.ts",
+    category: "cron",
+    requiredFacadeImports: ["retryZohoInvoiceReconciliation"],
+    requiredAdditionalImports: ["verifyCronSecret"],
+    mayImportServiceRole: true,
+  },
 ];
 
 /** POST routes that do not mutate booking/payment/assignment/earning lifecycle (3). */
@@ -200,6 +226,7 @@ export const CUSTOMER_POST_ALLOWLIST = [
   "bookings/lock/route.ts",
   "bookings/[bookingId]/payment-retry-lock/route.ts",
   "paystack/initialize/route.ts",
+  "paystack/initialize-zoho-invoice/route.ts",
   "paystack/verify/route.ts",
 ] as const;
 
@@ -219,11 +246,14 @@ export const ADMIN_POST_ALLOWLIST = [
   "bookings/[bookingId]/dispatch-deferred-assignment/route.ts",
   "bookings/[bookingId]/dispatch-offer/route.ts",
   "bookings/[bookingId]/replace-open-offer/route.ts",
+  "bookings/[bookingId]/archive/route.ts",
+  "bookings/[bookingId]/hard-delete/route.ts",
   "cleaners/[cleanerId]/deactivate/route.ts",
   "cleaners/[cleanerId]/suspend/route.ts",
   "cleaners/[cleanerId]/reactivate/route.ts",
   "cleaners/[cleanerId]/unsuspend/route.ts",
   "cleaners/[cleanerId]/archive/route.ts",
+  "customers/[customerId]/archive/route.ts",
 ] as const;
 
 /** Matches 5B-2a `cronMutationRoutes.test.ts`. */
@@ -232,11 +262,13 @@ export const CRON_POST_ALLOWLIST = [
   "expire-pending-payments/route.ts",
   "recover-assignment-after-payment/route.ts",
   "dispatch-deferred-assignments/route.ts",
+  "reconcile-zoho-invoice-payments/route.ts",
 ] as const;
 
 /** Paystack POST mutation routes (customer + webhook). */
 export const PAYSTACK_POST_ALLOWLIST = [
   "initialize/route.ts",
+  "initialize-zoho-invoice/route.ts",
   "verify/route.ts",
   "webhook/route.ts",
 ] as const;

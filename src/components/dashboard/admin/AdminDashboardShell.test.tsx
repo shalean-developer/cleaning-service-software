@@ -63,7 +63,7 @@ describe("AdminDashboardShell", () => {
     }
     expect(html).toContain("Operate");
     expect(html).toContain("Insight &amp; control");
-    expect(html).toContain("Booking flow");
+    expect(html).toContain("Customer booking flow");
     expect(html).toContain("Hub");
   });
 

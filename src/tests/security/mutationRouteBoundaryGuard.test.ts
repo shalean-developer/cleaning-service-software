@@ -35,8 +35,8 @@ function matchingForbiddenPatterns(source: string, patterns: RegExp[]): string[]
 }
 
 describe("mutation route boundary guard (static)", () => {
-  it("covers exactly 24 lifecycle mutation routes", () => {
-    expect(MUTATION_ROUTE_RULES).toHaveLength(24);
+  it("covers exactly 29 lifecycle mutation routes", () => {
+    expect(MUTATION_ROUTE_RULES).toHaveLength(29);
   });
 
   it("covers exactly 3 read-only POST routes", () => {

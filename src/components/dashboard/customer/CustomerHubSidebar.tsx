@@ -50,6 +50,21 @@ function HubNavIcon({ icon }: { icon: CustomerHubNavIcon }) {
           <path strokeLinecap="round" d="M12 5v14M5 12h14" />
         </svg>
       );
+    case "payment-methods":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path strokeLinecap="round" d="M3 10h18" />
+        </svg>
+      );
+    case "payments":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+          <path strokeLinecap="round" d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" />
+          <path strokeLinecap="round" d="M9 14h6M9 18h4" />
+        </svg>
+      );
     default:
       return null;
   }

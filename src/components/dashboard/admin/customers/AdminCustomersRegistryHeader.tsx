@@ -31,7 +31,7 @@ export function AdminCustomersRegistryHeader({ totalCount }: Props) {
           className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-blue-200/90 bg-blue-50 px-4 text-xs font-semibold text-blue-800 shadow-sm transition-colors hover:border-blue-300 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
         >
           <Wand2 className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
-          New booking
+          New customer
         </Link>
       </div>
     </header>

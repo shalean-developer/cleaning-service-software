@@ -34,6 +34,16 @@ export const ADMIN_DASHBOARD_NAV_GROUPS: readonly AdminNavGroup[] = [
       { href: "/admin/payouts", label: "Earnings" },
       { href: "/admin/analytics/team-support", label: "Insights" },
       { href: "/admin/notifications", label: "Messages" },
+      { href: "/admin/operations/zoho-payments", label: "Zoho payments" },
+      { href: "/admin/operations/zoho-sales-sync", label: "Zoho sales sync" },
+      { href: "/admin/operations/zoho-refunds", label: "Zoho refunds" },
+      { href: "/admin/operations/finance-reconciliation", label: "Finance reconciliation" },
+      { href: "/admin/operations/accounting-close", label: "Accounting close" },
+      { href: "/admin/operations/tax-reports", label: "VAT / tax reports" },
+      { href: "/admin/operations/corporate-statements", label: "Corporate statements" },
+      { href: "/admin/operations/finance-analytics", label: "Finance analytics" },
+      { href: "/admin/operations/production-rollout", label: "Production rollout" },
+      { href: "/admin/operations/zoho-replacement-audit", label: "Zoho replacement audit" },
       { href: "/admin/analytics/assignments", label: "Assignment analytics" },
     ],
   },
@@ -47,7 +57,11 @@ export const ADMIN_DASHBOARD_NAV: readonly NavItem[] = [
 
 /** Bottom-of-sidebar quick actions (presentation only). */
 export const ADMIN_SIDEBAR_QUICK_ACTIONS = [
-  { href: "/customer/book", label: "Booking flow", description: "Customer booking wizard" },
+  {
+    href: "/customer/book",
+    label: "Customer booking flow",
+    description: "Customer self-service booking wizard",
+  },
   { href: "/admin/assignments", label: "Open dispatch", description: "Assignment workbench" },
-  { href: "/admin/customers/new", label: "Quick booking", description: "New customer" },
+  { href: "/admin/customers/new", label: "New customer", description: "Register a new customer" },
 ] as const;

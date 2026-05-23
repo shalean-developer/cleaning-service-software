@@ -35,6 +35,7 @@ const ALLOWED_ADMIN_POST_ROUTES = new Set([
   "recurring/[seriesId]/cancel/route.ts",
   "recurring/[seriesId]/skip-next/route.ts",
   "recurring/[seriesId]/reschedule-next/route.ts",
+  "zoho-sales-sync/register-refund-credit/route.ts",
 ]);
 
 function collectRouteFiles(dir: string, prefix = ""): string[] {

@@ -1,3 +1,18 @@
+export type PaystackChargeAuthorizationRequest = {
+  email: string;
+  amount: number;
+  authorization_code: string;
+  reference: string;
+  currency?: string;
+  metadata?: Record<string, string | number | boolean | null>;
+};
+
+export type PaystackChargeAuthorizationResponse = {
+  status: boolean;
+  message: string;
+  data: PaystackVerifyData;
+};
+
 export type PaystackInitializeRequest = {
   email: string;
   amount: number;
@@ -27,6 +42,27 @@ export type PaystackVerifyData = {
   currency?: string;
   paid_at?: string | null;
   metadata?: Record<string, unknown> | null;
+  authorization?: PaystackAuthorization;
+  customer?: PaystackCustomer;
+};
+
+export type PaystackAuthorization = {
+  authorization_code?: string;
+  bin?: string;
+  last4?: string;
+  exp_month?: string | number;
+  exp_year?: string | number;
+  channel?: string;
+  card_type?: string;
+  bank?: string;
+  reusable?: boolean;
+  signature?: string;
+};
+
+export type PaystackCustomer = {
+  id?: number;
+  customer_code?: string;
+  email?: string;
 };
 
 export type PaystackVerifyResponse = {

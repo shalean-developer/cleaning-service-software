@@ -146,6 +146,7 @@ const ADMIN_NAV_ICON_BY_HREF: Record<string, (props: IconProps) => ReactElement>
   "/admin/analytics/assignments": AdminNavAnalyticsIcon,
   "/admin/analytics/team-support": AdminNavTeamSupportIcon,
   "/admin/notifications": AdminNavNotificationsIcon,
+  "/admin/operations/zoho-payments": AdminNavPayoutsIcon,
   "/admin/payouts": AdminNavPayoutsIcon,
   "/customer/book": AdminNavBookingsIcon,
   "/admin/customers/new": AdminNavCustomersIcon,

@@ -257,6 +257,227 @@ export type PaymentEventRow = {
   received_at: string;
 };
 
+export const ZOHO_INVOICE_PAYMENT_STATUSES = [
+  "initialized",
+  "pending_paystack",
+  "paid",
+  "failed",
+  "zoho_reconcile_pending",
+  "zoho_reconcile_failed",
+  "cancelled",
+] as const;
+
+export type ZohoInvoicePaymentStatus = (typeof ZOHO_INVOICE_PAYMENT_STATUSES)[number];
+
+export type ZohoInvoicePaymentRow = {
+  id: string;
+  invoice_number: string;
+  zoho_invoice_id: string;
+  customer_name: string | null;
+  customer_email: string;
+  amount_cents: number;
+  currency: string;
+  paystack_reference: string | null;
+  paystack_access_code: string | null;
+  paystack_authorization_url: string | null;
+  paystack_status: string | null;
+  zoho_payment_id: string | null;
+  zoho_status: string | null;
+  status: ZohoInvoicePaymentStatus;
+  idempotency_key: string;
+  metadata: Json;
+  created_at: string;
+  updated_at: string;
+  paid_at: string | null;
+  reconcile_attempts: number;
+  last_reconcile_attempt_at: string | null;
+  next_reconcile_attempt_at: string | null;
+  last_reconcile_error: string | null;
+};
+
+export type ZohoInvoicePaymentEventRow = {
+  id: string;
+  zoho_invoice_payment_id: string;
+  provider_event_id: string;
+  event_type: string;
+  paystack_reference: string;
+  payload: Json;
+  received_at: string;
+};
+
+export type ZohoInvoicePaymentMethodRevocationSource = "customer" | "admin" | "system";
+
+export type ZohoInvoicePaymentMethodRow = {
+  id: string;
+  customer_email: string;
+  customer_name: string | null;
+  paystack_customer_code: string | null;
+  authorization_code: string;
+  authorization_signature: string | null;
+  card_type: string | null;
+  bank: string | null;
+  last4: string | null;
+  exp_month: string | null;
+  exp_year: string | null;
+  reusable: boolean;
+  is_default: boolean;
+  consent_text_version: string;
+  consented_at: string;
+  revoked_at: string | null;
+  revoke_reason: string | null;
+  revoked_by_user_id: string | null;
+  revoked_by_admin_id: string | null;
+  revocation_source: ZohoInvoicePaymentMethodRevocationSource | null;
+  last_used_at: string | null;
+  last_used_invoice_number: string | null;
+  source_invoice_number: string | null;
+  source_zoho_invoice_payment_id: string | null;
+  metadata: Json;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ZohoInvoicePaymentMethodAuditRow = {
+  id: string;
+  payment_method_id: string;
+  action: string;
+  actor_type: "customer" | "admin" | "system";
+  actor_id: string | null;
+  reason: string | null;
+  metadata: Json;
+  created_at: string;
+};
+
+export const ZOHO_INVOICE_AUTHORIZATION_CHARGE_STATUSES = [
+  "initialized",
+  "submitted",
+  "pending_webhook",
+  "paid",
+  "failed",
+  "zoho_reconcile_pending",
+  "zoho_reconcile_failed",
+] as const;
+
+export type ZohoInvoiceAuthorizationChargeStatus =
+  (typeof ZOHO_INVOICE_AUTHORIZATION_CHARGE_STATUSES)[number];
+
+export type ZohoInvoiceAuthorizationChargeRow = {
+  id: string;
+  invoice_number: string;
+  zoho_invoice_id: string;
+  payment_method_id: string;
+  customer_email: string;
+  amount_cents: number;
+  currency: string;
+  paystack_reference: string;
+  paystack_status: string | null;
+  zoho_payment_id: string | null;
+  zoho_status: string | null;
+  status: ZohoInvoiceAuthorizationChargeStatus;
+  initiated_by_admin_id: string;
+  reason: string | null;
+  metadata: Json;
+  reconcile_attempts: number;
+  last_reconcile_attempt_at: string | null;
+  next_reconcile_attempt_at: string | null;
+  last_reconcile_error: string | null;
+  created_at: string;
+  paid_at: string | null;
+  failed_at: string | null;
+};
+
+export type ZohoInvoiceAuthorizationChargeEventRow = {
+  id: string;
+  authorization_charge_id: string;
+  provider_event_id: string;
+  event_type: string;
+  paystack_reference: string;
+  payload: Json;
+  received_at: string;
+};
+
+export type ZohoInvoicePaymentCronRunRow = {
+  id: string;
+  job_name: string;
+  status: "started" | "completed" | "failed";
+  started_at: string;
+  completed_at: string | null;
+  summary: Json;
+};
+
+export const ZOHO_SALES_SYNC_SOURCE_TYPES = [
+  "booking",
+  "zoho_invoice_payment",
+  "zoho_authorization_charge",
+] as const;
+
+export type ZohoSalesSyncSourceType = (typeof ZOHO_SALES_SYNC_SOURCE_TYPES)[number];
+
+export const ZOHO_SALES_SYNC_STATUSES = ["pending", "synced", "failed"] as const;
+
+export type ZohoSalesSyncStatus = (typeof ZOHO_SALES_SYNC_STATUSES)[number];
+
+export type ZohoSalesSyncRow = {
+  id: string;
+  source_type: ZohoSalesSyncSourceType;
+  source_id: string;
+  booking_id: string | null;
+  invoice_number: string | null;
+  zoho_invoice_id: string | null;
+  zoho_customer_id: string | null;
+  zoho_payment_id: string | null;
+  amount_cents: number;
+  currency: string;
+  sync_status: ZohoSalesSyncStatus;
+  sync_attempts: number;
+  last_sync_attempt_at: string | null;
+  next_sync_attempt_at: string | null;
+  last_sync_error: string | null;
+  metadata: Json;
+  created_at: string;
+  updated_at: string;
+  synced_at: string | null;
+};
+
+export const ZOHO_REFUND_CREDIT_SYNC_SOURCE_TYPES = [
+  "booking_refund",
+  "booking_cancellation",
+  "zoho_invoice_refund",
+  "zoho_authorization_charge_refund",
+] as const;
+
+export type ZohoRefundCreditSyncSourceType =
+  (typeof ZOHO_REFUND_CREDIT_SYNC_SOURCE_TYPES)[number];
+
+export const ZOHO_REFUND_CREDIT_SYNC_STATUSES = ["pending", "synced", "failed"] as const;
+
+export type ZohoRefundCreditSyncStatus = (typeof ZOHO_REFUND_CREDIT_SYNC_STATUSES)[number];
+
+export type ZohoRefundCreditSyncRow = {
+  id: string;
+  source_type: ZohoRefundCreditSyncSourceType;
+  source_id: string;
+  booking_id: string | null;
+  invoice_number: string | null;
+  zoho_invoice_id: string | null;
+  zoho_credit_note_id: string | null;
+  zoho_refund_id: string | null;
+  paystack_reference: string | null;
+  amount_cents: number;
+  currency: string;
+  reason: string;
+  sync_status: ZohoRefundCreditSyncStatus;
+  sync_attempts: number;
+  last_sync_attempt_at: string | null;
+  next_sync_attempt_at: string | null;
+  last_sync_error: string | null;
+  metadata: Json;
+  initiated_by_admin_id: string | null;
+  created_at: string;
+  updated_at: string;
+  synced_at: string | null;
+};
+
 export type AssignmentOfferRow = {
   id: string;
   booking_id: string;
@@ -660,6 +881,18 @@ export type PublicTable<Row> = {
 /**
  * Minimal `Database` shape compatible with `@supabase/supabase-js` generic when wired later.
  */
+export type ProductionRolloutChecklistRow = {
+  id: string;
+  checklist_key: string;
+  label: string;
+  category: string;
+  completed: boolean;
+  completed_by: string | null;
+  completed_at: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -677,6 +910,16 @@ export type Database = {
       booking_locks: PublicTable<BookingLockRow>;
       payments: PublicTable<PaymentRow>;
       payment_events: PublicTable<PaymentEventRow>;
+      zoho_invoice_payments: PublicTable<ZohoInvoicePaymentRow>;
+      zoho_invoice_payment_events: PublicTable<ZohoInvoicePaymentEventRow>;
+      zoho_invoice_payment_methods: PublicTable<ZohoInvoicePaymentMethodRow>;
+      zoho_invoice_payment_method_audit: PublicTable<ZohoInvoicePaymentMethodAuditRow>;
+      zoho_invoice_authorization_charges: PublicTable<ZohoInvoiceAuthorizationChargeRow>;
+      zoho_invoice_authorization_charge_events: PublicTable<ZohoInvoiceAuthorizationChargeEventRow>;
+      zoho_invoice_payment_cron_runs: PublicTable<ZohoInvoicePaymentCronRunRow>;
+      zoho_sales_sync: PublicTable<ZohoSalesSyncRow>;
+      zoho_refund_credit_sync: PublicTable<ZohoRefundCreditSyncRow>;
+      production_rollout_checklist: PublicTable<ProductionRolloutChecklistRow>;
       assignment_offers: PublicTable<AssignmentOfferRow>;
       booking_cleaners: PublicTable<BookingCleanerRow>;
       earning_lines: PublicTable<EarningLineRow>;
@@ -713,6 +956,7 @@ export type Database = {
       notification_outbox_status: NotificationOutboxStatus;
       booking_lock_status: BookingLockStatus;
       earning_payout_status: EarningPayoutStatus;
+      zoho_invoice_payment_status: ZohoInvoicePaymentStatus;
     };
     Functions: {
       ensure_customer_provisioned: {

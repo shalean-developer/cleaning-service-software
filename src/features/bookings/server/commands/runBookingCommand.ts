@@ -9,6 +9,7 @@ import {
 import { InMemoryBookingCommandBackend } from "./inMemoryBookingCommandBackend";
 import { SupabaseBookingCommandBackend } from "./supabaseBookingCommandBackend";
 import type { BookingCommand, BookingCommandResult } from "./types";
+import { runPostBookingCancellationZohoCreditSync } from "@/features/zoho-sales-sync/server/runPostRefundZohoCreditSync";
 
 export type BookingCommandBackendMode = "memory" | "supabase";
 
@@ -43,5 +44,16 @@ export async function runBookingCommand(
   ctx?: BookingCommandRunContext,
   backend?: BookingCommandBackend,
 ): Promise<BookingCommandResult> {
-  return executeBookingCommand(backend ?? createBookingCommandBackend(), cmd, ctx);
+  const result = await executeBookingCommand(backend ?? createBookingCommandBackend(), cmd, ctx);
+
+  if (result.ok && cmd.type === "CANCEL_BOOKING") {
+    const client = createServiceRoleClient();
+    if (client) {
+      void runPostBookingCancellationZohoCreditSync(client, { bookingId: cmd.bookingId }).catch(
+        () => undefined,
+      );
+    }
+  }
+
+  return result;
 }
