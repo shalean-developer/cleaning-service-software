@@ -9,6 +9,7 @@ describe("CUSTOMER_DASHBOARD_NAV", () => {
       "/customer/bookings/recurring",
       "/customer/payment-methods",
       "/customer/payments",
+      "/customer/invoices",
       "/customer/book",
     ]);
     expect(CUSTOMER_DASHBOARD_NAV.find((item) => item.label === "Bookings")?.href).toBe(

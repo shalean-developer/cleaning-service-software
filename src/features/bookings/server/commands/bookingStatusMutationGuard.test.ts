@@ -9,6 +9,8 @@ const ALLOWED_STATUS_WRITE_FILES = new Set([
   "features/bookings/server/commands/inMemoryBookingCommandBackend.ts",
   "features/bookings/server/commands/supabaseBookingCommandBackend.ts",
   "features/bookings/server/directMutationGuard.ts",
+  "features/bookings/server/supportParticipationActions.ts",
+  "features/recurring/bookingSeriesRepository.ts",
   "tests/security/rlsTestSupport.ts",
 ]);
 

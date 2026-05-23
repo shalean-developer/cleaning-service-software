@@ -78,7 +78,7 @@ describe("buildLifecycleTimeline", () => {
     const serialized = JSON.stringify(events);
     expect(serialized).not.toContain("MARK_PAYMENT_FAILED");
     const audit = events.find((e) => e.kind === "audit");
-    expect(audit?.title).toBe("Payment failed");
+    expect(audit?.title).toBe("Payment not completed");
     expect(audit?.detail).toBeNull();
   });
 

@@ -4,6 +4,7 @@ import { isZohoRefundCreditSyncEnabled, requireZohoRefundCreditSyncEnabled } fro
 describe("zohoRefundCreditSyncLaunchGuard", () => {
   beforeEach(() => {
     vi.unstubAllEnvs();
+    delete process.env.ZOHO_REFUND_CREDIT_SYNC_ENABLED;
   });
 
   it("defaults ZOHO_REFUND_CREDIT_SYNC_ENABLED to false", () => {

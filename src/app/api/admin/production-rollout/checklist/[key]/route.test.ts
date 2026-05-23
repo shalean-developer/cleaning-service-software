@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { testCurrentUser } from "@/test/fixtures";
 import { POST } from "./route";
 
 vi.mock("@/features/dashboards/server/apiAuth", () => ({
@@ -19,11 +20,9 @@ vi.mock("@/features/production-rollout/server/productionRolloutChecklistReposito
 describe("POST /api/admin/production-rollout/checklist/[key]", () => {
   it("rejects invalid checklist key", async () => {
     const { requireApiUser } = await import("@/features/dashboards/server/apiAuth");
-    vi.mocked(requireApiUser).mockResolvedValueOnce({
-      id: "admin-1",
-      role: "admin",
-      email: "admin@example.com",
-    });
+    vi.mocked(requireApiUser).mockResolvedValueOnce(
+      testCurrentUser({ profileId: "admin-1", authUser: { email: "admin@example.com" } }),
+    );
 
     const response = await POST(
       new Request("http://localhost/api/admin/production-rollout/checklist/invalid_key", {
@@ -42,11 +41,9 @@ describe("POST /api/admin/production-rollout/checklist/[key]", () => {
       "@/features/production-rollout/server/productionRolloutChecklistRepository"
     );
 
-    vi.mocked(requireApiUser).mockResolvedValueOnce({
-      id: "admin-1",
-      role: "admin",
-      email: "admin@example.com",
-    });
+    vi.mocked(requireApiUser).mockResolvedValueOnce(
+      testCurrentUser({ profileId: "admin-1", authUser: { email: "admin@example.com" } }),
+    );
 
     vi.mocked(updateProductionRolloutChecklistItem).mockResolvedValueOnce({
       id: "1",

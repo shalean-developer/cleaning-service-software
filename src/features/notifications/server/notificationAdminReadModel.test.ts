@@ -426,7 +426,8 @@ describe("loadNotificationAnalytics", () => {
 
     expect(analytics.worker24h.liveSuccessRatePercent).toBe(75);
     expect(analytics.worker24h.runCount).toBe(1);
-    expect(analytics.deliverableTemplates).toHaveLength(3);
+    const { DELIVERABLE_NOTIFICATION_SPECS } = await import("./config");
+    expect(analytics.deliverableTemplates).toHaveLength(DELIVERABLE_NOTIFICATION_SPECS.length);
     expect(analytics.trends7d.sent7dTotal).toBe(10);
     const trendsJson = JSON.stringify(analytics.trends7d);
     expect(trendsJson).not.toContain("errors");

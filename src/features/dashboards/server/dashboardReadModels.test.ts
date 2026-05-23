@@ -181,6 +181,8 @@ describe("dashboard read models", () => {
     const { calculateQuote } = await import("@/features/pricing/server/calculateQuote");
     const quote = calculateQuote(quoteInput);
     if (!quote.ok) throw new Error("quote");
+    const futureStart = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const futureEnd = new Date(futureStart.getTime() + 2 * 60 * 60 * 1000);
 
     createSupabaseServerClientMock.mockResolvedValue({
       from: vi.fn((table: string) => {
@@ -190,8 +192,8 @@ describe("dashboard read models", () => {
             status: "payment_failed",
             customer_id: "cust-1",
             cleaner_id: null,
-            scheduled_start: "2026-05-20T08:00:00.000Z",
-            scheduled_end: "2026-05-20T10:00:00.000Z",
+            scheduled_start: futureStart.toISOString(),
+            scheduled_end: futureEnd.toISOString(),
             price_cents: quote.breakdown.totalCents,
             currency: "ZAR",
             metadata: { ...buildBookingQuoteMetadata(quoteInput, quote.breakdown), suburb: "Sea Point" },

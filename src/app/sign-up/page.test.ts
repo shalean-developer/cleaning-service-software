@@ -51,8 +51,10 @@ describe("Sign-up page feature flag", () => {
   });
 
   it("shows signup link on sign-in only when flag is enabled", () => {
-    expect(signInContentSource).toContain('href={SIGN_UP_PATH}');
-    expect(signInContentSource).toContain("Create one");
+    expect(signInPageSource).toContain("signupEnabled={signupEnabled}");
+    expect(signInContentSource).toContain("showCustomerSignup");
+    expect(signInContentSource).toContain('href={buildAuthPathWithRedirect(SIGN_UP_PATH');
+    expect(signInContentSource).toContain("Create an account");
   });
 
   it("blocks check-email page when flag is disabled", () => {

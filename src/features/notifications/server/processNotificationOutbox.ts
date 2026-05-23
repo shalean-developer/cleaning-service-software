@@ -634,7 +634,7 @@ async function processOneRow(
     ) {
       await markOutboxFailure(client, row, result.message, false, now);
     } else if (result.code === "SEND_FAILED") {
-      await markOutboxFailure(client, row, result.message, result.retryable ?? true, now);
+      // Row processors already persisted retry/failed state via markOutboxFailure.
     }
     return { outcome: "failed" };
   } catch (e) {

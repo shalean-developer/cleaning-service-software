@@ -11,7 +11,10 @@ vi.mock("@/features/bookings/server/admin/adminRecordOfflinePaymentFacade", () =
 vi.mock("@/features/dashboards/server/apiAuth", () => ({
   requireApiUser: (...args: unknown[]) => requireApiUserMock(...args),
   isApiAuthFailure: (user: unknown) =>
-    Boolean(user && typeof user === "object" && "error" in user),
+    typeof user === "object" &&
+    user !== null &&
+    "ok" in user &&
+    (user as { ok: boolean }).ok === false,
 }));
 
 import { POST } from "./route";
@@ -52,6 +55,7 @@ describe("POST /api/admin/bookings/[bookingId]/offline-payment", () => {
           bankReference: "BNK-1",
           reason: "EFT received",
           idempotencyKey: "offline-key-12345678",
+          sopConfirmed: true,
         }),
       }),
       { params: Promise.resolve({ bookingId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb" }) },
@@ -66,6 +70,7 @@ describe("POST /api/admin/bookings/[bookingId]/offline-payment", () => {
 
   it("rejects non-admin", async () => {
     requireApiUserMock.mockResolvedValue({
+      ok: false,
       error: "FORBIDDEN",
       message: "Admins only.",
       status: 403,

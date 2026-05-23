@@ -19,6 +19,10 @@ vi.mock("@/lib/auth/resolveActorScope", () => ({
   resolveActorScope: (...args: unknown[]) => resolveActorScopeMock(...args),
 }));
 
+vi.mock("@/features/earnings/server/teamEarningsConfig", () => ({
+  isTeamEarningsEnabled: () => false,
+}));
+
 vi.mock("@/features/dashboards/server/cleanerTeamJobVisibility", async (importOriginal) => {
   const actual = await importOriginal<
     typeof import("@/features/dashboards/server/cleanerTeamJobVisibility")

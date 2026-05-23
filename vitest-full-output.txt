@@ -1,0 +1,2176 @@
+﻿
+ RUN  v4.1.6 C:/Users/info/Cleaning Services Software
+
+node.exe : stderr | src/features/bookings/server/commands/executeBookingCommand.integration.test.ts > 
+executeBookingCommand (Supabase integration)
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (stderr | src/fe...se integration):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[booking integration] skipped: BOOKING_COMMAND_INTEGRATION_CUSTOMER_ID not found: a11a9b0c-3d1e-4fbe-8009-75a7a7b7b6d2
+
+stderr | src/app/api/cron/process-notification-outbox/route.test.ts > GET /api/cron/process-notification-outbox > 
+still returns worker result when run logging fails
+{"event":"notification_worker_run_persist_unexpected","at":"2026-05-23T18:26:47.905Z","message":"persist failed"}
+
+┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖x┬╖┬╖┬╖┬╖┬╖┬╖x┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖xx┬╖x┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖x┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖x┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖xx┬╖┬╖┬╖┬╖x┬╖┬╖x┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖x┬╖┬╖┬╖┬╖xx┬╖┬╖x┬╖┬╖x┬╖┬╖xx┬╖x┬╖┬╖x┬╖xx┬╖┬╖┬╖┬╖┬╖x┬╖┬╖┬╖x┬╖┬╖┬╖┬╖┬╖x┬╖┬╖┬╖┬╖┬╖┬╖┬╖x┬╖┬╖┬╖┬╖xx┬╖x┬╖┬╖┬╖x┬╖┬╖xx┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖---┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > returns empty summary when no pending rows
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_started","at":"2026-05-23T18:26:52.868Z","limit":25}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > returns empty summary when no pending rows
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_completed","at":"2026-05-23T18:26:52.869Z","scanned":0,"retried":0,"paid":0,"pending":0,"failed":0,"skipped":0,"errors":[]}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > marks paid on successful retry
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_started","at":"2026-05-23T18:26:52.872Z","limit":25}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > marks paid on successful retry
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_retry_started","at":"2026-05-23T18:26:52.873Z","invoiceNumber":"INV-001602","zohoInvoicePaymentId":"pay-1","paystackReference":"zi_INV_001602_ab12cd34","reconcileAttempts":0}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > marks paid on successful retry
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_retry_succeeded","at":"2026-05-23T18:26:52.873Z","invoiceNumber":"INV-001602","zohoInvoicePaymentId":"pay-1"}
+
+┬╖stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > marks paid on successful retry
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_completed","at":"2026-05-23T18:26:52.981Z","scanned":1,"retried":1,"paid":1,"pending":0,"failed":0,"skipped":0,"errors":[]}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > skips already paid rows
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_started","at":"2026-05-23T18:26:52.982Z","limit":25}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > skips already paid rows
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_retry_succeeded","at":"2026-05-23T18:26:52.982Z","invoiceNumber":"INV-001602","zohoInvoicePaymentId":"pay-1","idempotent":true}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > skips already paid rows
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_completed","at":"2026-05-23T18:26:52.982Z","scanned":1,"retried":1,"paid":0,"pending":0,"failed":0,"skipped":1,"errors":[]}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > schedules retry on Paystack verify network failure
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_started","at":"2026-05-23T18:26:52.983Z","limit":25}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > schedules retry on Paystack verify network failure
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_retry_started","at":"2026-05-23T18:26:52.983Z","invoiceNumber":"INV-001602","zohoInvoicePaymentId":"pay-1","paystackReference":"zi_INV_001602_ab12cd34","reconcileAttempts":0}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > schedules retry on Paystack verify network failure
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_retry_scheduled","at":"2026-05-23T18:26:52.984Z","invoiceNumber":"INV-001602","zohoInvoicePaymentId":"pay-1","failureCode":"paystack_verify_api_502","reconcileAttempts":1,"nextReconcileAttemptAt":"2026-05-23T18:31:52.983Z"}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > schedules retry on Paystack verify network failure
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_completed","at":"2026-05-23T18:26:52.984Z","scanned":1,"retried":1,"paid":0,"pending":1,"failed":0,"skipped":0,"errors":[]}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > schedules retry on Zoho API failure
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_started","at":"2026-05-23T18:26:52.984Z","limit":25}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > schedules retry on Zoho API failure
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_retry_started","at":"2026-05-23T18:26:52.984Z","invoiceNumber":"INV-001602","zohoInvoicePaymentId":"pay-1","paystackReference":"zi_INV_001602_ab12cd34","reconcileAttempts":0}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > schedules retry on Zoho API failure
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_retry_scheduled","at":"2026-05-23T18:26:52.984Z","invoiceNumber":"INV-001602","zohoInvoicePaymentId":"pay-1","failureCode":"zoho_reconcile_pending"}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > schedules retry on Zoho API failure
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_completed","at":"2026-05-23T18:26:52.985Z","scanned":1,"retried":1,"paid":0,"pending":1,"failed":0,"skipped":0,"errors":[]}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > marks reconcile_failed on amount mismatch
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_started","at":"2026-05-23T18:26:52.985Z","limit":25}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > marks reconcile_failed on amount mismatch
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_retry_started","at":"2026-05-23T18:26:52.985Z","invoiceNumber":"INV-001602","zohoInvoicePaymentId":"pay-1","paystackReference":"zi_INV_001602_ab12cd34","reconcileAttempts":0}
+
+stderr | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > 
+retryZohoInvoiceReconciliation > marks reconcile_failed on amount mismatch
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_amount_mismatch","at":"2026-05-23T18:26:52.985Z","invoiceNum
+ber":"INV-001602","zohoInvoicePaymentId":"pay-1","expectedAmountCents":10000,"actualAmountCents":9999}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > marks reconcile_failed on amount mismatch
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_completed","at":"2026-05-23T18:26:52.986Z","scanned":1,"retried":1,"paid":0,"pending":0,"failed":1,"skipped":0,"errors":[]}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > marks reconcile_failed on currency mismatch
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_started","at":"2026-05-23T18:26:52.986Z","limit":25}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > marks reconcile_failed on currency mismatch
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_retry_started","at":"2026-05-23T18:26:52.986Z","invoiceNumber":"INV-001602","zohoInvoicePaymentId":"pay-1","paystackReference":"zi_INV_001602_ab12cd34","reconcileAttempts":0}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > marks reconcile_failed on currency mismatch
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_completed","at":"2026-05-23T18:26:52.987Z","scanned":1,"retried":1,"paid":0,"pending":0,"failed":1,"skipped":0,"errors":[]}
+
+stderr | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > 
+retryZohoInvoiceReconciliation > marks reconcile_failed on currency mismatch
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_currency_mismatch","at":"2026-05-23T18:26:52.987Z","invoiceN
+umber":"INV-001602","zohoInvoicePaymentId":"pay-1","expectedCurrency":"ZAR","actualCurrency":"USD"}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > marks exhausted after max attempts
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_started","at":"2026-05-23T18:26:52.987Z","limit":25}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > marks exhausted after max attempts
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_retry_started","at":"2026-05-23T18:26:52.987Z","invoiceNumber":"INV-001602","zohoInvoicePaymentId":"pay-1","paystackReference":"zi_INV_001602_ab12cd34","reconcileAttempts":4}
+
+stderr | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > 
+retryZohoInvoiceReconciliation > marks exhausted after max attempts
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_retry_exhausted","at":"2026-05-23T18:26:52.988Z","
+invoiceNumber":"INV-001602","zohoInvoicePaymentId":"pay-1","failureCode":"paystack_verify_api_502"}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > marks exhausted after max attempts
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_completed","at":"2026-05-23T18:26:52.988Z","scanned":1,"retried":1,"paid":0,"pending":0,"failed":1,"skipped":0,"errors":[]}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > summary never includes raw provider error details
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_started","at":"2026-05-23T18:26:52.988Z","limit":25}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > summary never includes raw provider error details
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_retry_started","at":"2026-05-23T18:26:52.988Z","invoiceNumber":"INV-001602","zohoInvoicePaymentId":"pay-1","paystackReference":"zi_INV_001602_ab12cd34","reconcileAttempts":0}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > summary never includes raw provider error details
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_retry_scheduled","at":"2026-05-23T18:26:52.988Z","invoiceNumber":"INV-001602","zohoInvoicePaymentId":"pay-1","failureCode":"paystack_verify_api_502","reconcileAttempts":1,"nextReconcileAttemptAt":"2026-05-23T18:31:52.988Z"}
+
+stdout | src/features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.test.ts > retryZohoInvoiceReconciliation > summary never includes raw provider error details
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_reconcile_cron_completed","at":"2026-05-23T18:26:52.988Z","scanned":1,"retried":1,"paid":0,"pending":1,"failed":0,"skipped":0,"errors":[]}
+
+stderr | src/features/notifications/server/recordNotificationWorkerRun.test.ts > recordNotificationWorkerRun > is 
+fail-soft when insert fails
+{"event":"notification_worker_run_persist_failed","at":"2026-05-23T18:27:27.298Z","ok":true,"triggerSource":"cron","cod
+e":"XX","message":"insert failed"}
+
+┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > marks paid after verify and Zoho customer payment creation
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_started","at":"2026-05-23T18:27:42.334Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1"}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > marks paid after verify and Zoho customer payment creation
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_succeeded","at":"2026-05-23T18:27:42.336Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1","amountCents":10000,"currency":"ZAR"}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > marks paid after verify and Zoho customer payment creation
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_marked_paid","at":"2026-05-23T18:27:42.336Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1","zohoPaymentId":"zoho-payment-1","idempotent":false}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > does not create second Zoho payment when zoho_payment_id already exists
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_started","at":"2026-05-23T18:27:42.353Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1"}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > does not create second Zoho payment when zoho_payment_id already exists
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_succeeded","at":"2026-05-23T18:27:42.353Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1","amountCents":10000,"currency":"ZAR"}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > does not create second Zoho payment when zoho_payment_id already exists
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_marked_paid","at":"2026-05-23T18:27:42.353Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1","zohoPaymentId":"zoho-payment-existing","idempotent":true}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > handles missing payment row safely
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_webhook_routed","at":"2026-05-23T18:27:42.354Z","paystackReference":"missing_ref","failureCode":"PAYMENT_ROW_NOT_FOUND"}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > sets reconcile pending when Paystack verify fails
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_started","at":"2026-05-23T18:27:42.355Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1"}
+
+stderr | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > 
+processZohoInvoiceChargeSuccess > sets reconcile pending when Paystack verify fails
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_failed","at":"2026-05-23T18:27:42.355Z","inv
+oiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1","failureCode":"pay
+stack_verify_api_502","retryable":true}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > sets reconcile failed on amount mismatch without calling Zoho
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_started","at":"2026-05-23T18:27:42.356Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1"}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > sets reconcile failed on amount mismatch without calling Zoho
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_succeeded","at":"2026-05-23T18:27:42.356Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1","amountCents":9999,"currency":"ZAR"}
+
+stderr | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > 
+processZohoInvoiceChargeSuccess > sets reconcile failed on amount mismatch without calling Zoho
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_amount_mismatch","at":"2026-05-23T18:27:42.356Z","invoiceNum
+ber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1","expectedAmountCents":100
+00,"actualAmountCents":9999}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > sets reconcile failed on currency mismatch without calling Zoho
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_started","at":"2026-05-23T18:27:42.357Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1"}
+
+stderr | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > 
+processZohoInvoiceChargeSuccess > sets reconcile failed on currency mismatch without calling Zoho
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_currency_mismatch","at":"2026-05-23T18:27:42.357Z","invoiceN
+umber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1","expectedCurrency":"ZAR
+","actualCurrency":"USD"}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > sets reconcile failed on currency mismatch without calling Zoho
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_succeeded","at":"2026-05-23T18:27:42.357Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1","amountCents":10000,"currency":"USD"}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > sets reconcile pending when Zoho API fails after Paystack success
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_started","at":"2026-05-23T18:27:42.357Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1"}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > sets reconcile pending when Zoho API fails after Paystack success
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_succeeded","at":"2026-05-23T18:27:42.357Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1","amountCents":10000,"currency":"ZAR"}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > retries pending row and marks paid on successful Zoho reconcile
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_started","at":"2026-05-23T18:27:42.358Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1"}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > retries pending row and marks paid on successful Zoho reconcile
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_succeeded","at":"2026-05-23T18:27:42.358Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1","amountCents":10000,"currency":"ZAR"}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > retries pending row and marks paid on successful Zoho reconcile
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_marked_paid","at":"2026-05-23T18:27:42.358Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1","zohoPaymentId":"zoho-payment-retry","idempotent":false}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > continues invoice reconciliation when authorization capture throws
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_started","at":"2026-05-23T18:27:42.359Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1"}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > continues invoice reconciliation when authorization capture throws
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_succeeded","at":"2026-05-23T18:27:42.359Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1","amountCents":10000,"currency":"ZAR"}
+
+stdout | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > processZohoInvoiceChargeSuccess > continues invoice reconciliation when authorization capture throws
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_marked_paid","at":"2026-05-23T18:27:42.359Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1","zohoPaymentId":"zoho-payment-1","idempotent":false}
+
+stderr | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeSuccess.test.ts > 
+processZohoInvoiceChargeSuccess > continues invoice reconciliation when authorization capture throws
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_authorization_capture_failed","at":"2026-05-23T18:27:42.359Z
+","invoiceNumber":"INV-001602","zohoInvoicePaymentId":"pay-1","failureCode":"UNHANDLED_CAPTURE_ERROR"}
+
+stderr | src/features/payments/server/routePaystackWebhookEvent.test.ts > routePaystackWebhookEvent > routes 
+admin_assisted metadata.source to booking success handler
+{"event":"post_payment_assignment_failed","at":"2026-05-23T18:28:00.790Z","bookingId":"6a2d7a31-d8ad-4302-a7a9-b1641ce2
+1946","paymentId":"0f2c04d6-f36b-48e8-bb66-c1a05a908e74","customerId":"18674a82-1a8a-4de3-80c7-066e1e3884e0","paystackR
+eference":"bk_admin_assist_ref_123","paystackTransactionId":9002,"assignmentCode":"ASSIGNMENT_EXCEPTION","assignmentMes
+sage":"Unexpected table assignment_offers","bookingStatusAfter":"confirmed","thrown":true}
+
+stderr | src/features/payments/server/routePaystackWebhookEvent.test.ts > routePaystackWebhookEvent > routes booking 
+metadata.source to booking success handler
+{"event":"post_payment_assignment_failed","at":"2026-05-23T18:28:00.792Z","bookingId":"79cb1e5e-9a88-414c-8e4e-8ca72f51
+0936","paymentId":"b4c3f0df-a2c2-4ea5-a3b4-2e9c35f0bfe0","customerId":"aa05d338-87ca-40a2-81b0-3704e9c2d867","paystackR
+eference":"bk_booking_ref_123","paystackTransactionId":9001,"assignmentCode":"ASSIGNMENT_EXCEPTION","assignmentMessage"
+:"Unexpected table assignment_offers","bookingStatusAfter":"confirmed","thrown":true}
+
+┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖stdout | src/features/payments/server/routePaystackWebhookEvent.test.ts > routePaystackWebhookEvent > routes zoho metadata.source to Zoho success handler
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_webhook_routed","at":"2026-05-23T18:28:00.794Z","eventType":"charge.success","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"zoho-pay-1"}
+
+stdout | src/features/payments/server/routePaystackWebhookEvent.test.ts > routePaystackWebhookEvent > routes zoho metadata.source to Zoho success handler
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_started","at":"2026-05-23T18:28:00.797Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"zoho-pay-1"}
+
+stdout | src/features/payments/server/routePaystackWebhookEvent.test.ts > routePaystackWebhookEvent > routes zoho metadata.source to Zoho success handler
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_paystack_verify_succeeded","at":"2026-05-23T18:28:00.797Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"zoho-pay-1","amountCents":10000,"currency":"ZAR"}
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_authorization_capture_skipped_not_requested","at":"2026-05-23T18:28:00.797Z","invoiceNumber":"INV-001602","zohoInvoicePaymentId":"zoho-pay-1"}
+
+stdout | src/features/payments/server/routePaystackWebhookEvent.test.ts > routePaystackWebhookEvent > routes zoho metadata.source to Zoho success handler
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_marked_paid","at":"2026-05-23T18:28:00.798Z","invoiceNumber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"zoho-pay-1","zohoPaymentId":"zoho-payment-1","idempotent":false}
+
+stdout | src/features/payments/server/routePaystackWebhookEvent.test.ts > routePaystackWebhookEvent > routes zia_ prefix to authorization charge handler
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_authorization_charge_webhook_routed","at":"2026-05-23T18:28:00.808Z","eventType":"charge.success","paystackReference":"zia_INV_001602_ab12cd34","authorizationChargeId":null}
+
+stdout | src/features/payments/server/routePaystackWebhookEvent.test.ts > routePaystackWebhookEvent > routes zi_ prefix without metadata to Zoho handler
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_webhook_routed","at":"2026-05-23T18:28:00.809Z","eventType":"charge.success","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":null}
+
+stderr | src/features/payments/server/routePaystackWebhookEvent.test.ts > routePaystackWebhookEvent > 
+handlePaystackWebhook still confirms booking for legacy events
+{"event":"post_payment_assignment_failed","at":"2026-05-23T18:28:00.811Z","bookingId":"e75eecae-35fe-4619-8a98-43e00a3f
+a77d","paymentId":"04c37c06-37a8-4009-ba57-e275d5282d76","customerId":"b091f7dc-f625-4ee4-aba1-4ff4972bb541","paystackR
+eference":"legacy_ref_123","paystackTransactionId":9001,"assignmentCode":"ASSIGNMENT_EXCEPTION","assignmentMessage":"Un
+expected table assignment_offers","bookingStatusAfter":"confirmed","thrown":true}
+
+stderr | src/features/payments/server/processPaystackChargeFailure.test.ts > processPaystackChargeFailure > 
+failed-after-success does not downgrade booking
+{"event":"post_payment_assignment_failed","at":"2026-05-23T18:28:46.012Z","bookingId":"f6dcd0ce-8fa2-4dfc-bbc7-fc4cf070
+6609","paymentId":"691b3e77-31ed-4020-b818-b8f61e762a82","customerId":"ede2aacd-6fcd-4f52-8b95-27f5873a3b66","paystackR
+eference":"pay_ref_failed_test","paystackTransactionId":9001,"assignmentCode":"ASSIGNMENT_EXCEPTION","assignmentMessage
+":"Unexpected table assignment_offers","bookingStatusAfter":"confirmed","thrown":true}
+
+stderr | src/features/payments/server/processPaystackChargeFailure.test.ts > handlePaystackWebhook charge.failed > 
+webhook charge.success behavior unchanged
+{"event":"post_payment_assignment_failed","at":"2026-05-23T18:28:46.017Z","bookingId":"77ebec07-c92d-4d1c-9577-cb4667e2
+d5b7","paymentId":"2a9cb43e-c8dc-4000-9c28-d1179ddbba2e","customerId":"015a45f3-c8db-49ae-a245-be2438602d39","paystackR
+eference":"pay_ref_failed_test","paystackTransactionId":9001,"assignmentCode":"ASSIGNMENT_EXCEPTION","assignmentMessage
+":"Unexpected table assignment_offers","bookingStatusAfter":"confirmed","thrown":true}
+
+stderr | src/features/notifications/server/processSupportNotification.test.ts > support notification worker delivery > 
+skips customer support delivery when ENABLE_SUPPORT_REQUEST_NOTIFICATIONS is off
+{"event":"support_notification_delivery","at":"2026-05-23T18:29:11.985Z","outcome":"skipped","reason":"customer_notific
+ations_disabled","template":"support_request_created","requestId":"req-1","outboxId":"o-support"}
+
+stderr | src/features/notifications/server/processSupportNotification.test.ts > support notification worker delivery > 
+skips admin urgent when NOTIFICATION_SUPPORT_EMAIL missing
+{"event":"support_notification_delivery","at":"2026-05-23T18:29:11.988Z","outcome":"skipped","reason":"admin_support_em
+ail_missing","template":"support_request_admin_urgent","requestId":"req-1","outboxId":"o-admin"}
+
+stderr | src/features/payments/server/paystackFoundation.test.ts > Paystack foundation > finalizePaidBooking confirms 
+booking once via FINALIZE_PAYMENT_SUCCESS
+{"event":"post_payment_assignment_failed","at":"2026-05-23T18:29:20.981Z","bookingId":"e3c42849-a8e4-4f9d-b0cd-2cb905a8
+6385","paymentId":"4f4991c2-672f-45bf-b2b4-f104374705db","customerId":"66f985f3-3e7e-4c4d-b3bd-43dae56660ec","paystackR
+eference":"pay_ref_phase3_test","paystackTransactionId":9001,"assignmentCode":"ASSIGNMENT_EXCEPTION","assignmentMessage
+":"Unexpected table assignment_offers","bookingStatusAfter":"confirmed","thrown":true}
+
+stderr | src/features/payments/server/paystackFoundation.test.ts > Paystack foundation > duplicate finalize is 
+idempotent
+{"event":"post_payment_assignment_failed","at":"2026-05-23T18:29:20.984Z","bookingId":"c9fca6ff-dd32-487a-a20a-c9811eb3
+70f9","paymentId":"6ac7f036-c946-4ebf-b410-4a377a24cc22","customerId":"93517e50-ba40-4660-b7a6-703bf69f1dd4","paystackR
+eference":"pay_ref_phase3_test","paystackTransactionId":9001,"assignmentCode":"ASSIGNMENT_EXCEPTION","assignmentMessage
+":"Unexpected table assignment_offers","bookingStatusAfter":"confirmed","thrown":true}
+
+stderr | src/features/payments/server/paystackFoundation.test.ts > Paystack foundation > duplicate finalize is 
+idempotent
+{"event":"post_payment_assignment_failed","at":"2026-05-23T18:29:20.984Z","bookingId":"c9fca6ff-dd32-487a-a20a-c9811eb3
+70f9","paymentId":"6ac7f036-c946-4ebf-b410-4a377a24cc22","customerId":"93517e50-ba40-4660-b7a6-703bf69f1dd4","paystackR
+eference":"pay_ref_phase3_test","paystackTransactionId":9001,"assignmentCode":"ASSIGNMENT_EXCEPTION","assignmentMessage
+":"Unexpected table assignment_offers","bookingStatusAfter":"confirmed","thrown":true}
+
+stderr | src/features/payments/server/paystackFoundation.test.ts > Paystack foundation > verify fallback uses same 
+finalize path
+{"event":"post_payment_assignment_failed","at":"2026-05-23T18:29:20.985Z","bookingId":"e2a1a154-9635-4740-9835-fc5dce32
+d000","paymentId":"c05c237d-1893-452e-bffc-2a7b3702fba0","customerId":"ba175e79-d4d5-4dbf-98d2-f291e0fe5db6","paystackR
+eference":"pay_ref_phase3_test","paystackTransactionId":9001,"assignmentCode":"ASSIGNMENT_EXCEPTION","assignmentMessage
+":"Unexpected table assignment_offers","bookingStatusAfter":"confirmed","thrown":true}
+
+stderr | src/features/payments/server/paystackFoundation.test.ts > Paystack foundation > webhook charge.success 
+confirms via shared handler
+{"event":"post_payment_assignment_failed","at":"2026-05-23T18:29:20.989Z","bookingId":"7056e10a-2bc3-4142-a388-87e11218
+f6d9","paymentId":"d850b92e-5c7a-492f-bf80-7dffce4d9361","customerId":"1a9c136a-dcc4-4572-8127-fd1ac88a46a8","paystackR
+eference":"pay_ref_phase3_test","paystackTransactionId":9001,"assignmentCode":"ASSIGNMENT_EXCEPTION","assignmentMessage
+":"Unexpected table assignment_offers","bookingStatusAfter":"confirmed","thrown":true}
+
+┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖stdout | src/features/locations/locationLaunchAudit.test.ts > location launch audit static checks > prints launch report and passes all static checks
+
+=== Location launch audit (static) ===
+
+Sitemap total entries:     30 (expected 30)
+Sitemap location suburbs:  12 (expected 12)
+Sitemap apex:              https://shalean.co.za
+Registry operational:      146 (expected 146)
+Registry SEO:              12 (expected 12)
+Requires review:           0 (expected 0)
+Launch crawl paths:        35 URLs defined
+
+Static launch checks: PASS
+
+
+stderr | src/lib/zoho/invoices.test.ts > getZohoInvoiceByNumber > falls back to search_text when invoice_number 
+returns no exact match
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_fetch_debug","at":"2026-05-23T18:30:40.625Z","httpStatus":20
+0,"zohoResponseCode":0,"zohoResponseMessage":null,"endpointPath":"/invoices","queryParams":{"invoice_number":"INV-00160
+2"},"invoiceNumber":"INV-001602","lookupMethod":"invoice_number","reason":"no_exact_match"}
+
+stderr | src/lib/zoho/invoices.test.ts > getZohoInvoiceByNumber > matches exact invoice_number when search_text 
+returns multiple invoices
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_fetch_debug","at":"2026-05-23T18:30:40.628Z","httpStatus":20
+0,"zohoResponseCode":0,"zohoResponseMessage":null,"endpointPath":"/invoices","queryParams":{"invoice_number":"INV-00160
+2"},"invoiceNumber":"INV-001602","lookupMethod":"invoice_number","reason":"no_exact_match"}
+
+stderr | src/lib/zoho/invoices.test.ts > getZohoInvoiceByNumber > does not fall back to search_text when 
+invoice_number lookup hits API error
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_fetch_debug","at":"2026-05-23T18:30:40.629Z","httpStatus":50
+0,"zohoResponseCode":null,"zohoResponseMessage":"down","endpointPath":"/invoices","queryParams":{"invoice_number":"INV-
+001602"},"invoiceNumber":"INV-001602","lookupMethod":"invoice_number","reason":"request_failed"}
+
+stderr | src/lib/zoho/invoices.test.ts > getZohoInvoiceByNumber > returns NOT_FOUND when invoice list is empty
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_fetch_debug","at":"2026-05-23T18:30:40.630Z","httpStatus":20
+0,"zohoResponseCode":0,"zohoResponseMessage":null,"endpointPath":"/invoices","queryParams":{"invoice_number":"INV-999"}
+,"invoiceNumber":"INV-999","lookupMethod":"invoice_number","reason":"no_exact_match"}
+
+stderr | src/lib/zoho/invoices.test.ts > getZohoInvoiceByNumber > returns NOT_FOUND when invoice list is empty
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_fetch_debug","at":"2026-05-23T18:30:40.630Z","httpStatus":20
+0,"zohoResponseCode":0,"zohoResponseMessage":null,"endpointPath":"/invoices","queryParams":{"search_text":"INV-999"},"i
+nvoiceNumber":"INV-999","lookupMethod":"search_text","reason":"no_exact_match"}
+
+stderr | src/lib/zoho/invoices.test.ts > getZohoInvoiceByNumber > returns API_ERROR when fetch throws
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_fetch_debug","at":"2026-05-23T18:30:40.630Z","httpStatus":50
+0,"zohoResponseCode":null,"zohoResponseMessage":"down","endpointPath":"/invoices","queryParams":{"invoice_number":"INV-
+001"},"invoiceNumber":"INV-001","lookupMethod":"invoice_number","reason":"request_failed"}
+
+┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖stdout | src/features/locations/locationRegistry.audit.test.ts > locationRegistry audit > prints audit report and passes invariants
+
+=== Location registry audit ===
+
+Total locations:        146
+Operational areas:      146
+SEO locations:          12
+Requires review:        0
+Featured:               12
+Booking option count:   146
+Cleaner area options:   146
+Sitemap suburb pages:    12 (expected 12)
+Sitemap locations hub:   yes
+Sitemap total entries:  30 (expected 30)
+Duplicate slugs:        0
+Alias collisions:       0
+Missing regions:        0
+
+Sitemap safety: PASS (operational-only areas excluded)
+SEO page drift: PASS (12 canonical SEO slugs unchanged)
+
+
+stderr | src/features/payments/server/postPaymentAssignmentDispatch.test.ts > runPostPaymentAssignmentDispatch > runs 
+assignment immediately when deferred flag is disabled
+{"event":"post_payment_assignment_failed","at":"2026-05-23T18:31:33.483Z","bookingId":"0316e34f-20ff-466a-a847-0eb6f7b8
+71ee","paymentId":"f01b3b5d-d3d9-4132-b91b-79b71b37252a","customerId":"cust-deferred","paystackReference":"ref","paysta
+ckTransactionId":1,"assignmentCode":"STILL_CONFIRMED","assignmentMessage":"Assignment finished but booking remained 
+confirmed (outcome=offered).","bookingStatusAfter":"confirmed","thrown":false}
+
+┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖stdout | src/features/payments/server/postPaymentAssignmentDispatch.test.ts > runPostPaymentAssignmentDispatch > defers far-future booking when flag enabled
+{"event":"assignment_deferred","at":"2026-05-23T18:31:33.485Z","bookingId":"747154aa-60d8-42fa-b2c3-c804fd887def","paymentId":"52014d4c-7685-4c28-b9e3-3cf344e0ebaa","assignmentDispatchAt":"2026-07-08T18:31:33.484Z"}
+
+stderr | src/features/payments/server/postPaymentAssignmentDispatch.test.ts > runPostPaymentAssignmentDispatch > 
+dispatches near-term booking immediately when flag enabled
+{"event":"post_payment_assignment_failed","at":"2026-05-23T18:31:33.486Z","bookingId":"41ab7372-e577-420f-b2ba-e4a141cc
+6278","paymentId":"f14bcc84-e4a2-4159-90d5-9c441682ad58","customerId":"cust-deferred","paystackReference":"ref-soon","p
+aystackTransactionId":3,"assignmentCode":"STILL_CONFIRMED","assignmentMessage":"Assignment finished but booking 
+remained confirmed (outcome=offered).","bookingStatusAfter":"confirmed","thrown":false}
+
+stderr | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeFailure.test.ts > 
+processZohoInvoiceChargeFailure > marks row failed and never calls Zoho
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_marked_failed","at":"2026-05-23T18:32:53.914Z","invoiceNumbe
+r":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1"}
+
+stderr | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeFailure.test.ts > 
+processZohoInvoiceChargeFailure > returns idempotent for duplicate failure events
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_marked_failed","at":"2026-05-23T18:32:53.918Z","invoiceNumbe
+r":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1"}
+
+stderr | src/features/zoho-invoice-payments/server/processZohoInvoiceChargeFailure.test.ts > 
+processZohoInvoiceChargeFailure > returns idempotent for duplicate failure events
+{"namespace":"payments:zoho-invoice","event":"zoho_invoice_webhook_duplicate","at":"2026-05-23T18:32:53.918Z","invoiceN
+umber":"INV-001602","paystackReference":"zi_INV_001602_ab12cd34","zohoInvoicePaymentId":"pay-1","providerEventId":"pays
+tack:charge.failed:9101"}
+
+┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖stdout | src/features/support/server/supportNotificationRenderPreview.test.ts > supportNotificationRenderPreview > renders all support templates with safe copy
+
+--- support_request_created ---
+Subject: We received your Shalean support request
+Preview: Hi Jane Doe, Thanks, we received your request. Request: Request reschedule Status: Open This update reflects your support request status only. not an automatic change to your booking or schedule. A reschedule request is not confirmed until our team updates your booking. Your message: "Please move my visit to next week." View your request: https://app.example.com/customer/bookings/booking-fixture-1ΓÇª
+
+--- support_request_acknowledged ---
+Subject: Your Shalean support request is being reviewed
+Preview: Hi Jane Doe, Our team is reviewing your request. Request: Request reschedule Status: Being reviewed This update reflects your support request status only. not an automatic change to your booking or schedule. A reschedule request is not confirmed until our team updates your booking. Your message: "Please move my visit to next week." View your request: https://app.example.com/customer/bookings/bookiΓÇª
+
+--- support_request_resolved ---
+Subject: Your Shalean support request has been resolved
+Preview: Hi Jane Doe, Your support request has been resolved. Request: Request reschedule Status: Resolved This update reflects your support request status only. not an automatic change to your booking or schedule. A reschedule request is not confirmed until our team updates your booking. Your message: "Please move my visit to next week." Team note: We updated your booking time. View your request: https://ΓÇª
+
+--- support_request_rejected ---
+Subject: Update on your Shalean support request
+Preview: Hi Jane Doe, We reviewed your request and could not approve it. Request: Request cancellation Status: Not approved This update reflects your support request status only. not an automatic change to your booking or schedule. A cancellation request does not automatically cancel your booking. Your message: "Please move my visit to next week." Team note: We could not cancel at this time. View your requΓÇª
+
+--- support_request_admin_urgent ---
+Subject: Urgent Shalean support request
+Preview: Payment help requested Source: Booking support Type: Get payment help Status: Open Customer: Jane Doe. Contact: jane@example.com Message: Please move my visit to next week. Open inbox: https://app.example.com/admin/support Context: https://app.example.com/admin/support?booking=booking-fixture-1
+
+PASS: 5 support notification templates rendered
+
+┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖stdout | src/features/zoho-sales-sync/server/runPostRefundZohoCreditSync.test.ts > runPostBookingCancellationZohoCreditSync > enqueues credit sync for paid booking with Zoho context
+{"namespace":"payments:zoho-refund-credit","event":"zoho_refund_credit_sync_enqueued","at":"2026-05-23T18:34:59.366Z","syncId":"sync-1","sourceType":"booking_cancellation","sourceId":"booking-1","amountCents":5000}
+
+┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖┬╖---
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Suites 3 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/security/customer-provisioning.integration.test.ts > customer auto-provisioning (Supabase integration)
+Error: Hook timed out in 10000ms.
+If this is a long-running hook, pass a timeout value as the last argument or configure it globally with "hookTimeout".
+ Γ¥» src/tests/security/customer-provisioning.integration.test.ts:93:3
+     91|   });
+     92|
+     93|   afterAll(async () => {
+       |   ^
+     94|     if (!serviceClient) return;
+     95|     for (const profileId of createdProfileIds) {
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/35]ΓÄ»
+
+ FAIL  src/tests/security/handle-new-user.migration.test.ts [ src/tests/security/handle-new-user.migration.test.ts ]
+Error: ENOENT: no such file or directory, open 'C:\Users\info\Cleaning Services 
+Software\supabase\migrations\20260517_stage1c_harden_handle_new_user.sql'
+ Γ¥» src/tests/security/handle-new-user.migration.test.ts:11:15
+      9|
+     10| describe("handle_new_user migration (Stage 1C-1)", () => {
+     11|   const sql = readFileSync(MIGRATION_PATH, "utf8");
+       |               ^
+     12|
+     13|   it("always inserts customer role and never reads raw_user_meta_data.ΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/35]ΓÄ»
+
+ FAIL  src/tests/security/rls-policies.integration.test.ts > RLS role security (Supabase integration)
+Error: Hook timed out in 10000ms.
+If this is a long-running hook, pass a timeout value as the last argument or configure it globally with "hookTimeout".
+ Γ¥» src/tests/security/rls-policies.integration.test.ts:445:3
+    443|   }, 30_000);
+    444|
+    445|   afterAll(async () => {
+       |   ^
+    446|     if (!ready || !serviceClient) return;
+    447|     await serviceClient
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/35]ΓÄ»
+
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 32 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/app/stage6StabilizationPhase1.test.ts > Stage 6 stabilization Phase 1 presentation fixes > customer home 
+shows fetch error before empty state
+AssertionError: expected 'import type { Metadata } from "next";ΓÇª' to contain 'allBookings.length === 0'
+
+- Expected
++ Received
+
+- allBookings.length === 0
++ import type { Metadata } from "next";
++ import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
++ import { CustomerDashboardHeaderEndLoader } from "@/components/dashboard/customer/CustomerDashboardHeaderEndLoader";
++ import { CustomerHomeContent } from "@/components/dashboard/customer/CustomerHomeContent";
++ import { CustomerHubShell } from "@/components/dashboard/customer/CustomerHubShell";
++ import { listCustomerBookings } from "@/features/dashboards/server/customerBookingReadModel";
++ import { pickFeaturedUpcomingBooking } from "@/features/dashboards/customerHomeDisplay";
++ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
++ import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
++ import { createSupabaseServerClient } from "@/lib/supabase/server";
++
++ export const metadata: Metadata = {
++   title: "Home | Customer",
++ };
++
++ export default async function CustomerHomePage() {
++   const user = await getCurrentUser();
++   const result = user ? await listCustomerBookings(user) : null;
++   const bookings = result?.ok ? result.bookings : [];
++
++   let profileFullName: string | null = null;
++   let customerEmail = "";
++
++   if (user) {
++     customerEmail = user.authUser.email?.trim() ?? "";
++     const client = await createSupabaseServerClient();
++     if (client) {
++       const { data: profile } = await client
++         .from("profiles")
++         .select("full_name")
++         .eq("id", user.profileId)
++         .maybeSingle();
++       profileFullName = profile?.full_name?.trim() ?? null;
++     }
++   }
++
++   const featured = pickFeaturedUpcomingBooking(bookings);
++
++   const accountLabel =
++     profileFullName?.trim() || customerEmail.split("@")[0] || "Your account";
++
++   return (
++     <CustomerHubShell
++       accountLabel={accountLabel}
++       showLiveBadge={Boolean(featured)}
++       footerSlot={<CustomerDashboardHeaderEndLoader />}
++     >
++       {result && !result.ok ? (
++         <DashboardFetchError
++           title={dashboardFetchErrorTitle("bookings", "customer")}
++           description={result.message}
++         />
++       ) : result?.ok ? (
++         <CustomerHomeContent
++           bookings={bookings}
++           profileFullName={profileFullName}
++           customerEmail={customerEmail}
++         />
++       ) : null}
++     </CustomerHubShell>
++   );
++ }
++
+
+ Γ¥» src/app/stage6StabilizationPhase1.test.ts:21:20
+     19|     expect(source).toContain("!result.ok");
+     20|     expect(source).toContain('dashboardFetchErrorTitle("bookings", "cuΓÇª
+     21|     expect(source).toContain("allBookings.length === 0");
+       |                    ^
+     22|     expect(source.indexOf("!result.ok")).toBeLessThan(source.indexOf("ΓÇª
+     23|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/35]ΓÄ»
+
+ FAIL  src/app/stage6StabilizationPhase1.test.ts > Stage 6 stabilization Phase 1 presentation fixes > cleaner earnings 
+separates fetch failure from empty earnings
+AssertionError: expected 'import type { Metadata } from "next";ΓÇª' to contain 'No earnings yet'
+
+- Expected
++ Received
+
+- No earnings yet
++ import type { Metadata } from "next";
++ import Link from "next/link";
++ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
++ import { listCleanerEarnings } from "@/features/earnings/server/payoutReadModel";
++ import { DashboardShell } from "@/components/dashboard/DashboardShell";
++ import { CleanerDashboardHeaderEndLoader } from "@/components/dashboard/cleaner/CleanerDashboardHeaderEndLoader";
++ import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
++ import { CLEANER_NAV_ITEMS } from "@/features/dashboards/cleanerNav";
++ import { EmptyState } from "@/components/dashboard/EmptyState";
++ import { CleanerEarningsListCard } from "@/components/dashboard/cleaner/CleanerEarningsListCard";
++ import { CleanerEarningsSummaryCards } from "@/components/dashboard/cleaner/CleanerEarningsSummaryCards";
++ import {
++   CLEANER_EARNINGS_EMPTY,
++   CLEANER_EARNINGS_PAGE_TRUST_LINE,
++   summarizeCleanerEarningsForDisplay,
++ } from "@/features/dashboards/cleanerEarningsPresentation";
++ import { UI_BUTTON_PRIMARY_CLASS, UI_BUTTON_SECONDARY_CLASS } from "@/lib/ui/productUiTokens";
++ import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
++ import { CleanerDashboardOperationalIntro } from "@/components/dashboard/cleaner/CleanerDashboardOperationalIntro";
++
++ export const metadata: Metadata = {
++   title: "Earnings | Cleaner",
++ };
++
++ export default async function CleanerEarningsPage() {
++   const user = await getCurrentUser();
++   if (!user) return null;
++
++   const result = await listCleanerEarnings(user);
++
++   return (
++     <DashboardShell
++       title="Earnings"
++       subtitle="Pay from completed jobs and payout status."
++       nav={[...CLEANER_NAV_ITEMS]}
++       headerEnd={<CleanerDashboardHeaderEndLoader />}
++     >
++       <div className="mb-6">
++         <CleanerDashboardOperationalIntro />
++       </div>
++
++       {!result.ok ? (
++         <DashboardFetchError
++           title={dashboardFetchErrorTitle("earnings", "cleaner")}
++           description={result.message}
++         />
++       ) : (
++         <>
++           <CleanerEarningsSummaryCards
++             {...summarizeCleanerEarningsForDisplay(result.earnings)}
++           />
++           {result.earnings.length === 0 ? (
++             <EmptyState
++               title={CLEANER_EARNINGS_EMPTY.title}
++               description={CLEANER_EARNINGS_EMPTY.description}
++               action={
++                 <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:justify-center">
++                   <Link href="/cleaner/jobs" className={UI_BUTTON_PRIMARY_CLASS}>
++                     View jobs
++                   </Link>
++                   <Link href="/cleaner/offers" className={UI_BUTTON_SECONDARY_CLASS}>
++                     Check offers
++                   </Link>
++                 </div>
++               }
++             />
++           ) : (
++             <>
++               <p className="mb-4 text-xs leading-snug text-zinc-600">
++                 {CLEANER_EARNINGS_PAGE_TRUST_LINE}
++               </p>
++               <ul className="space-y-3">
++                 {result.earnings.map((e) => (
++                   <li key={e.id}>
++                     <CleanerEarningsListCard
++                       item={{
++                         id: e.id,
++                         serviceLabel: e.serviceLabel,
++                         scheduleLabel: e.scheduleLabel,
++                         payoutAmountCents: e.payoutAmountCents,
++                         payoutStatus: e.payoutStatus,
++                         bookingId: e.bookingId,
++                       }}
++                     />
++                   </li>
++                 ))}
++               </ul>
++             </>
++           )}
++         </>
++       )}
++     </DashboardShell>
++   );
++ }
++
+
+ Γ¥» src/app/stage6StabilizationPhase1.test.ts:39:20
+     37|     expect(source).toContain('!result.ok');
+     38|     expect(source).toContain('dashboardFetchErrorTitle("earnings", "clΓÇª
+     39|     expect(source).toContain("No earnings yet");
+       |                    ^
+     40|     expect(source).not.toContain("!result.ok || result.earnings.lengthΓÇª
+     41|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/35]ΓÄ»
+
+ FAIL  src/app/stage6StabilizationPhase1.test.ts > Stage 6 stabilization Phase 1 presentation fixes > admin bookings 
+operations list uses ops card builder
+AssertionError: expected 'import { isAdminAssistedBookingDraftEΓÇª' to contain 'buildAdminBookingOpsCardModel'
+
+- Expected
++ Received
+
+- buildAdminBookingOpsCardModel
++ import { isAdminAssistedBookingDraftEnabled } from "@/features/customers/server/admin/adminCustomerBookingAssist";
++ import type { Metadata } from "next";
++ import Link from "next/link";
++ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
++ import { listAdminBookings } from "@/features/dashboards/server/adminOperationsReadModel";
++ import { getAdminOperationalQueueCounts } from "@/features/dashboards/server/adminOperationalQueueCounts";
++ import { AdminBookingsOperationalGuide } from "@/components/dashboard/admin/AdminBookingsOperationalGuide";
++ import {
++   buildAdminOperationalQueueContextCard,
++   isAdminOperationalQueueFilter,
++ } from "@/features/dashboards/adminOperationalQueues";
++ import type { AdminBookingFilter } from "@/features/dashboards/server/adminOperationalHelpers";
++ import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
++ import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
++ import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
++ import { EmptyState } from "@/components/dashboard/EmptyState";
++ import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
++ import { AdminBookingsOperationsHeader } from "@/components/dashboard/admin/bookings/AdminBookingsOperationsHeader";
++ import { AdminBookingsOperationsToolbar } from 
+"@/components/dashboard/admin/bookings/AdminBookingsOperationsToolbar";
++ import { AdminBookingsOperationsList } from "@/components/dashboard/admin/bookings/AdminBookingsOperationsList";
++ import { AdminBookingsOperationsExtras } from "@/components/dashboard/admin/bookings/AdminBookingsOperationsExtras";
++ import {
++   filterAdminBookingsForView,
++   resolveAdminBookingsViewChip,
++ } from "@/features/dashboards/adminBookingsViewPresets";
++ 
++ export const metadata: Metadata = {
++   title: "Booking operations | Admin",
++ };
++ 
++ const VALID_FILTERS = new Set<AdminBookingFilter>([
++   "payment_failed",
++   "pending_assignment",
++   "awaiting_payment",
++   "payment_link_sent",
++   "payment_link_expired",
++   "admin_assisted_only",
++   "paid_via_offline",
++   "paid_via_paystack_link",
++   "assignment_attention",
++   "dispatch_not_started",
++   "selected_declined",
++   "max_attempts",
++   "recovery_needed",
++   "two_cleaner_request",
++   "operational_load",
++   "team_awaiting_coordination",
++   "team_fully_coordinated",
++   "high_operational_load",
++   "team_high_risk_combo",
++ ]);
++ 
++ type PageProps = {
++   searchParams: Promise<{
++     filter?: string;
++     view?: string;
++     q?: string;
++     from?: string;
++     to?: string;
++   }>;
++ };
++ 
++ export default async function AdminBookingsPage({ searchParams }: PageProps) {
++   const user = await getCurrentUser();
++   if (!user) return null;
++ 
++   const params = await searchParams;
++   const filterParam = params.filter;
++   const filter =
++     filterParam && VALID_FILTERS.has(filterParam as AdminBookingFilter)
++       ? (filterParam as AdminBookingFilter)
++       : undefined;
++ 
++   const viewChip = resolveAdminBookingsViewChip({
++     filter,
++     view: params.view,
++     from: params.from,
++     to: params.to,
++   });
++ 
++   const [result, queueCounts] = await Promise.all([
++     listAdminBookings(user, {
++       filter,
++       search: params.q,
++       scheduledFrom: params.from,
++       scheduledTo: params.to,
++     }),
++     getAdminOperationalQueueCounts(user),
++   ]);
++ 
++   const displayedBookings =
++     result.ok ? filterAdminBookingsForView(result.bookings, viewChip) : [];
++ 
++   const queueContextCard =
++     queueCounts.ok && filter && isAdminOperationalQueueFilter(filter)
++       ? buildAdminOperationalQueueContextCard(filter, queueCounts.queues)
++       : null;
++ 
++   return (
++     <AdminDashboardShell nav={[...ADMIN_DASHBOARD_NAV]}>
++       <AdminBookingsOperationsHeader
++         shownCount={displayedBookings.length}
++         draftBookingEnabled={isAdminAssistedBookingDraftEnabled()}
++       />
++ 
++       {result.ok ? (
++         <AdminBookingsOperationsToolbar
++           filter={filter}
++           view={params.view}
++           search={params.q}
++           scheduledFrom={params.from}
++           scheduledTo={params.to}
++         />
++       ) : null}
++ 
++       {queueContextCard ? <AdminBookingsOperationalGuide card={queueContextCard} /> : null}
++ 
++       {!result.ok ? (
++         <DashboardFetchError
++           title={dashboardFetchErrorTitle("bookings", "admin")}
++           description={result.message}
++         />
++       ) : displayedBookings.length === 0 ? (
++         <EmptyState
++           title="No matching bookings"
++           description={
++             filter || params.q || params.view || params.from
++               ? "Try clearing filters or widening your search."
++               : "Bookings appear here as customers checkout."
++           }
++           action={
++             filter || params.q || params.view || params.from ? (
++               <Link
++                 href="/admin/bookings"
++                 className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 
+hover:bg-slate-50"
++               >
++                 Clear filters
++               </Link>
++             ) : undefined
++           }
++         />
++       ) : (
++         <AdminBookingsOperationsList bookings={displayedBookings} />
++       )}
++ 
++       {result.ok && queueCounts.ok ? (
++         <AdminBookingsOperationsExtras
++           queues={queueCounts.queues}
++           activeFilter={filter}
++           filter={filter}
++           search={params.q}
++           scheduledFrom={params.from}
++           scheduledTo={params.to}
++           matchTotal={result.matchTotal}
++           returnedCount={result.returnedCount}
++           limit={result.limit}
++           capped={result.capped}
++           subsetFiltered={result.subsetFiltered}
++         />
++       ) : null}
++     </AdminDashboardShell>
++   );
++ }
++
+
+ Γ¥» src/app/stage6StabilizationPhase1.test.ts:63:22
+     61|     const badges = readComponent("src/features/dashboards/adminBookingΓÇª
+     62|
+     63|     expect(listPage).toContain("buildAdminBookingOpsCardModel");
+       |                      ^
+     64|     expect(listPage).toContain("<AdminBookingsOperationsList");
+     65|     expect(badges).toContain('b.status !== "payment_failed"');
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[6/35]ΓÄ»
+
+ FAIL  src/app/stage6StabilizationPhase1.test.ts > Stage 6 stabilization Phase 1 presentation fixes > loading routes 
+exist for customer home and cleaner job detail
+AssertionError: expected 'import { CustomerHubShell } from "@/cΓÇª' to contain 'DashboardPageSkeleton'
+
+- Expected
++ Received
+
+- DashboardPageSkeleton
++ import { CustomerHubShell } from "@/components/dashboard/customer/CustomerHubShell";
++
++ export default function CustomerHomeLoading() {
++   return (
++     <CustomerHubShell accountLabel="LoadingΓÇª" showLiveBadge={false}>
++       <div className="mx-auto max-w-4xl animate-pulse space-y-5">
++         <div className="h-24 rounded-2xl bg-zinc-200/60" />
++         <div className="h-56 rounded-2xl bg-blue-100/50" />
++         <div className="h-32 rounded-2xl bg-zinc-200/50" />
++         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
++           {Array.from({ length: 4 }).map((_, i) => (
++             <div key={i} className="h-24 rounded-2xl bg-zinc-200/50" />
++           ))}
++         </div>
++       </div>
++     </CustomerHubShell>
++   );
++ }
++
+
+ Γ¥» src/app/stage6StabilizationPhase1.test.ts:85:29
+     83|     const jobDetailLoading = readPage("src/app/(cleaner)/cleaner/jobs/ΓÇª
+     84|
+     85|     expect(customerLoading).toContain("DashboardPageSkeleton");
+       |                             ^
+     86|     expect(customerLoading).toContain('variant="list"');
+     87|     expect(jobDetailLoading).toContain("DashboardPageSkeleton");
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[7/35]ΓÄ»
+
+ FAIL  src/components/dashboard/AdminOperationalStatusPanel.test.tsx > AdminOperationalStatusPanel > shows recover 
+action only when recovery eligibility is eligible
+AssertionError: expected '<section class="rounded-2xl border boΓÇª' to contain 'Grace -'
+
+Expected: "Grace -"
+Received: "<section class="rounded-2xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] 
+border-sky-200/80 bg-sky-50/30 p-4 sm:p-5"><h2 class="text-sm font-semibold text-zinc-900 text-sky-950">Actions</h2><p 
+class="mt-0.5 text-xs leading-snug text-zinc-500 leading-relaxed">Manual ops. booking statuses are not overridden 
+here.</p><section class="mt-3 space-y-2"></section><details class="mt-3 text-sm"><summary class="cursor-pointer 
+font-medium text-zinc-600 hover:text-zinc-900">Status breakdown</summary><dl class="mt-2 grid gap-2.5 sm:grid-cols-2 
+sm:gap-x-5"><section><dt class="text-xs font-medium uppercase tracking-wide text-zinc-500">Payment</dt><dd 
+class="mt-0.5 font-medium text-zinc-900">Paid</dd></section><section><dt class="text-xs font-medium uppercase 
+tracking-wide text-zinc-500">Assignment</dt><dd class="mt-0.5 font-medium text-zinc-900">Paid. dispatch not 
+started</dd></section><section><dt class="text-xs font-medium uppercase tracking-wide text-zinc-500">Recovery</dt><dd 
+class="mt-0.5 font-medium text-zinc-900">Grace. ~12 min</dd></section><section><dt class="text-xs font-medium 
+uppercase tracking-wide text-zinc-500">Open offers</dt><dd class="mt-0.5 font-medium text-zinc-900">No open 
+offers</dd></section></dl><ul class="mt-2 space-y-0.5 rounded-xl border border-zinc-200 bg-zinc-50/80 px-3 py-2 
+text-xs text-zinc-700"><li>Searching: idle</li><li>Admin review: not flagged</li><li>Recovery cron: can 
+handle</li><li>Intervention: not flagged</li></ul><p class="text-sm text-zinc-600 mt-2"><span class="font-medium 
+text-zinc-800">Runbook:</span> Assignment recovery after payment<span class="mt-0.5 block font-mono text-xs 
+text-zinc-500">docs/operations/assignment-recovery.md</span></p></details></section>"
+
+ Γ¥» src/components/dashboard/AdminOperationalStatusPanel.test.tsx:104:28
+    102|     expect(eligibleHtml).toContain("Run assignment recovery");
+    103|     expect(ineligibleHtml).not.toContain("Run assignment recovery");
+    104|     expect(ineligibleHtml).toContain("Grace -");
+       |                            ^
+    105|   });
+    106|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[8/35]ΓÄ»
+
+ FAIL  src/app/sign-up/page.test.ts > Sign-up page feature flag > shows signup link on sign-in only when flag is 
+enabled
+AssertionError: expected '"use client";\n\nimport { useState } ΓÇª' to contain 'href={SIGN_UP_PATH}'
+
+- Expected
++ Received
+
+- href={SIGN_UP_PATH}
++ "use client";
++
++ import { useState } from "react";
++ import Link from "next/link";
++ import { SIGN_UP_PATH } from "@/lib/auth/customerSignup";
++ import { buildAuthPathWithRedirect } from "@/lib/auth/bookingAuthPaths";
++ import {
++   isCleanerSignInIntent,
++   resolveSignInPageCopy,
++ } from "@/lib/auth/signInIntent";
++ import { ResetPasswordRequestForm } from "./ResetPasswordRequestForm";
++ import { SignInForm } from "./SignInForm";
++
++ type Props = {
++   redirectedFrom: string | null;
++   signupEnabled: boolean;
++ };
++
++ export function SignInPageContent({ redirectedFrom, signupEnabled }: Props) {
++   const [mode, setMode] = useState<"sign-in" | "reset">("sign-in");
++   const copy = resolveSignInPageCopy(redirectedFrom);
++   const cleanerIntent = isCleanerSignInIntent(redirectedFrom);
++   const showCustomerSignup = signupEnabled && !cleanerIntent;
++
++   return (
++     <>
++       <section>
++         {mode === "sign-in" ? (
++           <>
++             <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">{copy.title}</h1>
++             <p className="mt-2 text-sm leading-6 text-zinc-600">{copy.subtitle}</p>
++           </>
++         ) : (
++           <>
++             <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
++               Reset your password
++             </h1>
++             <p className="mt-2 text-sm leading-6 text-zinc-600">
++               Enter your email address and we&apos;ll send you a password reset link.
++             </p>
++           </>
++         )}
++       </section>
++
++       {mode === "sign-in" ? (
++         <SignInForm
++           redirectedFrom={redirectedFrom}
++           cleanerIntent={cleanerIntent}
++           onForgotPassword={() => setMode("reset")}
++         />
++       ) : (
++         <ResetPasswordRequestForm onBackToSignIn={() => setMode("sign-in")} />
++       )}
++
++       {mode === "sign-in" && showCustomerSignup ? (
++         <p className="text-center text-sm text-zinc-600">
++           New to Shalean?{" "}
++           <Link
++             href={buildAuthPathWithRedirect(SIGN_UP_PATH, redirectedFrom)}
++             className="font-medium text-zinc-900 underline-offset-2 transition-colors hover:underline"
++           >
++             Create an account
++           </Link>
++         </p>
++       ) : null}
++
++       {mode === "sign-in" && cleanerIntent ? (
++         <p className="text-center text-sm text-zinc-600">
++           Looking to book a clean?{" "}
++           <Link
++             href="/sign-in"
++             className="font-medium text-zinc-900 underline-offset-2 transition-colors hover:underline"
++           >
++             Customer sign in
++           </Link>
++         </p>
++       ) : null}
++
++       {mode === "sign-in" ? (
++         <>
++           <p className="text-center text-sm text-zinc-600">
++             <Link
++               href="/"
++               className="font-medium text-zinc-900 underline-offset-2 transition-colors hover:underline"
++             >
++               Back to home
++             </Link>
++           </p>
++           <p className="text-center text-xs text-zinc-500">
++             Shalean Cleaning Services ΓÇó Cape Town
++           </p>
++         </>
++       ) : null}
++     </>
++   );
++ }
++
+
+ Γ¥» src/app/sign-up/page.test.ts:54:33
+     52|
+     53|   it("shows signup link on sign-in only when flag is enabled", () => {
+     54|     expect(signInContentSource).toContain('href={SIGN_UP_PATH}');
+       |                                 ^
+     55|     expect(signInContentSource).toContain("Create one");
+     56|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[9/35]ΓÄ»
+
+ FAIL  src/features/booking-wizard/preferredScheduleCopy.test.ts > preferredScheduleCopy > does not promise automated 
+future bookings in customer copy
+AssertionError: expected 'Your first payment confirms your firsΓÇª' to match /first booking/i
+
+- Expected:
+/first booking/i
+
++ Received:
+"Your first payment confirms your first visit only. Future recurring visits are paid individually."
+
+ Γ¥» src/features/booking-wizard/preferredScheduleCopy.test.ts:33:52
+     31|       expect(explanation).not.toMatch(/automatically/i);
+     32|     }
+     33|     expect(PREFERRED_SCHEDULE_PAYMENT_EXPLANATION).toMatch(/first bookΓÇª
+       |                                                    ^
+     34|     expect(PREFERRED_SCHEDULE_PAYMENT_EXPLANATION).not.toMatch(/recurrΓÇª
+     35|     expect(PREFERRED_SCHEDULE_PAYMENT_EXPLANATION).not.toMatch(/automaΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[10/35]ΓÄ»
+
+ FAIL  src/features/booking-wizard/wizardBookingSummaryDisplay.test.ts > wizardBookingSummaryDisplay > builds primary 
+recap and a positive estimated total for a filled regular booking
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ Γ¥» src/features/booking-wizard/wizardBookingSummaryDisplay.test.ts:42:7
+     40|     expect(
+     41|       snapshot.secondaryRows.some((r) => r.label === "Frequency" && r.ΓÇª
+     42|     ).toBe(true);
+       |       ^
+     43|     expect(snapshot.estimatedTotalCents).toBeGreaterThan(0);
+     44|     expect(getWizardEstimatedTotalCents(baseInput)).toBe(snapshot.estiΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[11/35]ΓÄ»
+
+ FAIL  src/features/dashboards/customerBookingsListSurface.test.tsx > customer bookings list surface (Phase 2B-2) > 
+keeps the full bookings list on /customer/bookings only
+AssertionError: expected 'import type { Metadata } from "next";ΓÇª' not to contain 'listCustomerBookings'
+
+- Expected
++ Received
+
+- listCustomerBookings
++ import type { Metadata } from "next";
++ import { DashboardFetchError } from "@/components/dashboard/DashboardFetchError";
++ import { CustomerDashboardHeaderEndLoader } from "@/components/dashboard/customer/CustomerDashboardHeaderEndLoader";
++ import { CustomerHomeContent } from "@/components/dashboard/customer/CustomerHomeContent";
++ import { CustomerHubShell } from "@/components/dashboard/customer/CustomerHubShell";
++ import { listCustomerBookings } from "@/features/dashboards/server/customerBookingReadModel";
++ import { pickFeaturedUpcomingBooking } from "@/features/dashboards/customerHomeDisplay";
++ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
++ import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
++ import { createSupabaseServerClient } from "@/lib/supabase/server";
++
++ export const metadata: Metadata = {
++   title: "Home | Customer",
++ };
++
++ export default async function CustomerHomePage() {
++   const user = await getCurrentUser();
++   const result = user ? await listCustomerBookings(user) : null;
++   const bookings = result?.ok ? result.bookings : [];
++
++   let profileFullName: string | null = null;
++   let customerEmail = "";
++
++   if (user) {
++     customerEmail = user.authUser.email?.trim() ?? "";
++     const client = await createSupabaseServerClient();
++     if (client) {
++       const { data: profile } = await client
++         .from("profiles")
++         .select("full_name")
++         .eq("id", user.profileId)
++         .maybeSingle();
++       profileFullName = profile?.full_name?.trim() ?? null;
++     }
++   }
++
++   const featured = pickFeaturedUpcomingBooking(bookings);
++
++   const accountLabel =
++     profileFullName?.trim() || customerEmail.split("@")[0] || "Your account";
++
++   return (
++     <CustomerHubShell
++       accountLabel={accountLabel}
++       showLiveBadge={Boolean(featured)}
++       footerSlot={<CustomerDashboardHeaderEndLoader />}
++     >
++       {result && !result.ok ? (
++         <DashboardFetchError
++           title={dashboardFetchErrorTitle("bookings", "customer")}
++           description={result.message}
++         />
++       ) : result?.ok ? (
++         <CustomerHomeContent
++           bookings={bookings}
++           profileFullName={profileFullName}
++           customerEmail={customerEmail}
++         />
++       ) : null}
++     </CustomerHubShell>
++   );
++ }
++
+
+ Γ¥» src/features/dashboards/customerBookingsListSurface.test.tsx:20:22
+     18|     expect(home).toContain("CustomerHomeContent");
+     19|     expect(home).not.toContain("CustomerBookingsListContent");
+     20|     expect(home).not.toContain("listCustomerBookings");
+       |                      ^
+     21|     expect(bookings).toContain("CustomerBookingsListContent");
+     22|     expect(bookings).toContain("listCustomerBookings");
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[12/35]ΓÄ»
+
+ FAIL  src/features/dashboards/customerNav.test.ts > CUSTOMER_DASHBOARD_NAV > defines a single bookings destination 
+separate from home
+AssertionError: expected [ '/customer', ΓÇª(6) ] to deeply equal [ '/customer', ΓÇª(5) ]
+
+- Expected
++ Received
+
+@@ -2,7 +2,8 @@
+    "/customer",
+    "/customer/bookings",
+    "/customer/bookings/recurring",
+    "/customer/payment-methods",
+    "/customer/payments",
++   "/customer/invoices",
+    "/customer/book",
+  ]
+
+ Γ¥» src/features/dashboards/customerNav.test.ts:6:61
+      4| describe("CUSTOMER_DASHBOARD_NAV", () => {
+      5|   it("defines a single bookings destination separate from home", () =>ΓÇª
+      6|     expect(CUSTOMER_DASHBOARD_NAV.map((item) => item.href)).toEqual([
+       |                                                             ^
+      7|       "/customer",
+      8|       "/customer/bookings",
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[13/35]ΓÄ»
+
+ FAIL  src/tests/security/facadeCommandBoundaryGuard.test.ts > service role lifecycle write registry (static) > only 
+approved modules import the service role client
+ FAIL  src/tests/security/serviceRoleLifecycleWriteRegistry.test.ts > service role lifecycle write registry (static) > 
+only approved modules import the service role client
+AssertionError: New service-role import(s) detected. Add to ALLOWED_SERVICE_ROLE_LIFECYCLE_IMPORTERS after review:
+app/api/admin/bookings/[bookingId]/assist-feedback/route.ts
+app/api/admin/bookings/[bookingId]/assist-qa-checklist/route.ts
+app/api/admin/bookings/assist-incidents/review/route.ts
+app/api/cron/mark-monthly-invoices-overdue/route.ts
+app/api/cron/process-monthly-invoice-reminders/route.ts
+features/bookings/server/admin/adminAssistedBookingDiagnosticsReadModel.ts
+features/bookings/server/admin/adminAssistedIncidentReviewRepository.ts
+features/bookings/server/admin/loadAdminAssistQaChecklist.ts
+features/bookings/server/admin/loadAdminAssistedOperatorFeedback.ts
+features/bookings/server/admin/loadAdminAssistedPilotQaPanel.ts
+features/bookings/server/admin/loadAdminAssistedProductionLearning.ts
+features/bookings/server/admin/loadAdminAssistedProductionStatus.ts
+features/bookings/server/admin/loadAdminBookingAssistSummary.ts
+features/bookings/server/admin/loadAdminBookingRecurringVerification.ts
+features/bookings/server/admin/validateAdminWizardBillingMode.ts
+features/monthly-billing/server/autoSendMonthlyInvoiceAfterGeneration.ts
+features/monthly-billing/server/customerBillingAccountGovernanceRepository.ts
+features/monthly-billing/server/customerMonthlyInvoicesReadModel.ts
+features/monthly-billing/server/loadMonthlyAccountAuthorizationContext.ts
+features/monthly-billing/server/loadMonthlyAccountExposure.ts
+features/monthly-billing/server/loadMonthlyCollectionsDashboard.ts
+features/monthly-billing/server/loadMonthlyGovernanceDashboard.ts
+features/monthly-billing/server/loadMonthlyGovernanceTimelineForCustomer.ts
+features/monthly-billing/server/loadMonthlyInvoiceOperationsDiagnostics.ts
+features/monthly-billing/server/markMonthlyInvoiceCollectionsState.ts
+features/monthly-billing/server/markMonthlyInvoiceOverdue.ts
+features/monthly-billing/server/monthlyAccountCollectionsNotesRepository.ts
+features/monthly-billing/server/monthlyAccountGovernanceFacade.ts
+features/monthly-billing/server/processMonthlyInvoiceRemindersForCron.ts
+features/monthly-billing/server/resendMonthlyInvoiceToCustomer.ts
+features/monthly-billing/server/sendMonthlyInvoiceReminder.ts
+features/monthly-billing/server/sendMonthlyInvoiceToCustomer.ts
+features/monthly-billing/server/submitCustomerMonthlyInvoiceDisputeRequest.ts
+features/monthly-billing/server/updateMonthlyAccountFinanceReview.ts: expected [ ΓÇª(34) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "app/api/admin/bookings/[bookingId]/assist-feedback/route.ts",
++   "app/api/admin/bookings/[bookingId]/assist-qa-checklist/route.ts",
++   "app/api/admin/bookings/assist-incidents/review/route.ts",
++   "app/api/cron/mark-monthly-invoices-overdue/route.ts",
++   "app/api/cron/process-monthly-invoice-reminders/route.ts",
++   "features/bookings/server/admin/adminAssistedBookingDiagnosticsReadModel.ts",
++   "features/bookings/server/admin/adminAssistedIncidentReviewRepository.ts",
++   "features/bookings/server/admin/loadAdminAssistQaChecklist.ts",
++   "features/bookings/server/admin/loadAdminAssistedOperatorFeedback.ts",
++   "features/bookings/server/admin/loadAdminAssistedPilotQaPanel.ts",
++   "features/bookings/server/admin/loadAdminAssistedProductionLearning.ts",
++   "features/bookings/server/admin/loadAdminAssistedProductionStatus.ts",
++   "features/bookings/server/admin/loadAdminBookingAssistSummary.ts",
++   "features/bookings/server/admin/loadAdminBookingRecurringVerification.ts",
++   "features/bookings/server/admin/validateAdminWizardBillingMode.ts",
++   "features/monthly-billing/server/autoSendMonthlyInvoiceAfterGeneration.ts",
++   "features/monthly-billing/server/customerBillingAccountGovernanceRepository.ts",
++   "features/monthly-billing/server/customerMonthlyInvoicesReadModel.ts",
++   "features/monthly-billing/server/loadMonthlyAccountAuthorizationContext.ts",
++   "features/monthly-billing/server/loadMonthlyAccountExposure.ts",
++   "features/monthly-billing/server/loadMonthlyCollectionsDashboard.ts",
++   "features/monthly-billing/server/loadMonthlyGovernanceDashboard.ts",
++   "features/monthly-billing/server/loadMonthlyGovernanceTimelineForCustomer.ts",
++   "features/monthly-billing/server/loadMonthlyInvoiceOperationsDiagnostics.ts",
++   "features/monthly-billing/server/markMonthlyInvoiceCollectionsState.ts",
++   "features/monthly-billing/server/markMonthlyInvoiceOverdue.ts",
++   "features/monthly-billing/server/monthlyAccountCollectionsNotesRepository.ts",
++   "features/monthly-billing/server/monthlyAccountGovernanceFacade.ts",
++   "features/monthly-billing/server/processMonthlyInvoiceRemindersForCron.ts",
++   "features/monthly-billing/server/resendMonthlyInvoiceToCustomer.ts",
++   "features/monthly-billing/server/sendMonthlyInvoiceReminder.ts",
++   "features/monthly-billing/server/sendMonthlyInvoiceToCustomer.ts",
++   "features/monthly-billing/server/submitCustomerMonthlyInvoiceDisputeRequest.ts",
++   "features/monthly-billing/server/updateMonthlyAccountFinanceReview.ts",
++ ]
+
+ Γ¥» src/tests/security/serviceRoleLifecycleWriteRegistry.test.ts:134:7
+    132|       unexpected,
+    133|       `New service-role import(s) detected. Add to ALLOWED_SERVICE_ROLΓÇª
+    134|     ).toEqual([]);
+       |       ^
+    135|   });
+    136|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[14/35]ΓÄ»
+
+ FAIL  src/tests/security/facadeCommandBoundaryGuard.test.ts > service role lifecycle write registry (static) > 
+registry entries still exist on disk
+ FAIL  src/tests/security/serviceRoleLifecycleWriteRegistry.test.ts > service role lifecycle write registry (static) > 
+registry entries still exist on disk
+AssertionError: Stale registry entries (file no longer imports service role):: expected [ ΓÇª(2) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "features/bookings/server/admin/adminOfflinePaymentEventRepository.ts",
++   "features/monthly-billing/server/customerBillingAccountWriteRepository.ts",
++ ]
+
+ Γ¥» src/tests/security/serviceRoleLifecycleWriteRegistry.test.ts:146:7
+    144|       missingFromCodebase,
+    145|       "Stale registry entries (file no longer imports service role):",
+    146|     ).toEqual([]);
+       |       ^
+    147|   });
+    148| });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[15/35]ΓÄ»
+
+ FAIL  src/tests/security/facadeCommandBoundaryGuard.test.ts > facade command boundary guard (static, 5B-2c-min) > 
+maps every route facade symbol to a manifest row
+AssertionError: missing ROUTE_FACADE_SYMBOL_TO_FILE for adminChargeZohoInvoiceSavedMethod: expected undefined to be 
+defined
+ Γ¥» src/tests/security/facadeCommandBoundaryGuard.test.ts:76:70
+     74|     for (const sym of routeSymbols) {
+     75|       const file = ROUTE_FACADE_SYMBOL_TO_FILE[sym];
+     76|       expect(file, `missing ROUTE_FACADE_SYMBOL_TO_FILE for ${sym}`).tΓÇª
+       |                                                                      ^
+     77|       expect(manifestFiles.has(file!), `${sym} ΓåÆ ${file} not in FACADEΓÇª
+     78|         true,
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[16/35]ΓÄ»
+
+ FAIL  src/tests/security/facadeCommandBoundaryGuard.test.ts > facade command boundary guard (static, 5B-2c-min) > 
+features/bookings/server/admin/adminRecordOfflinePaymentFacade.ts > delegates to approved Paystack charge processors 
+only
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ Γ¥» src/tests/security/facadeCommandBoundaryGuard.test.ts:104:58
+    102|           expect(satisfiesPaymentOrchestrator(rule, source)).toBe(trueΓÇª
+    103|           expect(EXECUTE_BOOKING_COMMAND_PATTERN.test(source)).toBe(faΓÇª
+    104|           expect(/\bfinalizePaidBooking\b/.test(source)).toBe(false);
+       |                                                          ^
+    105|         });
+    106|       }
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[17/35]ΓÄ»
+
+ FAIL  src/tests/security/facadeCommandBoundaryGuard.test.ts > facade command boundary guard (static, 5B-2c-min) > 
+features/payments/server/handlePaystackWebhook.ts > delegates to approved Paystack charge processors only
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ Γ¥» src/tests/security/facadeCommandBoundaryGuard.test.ts:102:62
+    100|         it("delegates to approved Paystack charge processors only", ()ΓÇª
+    101|           const source = readFacadeSource(rule.facadeFile);
+    102|           expect(satisfiesPaymentOrchestrator(rule, source)).toBe(trueΓÇª
+       |                                                              ^
+    103|           expect(EXECUTE_BOOKING_COMMAND_PATTERN.test(source)).toBe(faΓÇª
+    104|           expect(/\bfinalizePaidBooking\b/.test(source)).toBe(false);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[18/35]ΓÄ»
+
+ FAIL  src/app/api/admin/adminApiRoutes.test.ts > admin API routes > only exposes intentional admin POST mutation 
+routes
+AssertionError: expected [ ΓÇª(62) ] to deeply equal [ ΓÇª(48) ]
+
+- Expected
++ Received
+
+@@ -26,15 +26,29 @@
+    "cleaners/[cleanerId]/suspend/route.ts",
+    "cleaners/[cleanerId]/unsuspend/route.ts",
+    "cleaners/route.ts",
+    "customers/[customerId]/archive/route.ts",
+    "customers/route.ts",
++   "monthly-billing/accounts/[customerId]/credit-limit/route.ts",
+    "monthly-billing/accounts/[customerId]/disable/route.ts",
+    "monthly-billing/accounts/[customerId]/enable/route.ts",
++   "monthly-billing/accounts/[customerId]/finance-review/route.ts",
++   "monthly-billing/accounts/[customerId]/governance-state/route.ts",
++   "monthly-billing/accounts/[customerId]/temporary-override/route.ts",
+    "monthly-billing/accounts/[customerId]/terms/route.ts",
+    "monthly-billing/accounts/[customerId]/zoho-customer/route.ts",
++   "monthly-billing/batches/[batchId]/generate-zoho-invoice/route.ts",
++   "monthly-billing/batches/[batchId]/mark-disputed/route.ts",
++   "monthly-billing/batches/[batchId]/mark-finance-review/route.ts",
++   "monthly-billing/batches/[batchId]/mark-overdue/route.ts",
++   "monthly-billing/batches/[batchId]/resend-invoice/route.ts",
++   "monthly-billing/batches/[batchId]/send-invoice/route.ts",
++   "monthly-billing/batches/[batchId]/send-reminder/route.ts",
++   "monthly-billing/batches/[batchId]/sync-payment-status/route.ts",
+    "monthly-billing/bookings/[bookingId]/authorize-service/route.ts",
++   "monthly-billing/collections-notes/route.ts",
++   "monthly-billing/governance/bulk/route.ts",
+    "notifications/[outboxId]/requeue/route.ts",
+    "production-rollout/checklist/[key]/route.ts",
+    "recurring/[seriesId]/cancel/route.ts",
+    "recurring/[seriesId]/pause/route.ts",
+    "recurring/[seriesId]/reschedule-next/route.ts",
+
+ Γ¥» src/app/api/admin/adminApiRoutes.test.ts:85:31
+     83|     }
+     84|
+     85|     expect(postRoutes.sort()).toEqual([...ALLOWED_ADMIN_POST_ROUTES].sΓÇª
+       |                               ^
+     86|   });
+     87| });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[19/35]ΓÄ»
+
+ FAIL  src/app/api/cron/cronMutationRoutes.test.ts > cron mutation API routes > only exposes intentional cron POST 
+mutation routes
+AssertionError: expected [ ΓÇª(15) ] to deeply equal [ ΓÇª(12) ]
+
+- Expected
++ Received
+
+@@ -2,13 +2,16 @@
+    "cleanup-notification-retention/route.ts",
+    "dispatch-deferred-assignments/route.ts",
+    "expire-assignment-offers/route.ts",
+    "expire-pending-payments/route.ts",
+    "generate-recurring-occurrences/route.ts",
++   "mark-monthly-invoices-overdue/route.ts",
++   "process-monthly-invoice-reminders/route.ts",
+    "process-notification-outbox/route.ts",
+    "reconcile-zoho-invoice-payments/route.ts",
+    "recover-assignment-after-payment/route.ts",
+    "rollup-assignment-metrics/route.ts",
+    "rollup-notification-metrics/route.ts",
++   "sync-monthly-invoice-payments/route.ts",
+    "sync-shalean-sales-to-zoho/route.ts",
+    "sync-zoho-refunds-credits/route.ts",
+  ]
+
+ Γ¥» src/app/api/cron/cronMutationRoutes.test.ts:26:31
+     24|     const postRoutes = collectPostRoutes(cronApiDir);
+     25|
+     26|     expect(postRoutes.sort()).toEqual([...ALLOWED_CRON_POST_ROUTES].soΓÇª
+       |                               ^
+     27|   });
+     28| });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[20/35]ΓÄ»
+
+ FAIL  src/features/assignments/server/assignmentDispatchConfig.test.ts > getDeferredAssignmentConfig > defaults to 
+disabled with 14-day lead
+AssertionError: expected { enabled: true, dispatchLeadDays: 14 } to deeply equal { Object (enabled, dispatchLeadDays) }
+
+- Expected
++ Received
+
+  {
+    "dispatchLeadDays": 14,
+-   "enabled": false,
++   "enabled": true,
+  }
+
+ Γ¥» src/features/assignments/server/assignmentDispatchConfig.test.ts:11:43
+      9|
+     10|   it("defaults to disabled with 14-day lead", () => {
+     11|     expect(getDeferredAssignmentConfig()).toEqual({
+       |                                           ^
+     12|       enabled: false,
+     13|       dispatchLeadDays: 14,
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[21/35]ΓÄ»
+
+ FAIL  src/features/bookings/server/supportParticipationActions.test.ts > markSupportParticipationCompleted (NF-7F) > 
+updates roster to completed without booking lifecycle command
+Error: invalid input syntax for type uuid: "booking-1"
+ Γ¥» SupabaseBookingCommandBackend.listBookingCleanersForBooking 
+src/features/bookings/server/commands/supabaseBookingCommandBackend.ts:480:22
+    478|       .select("*")
+    479|       .eq("booking_id", bookingId);
+    480|     if (error) throw new Error(error.message);
+       |                      ^
+    481|     return data ?? [];
+    482|   }
+ Γ¥» trueUpTeamEarningsForBooking src/features/earnings/server/teamEarningsTrueUp.ts:44:18
+ Γ¥» markSupportParticipationCompleted src/features/bookings/server/supportParticipationActions.ts:164:20
+ Γ¥» src/features/bookings/server/supportParticipationActions.test.ts:107:20
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[22/35]ΓÄ»
+
+ FAIL  src/features/booking-wizard/components/CheckoutStepPanel.test.tsx > CheckoutStepPanel > renders payment-focused 
+checkout without review duplication
+AssertionError: expected '<div class="space-y-2.5"><header clasΓÇª' to contain 'payment secures this booking only'
+
+Expected: "payment secures this booking only"
+Received: "<div class="space-y-2.5"><header class="mb-3 md:mb-4"><h2 class="text-lg font-semibold tracking-tight 
+text-shalean-navy">Secure payment</h2></header><header aria-label="Booking snapshot" class="rounded-lg border 
+border-slate-200/90 bg-shalean-soft-blue/50 px-3 py-2"><p class="text-sm font-semibold text-shalean-navy">Regular 
+Cleaning</p><p class="mt-0.5 text-sm text-slate-700">Sat, 01 Jun 2030, 10:00</p><p class="mt-0.5 text-xs leading-snug 
+text-slate-600">2 beds ┬╖ 1 bath ┬╖ Sea Point, Cape Town</p></header><div class="flex items-start gap-2 rounded-lg 
+border border-emerald-100/90 bg-emerald-50/60 px-3 py-2" role="status"><svg viewBox="0 0 20 20" fill="none" 
+class="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true"><path d="M6 8V6a4 4 0 1 1 8 0v2" 
+stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path><rect x="4.5" y="8" width="11" height="8.5" 
+rx="2" stroke="currentColor" stroke-width="1.5"></rect></svg><div class="min-w-0 flex-1"><p class="text-sm 
+font-semibold text-emerald-950">Secure checkout</p><p class="mt-0.5 text-xs leading-snug 
+text-emerald-900/85">Processed securely by Paystack</p><div class="mt-1 flex flex-wrap items-center gap-1" 
+aria-hidden="true"><span class="rounded border border-emerald-200/80 bg-white/80 px-1.5 py-0.5 text-[0.625rem] 
+font-medium uppercase tracking-wide text-emerald-800/90">Visa</span><span class="rounded border border-emerald-200/80 
+bg-white/80 px-1.5 py-0.5 text-[0.625rem] font-medium uppercase tracking-wide 
+text-emerald-800/90">Mastercard</span><span class="rounded border border-emerald-200/80 bg-white/80 px-1.5 py-0.5 
+text-[0.625rem] font-medium uppercase tracking-wide text-emerald-800/90">EFT</span></div></div></div><section 
+aria-labelledby="checkout-amount-heading" class="rounded-lg border border-slate-300/80 bg-white px-3 py-2.5 ring-1 
+ring-shalean-primary/5"><p id="checkout-amount-heading" class="text-[0.6875rem] font-semibold uppercase tracking-wide 
+text-slate-500">Amount due today</p><p class="mt-0.5 text-3xl font-semibold tabular-nums tracking-tight 
+text-shalean-navy">R┬á477,00</p><p class="mt-1 text-xs leading-snug text-slate-600">Your first payment confirms your 
+first visit only. Future recurring visits are paid individually.</p></section><section 
+aria-labelledby="checkout-next-heading"><h3 id="checkout-next-heading" class="mb-1.5 text-xs font-semibold uppercase 
+tracking-wide text-slate-500">What happens next</h3><ul class="space-y-1"><li class="flex items-center gap-2 text-sm 
+text-slate-700"><span class="h-1 w-1 shrink-0 rounded-full bg-emerald-600" aria-hidden="true"></span>Booking 
+confirmation</li><li class="flex items-center gap-2 text-sm text-slate-700"><span class="h-1 w-1 shrink-0 rounded-full 
+bg-emerald-600" aria-hidden="true"></span>Confirmation email</li><li class="flex items-center gap-2 text-sm 
+text-slate-700"><span class="h-1 w-1 shrink-0 rounded-full bg-emerald-600" aria-hidden="true"></span>Cleaner 
+assignment</li></ul></section><ul class="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 hidden pt-0.5 
+md:flex" aria-label="Checkout assurances"><li class="inline-flex items-center gap-1 text-[0.6875rem] 
+text-slate-600"><svg viewBox="0 0 12 12" fill="none" class="h-3 w-3 shrink-0 text-emerald-700" 
+aria-hidden="true"><path d="M6 1 9.5 2.25V5.5c0 2-1.5 3.75-3.5 4.5C3.5 9.25 2 7.5 2 5.5V2.25L6 1Z" 
+stroke="currentColor" stroke-width="1" stroke-linejoin="round"></path><path d="M4.25 6 5.5 7.25 8 4.75" 
+stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Secure 
+payment</span></li><li class="inline-flex items-center gap-1 text-[0.6875rem] text-slate-600"><svg viewBox="0 0 12 12" 
+fill="none" class="h-3 w-3 shrink-0 text-emerald-700" aria-hidden="true"><path d="M6 1 9.5 2.25V5.5c0 2-1.5 3.75-3.5 
+4.5C3.5 9.25 2 7.5 2 5.5V2.25L6 1Z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"></path><path 
+d="M4.25 6 5.5 7.25 8 4.75" stroke="currentColor" stroke-width="1" stroke-linecap="round" 
+stroke-linejoin="round"></path></svg><span>Instant confirmation</span></li><li class="inline-flex items-center gap-1 
+text-[0.6875rem] text-slate-600"><svg viewBox="0 0 12 12" fill="none" class="h-3 w-3 shrink-0 text-emerald-700" 
+aria-hidden="true"><path d="M6 1 9.5 2.25V5.5c0 2-1.5 3.75-3.5 4.5C3.5 9.25 2 7.5 2 5.5V2.25L6 1Z" 
+stroke="currentColor" stroke-width="1" stroke-linejoin="round"></path><path d="M4.25 6 5.5 7.25 8 4.75" 
+stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Trusted local 
+cleaners</span></li></ul></div>"
+
+ Γ¥» src/features/booking-wizard/components/CheckoutStepPanel.test.tsx:42:18
+     40|     expect(html).toContain("Confirmation email");
+     41|     expect(html).toContain("Cleaner assignment");
+     42|     expect(html).toContain("payment secures this booking only");
+       |                  ^
+     43|     expect(html).not.toContain("Booking details");
+     44|     expect(html).not.toContain("Team support");
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[23/35]ΓÄ»
+
+ FAIL  src/features/dashboards/server/dashboardReadModels.test.ts > dashboard read models > sets canRetryPayment on 
+payment_failed detail when metadata and price match
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ Γ¥» src/features/dashboards/server/dashboardReadModels.test.ts:215:46
+    213|     expect(result.ok).toBe(true);
+    214|     if (result.ok) {
+    215|       expect(result.booking.canRetryPayment).toBe(true);
+       |                                              ^
+    216|     }
+    217|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[24/35]ΓÄ»
+
+ FAIL  src/features/dashboards/server/lifecycleTimeline.test.ts > buildLifecycleTimeline > does not expose raw command 
+strings for customer audience
+AssertionError: expected 'Payment not completed' to be 'Payment failed' // Object.is equality
+
+Expected: "Payment failed"
+Received: "Payment not completed"
+
+ Γ¥» src/features/dashboards/server/lifecycleTimeline.test.ts:81:26
+     79|     expect(serialized).not.toContain("MARK_PAYMENT_FAILED");
+     80|     const audit = events.find((e) => e.kind === "audit");
+     81|     expect(audit?.title).toBe("Payment failed");
+       |                          ^
+     82|     expect(audit?.detail).toBeNull();
+     83|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[25/35]ΓÄ»
+
+ FAIL  src/features/monthly-billing/server/monthlyBillingPhase2Safety.test.ts > monthly billing phase 2 safety guards 
+> does not import forbidden lifecycle or invoice modules
+AssertionError: src\features\monthly-billing\server\syncZohoMonthlyInvoicePaymentStatus.ts matched /from 
+"@\/lib\/zoho\/invoices"/: expected 'import "server-only";\n\nimport type ΓÇª' not to match /from 
+"@\/lib\/zoho\/invoices"/lib\
+
+- Expected:
+/from "@\/lib\/zoho\/invoices"/
+
++ Received:
+"import \"server-only\";
+
+import type { SupabaseClient } from \"@supabase/supabase-js\";
+import { isZohoMonthlyInvoicePaymentSyncEnabled } from \"@/lib/app/zohoMonthlyInvoicePaymentSyncFlag\";
+import { getZohoInvoiceById, getZohoInvoiceByNumber, zohoAmountToCents } from \"@/lib/zoho/invoices\";
+import type { Database } from \"@/lib/database/types\";
+import { requireServiceRoleClient } from \"@/lib/supabase/serviceRole\";
+import { getCustomerBillingAccount } from \"./customerBillingAccountRepository\";
+import {
+  findBatchByZohoInvoiceId,
+  findBatchByZohoInvoiceNumber,
+  findPaidShaleanZohoInvoicePayment,
+  isSyncableBatchPaymentStatus,
+  isTerminalBatchPaymentStatus,
+  loadBatchForPaymentSync,
+  markBatchOverdue,
+  markBatchPaid,
+  markBatchSent,
+  markBatchPaymentSyncFailed,
+  markBatchVoid,
+  markItemsPaid,
+  recordBatchPaymentSyncCheck,
+} from \"./monthlyInvoicePaymentSyncRepository\";
+import {
+  mapZohoInvoiceFieldsToBatchPaymentStatus,
+  type MonthlyInvoicePaymentSyncSource,
+  type MonthlyInvoicePaymentSyncTargetStatus,
+} from \"./monthlyInvoicePaymentSyncTypes\";
+import { recordCustomerBillingAccountAudit } from \"./recordCustomerBillingAccountAudit\";
+
+export type SyncZohoMonthlyInvoicePaymentStatusInput = {
+  batchId?: string;
+  invoiceNumber?: string;
+  invoiceId?: string;
+  source: MonthlyInvoicePaymentSyncSource;
+  adminProfileId?: string | null;
+  idempotencyKey?: string;
+  reason?: string;
+  client?: SupabaseClient<Database>;
+};
+
+export type MonthlyInvoicePaymentSyncSummary = {
+  batchId: string;
+  previousStatus: string;
+  currentStatus: string;
+  source: MonthlyInvoicePaymentSyncSource;
+  paidAt: string | null;
+  itemCount: number;
+  changed: boolean;
+};
+
+export type SyncZohoMonthlyInvoicePaymentStatusResult =
+  | { ok: true; outcome: \"synced\" | \"unchanged\" | \"terminal\"; sync: MonthlyInvoicePaymentSyncSummary }
+  | { ok: true; outcome: \"skipped\"; reason: string; code: string }
+  | { ok: false; code: string; message: string };
+
+async function resolveBatch(
+  client: SupabaseClient<Database>,
+  input: SyncZohoMonthlyInvoicePaymentStatusInput,
+) {
+  if (input.batchId) {
+    return loadBatchForPaymentSync(input.batchId, client);
+  }
+  if (input.invoiceId) {
+    const batch = await findBatchByZohoInvoiceId(input.invoiceId, client);
+    if (!batch) return null;
+    return loadBatchForPaymentSync(batch.id, client);
+  }
+  if (input.invoiceNumber) {
+    const batch = await findBatchByZohoInvoiceNumber(input.invoiceNumber, client);
+    if (!batch) return null;
+    return loadBatchForPaymentSync(batch.id, client);
+  }
+  return null;
+}
+
+async function applyMappedStatus(
+  client: SupabaseClient<Database>,
+  loaded: NonNullable<Awaited<ReturnType<typeof loadBatchForPaymentSync>>>,
+  targetStatus: MonthlyInvoicePaymentSyncTargetStatus,
+  source: MonthlyInvoicePaymentSyncSource,
+  paidAtOverride?: string | null,
+): Promise<{ batch: typeof loaded.batch; itemsPaid: number; changed: boolean }> {
+  const previousStatus = loaded.batch.status;
+  let batch = loaded.batch;
+  let itemsPaid = 0;
+  let changed = false;
+
+  if (targetStatus === \"paid\" && previousStatus !== \"paid\") {
+    batch = await markBatchPaid(client, batch.id, paidAtOverride ?? new Date().toISOString());
+    itemsPaid = await markItemsPaid(client, batch.id);
+    changed = true;
+  } else if (targetStatus === \"overdue\" && previousStatus !== \"overdue\") {
+    batch = await markBatchOverdue(client, batch.id);
+    changed = true;
+  } else if (targetStatus === \"void\" && previousStatus !== \"void\") {
+    batch = await markBatchVoid(client, batch.id);
+    changed = true;
+  } else if (targetStatus === \"sent\" && (previousStatus === \"generated\" || previousStatus === \"overdue\")) {
+    batch = await markBatchSent(client, batch.id);
+    changed = true;
+  }
+
+  batch = await recordBatchPaymentSyncCheck(client, batch, {
+    source,
+    result: batch.status,
+  });
+
+  return { batch, itemsPaid, changed: changed || previousStatus !== batch.status };
+}
+
+export async function syncZohoMonthlyInvoicePaymentStatus(
+  input: SyncZohoMonthlyInvoicePaymentStatusInput,
+): Promise<SyncZohoMonthlyInvoicePaymentStatusResult> {
+  if (!isZohoMonthlyInvoicePaymentSyncEnabled()) {
+    return {
+      ok: true,
+      outcome: \"skipped\",
+      code: \"FEATURE_DISABLED\",
+      reason: \"Monthly invoice payment sync is disabled.\",
+    };
+  }
+
+  const client = input.client ?? requireServiceRoleClient();
+  const loaded = await resolveBatch(client, input);
+  if (!loaded) {
+    return {
+      ok: true,
+      outcome: \"skipped\",
+      code: \"BATCH_NOT_FOUND\",
+      reason: \"No monthly invoice batch matched the sync input.\",
+    };
+  }
+
+  const previousStatus = loaded.batch.status;
+  const account = await getCustomerBillingAccount(loaded.batch.customerId, client);
+
+  if (isTerminalBatchPaymentStatus(previousStatus)) {
+    const syncMeta = await recordBatchPaymentSyncCheck(client, loaded.batch, {
+      source: input.source,
+      result: previousStatus,
+    });
+    return {
+      ok: true,
+      outcome: \"terminal\",
+      sync: {
+        batchId: loaded.batch.id,
+        previousStatus,
+        currentStatus: previousStatus,
+        source: input.source,
+        paidAt: syncMeta.paidAt,
+        itemCount: loaded.items.length,
+        changed: false,
+      },
+    };
+  }
+
+  if (!isSyncableBatchPaymentStatus(previousStatus)) {
+    return {
+      ok: true,
+      outcome: \"skipped\",
+      code: \"BATCH_NOT_SYNCABLE\",
+      reason: `Batch status \"${previousStatus}\" is not syncable.`,
+    };
+  }
+
+  if (!loaded.batch.zohoInvoiceId && !loaded.batch.zohoInvoiceNumber) {
+    return {
+      ok: true,
+      outcome: \"skipped\",
+      code: \"MISSING_ZOHO_INVOICE\",
+      reason: \"Batch has no Zoho invoice reference.\",
+    };
+  }
+
+  const shaleanPaid = await findPaidShaleanZohoInvoicePayment(client, {
+    zohoInvoiceId: loaded.batch.zohoInvoiceId,
+    invoiceNumber: loaded.batch.zohoInvoiceNumber,
+  });
+
+  if (shaleanPaid) {
+    const applied = await applyMappedStatus(client, loaded, \"paid\", \"shalean_pay_page\", shaleanPaid.paid_at);
+    await recordCustomerBillingAccountAudit(client, {
+      accountId: account?.id ?? null,
+      customerId: loaded.batch.customerId,
+      adminProfileId: input.adminProfileId ?? null,
+      action: \"monthly_invoice_paid\",
+      idempotencyKey: input.idempotencyKey ?? `sync:${loaded.batch.id}:${input.source}:paid`,
+      reason: input.reason ?? null,
+      extra: {
+        batchId: loaded.batch.id,
+        source: \"shalean_pay_page\",
+        zohoInvoicePaymentId: shaleanPaid.id,
+      },
+    }).catch(() => undefined);
+
+    await recordCustomerBillingAccountAudit(client, {
+      accountId: account?.id ?? null,
+      customerId: loaded.batch.customerId,
+      adminProfileId: input.adminProfileId ?? null,
+      action: \"monthly_invoice_payment_sync_checked\",
+      idempotencyKey: input.idempotencyKey ?? `sync:${loaded.batch.id}:${input.source}:checked`,
+      reason: input.reason ?? null,
+      extra: {
+        batchId: loaded.batch.id,
+        source: input.source,
+        result: applied.batch.status,
+      },
+    }).catch(() => undefined);
+
+    return {
+      ok: true,
+      outcome: applied.changed ? \"synced\" : \"unchanged\",
+      sync: {
+        batchId: loaded.batch.id,
+        previousStatus,
+        currentStatus: applied.batch.status,
+        source: \"shalean_pay_page\",
+        paidAt: applied.batch.paidAt,
+        itemCount: applied.itemsPaid || loaded.items.filter((i) => i.status === \"paid\").length,
+        changed: applied.changed,
+      },
+    };
+  }
+
+  const lookup = loaded.batch.zohoInvoiceId
+    ? await getZohoInvoiceById(loaded.batch.zohoInvoiceId)
+    : loaded.batch.zohoInvoiceNumber
+      ? await getZohoInvoiceByNumber(loaded.batch.zohoInvoiceNumber)
+      : { ok: false as const, code: \"NOT_FOUND\" as const };
+
+  if (!lookup.ok) {
+    await markBatchPaymentSyncFailed(client, loaded.batch, {
+      source: input.source,
+      error: lookup.code === \"API_ERROR\" ? \"Zoho invoice lookup failed.\" : \"Zoho invoice not found.\",
+    });
+    await recordCustomerBillingAccountAudit(client, {
+      accountId: account?.id ?? null,
+      customerId: loaded.batch.customerId,
+      adminProfileId: input.adminProfileId ?? null,
+      action: \"monthly_invoice_payment_sync_failed\",
+      idempotencyKey: input.idempotencyKey ?? `sync:${loaded.batch.id}:${input.source}:failed`,
+      reason: input.reason ?? null,
+      extra: {
+        batchId: loaded.batch.id,
+        source: input.source,
+        code: lookup.code,
+      },
+    }).catch(() => undefined);
+
+    return {
+      ok: false,
+      code: lookup.code === \"API_ERROR\" ? \"ZOHO_UNAVAILABLE\" : \"ZOHO_INVOICE_NOT_FOUND\",
+      message:
+        lookup.code === \"API_ERROR\"
+          ? \"Zoho invoice lookup failed.\"
+          : \"Zoho invoice not found for batch.\",
+    };
+  }
+
+  const balanceCents =
+    lookup.invoice.balance != null
+      ? zohoAmountToCents(Math.max(0, lookup.invoice.balance))
+      : lookup.invoice.total != null
+        ? zohoAmountToCents(Math.max(0, lookup.invoice.total))
+        : 0;
+  const mapped = mapZohoInvoiceFieldsToBatchPaymentStatus({
+    zohoStatus: lookup.invoice.status,
+    balanceCents,
+  });
+
+  if (!mapped.ok) {
+    await markBatchPaymentSyncFailed(client, loaded.batch, {
+      source: input.source,
+      error: mapped.reason,
+    });
+    await recordCustomerBillingAccountAudit(client, {
+      accountId: account?.id ?? null,
+      customerId: loaded.batch.customerId,
+      adminProfileId: input.adminProfileId ?? null,
+      action: \"monthly_invoice_payment_sync_failed\",
+      idempotencyKey: input.idempotencyKey ?? `sync:${loaded.batch.id}:${input.source}:failed`,
+      reason: input.reason ?? null,
+      extra: { batchId: loaded.batch.id, source: input.source, message: mapped.reason },
+    }).catch(() => undefined);
+
+    return {
+      ok: false,
+      code: \"UNKNOWN_ZOHO_STATUS\",
+      message: mapped.reason,
+    };
+  }
+
+  const applied = await applyMappedStatus(client, loaded, mapped.status, \"zoho_books\");
+
+  const auditAction =
+    mapped.status === \"paid\"
+      ? \"monthly_invoice_paid\"
+      : mapped.status === \"overdue\"
+        ? \"monthly_invoice_overdue\"
+        : mapped.status === \"void\"
+          ? \"monthly_invoice_void\"
+          : \"monthly_invoice_payment_sync_checked\";
+
+  await recordCustomerBillingAccountAudit(client, {
+    accountId: account?.id ?? null,
+    customerId: loaded.batch.customerId,
+    adminProfileId: input.adminProfileId ?? null,
+    action: auditAction,
+    idempotencyKey: input.idempotencyKey ?? `sync:${loaded.batch.id}:${input.source}:${mapped.status}`,
+    reason: input.reason ?? null,
+    extra: {
+      batchId: loaded.batch.id,
+      source: \"zoho_books\",
+      zohoStatus: lookup.invoice.status,
+      previousStatus,
+      currentStatus: applied.batch.status,
+    },
+  }).catch(() => undefined);
+
+  if (auditAction !== \"monthly_invoice_payment_sync_checked\") {
+    await recordCustomerBillingAccountAudit(client, {
+      accountId: account?.id ?? null,
+      customerId: loaded.batch.customerId,
+      adminProfileId: input.adminProfileId ?? null,
+      action: \"monthly_invoice_payment_sync_checked\",
+      idempotencyKey: `${input.idempotencyKey ?? `sync:${loaded.batch.id}:${input.source}`}:checked`,
+      reason: input.reason ?? null,
+      extra: {
+        batchId: loaded.batch.id,
+        source: input.source,
+        result: applied.batch.status,
+      },
+    }).catch(() => undefined);
+  }
+
+  return {
+    ok: true,
+    outcome: applied.changed ? \"synced\" : \"unchanged\",
+    sync: {
+      batchId: loaded.batch.id,
+      previousStatus,
+      currentStatus: applied.batch.status,
+      source: \"zoho_books\",
+      paidAt: applied.batch.paidAt,
+      itemCount:
+        applied.itemsPaid ||
+        loaded.items.filter((item) => item.status === \"paid\" || item.status === \"invoiced\").length,
+      changed: applied.changed,
+    },
+  };
+}
+
+export async function syncMonthlyInvoicePaymentsForCron(
+  limit = 50,
+  client: SupabaseClient<Database> = requireServiceRoleClient(),
+): Promise<{
+  checked: number;
+  paid: number;
+  overdue: number;
+  void: number;
+  failed: number;
+  unchanged: number;
+}> {
+  const { loadGeneratedOrSentBatchesForSync } = await import(\"./monthlyInvoicePaymentSyncRepository\");
+  const batches = await loadGeneratedOrSentBatchesForSync(limit, client);
+
+  let paid = 0;
+  let overdue = 0;
+  let voidCount = 0;
+  let failed = 0;
+  let unchanged = 0;
+
+  for (const batch of batches) {
+    const result = await syncZohoMonthlyInvoicePaymentStatus({
+      batchId: batch.id,
+      source: \"cron\",
+      client,
+    });
+
+    if (!result.ok) {
+      failed += 1;
+      continue;
+    }
+    if (result.outcome === \"skipped\" || result.outcome === \"terminal\") {
+      unchanged += 1;
+      continue;
+    }
+    if (result.sync.currentStatus === \"paid\") paid += 1;
+    else if (result.sync.currentStatus === \"overdue\") overdue += 1;
+    else if (result.sync.currentStatus === \"void\") voidCount += 1;
+    else if (!result.sync.changed) unchanged += 1;
+  }
+
+  return {
+
+    checked: batches.length,
+    paid,
+    overdue,
+    void: voidCount,
+    failed,
+    unchanged,
+  };
+}
+"
+
+ Γ¥» src/features/monthly-billing/server/monthlyBillingPhase2Safety.test.ts:42:89
+     40|       const content = readFileSync(file, "utf8");
+     41|       for (const pattern of FORBIDDEN_IMPORT_PATTERNS) {
+     42|         expect(content, `${path.relative(process.cwd(), file)} matchedΓÇª
+       |                                                                                         ^
+     43|           pattern,
+     44|         );
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[26/35]ΓÄ»
+
+ FAIL  src/features/notifications/server/notificationAdminReadModel.test.ts > loadNotificationAnalytics > aggregates 
+24h worker runs without selecting errors
+AssertionError: expected [ { ΓÇª(3) }, { ΓÇª(3) }, { ΓÇª(3) }, ΓÇª(8) ] to have a length of 3 but got 11
+
+- Expected
++ Received
+
+- 3
++ 11
+
+ Γ¥» src/features/notifications/server/notificationAdminReadModel.test.ts:429:44
+    427|     expect(analytics.worker24h.liveSuccessRatePercent).toBe(75);
+    428|     expect(analytics.worker24h.runCount).toBe(1);
+    429|     expect(analytics.deliverableTemplates).toHaveLength(3);
+       |                                            ^
+    430|     expect(analytics.trends7d.sent7dTotal).toBe(10);
+    431|     const trendsJson = JSON.stringify(analytics.trends7d);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[27/35]ΓÄ»
+
+ FAIL  src/features/notifications/server/processNotificationOutbox.test.ts > processNotificationOutbox > records safe 
+error and keeps pending when provider fails retryably
+AssertionError: expected 2 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ Γ¥» src/features/notifications/server/processNotificationOutbox.test.ts:1027:36
+    1025|     expect(result.failed).toBe(1);
+    1026|     expect(db.outbox[0]!.status).toBe("pending");
+    1027|     expect(db.outbox[0]!.attempts).toBe(1);
+       |                                    ^
+    1028|     expect(db.outbox[0]!.last_error).toContain("rate limit");
+    1029|     expect(db.outbox[0]!.last_error).not.toContain("@");
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[28/35]ΓÄ»
+
+ FAIL  src/features/zoho-sales-sync/server/zohoRefundCreditSyncLaunchGuard.test.ts > zohoRefundCreditSyncLaunchGuard > 
+defaults ZOHO_REFUND_CREDIT_SYNC_ENABLED to false
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ Γ¥» src/features/zoho-sales-sync/server/zohoRefundCreditSyncLaunchGuard.test.ts:10:45
+      8|
+ Test Files  27 failed | 768 passed | 3 skipped (798)
+      Tests  32 failed | 3862 passed | 6 skipped (3900)
+   Start at  20:22:51
+   Duration  997.42s (transform 29.93s, setup 0ms, import 58.75s, tests 183.44s, environment 74ms)
+
+      9|   it("defaults ZOHO_REFUND_CREDIT_SYNC_ENABLED to false", () => {
+     10|     expect(isZohoRefundCreditSyncEnabled()).toBe(false);
+       |                                             ^
+     11|     expect(requireZohoRefundCreditSyncEnabled().ok).toBe(false);
+     12|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[29/35]ΓÄ»
+
+ FAIL  src/features/zoho-sales-sync/server/zohoSalesSyncLaunchGuard.test.ts > zohoSalesSyncLaunchGuard > defaults 
+ZOHO_SALES_SYNC_ENABLED to false
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ Γ¥» src/features/zoho-sales-sync/server/zohoSalesSyncLaunchGuard.test.ts:10:38
+      8|
+      9|   it("defaults ZOHO_SALES_SYNC_ENABLED to false", () => {
+     10|     expect(isZohoSalesSyncEnabled()).toBe(false);
+       |                                      ^
+     11|     expect(requireZohoSalesSyncEnabled().ok).toBe(false);
+     12|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[30/35]ΓÄ»
+
+ FAIL  src/features/bookings/server/commands/bookingStatusMutationGuard.test.ts > booking status mutation guard 
+(static) > does not patch bookings.status from the app layer outside approved adapters
+AssertionError: expected [ ΓÇª(2) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "features/bookings/server/supportParticipationActions.ts",
++   "features/recurring/bookingSeriesRepository.ts",
++ ]
+
+ Γ¥» src/features/bookings/server/commands/bookingStatusMutationGuard.test.ts:52:24
+     50|     }
+     51|
+     52|     expect(violations).toEqual([]);
+       |                        ^
+     53|   });
+     54| });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[31/35]ΓÄ»
+
+ FAIL  src/app/api/admin/bookings/[bookingId]/offline-payment/route.test.ts > POST 
+/api/admin/bookings/[bookingId]/offline-payment > returns ok for valid admin request
+AssertionError: expected 400 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 400
+
+ Γ¥» src/app/api/admin/bookings/[bookingId]/offline-payment/route.test.ts:60:29
+     58|     );
+     59|
+     60|     expect(response.status).toBe(200);
+       |                             ^
+     61|     const json = await response.json();
+     62|     expect(json.ok).toBe(true);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[32/35]ΓÄ»
+
+ FAIL  src/app/api/admin/production-rollout/checklist/[key]/route.test.ts > POST 
+/api/admin/production-rollout/checklist/[key] > updates checklist item for admin
+AssertionError: expected "vi.fn()" to be called with arguments: [ { ΓÇª(4) } ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+    {
+-     "adminProfileId": "admin-1",
++     "adminProfileId": undefined,
+      "checklistKey": "webhook_configured",
+      "completed": true,
+      "notes": "Done",
+    },
+  ]
+
+
+Number of calls: 1
+
+ Γ¥» src/app/api/admin/production-rollout/checklist/[key]/route.test.ts:75:50
+     73|     expect(body.ok).toBe(true);
+     74|     expect(body.item.completed).toBe(true);
+     75|     expect(updateProductionRolloutChecklistItem).toHaveBeenCalledWith({
+       |                                                  ^
+     76|       checklistKey: "webhook_configured",
+     77|       completed: true,
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[33/35]ΓÄ»
+

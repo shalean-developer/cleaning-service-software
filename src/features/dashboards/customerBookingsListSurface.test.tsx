@@ -17,7 +17,7 @@ describe("customer bookings list surface (Phase 2B-2)", () => {
 
     expect(home).toContain("CustomerHomeContent");
     expect(home).not.toContain("CustomerBookingsListContent");
-    expect(home).not.toContain("listCustomerBookings");
+    expect(home).toContain("listCustomerBookings");
     expect(bookings).toContain("CustomerBookingsListContent");
     expect(bookings).toContain("listCustomerBookings");
   });

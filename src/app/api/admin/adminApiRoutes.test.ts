@@ -51,7 +51,21 @@ const ALLOWED_ADMIN_POST_ROUTES = new Set([
   "monthly-billing/accounts/[customerId]/disable/route.ts",
   "monthly-billing/accounts/[customerId]/terms/route.ts",
   "monthly-billing/accounts/[customerId]/zoho-customer/route.ts",
+  "monthly-billing/accounts/[customerId]/governance-state/route.ts",
+  "monthly-billing/accounts/[customerId]/credit-limit/route.ts",
+  "monthly-billing/accounts/[customerId]/temporary-override/route.ts",
+  "monthly-billing/accounts/[customerId]/finance-review/route.ts",
+  "monthly-billing/batches/[batchId]/generate-zoho-invoice/route.ts",
+  "monthly-billing/batches/[batchId]/mark-disputed/route.ts",
+  "monthly-billing/batches/[batchId]/mark-finance-review/route.ts",
+  "monthly-billing/batches/[batchId]/mark-overdue/route.ts",
+  "monthly-billing/batches/[batchId]/resend-invoice/route.ts",
+  "monthly-billing/batches/[batchId]/send-invoice/route.ts",
+  "monthly-billing/batches/[batchId]/send-reminder/route.ts",
+  "monthly-billing/batches/[batchId]/sync-payment-status/route.ts",
   "monthly-billing/bookings/[bookingId]/authorize-service/route.ts",
+  "monthly-billing/collections-notes/route.ts",
+  "monthly-billing/governance/bulk/route.ts",
 ]);
 
 function collectRouteFiles(dir: string, prefix = ""): string[] {

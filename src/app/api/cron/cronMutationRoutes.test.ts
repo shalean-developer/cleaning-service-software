@@ -16,6 +16,9 @@ const ALLOWED_CRON_POST_ROUTES = new Set([
   "reconcile-zoho-invoice-payments/route.ts",
   "sync-shalean-sales-to-zoho/route.ts",
   "sync-zoho-refunds-credits/route.ts",
+  "sync-monthly-invoice-payments/route.ts",
+  "process-monthly-invoice-reminders/route.ts",
+  "mark-monthly-invoices-overdue/route.ts",
 ]);
 
 describe("cron mutation API routes", () => {

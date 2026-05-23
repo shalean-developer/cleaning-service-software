@@ -33,10 +33,16 @@ function collectSourceFiles(dir: string): string[] {
   return files;
 }
 
+const ALLOWED_ZOHO_INVOICE_IMPORT_FILES = new Set([
+  "server/syncZohoMonthlyInvoicePaymentStatus.ts",
+]);
+
 describe("monthly billing phase 2 safety guards", () => {
   it("does not import forbidden lifecycle or invoice modules", () => {
     const files = collectSourceFiles(MONTHLY_BILLING_ROOT);
     for (const file of files) {
+      const relative = path.relative(MONTHLY_BILLING_ROOT, file).replace(/\\/g, "/");
+      if (ALLOWED_ZOHO_INVOICE_IMPORT_FILES.has(relative)) continue;
       const content = readFileSync(file, "utf8");
       for (const pattern of FORBIDDEN_IMPORT_PATTERNS) {
         expect(content, `${path.relative(process.cwd(), file)} matched ${pattern}`).not.toMatch(

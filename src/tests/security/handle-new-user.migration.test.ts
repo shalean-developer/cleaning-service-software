@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const MIGRATION_PATH = path.join(
   process.cwd(),
-  "supabase/migrations/20260517_stage1c_harden_handle_new_user.sql",
+  "supabase/migrations/20260517093500_stage1c_harden_handle_new_user.sql",
 );
 
 describe("handle_new_user migration (Stage 1C-1)", () => {

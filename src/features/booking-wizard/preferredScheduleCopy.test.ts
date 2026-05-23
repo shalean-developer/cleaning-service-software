@@ -30,7 +30,7 @@ describe("preferredScheduleCopy", () => {
       expect(explanation).not.toMatch(/repeats/i);
       expect(explanation).not.toMatch(/automatically/i);
     }
-    expect(PREFERRED_SCHEDULE_PAYMENT_EXPLANATION).toMatch(/first booking/i);
+    expect(PREFERRED_SCHEDULE_PAYMENT_EXPLANATION).toMatch(/first visit/i);
     expect(PREFERRED_SCHEDULE_PAYMENT_EXPLANATION).not.toMatch(/recurring schedule/i);
     expect(PREFERRED_SCHEDULE_PAYMENT_EXPLANATION).not.toMatch(/automatically/i);
   });

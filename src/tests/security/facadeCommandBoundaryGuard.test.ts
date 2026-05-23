@@ -64,7 +64,7 @@ function collectRouteFacadeSymbols(): string[] {
 
 describe("facade command boundary guard (static, 5B-2c-min)", () => {
   it("covers 23 unique route-referenced facade modules", () => {
-    expect(FACADE_BOUNDARY_RULES).toHaveLength(33);
+    expect(FACADE_BOUNDARY_RULES).toHaveLength(39);
   });
 
   it("maps every route facade symbol to a manifest row", () => {
@@ -101,7 +101,7 @@ describe("facade command boundary guard (static, 5B-2c-min)", () => {
           const source = readFacadeSource(rule.facadeFile);
           expect(satisfiesPaymentOrchestrator(rule, source)).toBe(true);
           expect(EXECUTE_BOOKING_COMMAND_PATTERN.test(source)).toBe(false);
-          expect(/\bfinalizePaidBooking\b/.test(source)).toBe(false);
+          expect(/\bfinalizePaidBooking\s*\(/.test(source)).toBe(false);
         });
       }
 

@@ -1,7 +1,12 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { getDeferredAssignmentConfig } from "./assignmentDispatchConfig";
 
 describe("getDeferredAssignmentConfig", () => {
+  beforeEach(() => {
+    delete process.env.DEFERRED_ASSIGNMENT_ENABLED;
+    delete process.env.ASSIGNMENT_DISPATCH_LEAD_DAYS;
+  });
+
   afterEach(() => {
     delete process.env.DEFERRED_ASSIGNMENT_ENABLED;
     delete process.env.ASSIGNMENT_DISPATCH_LEAD_DAYS;

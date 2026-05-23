@@ -4,6 +4,7 @@ import { isZohoSalesSyncEnabled, requireZohoSalesSyncEnabled } from "./zohoSales
 describe("zohoSalesSyncLaunchGuard", () => {
   beforeEach(() => {
     vi.unstubAllEnvs();
+    delete process.env.ZOHO_SALES_SYNC_ENABLED;
   });
 
   it("defaults ZOHO_SALES_SYNC_ENABLED to false", () => {

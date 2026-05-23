@@ -39,7 +39,7 @@ describe("CheckoutStepPanel", () => {
     expect(html).toContain("Booking confirmation");
     expect(html).toContain("Confirmation email");
     expect(html).toContain("Cleaner assignment");
-    expect(html).toContain("payment secures this booking only");
+    expect(html).toContain("Your first payment confirms your first visit only");
     expect(html).not.toContain("Booking details");
     expect(html).not.toContain("Team support");
     expect(html).not.toContain("Recurring clean");

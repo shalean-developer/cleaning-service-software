@@ -38,7 +38,9 @@ describe("wizardBookingSummaryDisplay", () => {
     expect(snapshot.secondaryRows.some((r) => r.label === "Where")).toBe(false);
     expect(snapshot.secondaryRows.some((r) => r.label === "Supplies")).toBe(false);
     expect(
-      snapshot.secondaryRows.some((r) => r.label === "Frequency" && r.value.includes("Weekly")),
+      snapshot.secondaryRows.some(
+        (r) => r.label === "Preferred schedule" && r.value.includes("Weekly"),
+      ),
     ).toBe(true);
     expect(snapshot.estimatedTotalCents).toBeGreaterThan(0);
     expect(getWizardEstimatedTotalCents(baseInput)).toBe(snapshot.estimatedTotalCents);

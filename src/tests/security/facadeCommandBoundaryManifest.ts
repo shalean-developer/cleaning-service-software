@@ -14,7 +14,10 @@ export type FacadeBoundaryTier =
 
 export type PaymentProcessorSymbol =
   | "processPaystackChargeSuccess"
-  | "processPaystackChargeFailure";
+  | "processPaystackChargeFailure"
+  | "routePaystackWebhookEvent"
+  | "finalizePaidBookingWithDeps"
+  | "chargeSavedAuthorization";
 
 export type FacadeBoundaryRule = {
   /** Path relative to `src/` */
@@ -97,6 +100,7 @@ export const FACADE_BOUNDARY_RULES: FacadeBoundaryRule[] = [
     facadeFile: "features/bookings/server/admin/adminRecordOfflinePaymentFacade.ts",
     exportSymbols: ["adminRecordOfflinePaymentFacade"],
     tier: "payment_orchestrator",
+    requiredPaymentProcessors: ["finalizePaidBookingWithDeps"],
     allowedOrchestratorSymbols: ["finalizePaidBooking"],
     allowedServiceRoleImport: true,
     allowedDirectWriteException: false,
@@ -116,6 +120,13 @@ export const FACADE_BOUNDARY_RULES: FacadeBoundaryRule[] = [
     allowedDirectWriteException: false,
   },
   {
+    facadeFile: "features/zoho-invoice-payments/server/initializeZohoInvoicePayment.ts",
+    exportSymbols: ["initializeZohoInvoicePayment"],
+    tier: "lock_infra",
+    allowedServiceRoleImport: false,
+    allowedDirectWriteException: false,
+  },
+  {
     facadeFile: "features/payments/server/verifyPayment.ts",
     exportSymbols: ["verifyPayment"],
     tier: "payment_orchestrator",
@@ -127,10 +138,7 @@ export const FACADE_BOUNDARY_RULES: FacadeBoundaryRule[] = [
     facadeFile: "features/payments/server/handlePaystackWebhook.ts",
     exportSymbols: ["handlePaystackWebhook"],
     tier: "payment_orchestrator",
-    requiredPaymentProcessors: [
-      "processPaystackChargeSuccess",
-      "processPaystackChargeFailure",
-    ],
+    requiredPaymentProcessors: ["routePaystackWebhookEvent"],
     allowedServiceRoleImport: false,
     allowedDirectWriteException: false,
   },
@@ -297,6 +305,13 @@ export const FACADE_BOUNDARY_RULES: FacadeBoundaryRule[] = [
     allowedDirectWriteException: false,
   },
   {
+    facadeFile: "features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.ts",
+    exportSymbols: ["retryZohoInvoiceReconciliation"],
+    tier: "lock_infra",
+    allowedServiceRoleImport: true,
+    allowedDirectWriteException: false,
+  },
+  {
     facadeFile: "features/pricing/server/calculateQuote.ts",
     exportSymbols: ["calculateQuote"],
     tier: "read_only",
@@ -308,6 +323,35 @@ export const FACADE_BOUNDARY_RULES: FacadeBoundaryRule[] = [
     exportSymbols: ["getAvailableCleaners", "getBookingCleaners"],
     tier: "read_only",
     allowedServiceRoleImport: true,
+    allowedDirectWriteException: false,
+  },
+  {
+    facadeFile: "features/bookings/server/admin/adminRecordPaymentLinkCopiedFacade.ts",
+    exportSymbols: ["adminRecordPaymentLinkCopiedFacade"],
+    tier: "lock_infra",
+    allowedServiceRoleImport: true,
+    allowedDirectWriteException: false,
+  },
+  {
+    facadeFile: "features/zoho-invoice-payments/server/adminChargeZohoInvoiceSavedMethod.ts",
+    exportSymbols: ["adminChargeZohoInvoiceSavedMethod"],
+    tier: "payment_orchestrator",
+    requiredPaymentProcessors: ["chargeSavedAuthorization"],
+    allowedServiceRoleImport: false,
+    allowedDirectWriteException: false,
+  },
+  {
+    facadeFile: "features/zoho-invoice-payments/server/loadZohoPaymentGovernance.ts",
+    exportSymbols: ["exportZohoInvoicePaymentAudit"],
+    tier: "read_only",
+    allowedServiceRoleImport: true,
+    allowedDirectWriteException: false,
+  },
+  {
+    facadeFile: "features/zoho-invoice-payments/server/revokeAdminPaymentMethod.ts",
+    exportSymbols: ["revokeAdminPaymentMethod"],
+    tier: "lock_infra",
+    allowedServiceRoleImport: false,
     allowedDirectWriteException: false,
   },
 ];
@@ -359,8 +403,12 @@ export const ROUTE_FACADE_SYMBOL_TO_FILE: Record<string, string> = {
     "features/bookings/server/admin/adminSendPaymentRequestNotificationFacade.ts",
   adminRecordOfflinePaymentFacade:
     "features/bookings/server/admin/adminRecordOfflinePaymentFacade.ts",
+  adminRecordPaymentLinkCopiedFacade:
+    "features/bookings/server/admin/adminRecordPaymentLinkCopiedFacade.ts",
   createPaymentRetryLock: "features/bookings/server/lock/createPaymentRetryLock.ts",
   initializePayment: "features/payments/server/initializePayment.ts",
+  initializeZohoInvoicePayment:
+    "features/zoho-invoice-payments/server/initializeZohoInvoicePayment.ts",
   verifyPayment: "features/payments/server/verifyPayment.ts",
   handlePaystackWebhook: "features/payments/server/handlePaystackWebhook.ts",
   acceptCleanerOffer: "features/assignments/server/respondToOffer.ts",
@@ -393,7 +441,15 @@ export const ROUTE_FACADE_SYMBOL_TO_FILE: Record<string, string> = {
   runAssignmentRecoveryBatch: "features/assignments/server/runAssignmentRecovery.ts",
   runDeferredAssignmentDispatchBatch:
     "features/assignments/server/runDeferredAssignmentDispatch.ts",
+  retryZohoInvoiceReconciliation:
+    "features/zoho-invoice-payments/server/retryZohoInvoiceReconciliation.ts",
   calculateQuote: "features/pricing/server/calculateQuote.ts",
   getAvailableCleaners: "features/cleaners/server/getAvailableCleaners.ts",
   getBookingCleaners: "features/cleaners/server/getAvailableCleaners.ts",
+  adminChargeZohoInvoiceSavedMethod:
+    "features/zoho-invoice-payments/server/adminChargeZohoInvoiceSavedMethod.ts",
+  exportZohoInvoicePaymentAudit:
+    "features/zoho-invoice-payments/server/loadZohoPaymentGovernance.ts",
+  revokeAdminPaymentMethod:
+    "features/zoho-invoice-payments/server/revokeAdminPaymentMethod.ts",
 };

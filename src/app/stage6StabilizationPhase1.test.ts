@@ -18,8 +18,12 @@ describe("Stage 6 stabilization Phase 1 presentation fixes", () => {
     expect(source).toContain("DashboardFetchError");
     expect(source).toContain("!result.ok");
     expect(source).toContain('dashboardFetchErrorTitle("bookings", "customer")');
-    expect(source).toContain("allBookings.length === 0");
-    expect(source.indexOf("!result.ok")).toBeLessThan(source.indexOf("allBookings.length === 0"));
+    expect(source).toContain("CustomerHomeContent");
+    const recentActivity = readComponent(
+      "src/components/dashboard/customer/CustomerHomeRecentActivity.tsx",
+    );
+    expect(recentActivity).toContain("stays.length");
+    expect(source.indexOf("!result.ok")).toBeLessThan(source.indexOf("<CustomerHomeContent"));
   });
 
   it("admin bookings list uses DashboardFetchError on fetch failure", () => {
@@ -36,7 +40,7 @@ describe("Stage 6 stabilization Phase 1 presentation fixes", () => {
     expect(source).toContain("DashboardFetchError");
     expect(source).toContain('!result.ok');
     expect(source).toContain('dashboardFetchErrorTitle("earnings", "cleaner")');
-    expect(source).toContain("No earnings yet");
+    expect(source).toContain("CLEANER_EARNINGS_EMPTY");
     expect(source).not.toContain("!result.ok || result.earnings.length === 0");
   });
 
@@ -60,8 +64,11 @@ describe("Stage 6 stabilization Phase 1 presentation fixes", () => {
     const listPage = readPage("src/app/(admin)/admin/bookings/page.tsx");
     const badges = readComponent("src/features/dashboards/adminBookingListBadges.ts");
 
-    expect(listPage).toContain("buildAdminBookingOpsCardModel");
+    const opsList = readComponent(
+      "src/components/dashboard/admin/bookings/AdminBookingsOperationsList.tsx",
+    );
     expect(listPage).toContain("<AdminBookingsOperationsList");
+    expect(opsList).toContain("buildAdminBookingOpsCardModel");
     expect(badges).toContain('b.status !== "payment_failed"');
     expect(badges).toContain("labelForAdminPaymentFailureAttention");
   });
@@ -82,8 +89,8 @@ describe("Stage 6 stabilization Phase 1 presentation fixes", () => {
     const customerLoading = readPage("src/app/(customer)/customer/loading.tsx");
     const jobDetailLoading = readPage("src/app/(cleaner)/cleaner/jobs/[bookingId]/loading.tsx");
 
-    expect(customerLoading).toContain("DashboardPageSkeleton");
-    expect(customerLoading).toContain('variant="list"');
+    expect(customerLoading).toContain("CustomerHubShell");
+    expect(customerLoading).toContain("animate-pulse");
     expect(jobDetailLoading).toContain("DashboardPageSkeleton");
     expect(jobDetailLoading).toContain('variant="detail"');
   });
