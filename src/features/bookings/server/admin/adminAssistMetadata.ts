@@ -6,6 +6,9 @@ export type AdminAssistBookingMetadata = {
   source?: string;
   idempotencyKey?: string;
   phase?: string;
+  /** Internal pilot/dry-run label — does not bypass lifecycle. */
+  pilotDryRun?: boolean;
+  pilotDryRunAt?: string;
 };
 
 export function readAdminAssistMetadata(
@@ -28,7 +31,13 @@ export function readAdminAssistMetadata(
     idempotencyKey:
       typeof assist.idempotencyKey === "string" ? assist.idempotencyKey : undefined,
     phase: typeof assist.phase === "string" ? assist.phase : undefined,
+    pilotDryRun: assist.pilotDryRun === true,
+    pilotDryRunAt: typeof assist.pilotDryRunAt === "string" ? assist.pilotDryRunAt : undefined,
   };
+}
+
+export function isAdminAssistPilotDryRun(metadata: Json | null | undefined): boolean {
+  return readAdminAssistMetadata(metadata)?.pilotDryRun === true;
 }
 
 export function isAdminAssistedBookingMetadata(metadata: Json | null | undefined): boolean {

@@ -43,7 +43,8 @@ describe("admin booking detail phase 4c ops copy", () => {
 
   it("shows awaiting payment and assignment warnings", () => {
     expect(pageSource).toContain("Awaiting payment from customer");
-    expect(pageSource).toContain("AdminBookingAssistPaymentTimeline");
+    expect(pageSource).toContain("AdminBookingAssistOperatorTimeline");
+    expect(pageSource).toContain("AdminBookingAssistSupportSummary");
     expect(panelSource).toContain("Cleaner assignment begins only after successful payment confirmation");
     expect(panelSource).toContain("This link expires on");
   });

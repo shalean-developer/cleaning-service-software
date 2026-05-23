@@ -78,7 +78,15 @@ import { AdminBookingSupportRequestsPanel } from "@/components/dashboard/admin/A
 import { AdminBookingDeleteDangerZone } from "@/components/dashboard/admin/AdminBookingDeleteDangerZone";
 import { AdminBookingDetailPaymentLinkPanel } from "@/components/dashboard/admin/AdminBookingDetailPaymentLinkPanel";
 import { AdminBookingDetailOfflinePaymentPanel } from "@/components/dashboard/admin/AdminBookingDetailOfflinePaymentPanel";
-import { AdminBookingAssistPaymentTimeline } from "@/components/dashboard/admin/AdminBookingAssistPaymentTimeline";
+import { AdminBookingAssistOperatorTimeline } from "@/components/dashboard/admin/AdminBookingAssistOperatorTimeline";
+import { AdminBookingAssistSupportSummary } from "@/components/dashboard/admin/AdminBookingAssistSupportSummary";
+import { AdminAssistedPilotDryRunBanner } from "@/components/dashboard/admin/AdminAssistedPilotDryRunBanner";
+import { AdminAssistedOperatorFeedbackPanel } from "@/components/dashboard/admin/AdminAssistedOperatorFeedbackPanel";
+import { AdminAssistedQaChecklistPanel } from "@/components/dashboard/admin/AdminAssistedQaChecklistPanel";
+import { AdminAssistedBookingTrainingAids } from "@/components/dashboard/admin/AdminAssistedBookingTrainingAids";
+import { loadAdminBookingAssistSummary } from "@/features/bookings/server/admin/loadAdminBookingAssistSummary";
+import { loadAdminAssistQaChecklist } from "@/features/bookings/server/admin/loadAdminAssistQaChecklist";
+import { loadAdminAssistOperatorNames } from "@/features/bookings/server/admin/loadAdminAssistOperatorNames";
 import { isAdminAssistedPaymentLinksActive } from "@/lib/app/adminAssistedPaymentLinksFlag";
 import { isAdminAssistedOfflinePaymentsActive } from "@/lib/app/adminAssistedOfflinePaymentsFlag";
 import { listBookingSupportRequestsForBooking } from "@/features/bookings/server/bookingSupportRequestsService";
@@ -100,6 +108,16 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
   if (!result.ok) notFound();
 
   const b = result.booking;
+
+  const assistSummary = b.adminAssistedDraft ? await loadAdminBookingAssistSummary(bookingId) : null;
+  const assistQaChecklist = b.adminAssistedDraft ? await loadAdminAssistQaChecklist(bookingId) : null;
+  const assistOperatorNames =
+    b.adminAssistedDraft && b.adminAssistPaymentTimeline.length > 0
+      ? await loadAdminAssistOperatorNames(
+          await createSupabaseServerClient(),
+          b.adminAssistPaymentTimeline.map((e) => e.adminProfileId).filter(Boolean) as string[],
+        )
+      : {};
   const paymentFailed = b.status === "payment_failed";
   const teamSupportFollowUp = adminTeamSupportNeedsFollowUp({
     isTwoCleanerRequest: b.observation.isTwoCleanerRequest,
@@ -147,6 +165,9 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
       : []),
     ...(b.adminAssistedDraft && b.status === "pending_payment"
       ? [{ label: "Admin-assisted pending payment", tone: "info" as const }]
+      : []),
+    ...(b.adminAssistedDraft && assistSummary?.pilotDryRun
+      ? [{ label: "Pilot / Dry-run", tone: "info" as const }]
       : []),
     ...getAirbnbAdminListBadges({
       serviceLabel: b.serviceLabel,
@@ -276,6 +297,26 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           footer={<AdminPayoutActions bookingId={b.id} status={b.status} />}
         />
 
+        {b.adminAssistedDraft && assistSummary?.pilotDryRun ? (
+          <AdminAssistedPilotDryRunBanner pilotDryRun />
+        ) : null}
+
+        {b.adminAssistedDraft ? <AdminAssistedBookingTrainingAids compact /> : null}
+
+        {b.adminAssistedDraft && assistSummary ? (
+          <AdminBookingAssistSupportSummary summary={assistSummary} />
+        ) : null}
+
+        {b.adminAssistedDraft ? (
+          <>
+            <AdminAssistedQaChecklistPanel
+              bookingId={bookingId}
+              initialItems={assistQaChecklist?.items}
+            />
+            <AdminAssistedOperatorFeedbackPanel bookingId={bookingId} />
+          </>
+        ) : null}
+
         {b.adminAssistedDraft && b.status === "pending_payment" ? (
           <>
             <AdminBookingDetailPaymentLinkPanel
@@ -298,10 +339,19 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
 
         {b.adminAssistedDraft && b.adminAssistPaymentTimeline.length > 0 ? (
           <AdminDetailSection
-            title="Payment request history"
-            description="Admin-assisted payment request and Paystack link activity."
+            title="Assist operator timeline"
+            description="Grouped draft, payment, notification, and offline payment lifecycle."
           >
-            <AdminBookingAssistPaymentTimeline entries={b.adminAssistPaymentTimeline} />
+            <AdminBookingAssistOperatorTimeline
+              entries={b.adminAssistPaymentTimeline}
+              bookingStatus={b.status}
+              paymentLinkExpired={assistSummary?.paymentLinkExpired ?? false}
+              hasPaymentLink={Boolean(b.adminAssistPaymentLink)}
+              customerHasEmail={b.customerHasEmail}
+              emailFailed={assistSummary?.failedEmailNotification ?? false}
+              bookingConfirmed={b.status !== "draft" && b.status !== "pending_payment" && b.status !== "payment_failed"}
+              operatorNames={assistOperatorNames}
+            />
           </AdminDetailSection>
         ) : null}
 

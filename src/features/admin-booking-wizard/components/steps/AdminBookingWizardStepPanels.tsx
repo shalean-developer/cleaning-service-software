@@ -20,6 +20,7 @@ import { AdminBookingWizardPaymentStepPanel } from "../AdminBookingWizardPayment
 import { AdminBookingWizardPricingPreview } from "../AdminBookingWizardPricingPreview";
 import { AdminBookingWizardServiceDetailsSection } from "../AdminBookingWizardServiceDetailsSection";
 import { AdminBookingWizardOfflinePaymentHandoff } from "../AdminBookingWizardOfflinePaymentHandoff";
+import { AdminBookingWizardRecoveryPanel } from "../AdminBookingWizardRecoveryPanel";
 import { deriveAdminBookingFlowProgress } from "../../adminBookingFlowState";
 
 function StepShell({
@@ -349,6 +350,13 @@ export function AdminBookingWizardStepPanel({
               offlinePaymentsEnabled={offlinePaymentsEnabled}
             />
           ) : null}
+          <AdminBookingWizardRecoveryPanel
+            paymentLinksEnabled={paymentLinksEnabled}
+            form={form}
+            flow={flow}
+            onFlowChange={onFlowChange}
+            onFlowRefresh={onFlowRefresh}
+          />
           <div className="mt-4 border-t border-slate-100 pt-4">
             <div
               className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/95 p-3 backdrop-blur md:static md:z-auto md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none"

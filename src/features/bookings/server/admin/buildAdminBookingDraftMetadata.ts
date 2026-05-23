@@ -1,6 +1,7 @@
 import { buildBookingQuoteMetadata } from "@/features/pricing/server/metadata";
 import type { PricingBreakdown, PricingInput } from "@/features/pricing/server/types";
 import { normalizeAreaSlug } from "@/features/cleaners/server/eligibility/normalize";
+import { isAdminAssistedBookingDryRunLabelingEnabled } from "@/lib/app/adminAssistedBookingDryRunFlag";
 
 export type AdminBookingDraftAddressInput = {
   addressLine1: string;
@@ -22,6 +23,7 @@ export function buildAdminBookingDraftMetadata(input: {
   const quoteMeta = buildBookingQuoteMetadata(input.pricingInput, input.breakdown);
   const suburb = input.address.suburb.trim();
   const city = input.address.city.trim();
+  const pilotDryRun = isAdminAssistedBookingDryRunLabelingEnabled();
 
   return {
     ...quoteMeta,
@@ -31,6 +33,9 @@ export function buildAdminBookingDraftMetadata(input: {
       source: "admin_wizard",
       idempotencyKey: input.idempotencyKey.trim(),
       phase: "draft_only",
+      ...(pilotDryRun
+        ? { pilotDryRun: true, pilotDryRunAt: new Date().toISOString() }
+        : {}),
     },
     areaSlug: normalizeAreaSlug(suburb),
     suburb,

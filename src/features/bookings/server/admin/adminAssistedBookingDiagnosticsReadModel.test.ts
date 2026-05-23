@@ -27,7 +27,39 @@ function mockClient(rows: Record<string, unknown>[], counts: Record<string, numb
           }),
         };
       }
-      if (table === "admin_offline_payment_events" || table === "notification_outbox") {
+      if (table === "admin_booking_assist_audit") {
+        return {
+          select: () => ({
+            order: () => ({
+              limit: async () => ({ data: [], error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === "admin_assisted_operator_feedback") {
+        return {
+          select: () => ({
+            then: (resolve: (v: { count: number; error: null }) => void) => {
+              resolve({ count: counts.admin_assisted_operator_feedback ?? 0, error: null });
+            },
+          }),
+        };
+      }
+      if (table === "admin_offline_payment_events") {
+        return {
+          select: () => ({
+            eq: () => ({
+              then: (resolve: (v: { count: number; error: null }) => void) => {
+                resolve({ count: counts.admin_offline_payment_events ?? 0, error: null });
+              },
+            }),
+            then: (resolve: (v: { count: number; error: null }) => void) => {
+              resolve({ count: counts.admin_offline_payment_events ?? 0, error: null });
+            },
+          }),
+        };
+      }
+      if (table === "notification_outbox") {
         return {
           select: () => {
             const filters: Record<string, string> = {};
@@ -36,9 +68,10 @@ function mockClient(rows: Record<string, unknown>[], counts: Record<string, numb
                 filters[col] = val;
                 return builder;
               },
+              limit: async () => ({ data: [], error: null }),
               then: (resolve: (v: { count: number; error: null }) => void) => {
                 const key =
-                  table === "notification_outbox" && filters.event_name
+                  filters.event_name === "admin_assisted_payment_request_sent"
                     ? `${table}:${filters.event_name}`
                     : filters.status
                       ? `${table}:${filters.status}`
@@ -63,9 +96,13 @@ describe("loadAdminAssistedBookingDiagnostics", () => {
           {
             id: "b1",
             status: "draft",
-            metadata: { adminAssist: { source: "admin_wizard" } },
+            metadata: { adminAssist: { source: "admin_wizard", pilotDryRun: true } },
             cleaner_id: null,
             assignment_dispatch_at: null,
+            updated_at: "2026-05-23T08:00:00.000Z",
+            created_at: "2026-05-23T08:00:00.000Z",
+            customer_name: "Jane",
+            customer_email: null,
           },
           {
             id: "b2",
@@ -86,11 +123,16 @@ describe("loadAdminAssistedBookingDiagnostics", () => {
             },
             cleaner_id: null,
             assignment_dispatch_at: null,
+            updated_at: "2026-05-23T08:00:00.000Z",
+            created_at: "2026-05-23T08:00:00.000Z",
+            customer_name: "Bob",
+            customer_email: "bob@example.com",
           },
         ],
         {
           admin_offline_payment_events: 2,
           "notification_outbox:admin_assisted_payment_request_sent": 1,
+          admin_assisted_operator_feedback: 3,
         },
       ) as never,
     );
@@ -101,5 +143,10 @@ describe("loadAdminAssistedBookingDiagnostics", () => {
     expect(diagnostics.counts.paymentLinksActive).toBe(1);
     expect(diagnostics.counts.offlinePaymentsRecorded).toBe(2);
     expect(diagnostics.counts.failedPaymentRequestNotifications).toBe(1);
+    expect(diagnostics.analytics).toBeDefined();
+    expect(diagnostics.counts.awaitingPayment).toBe(1);
+    expect(diagnostics.friction.pilotDryRunBookings).toBe(1);
+    expect(diagnostics.friction.missingCustomerEmailBookings).toBe(1);
+    expect(diagnostics.operatorFeedbackCount).toBe(3);
   });
 });

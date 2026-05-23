@@ -43,6 +43,8 @@ export const ADMIN_DASHBOARD_NAV_GROUPS: readonly AdminNavGroup[] = [
       { href: "/admin/operations/corporate-statements", label: "Corporate statements" },
       { href: "/admin/operations/finance-analytics", label: "Finance analytics" },
       { href: "/admin/operations/production-rollout", label: "Production rollout" },
+      { href: "/admin/operations/admin-assisted-bookings", label: "Admin-assisted bookings" },
+      { href: "/admin/operations/admin-assisted-pilot", label: "Admin-assisted pilot QA" },
       { href: "/admin/operations/zoho-replacement-audit", label: "Zoho replacement audit" },
       { href: "/admin/analytics/assignments", label: "Assignment analytics" },
     ],

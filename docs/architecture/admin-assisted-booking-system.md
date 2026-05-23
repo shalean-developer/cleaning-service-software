@@ -29,7 +29,8 @@ Admin/customer facades
 | **4D** | Payment request notifications (email + WhatsApp copy) | Shipped |
 | **5** | Offline payments → `finalizePaidBooking` | Shipped |
 | **6** | Parity QA, rollout checklist, diagnostics, filters | Shipped |
-| **7** | Notifications / analytics | Planned |
+| **7A** | Operator visibility, recovery UX, analytics, pilot banner | Shipped |
+| **7B** | Dry-run labeling, feedback, QA checklist, friction, exports | Shipped |
 | **8** | Full production enablement | Planned |
 
 ## Admin actor model
@@ -57,6 +58,11 @@ type AdminBookingAssistContext = {
 | `POST /api/admin/bookings/[id]/payment-request/send` | 4D |
 | `POST /api/admin/bookings/[id]/offline-payment` | 5 |
 | `GET /api/admin/bookings/assist-diagnostics` | 6 (read-only) |
+| `GET /api/admin/bookings/[id]/assist-summary` | 7A (lightweight refresh) |
+| `GET /api/admin/bookings/assist-pilot` | 7B (QA panel) |
+| `GET /api/admin/bookings/assist-pilot/export` | 7B (CSV/JSON) |
+| `POST /api/admin/bookings/[id]/assist-feedback` | 7B |
+| `PUT /api/admin/bookings/[id]/assist-qa-checklist` | 7B |
 
 Customer routes (`/api/bookings/lock`, `/api/paystack/*`) remain **unchanged**.
 
@@ -92,9 +98,14 @@ All **paid** rails → `finalizePaidBooking()` → `FINALIZE_PAYMENT_SUCCESS` �
 ADMIN_ASSISTED_BOOKING_ENABLED=false
 ADMIN_ASSISTED_PAYMENT_LINKS_ENABLED=false
 ADMIN_ASSISTED_OFFLINE_PAYMENTS_ENABLED=false
+ADMIN_ASSISTED_BOOKING_PILOT_MODE=false
+ADMIN_ASSISTED_BOOKING_DRY_RUN_LABEL=false
 ```
 
+When `ADMIN_ASSISTED_BOOKING_PILOT_MODE=true` or `ADMIN_ASSISTED_BOOKING_DRY_RUN_LABEL=true`, new drafts receive `metadata.adminAssist.pilotDryRun=true` (labeling only — real payment/assignment flows).
+
 See [admin-assisted-booking-rollout.md](../runbooks/admin-assisted-booking-rollout.md) for staged production order.
+See [admin-assisted-booking-pilot-performance.md](./admin-assisted-booking-pilot-performance.md) for pilot scale thresholds.
 
 ## Observability
 

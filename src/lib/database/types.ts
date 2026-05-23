@@ -905,6 +905,25 @@ export type AdminBookingAssistIdempotencyRow = {
   created_at: string;
 };
 
+export type AdminAssistedOperatorFeedbackRow = {
+  id: string;
+  booking_id: string;
+  admin_profile_id: string;
+  confusing_text: string | null;
+  slowed_down_text: string | null;
+  payment_succeeded: boolean | null;
+  customer_understood: boolean | null;
+  notes: string | null;
+  created_at: string;
+};
+
+export type AdminAssistedQaChecklistRow = {
+  booking_id: string;
+  admin_profile_id: string;
+  items: Json;
+  updated_at: string;
+};
+
 /** Supabase client expects Insert/Update/Relationships on each table definition. */
 export type PublicTable<Row> = {
   Row: Row;
@@ -976,6 +995,8 @@ export type Database = {
       admin_booking_assist_audit: PublicTable<AdminBookingAssistAuditRow>;
       admin_booking_assist_idempotency: PublicTable<AdminBookingAssistIdempotencyRow>;
       admin_offline_payment_events: PublicTable<AdminOfflinePaymentEventRow>;
+      admin_assisted_operator_feedback: PublicTable<AdminAssistedOperatorFeedbackRow>;
+      admin_assisted_qa_checklist: PublicTable<AdminAssistedQaChecklistRow>;
     };
     Views: Record<
       string,

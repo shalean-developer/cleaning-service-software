@@ -64,9 +64,11 @@ export function AdminAssistedBookingDiagnosticsPanel({ diagnostics }: Props) {
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Metric label="Admin-assisted drafts" value={counts.assistedDrafts} />
-        <Metric label="Awaiting payment" value={counts.pendingPayment} />
+        <Metric label="Pending payment" value={counts.pendingPayment} />
+        <Metric label="Awaiting payment (link active or open)" value={counts.awaitingPayment} />
         <Metric label="Payment links active" value={counts.paymentLinksActive} />
         <Metric label="Payment links expired" value={counts.paymentLinksExpired} />
+        <Metric label="Stale pending (&gt;72h)" value={counts.stalePendingPayment} />
         <Metric label="Offline payments recorded" value={counts.offlinePaymentsRecorded} />
         <Metric label="Offline payments finalized" value={counts.offlinePaymentsFinalized} />
         <Metric label="Offline payment failures" value={counts.offlinePaymentsFailed} />

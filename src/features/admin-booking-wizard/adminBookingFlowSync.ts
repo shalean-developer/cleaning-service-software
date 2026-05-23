@@ -16,6 +16,13 @@ export type AdminBookingWizardFlowBookingDetail = {
     deliveryChannel: string | null;
     title: string;
   }[];
+  paymentLinkExpired?: boolean;
+  paymentLinkActive?: boolean;
+  pendingPaymentAgeHours?: number | null;
+  failedEmailNotification?: boolean;
+  customerHasEmail?: boolean;
+  nextRecommendedAction?: { label: string; reason: string } | null;
+  lastOperatorLabel?: string | null;
 };
 
 export type AdminBookingFlowServerStatus = {
@@ -27,6 +34,14 @@ export type AdminBookingFlowServerStatus = {
   emailRequestSent: boolean;
   whatsappMessageSent: boolean;
   syncedAt: string;
+  paymentLinkExpired?: boolean;
+  paymentLinkActive?: boolean;
+  pendingPaymentAgeHours?: number | null;
+  pendingPaymentStale?: boolean;
+  failedEmailNotification?: boolean;
+  customerHasEmail?: boolean;
+  nextRecommendedAction?: { label: string; reason: string } | null;
+  lastOperatorLabel?: string | null;
 };
 
 const CONFIRMED_STATUSES = new Set([
@@ -39,9 +54,14 @@ const CONFIRMED_STATUSES = new Set([
   "paid_out",
 ]);
 
+const STALE_PENDING_HOURS = 72;
+
 export function deriveServerFlagsFromBookingDetail(
   booking: AdminBookingWizardFlowBookingDetail,
-): Omit<AdminBookingFlowServerStatus, "bookingId" | "status" | "paymentStatus" | "syncedAt"> {
+): Omit<
+  AdminBookingFlowServerStatus,
+  "bookingId" | "status" | "paymentStatus" | "syncedAt"
+> {
   const timeline = booking.adminAssistPaymentTimeline ?? [];
   const emailRequestSent = timeline.some(
     (entry) =>
@@ -59,11 +79,23 @@ export function deriveServerFlagsFromBookingDetail(
     CONFIRMED_STATUSES.has(booking.status) &&
     (booking.paymentStatus === "paid" || offlinePaymentRecorded);
 
+  const pendingPaymentAgeHours = booking.pendingPaymentAgeHours ?? null;
+  const pendingPaymentStale =
+    pendingPaymentAgeHours != null && pendingPaymentAgeHours >= STALE_PENDING_HOURS;
+
   return {
     emailRequestSent,
     whatsappMessageSent,
     offlinePaymentRecorded,
     bookingConfirmed,
+    paymentLinkExpired: booking.paymentLinkExpired ?? false,
+    paymentLinkActive: booking.paymentLinkActive ?? false,
+    pendingPaymentAgeHours,
+    pendingPaymentStale,
+    failedEmailNotification: booking.failedEmailNotification ?? false,
+    customerHasEmail: booking.customerHasEmail ?? false,
+    nextRecommendedAction: booking.nextRecommendedAction ?? null,
+    lastOperatorLabel: booking.lastOperatorLabel ?? null,
   };
 }
 
@@ -115,4 +147,10 @@ export function resolveAdminBookingServerStatusLabel(
   if (!serverStatus) return null;
   const payment = serverStatus.paymentStatus ? ` · payment ${serverStatus.paymentStatus}` : "";
   return `Server: ${serverStatus.status.replace(/_/g, " ")}${payment}`;
+}
+
+export function mapAssistSummaryToFlowBookingDetail(
+  summary: AdminBookingWizardFlowBookingDetail,
+): AdminBookingWizardFlowBookingDetail {
+  return summary;
 }

@@ -1,0 +1,110 @@
+import "server-only";
+
+import { formatCsvRow } from "@/features/dashboards/server/adminBookingsExport";
+import type { AdminAssistedPilotQaPanel } from "./loadAdminAssistedPilotQaPanel";
+
+const FORBIDDEN_CSV_SUBSTRINGS = ["sk_live_", "sk_test_", "authorization_code", "access_code"] as const;
+
+function assertSafeCsv(csv: string): void {
+  const lower = csv.toLowerCase();
+  for (const forbidden of FORBIDDEN_CSV_SUBSTRINGS) {
+    if (lower.includes(forbidden.toLowerCase())) {
+      throw new Error(`Export contains forbidden field: ${forbidden}`);
+    }
+  }
+}
+
+export function buildAdminAssistedPilotExportFilename(now = new Date()): string {
+  const stamp = now.toISOString().slice(0, 10);
+  return `admin-assisted-pilot-${stamp}.csv`;
+}
+
+export function adminAssistedPilotPanelToCsv(panel: AdminAssistedPilotQaPanel): string {
+  const headers = [
+    "booking_id",
+    "customer",
+    "status",
+    "pilot_dry_run",
+    "payment_path",
+    "payment_success",
+    "assignment_success",
+    "friction_flags",
+    "pending_age_hours",
+    "feedback_confusing",
+    "feedback_slowed_down",
+    "feedback_payment_succeeded",
+    "feedback_customer_understood",
+    "generated_at",
+  ];
+
+  const feedbackByBooking = new Map<string, (typeof panel.recentFeedback)[number]>();
+  for (const fb of panel.recentFeedback) {
+    if (!feedbackByBooking.has(fb.bookingId)) feedbackByBooking.set(fb.bookingId, fb);
+  }
+
+  const rows = panel.flaggedBookings.map((booking) => {
+    const fb = feedbackByBooking.get(booking.bookingId);
+    const paymentPath = booking.flags.includes("offline_payment_used")
+      ? "offline"
+      : booking.flags.includes("repeated_link_regenerate")
+        ? "paystack_link_friction"
+        : "paystack_link";
+    const paymentSuccess =
+      booking.status !== "draft" &&
+      booking.status !== "pending_payment" &&
+      booking.status !== "payment_failed"
+        ? "yes"
+        : booking.status === "pending_payment"
+          ? "pending"
+          : "no";
+    const assignmentSuccess =
+      booking.status === "assigned" ||
+      booking.status === "in_progress" ||
+      booking.status === "completed" ||
+      booking.status === "pending_assignment"
+        ? "yes"
+        : "no";
+
+    return formatCsvRow([
+      booking.bookingId,
+      booking.customerLabel,
+      booking.status,
+      booking.pilotDryRun ? "yes" : "no",
+      paymentPath,
+      paymentSuccess,
+      assignmentSuccess,
+      booking.flags.join("|"),
+      booking.pendingAgeHours != null ? String(booking.pendingAgeHours) : "",
+      fb?.confusingText ?? "",
+      fb?.slowedDownText ?? "",
+      fb?.paymentSucceeded == null ? "" : String(fb.paymentSucceeded),
+      fb?.customerUnderstood == null ? "" : String(fb.customerUnderstood),
+      panel.generatedAt,
+    ]);
+  });
+
+  const csv = [formatCsvRow(headers), ...rows].join("\n");
+  assertSafeCsv(csv);
+  return csv;
+}
+
+export function adminAssistedPilotPanelToJson(panel: AdminAssistedPilotQaPanel): Record<string, unknown> {
+  return {
+    ok: true,
+    generatedAt: panel.generatedAt,
+    friction: panel.friction,
+    diagnostics: panel.diagnostics,
+    flaggedBookings: panel.flaggedBookings,
+    dryRunBookings: panel.dryRunBookings,
+    recentFeedback: panel.recentFeedback.map((fb) => ({
+      bookingId: fb.bookingId,
+      confusingText: fb.confusingText,
+      slowedDownText: fb.slowedDownText,
+      paymentSucceeded: fb.paymentSucceeded,
+      customerUnderstood: fb.customerUnderstood,
+      notes: fb.notes,
+      createdAt: fb.createdAt,
+    })),
+    feedbackCount: panel.feedbackCount,
+  };
+}

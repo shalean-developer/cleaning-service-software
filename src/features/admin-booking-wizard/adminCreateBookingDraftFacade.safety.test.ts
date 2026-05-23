@@ -53,6 +53,7 @@ describe("admin booking wizard phase 3 safety (static)", () => {
     expect(apiSource).toContain("/api/admin/bookings/draft");
     expect(apiSource).toContain("/pending-payment");
     expect(apiSource).toContain("fetchAdminBookingWizardFlowDetail");
+    expect(apiSource).toContain("/assist-summary");
   });
 
   it("draft save uses draft API only", () => {

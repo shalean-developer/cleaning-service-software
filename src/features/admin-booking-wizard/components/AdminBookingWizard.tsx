@@ -23,6 +23,8 @@ import type { AdminBookingWizardStep, AdminBookingWizardSummary } from "../types
 import { useAdminBookingFlowRefresh } from "../useAdminBookingFlowRefresh";
 import { useAdminBookingQuote } from "../useAdminBookingQuote";
 import { useAdminCustomerPrefill } from "../useAdminCustomerPrefill";
+import { AdminAssistedBookingTrainingAids } from "@/components/dashboard/admin/AdminAssistedBookingTrainingAids";
+import { AdminAssistedBookingPilotBanner } from "./AdminAssistedBookingPilotBanner";
 import { AdminBookingWizardDesignModeBanner } from "./AdminBookingWizardDesignModeBanner";
 import { AdminBookingWizardStepper } from "./AdminBookingWizardStepper";
 import {
@@ -35,6 +37,7 @@ type Props = {
   featureEnabled: boolean;
   paymentLinksEnabled: boolean;
   offlinePaymentsEnabled: boolean;
+  pilotMode?: boolean;
   initialCustomerId?: string | null;
   initialCustomerLabel?: string | null;
 };
@@ -63,6 +66,7 @@ export function AdminBookingWizard({
   featureEnabled,
   paymentLinksEnabled,
   offlinePaymentsEnabled,
+  pilotMode = false,
   initialCustomerId,
   initialCustomerLabel,
 }: Props) {
@@ -114,6 +118,12 @@ export function AdminBookingWizard({
   return (
     <div className={WIZARD_SHELL_WIDE_WITH_SIDEBAR_CLASS} data-testid="admin-booking-wizard">
       <AdminBookingWizardDesignModeBanner featureEnabled={featureEnabled} />
+      <AdminAssistedBookingPilotBanner pilotMode={featureEnabled && pilotMode} />
+      {featureEnabled && pilotMode ? (
+        <div className="mb-4">
+          <AdminAssistedBookingTrainingAids compact />
+        </div>
+      ) : null}
 
       {customerPrefillError ? (
         <p

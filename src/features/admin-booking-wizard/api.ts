@@ -1,5 +1,6 @@
 import {
   type AdminBookingWizardFlowBookingDetail,
+  mapAssistSummaryToFlowBookingDetail,
 } from "./adminBookingFlowSync";
 
 export async function fetchAdminBookingWizardFlowDetail(
@@ -13,19 +14,21 @@ export async function fetchAdminBookingWizardFlowDetail(
     return { ok: false, message: "Booking ID is required." };
   }
 
-  const response = await fetch(`/api/admin/bookings/${encodeURIComponent(trimmed)}`);
+  const response = await fetch(
+    `/api/admin/bookings/${encodeURIComponent(trimmed)}/assist-summary`,
+  );
   const json = (await response.json()) as
-    | { ok: true; booking: AdminBookingWizardFlowBookingDetail }
+    | { ok: true; summary: AdminBookingWizardFlowBookingDetail }
     | { ok: false; message?: string };
 
-  if (!response.ok || !json.ok || !("booking" in json)) {
+  if (!response.ok || !json.ok || !("summary" in json)) {
     return {
       ok: false,
       message: "message" in json && json.message ? json.message : "Could not refresh booking state.",
     };
   }
 
-  return { ok: true, booking: json.booking };
+  return { ok: true, booking: mapAssistSummaryToFlowBookingDetail(json.summary) };
 }
 
 export type SaveAdminBookingDraftResponse =

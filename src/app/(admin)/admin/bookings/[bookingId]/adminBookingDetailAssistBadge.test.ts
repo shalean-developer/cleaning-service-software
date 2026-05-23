@@ -11,6 +11,7 @@ describe("admin booking detail assist badge", () => {
     expect(source).toContain("adminAssistedDraft");
     expect(source).toContain("Admin-assisted draft");
     expect(source).toContain("Admin-assisted pending payment");
+    expect(source).toContain("Pilot / Dry-run");
     expect(source).toContain("pending_payment");
   });
 });
