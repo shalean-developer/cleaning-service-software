@@ -13,6 +13,24 @@ vi.mock("@/lib/app/adminAssistedOfflinePaymentsFlag", () => ({
   isAdminAssistedOfflinePaymentsActive: () => false,
 }));
 
+vi.mock("./adminAssistedBookingCustomerDisplay", () => ({
+  withAdminAssistedBookingCustomerFields: vi.fn(async (_client, rows: Array<{ id: string; customer_id?: string; customer_name?: string; customer_email?: string | null }>) =>
+    rows.map((row) => ({
+      ...row,
+      customer_id: row.customer_id ?? "cust-unknown",
+      customer_name:
+        row.customer_name ??
+        (row.customer_id === "cust-jane" ? "Jane" : row.customer_id === "cust-bob" ? "Bob" : null),
+      customer_email:
+        row.customer_email ??
+        (row.customer_id === "cust-bob" ? "bob@example.com" : null),
+      customer_phone: null,
+    })),
+  ),
+  loadAdminAssistedBookingCustomerFieldsByCustomerId: vi.fn(),
+  customerLabelFromCustomerFields: vi.fn(),
+}));
+
 function mockClient(rows: Record<string, unknown>[], counts: Record<string, number>) {
   return {
     from: (table: string) => {
@@ -64,6 +82,7 @@ function mockClient(rows: Record<string, unknown>[], counts: Record<string, numb
           select: () => {
             const filters: Record<string, string> = {};
             const builder = {
+              filter: () => builder,
               eq: (col: string, val: string) => {
                 filters[col] = val;
                 return builder;
@@ -71,11 +90,9 @@ function mockClient(rows: Record<string, unknown>[], counts: Record<string, numb
               limit: async () => ({ data: [], error: null }),
               then: (resolve: (v: { count: number; error: null }) => void) => {
                 const key =
-                  filters.event_name === "admin_assisted_payment_request_sent"
-                    ? `${table}:${filters.event_name}`
-                    : filters.status
-                      ? `${table}:${filters.status}`
-                      : table;
+                  filters.status === "failed"
+                    ? "notification_outbox:admin_assisted_payment_request_sent"
+                    : table;
                 resolve({ count: counts[key] ?? counts[table] ?? 0, error: null });
               },
             };
@@ -101,8 +118,7 @@ describe("loadAdminAssistedBookingDiagnostics", () => {
             assignment_dispatch_at: null,
             updated_at: "2026-05-23T08:00:00.000Z",
             created_at: "2026-05-23T08:00:00.000Z",
-            customer_name: "Jane",
-            customer_email: null,
+            customer_id: "cust-jane",
           },
           {
             id: "b2",
@@ -125,8 +141,7 @@ describe("loadAdminAssistedBookingDiagnostics", () => {
             assignment_dispatch_at: null,
             updated_at: "2026-05-23T08:00:00.000Z",
             created_at: "2026-05-23T08:00:00.000Z",
-            customer_name: "Bob",
-            customer_email: "bob@example.com",
+            customer_id: "cust-bob",
           },
         ],
         {
@@ -148,5 +163,7 @@ describe("loadAdminAssistedBookingDiagnostics", () => {
     expect(diagnostics.friction.pilotDryRunBookings).toBe(1);
     expect(diagnostics.friction.missingCustomerEmailBookings).toBe(1);
     expect(diagnostics.operatorFeedbackCount).toBe(3);
+    expect(diagnostics.rolloutStage).toBe("draft_only");
+    expect(diagnostics.alerts.some((alert) => alert.id === "failed_payment_request_email")).toBe(true);
   });
 });

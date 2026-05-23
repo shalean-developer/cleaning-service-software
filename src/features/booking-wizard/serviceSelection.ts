@@ -1,4 +1,5 @@
 import type { ServiceSlug } from "@/features/pricing/server/types";
+import { cadenceResetPatchForService } from "./frequencyVisibility";
 import { mergeWithQuoteInvalidation } from "./quoteInvalidation";
 import type { BookingWizardState } from "./types";
 
@@ -21,7 +22,10 @@ export function wizardPatchForServiceSelection(
   | "officeSizeTier"
   | "officeWorkstations"
   | "propertySizeSqm"
-> {
+  | "addons"
+> &
+  Partial<Pick<BookingWizardState, "frequency" | "recurringDays">> {
+  const cadenceReset = cadenceResetPatchForService(slug);
   return {
     serviceSlug: slug,
     bedrooms: slug === "office-cleaning" ? 0 : 2,
@@ -37,6 +41,7 @@ export function wizardPatchForServiceSelection(
     carpetPetStains: false,
     carpetGoodDryingAirflow: false,
     addons: [],
+    ...(cadenceReset ?? {}),
   };
 }
 

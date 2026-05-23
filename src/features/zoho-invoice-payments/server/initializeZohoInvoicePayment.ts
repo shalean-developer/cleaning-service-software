@@ -89,10 +89,14 @@ function failure(
   return { ok: false, code, message, status };
 }
 
+type ActiveZohoInvoicePayment = NonNullable<
+  Awaited<ReturnType<typeof findActiveZohoInvoicePaymentByInvoiceNumber>>
+>;
+
 function isReusablePendingPayment(
-  payment: Awaited<ReturnType<typeof findActiveZohoInvoicePaymentByInvoiceNumber>>,
+  payment: ActiveZohoInvoicePayment | null,
   amountCents: number,
-): payment is NonNullable<typeof payment> {
+): payment is ActiveZohoInvoicePayment & { paystack_authorization_url: string } {
   if (!payment) return false;
   if (payment.amount_cents !== amountCents) return false;
   return Boolean(payment.paystack_authorization_url?.trim());

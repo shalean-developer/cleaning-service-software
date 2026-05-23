@@ -47,23 +47,23 @@ export async function checkZohoInvoiceForAdmin(
     }
 
     const code =
-      result.status === "not_configured"
+      "status" in result && result.status === "not_configured"
         ? "NOT_CONFIGURED"
-        : result.status === "not_found"
+        : "status" in result && result.status === "not_found"
           ? "NOT_FOUND"
           : "ERROR";
 
     logZohoInvoicePaymentEvent("zoho_invoice_admin_invoice_check_failed", {
-      invoiceNumber: result.invoiceNumber,
+      invoiceNumber: "invoiceNumber" in result ? result.invoiceNumber : rawInvoiceNumber?.trim() || null,
       failureCode: code,
-      publicStatus: result.status,
+      publicStatus: "status" in result ? result.status : null,
     });
 
     return {
       ok: false,
       code,
       message: result.message,
-      invoiceNumber: result.invoiceNumber,
+      invoiceNumber: "invoiceNumber" in result ? result.invoiceNumber : undefined,
     };
   }
 

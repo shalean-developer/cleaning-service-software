@@ -55,6 +55,7 @@ export function testCleanerJobDetail(
     equipmentSupplyOperationalLabel: "Customer supplies equipment",
     teamSupportCleanerNote: null,
     specialInstructions: null,
+    operationalAccessNotes: null,
     earnings: [],
     team: buildCleanerJobTeamContext(null, [], false),
     ...partial,

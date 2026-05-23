@@ -16,6 +16,9 @@ const serviceSelectionDefaults = {
   carpetStainSeverity: null,
   carpetPetStains: false,
   carpetGoodDryingAirflow: false,
+  officeSizeTier: null,
+  officeWorkstations: null,
+  propertySizeSqm: null,
   addons: [] as const,
 };
 
@@ -48,6 +51,19 @@ describe("wizardPatchForServiceSelection", () => {
       ...wizardPatchForServiceSelection("regular-cleaning"),
     };
     expect(fromUrl).toEqual(manual);
+  });
+
+  it("clears cadence when switching to deep cleaning", () => {
+    const withCadence = {
+      ...INITIAL_WIZARD_STATE,
+      serviceSlug: "regular-cleaning" as const,
+      frequency: "weekly" as const,
+      recurringDays: [1, 4],
+    };
+
+    const next = applyServiceSelectionToWizardState(withCadence, "deep-cleaning");
+    expect(next.frequency).toBe("once");
+    expect(next.recurringDays).toEqual([]);
   });
 });
 

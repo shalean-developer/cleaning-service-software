@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { isApiAuthFailure, requireApiUser } from "@/features/dashboards/server/apiAuth";
 import { recordAdminAssistedOperatorFeedback } from "@/features/bookings/server/admin/loadAdminAssistedOperatorFeedback";
 import { isAdminAssistedBookingMetadata } from "@/features/bookings/server/admin/adminAssistMetadata";
+import {
+  ADMIN_ASSISTED_LESSON_CATEGORIES,
+  ADMIN_ASSISTED_LESSON_TAGS,
+  type AdminAssistedLessonCategory,
+  type AdminAssistedLessonTag,
+} from "@/features/bookings/server/admin/adminAssistedOperatorLessonTypes";
 import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 type RouteContext = { params: Promise<{ bookingId: string }> };
@@ -46,6 +52,20 @@ export async function POST(request: Request, context: RouteContext) {
     typeof (payload as Record<string, unknown>).notes === "string"
       ? (payload as Record<string, unknown>).notes
       : null;
+  const lessonCategoryRaw = (payload as Record<string, unknown>).lessonCategory;
+  const lessonTagsRaw = (payload as Record<string, unknown>).lessonTags;
+
+  const lessonCategory =
+    typeof lessonCategoryRaw === "string" &&
+    (ADMIN_ASSISTED_LESSON_CATEGORIES as readonly string[]).includes(lessonCategoryRaw)
+      ? (lessonCategoryRaw as AdminAssistedLessonCategory)
+      : null;
+  const lessonTags = Array.isArray(lessonTagsRaw)
+    ? (lessonTagsRaw.filter(
+        (tag): tag is AdminAssistedLessonTag =>
+          typeof tag === "string" && (ADMIN_ASSISTED_LESSON_TAGS as readonly string[]).includes(tag),
+      ) as AdminAssistedLessonTag[])
+    : [];
 
   const client = requireServiceRoleClient();
   const { data: booking, error: bookingError } = await client
@@ -81,6 +101,8 @@ export async function POST(request: Request, context: RouteContext) {
           (payload as Record<string, unknown>).customerUnderstood,
         ),
         notes: notes as string | null,
+        lessonCategory,
+        lessonTags,
       },
       client,
     );

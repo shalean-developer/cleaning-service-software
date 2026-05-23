@@ -45,6 +45,8 @@ function toSafeDto(
     consented_at: method.consented_at,
     revoked_at: method.revoked_at,
     source_invoice_number: method.source_invoice_number,
+    last_used_at: method.last_used_at,
+    last_used_invoice_number: method.last_used_invoice_number,
   };
 }
 

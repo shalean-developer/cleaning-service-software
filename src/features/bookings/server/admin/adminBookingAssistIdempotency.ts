@@ -262,8 +262,9 @@ export async function storeAdminBookingAssistIdempotencyResult(
     result: {
       bookingId: input.result.bookingId,
       status: input.result.status,
-      priceCents: input.result.priceCents,
-      currency: input.result.currency,
+      ...("priceCents" in input.result
+        ? { priceCents: input.result.priceCents, currency: input.result.currency }
+        : {}),
       paymentStatus:
         input.result.status === "pending_payment" ? input.result.paymentStatus : undefined,
       paymentUrl:

@@ -15,8 +15,14 @@ export type AdminAssistTimelineEntryKind =
   | "payment_request_copied"
   | "payment_request_sent"
   | "offline_payment_recorded"
+  | "sop_confirmed"
   | "payment_confirmed"
-  | "assignment_started";
+  | "recurring_materialized"
+  | "assignment_started"
+  | "assignment_escalation"
+  | "recovery_action";
+
+export type AdminAssistTimelineEntrySeverity = "info" | "warning" | "high" | "critical";
 
 export type AdminAssistTimelineEntry = {
   id: string;
@@ -28,6 +34,8 @@ export type AdminAssistTimelineEntry = {
   deliveryChannel: string | null;
   adminProfileId: string | null;
   previousReference: string | null;
+  severity?: AdminAssistTimelineEntrySeverity;
+  milestone?: boolean;
 };
 
 function payloadString(payload: Record<string, unknown>, key: string): string | null {
@@ -35,7 +43,9 @@ function payloadString(payload: Record<string, unknown>, key: string): string | 
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-function mapAuditToTimelineEntry(row: AdminBookingAssistAuditRow): AdminAssistTimelineEntry | null {
+function mapAuditToTimelineEntry(
+  row: AdminBookingAssistAuditRow,
+): AdminAssistTimelineEntry | AdminAssistTimelineEntry[] | null {
   const payload =
     row.payload && typeof row.payload === "object" && !Array.isArray(row.payload)
       ? (row.payload as Record<string, unknown>)
@@ -89,6 +99,8 @@ function mapAuditToTimelineEntry(row: AdminBookingAssistAuditRow): AdminAssistTi
         deliveryChannel: payloadString(payload, "deliveryChannel"),
         adminProfileId: row.adminProfileId,
         previousReference: payloadString(payload, "previousReference"),
+        severity: "warning",
+        milestone: true,
       };
     case "admin_booking_payment_link_expired":
       return {
@@ -135,18 +147,37 @@ function mapAuditToTimelineEntry(row: AdminBookingAssistAuditRow): AdminAssistTi
       return {
         id: row.id,
         at: row.createdAt,
-        kind: "payment_request_sent",
+        kind: idempotentReplay ? "recovery_action" : "payment_request_sent",
         title,
         description,
         reference: payloadString(payload, "reference"),
         deliveryChannel: channel,
         adminProfileId: row.adminProfileId,
         previousReference: null,
+        severity: idempotentReplay ? "info" : notificationStatus === "failed" ? "high" : "info",
+        milestone: !idempotentReplay,
       };
     }
     case "admin_booking_offline_payment_recorded": {
       const rail = payloadString(payload, "rail");
-      return {
+      const sopConfirmed = payload.sopConfirmed === true;
+      const entries: AdminAssistTimelineEntry[] = [];
+      if (sopConfirmed) {
+        entries.push({
+          id: `${row.id}-sop`,
+          at: row.createdAt,
+          kind: "sop_confirmed",
+          title: "SOP reconciliation confirmed",
+          description: "Operator verified payment against bank/cash/terminal records.",
+          reference: payloadString(payload, "evidenceReference"),
+          deliveryChannel: rail,
+          adminProfileId: row.adminProfileId,
+          previousReference: null,
+          severity: "info",
+          milestone: true,
+        });
+      }
+      entries.push({
         id: row.id,
         at: row.createdAt,
         kind: "offline_payment_recorded",
@@ -158,11 +189,21 @@ function mapAuditToTimelineEntry(row: AdminBookingAssistAuditRow): AdminAssistTi
         deliveryChannel: rail,
         adminProfileId: row.adminProfileId,
         previousReference: null,
-      };
+        severity: "info",
+        milestone: true,
+      });
+      return entries;
     }
     default:
       return null;
   }
+}
+
+function mapAuditRowsToTimelineEntries(row: AdminBookingAssistAuditRow): AdminAssistTimelineEntry[] {
+  const mapped = mapAuditToTimelineEntry(row);
+  if (!mapped) return [];
+  if (Array.isArray(mapped)) return mapped;
+  return [mapped];
 }
 
 const POST_PAYMENT_STATUSES: readonly BookingStatus[] = [
@@ -199,8 +240,7 @@ export function buildAdminBookingAssistTimeline(input: {
   const entries: AdminAssistTimelineEntry[] = [];
 
   for (const audit of input.audits) {
-    const mapped = mapAuditToTimelineEntry(audit);
-    if (mapped) entries.push(mapped);
+    entries.push(...mapAuditRowsToTimelineEntries(audit));
   }
 
   if (
@@ -235,6 +275,27 @@ export function buildAdminBookingAssistTimeline(input: {
       deliveryChannel: null,
       adminProfileId: null,
       previousReference: null,
+      severity: "info",
+      milestone: true,
+    });
+  }
+
+  if (
+    input.paymentConfirmedAt &&
+    input.bookingStatus === "confirmed"
+  ) {
+    entries.push({
+      id: `derived-assignment-escalation-${input.paymentConfirmedAt}`,
+      at: input.paymentConfirmedAt,
+      kind: "assignment_escalation",
+      title: "Assignment escalation attention",
+      description: "Payment confirmed but booking has not reached pending_assignment.",
+      reference: null,
+      deliveryChannel: null,
+      adminProfileId: null,
+      previousReference: null,
+      severity: "critical",
+      milestone: true,
     });
   }
 
@@ -263,6 +324,8 @@ export function buildAdminBookingAssistTimeline(input: {
       deliveryChannel: null,
       adminProfileId: null,
       previousReference: null,
+      severity: "info",
+      milestone: true,
     });
   }
 

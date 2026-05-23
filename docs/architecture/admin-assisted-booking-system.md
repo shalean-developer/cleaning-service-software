@@ -1,6 +1,6 @@
 # Admin-assisted booking system — architecture
 
-**Status:** Phase 6 — parity QA + rollout hardening  
+**Status:** Phase 10 — production learning + incident review  
 **Last updated:** 2026-05-23
 
 ## Purpose
@@ -31,7 +31,9 @@ Admin/customer facades
 | **6** | Parity QA, rollout checklist, diagnostics, filters | Shipped |
 | **7A** | Operator visibility, recovery UX, analytics, pilot banner | Shipped |
 | **7B** | Dry-run labeling, feedback, QA checklist, friction, exports | Shipped |
-| **8** | Full production enablement | Planned |
+| **8** | Controlled production rollout, alerts, SOP enforcement, checklist readiness | Shipped |
+| **9** | Live production observability, health score, incidents, weekly reporting | Shipped |
+| **10** | Incident review, operator lessons, weekly review, backlog, decision support, learning exports | Shipped |
 
 ## Admin actor model
 
@@ -63,6 +65,9 @@ type AdminBookingAssistContext = {
 | `GET /api/admin/bookings/assist-pilot/export` | 7B (CSV/JSON) |
 | `POST /api/admin/bookings/[id]/assist-feedback` | 7B |
 | `PUT /api/admin/bookings/[id]/assist-qa-checklist` | 7B |
+| `GET /api/admin/bookings/assist-production/weekly-export` | 9 |
+| `POST /api/admin/bookings/assist-incidents/review` | 10 |
+| `GET /api/admin/bookings/assist-production/learning-export` | 10 |
 
 Customer routes (`/api/bookings/lock`, `/api/paystack/*`) remain **unchanged**.
 
@@ -102,7 +107,7 @@ ADMIN_ASSISTED_BOOKING_PILOT_MODE=false
 ADMIN_ASSISTED_BOOKING_DRY_RUN_LABEL=false
 ```
 
-When `ADMIN_ASSISTED_BOOKING_PILOT_MODE=true` or `ADMIN_ASSISTED_BOOKING_DRY_RUN_LABEL=true`, new drafts receive `metadata.adminAssist.pilotDryRun=true` (labeling only — real payment/assignment flows).
+When `ADMIN_ASSISTED_BOOKING_PILOT_MODE=true` or `ADMIN_ASSISTED_BOOKING_DRY_RUN_LABEL=true`, new drafts receive `metadata.adminAssist.pilotDryRun=true` (labeling only — real payment/assignment flows). Pilot mode alone enables both the operator banner and dry-run metadata stamping.
 
 See [admin-assisted-booking-rollout.md](../runbooks/admin-assisted-booking-rollout.md) for staged production order.
 See [admin-assisted-booking-pilot-performance.md](./admin-assisted-booking-pilot-performance.md) for pilot scale thresholds.
@@ -110,10 +115,13 @@ See [admin-assisted-booking-pilot-performance.md](./admin-assisted-booking-pilot
 ## Observability
 
 - Production rollout page: admin-assisted diagnostics panel + checklist category `admin_assisted_booking`
+- Production learning dashboard: incident review, weekly review, lessons, backlog, advisory rollout decision
 - Per-booking assist timeline: draft, pending, link, offline, payment confirmed, assignment started
 
 ## Related docs
 
 - [admin-assisted-booking-rollout.md](../runbooks/admin-assisted-booking-rollout.md)
+- [admin-assisted-observability-handbook.md](../runbooks/admin-assisted-observability-handbook.md)
+- [admin-assisted-incident-response-sop.md](../runbooks/admin-assisted-incident-response-sop.md)
 - [admin-manual-booking-creation-audit.md](../audits/admin-manual-booking-creation-audit.md)
 - [booking-command-execution-layer.md](./booking-command-execution-layer.md)

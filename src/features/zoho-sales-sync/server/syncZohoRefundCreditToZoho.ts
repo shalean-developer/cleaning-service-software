@@ -96,18 +96,20 @@ export async function syncZohoRefundCreditToZoho(
     const invoiceLookup = await getZohoInvoiceById(context.zohoInvoiceId);
     if (!invoiceLookup.ok) {
       const attemptCount = syncRow.sync_attempts + 1;
+      const retryable =
+        invoiceLookup.code === "API_ERROR" ? invoiceLookup.retryable : false;
       await markZohoRefundCreditFailed(
         syncRow.id,
         safeSyncError(invoiceLookup.code),
         attemptCount,
         client,
       );
-      scheduleFailureLog(syncRow.id, invoiceLookup.code, attemptCount, invoiceLookup.retryable);
+      scheduleFailureLog(syncRow.id, invoiceLookup.code, attemptCount, retryable);
       return {
         ok: false,
         syncId: syncRow.id,
         code: invoiceLookup.code,
-        retryable: invoiceLookup.retryable,
+        retryable,
       };
     }
     customerId = invoiceLookup.invoice.customer_id?.trim() || null;

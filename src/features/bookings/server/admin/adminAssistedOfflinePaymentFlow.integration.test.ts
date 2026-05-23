@@ -311,6 +311,7 @@ describe("admin-assisted offline payment flow (integration)", () => {
         evidenceReference: "EV-100",
         reason: "EFT received",
         idempotencyKey: "offline-eft-flow-12345678",
+        sopConfirmed: true,
       },
     });
 
@@ -380,6 +381,7 @@ describe("admin-assisted offline payment flow (integration)", () => {
         evidenceReference: "EV-RECURRING",
         reason: "EFT received",
         idempotencyKey: "offline-recurring-flow-12345678",
+        sopConfirmed: true,
       },
     });
 

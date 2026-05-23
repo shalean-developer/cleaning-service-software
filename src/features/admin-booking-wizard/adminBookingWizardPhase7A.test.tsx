@@ -35,8 +35,20 @@ const diagnosticsFixture: AdminAssistedBookingDiagnostics = {
     confirmedAfterAssistPayment: 3,
     failedPaymentRequestNotifications: 1,
     assignmentDispatchAttention: 0,
+    confirmedWithoutAssignmentDispatch: 0,
   },
-    analytics: {
+  alerts: [
+    {
+      id: "stale_pending_payment",
+      severity: "critical" as const,
+      title: "Stale pending payments",
+      message: "1 booking(s) pending payment for more than 72 hours.",
+      count: 1,
+      escalation: "Follow up with customer.",
+    },
+  ],
+  rolloutStage: "payment_links" as const,
+  analytics: {
       linksGenerated: 5,
       linksRegenerated: 1,
       emailsSent: 4,
@@ -139,6 +151,8 @@ describe("Phase 7A operator surfaces", () => {
     );
 
     expect(html).toContain('data-testid="admin-booking-recovery-regenerate-link"');
+    expect(html).toContain('data-testid="admin-booking-link-expiry-guidance"');
+    expect(html).toContain("late Paystack payment may still settle");
     expect(html).toContain('data-testid="admin-booking-recovery-resend-email"');
     expect(html).toContain('data-testid="admin-booking-stale-pending-badge"');
   });
@@ -183,7 +197,9 @@ describe("Phase 7A operator surfaces", () => {
   });
 
   it("renders pilot banner when pilot mode is on", () => {
-    const html = renderToStaticMarkup(<AdminAssistedBookingPilotBanner pilotMode />);
+    const html = renderToStaticMarkup(
+      <AdminAssistedBookingPilotBanner pilotMode rolloutStage="payment_links" />,
+    );
     expect(html).toContain("admin-assisted-booking-pilot-banner");
     expect(html.toLowerCase()).toContain("pilot mode");
   });
@@ -193,6 +209,8 @@ describe("Phase 7A operator surfaces", () => {
       <AdminAssistedBookingOperationsDashboard diagnostics={diagnosticsFixture} />,
     );
     expect(html).toContain("admin-assisted-booking-analytics");
+    expect(html).toContain("admin-assisted-alerts-panel");
+    expect(html).toContain("admin-assisted-rollout-stage-badge");
     expect(html).toContain("Links generated");
     expect(html).toContain("5");
   });

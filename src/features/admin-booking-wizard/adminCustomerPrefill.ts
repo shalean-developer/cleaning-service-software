@@ -13,8 +13,10 @@ type CustomerDetailResponse =
     }
   | { ok: false; error: string; message?: string };
 
+type AdminCustomerDetail = Extract<CustomerDetailResponse, { ok: true }>["customer"];
+
 export function mapAdminCustomerDetailToSearchResult(
-  customer: CustomerDetailResponse extends { ok: true; customer: infer C } ? C : never,
+  customer: AdminCustomerDetail,
 ): AdminCustomerSearchResult {
   const label =
     customer.companyName?.trim() ||

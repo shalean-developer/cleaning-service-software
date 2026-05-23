@@ -106,11 +106,25 @@ function cadenceLabelFromFrequency(frequency: PricingFrequency, intervalWeeks: n
   return null;
 }
 
+const RECURRING_PARSE_CACHE_MAX = 256;
+const recurringParseCache = new Map<string, ParsedAdminBookingRecurringSchedule>();
+
+function recurringMetadataCacheKey(metadata: Json | null | undefined, scheduledStart?: string | null): string {
+  const record = asRecord(metadata);
+  const schedule = record.recurringSchedule;
+  const frequency = record.frequency ?? record.pricingFrequency;
+  return JSON.stringify({ frequency, schedule, scheduledStart: scheduledStart ?? null });
+}
+
 /** Display-only recurring schedule parsed from persisted booking metadata. */
 export function parseAdminBookingRecurringScheduleFromMetadata(
   metadata: Json | null | undefined,
   scheduledStart?: string | null,
 ): ParsedAdminBookingRecurringSchedule {
+  const cacheKey = recurringMetadataCacheKey(metadata, scheduledStart);
+  const cached = recurringParseCache.get(cacheKey);
+  if (cached) return cached;
+
   const pricingFrequency = readBookingFrequencyFromMetadata(metadata ?? ({} as Json));
   const recurringSchedule = readRecurringScheduleRecord(metadata);
   const selectedDaysFromMeta = readSelectedDaysFromBookingMetadata(metadata);
@@ -137,7 +151,7 @@ export function parseAdminBookingRecurringScheduleFromMetadata(
         ? "Monthly recurring visit"
         : null;
 
-  return {
+  const result = {
     recurringEnabled,
     pricingFrequency,
     selectedDays,
@@ -147,6 +161,13 @@ export function parseAdminBookingRecurringScheduleFromMetadata(
     cadenceLabel: cadenceLabelFromFrequency(pricingFrequency, intervalWeeks),
     selectedDaysLabel: selectedDays.length > 0 ? formatSelectedDaysShort(selectedDays) : null,
   };
+
+  if (recurringParseCache.size >= RECURRING_PARSE_CACHE_MAX) {
+    const firstKey = recurringParseCache.keys().next().value;
+    if (firstKey) recurringParseCache.delete(firstKey);
+  }
+  recurringParseCache.set(cacheKey, result);
+  return result;
 }
 
 export function adminBookingRecurringHeroLabel(

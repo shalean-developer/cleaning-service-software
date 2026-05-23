@@ -17,6 +17,8 @@ import {
   STALE_PENDING_DAYS,
   SYNC_BACKLOG_THRESHOLD,
 } from "./productionRolloutTypes";
+import { isInvalidAdminAssistedFlagCombination } from "@/lib/app/resolveAdminAssistedBookingRolloutStage";
+import { evaluateAdminAssistedRolloutReadiness } from "@/features/bookings/server/admin/adminAssistedRolloutReadiness";
 
 export function evaluateProductionEnvironment(): ProductionRolloutEnvironment {
   const appBaseUrl = getServerAppBaseUrl();
@@ -175,6 +177,22 @@ export function buildRolloutRecommendations(input: {
   }
   if (operationalHealth.pendingReconciliationCount > SYNC_BACKLOG_THRESHOLD) {
     steps.push("Reconciliation backlog is elevated — stabilize before enabling sales sync.");
+  }
+
+  const adminAssistedReadiness = evaluateAdminAssistedRolloutReadiness(checklist);
+  if (isInvalidAdminAssistedFlagCombination()) {
+    steps.push(
+      "Admin assisted booking flags are in an invalid combination — resolve before expanding rollout.",
+    );
+  }
+  if (adminAssistedReadiness.unresolvedBlockers.length > 0) {
+    steps.push(
+      `Admin assisted booking blockers: ${adminAssistedReadiness.unresolvedBlockers.join("; ")}`,
+    );
+  } else if (!adminAssistedReadiness.productionReady) {
+    steps.push(
+      `Complete admin assisted checklist (${adminAssistedReadiness.checklistProgress.completed}/${adminAssistedReadiness.checklistProgress.total}) before production rollout.`,
+    );
   }
 
   if (steps.length === 0) {

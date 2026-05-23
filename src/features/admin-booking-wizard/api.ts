@@ -148,6 +148,7 @@ export async function recordAdminOfflinePayment(
     receiptNumber?: string;
     notes?: string;
     confirmSupersedesActivePaymentLink?: boolean;
+    sopConfirmed: true;
   },
 ): Promise<RecordAdminOfflinePaymentResponse> {
   const response = await fetch(`/api/admin/bookings/${bookingId}/offline-payment`, {

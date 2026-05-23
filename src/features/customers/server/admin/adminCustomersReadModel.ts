@@ -361,6 +361,21 @@ function aggregateBookingListSummary(rows: BookingListRowSlice[]): BookingListSu
   };
 }
 
+async function findProfileIdsByNameSearch(
+  client: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+  needle: string,
+): Promise<string[]> {
+  const pattern = `%${escapeAdminCustomerIlikePattern(needle)}%`;
+  const { data, error } = await client
+    .from("profiles")
+    .select("id")
+    .ilike("full_name", pattern)
+    .limit(ADMIN_CUSTOMERS_SEARCH_SCAN_CAP);
+
+  if (error) throw new Error(error.message);
+  return [...new Set((data ?? []).map((row) => row.id).filter(Boolean))];
+}
+
 async function findProfileIdsByEmailSearch(needle: string): Promise<string[]> {
   const normalized = needle.trim().toLowerCase();
   if (!normalized) return [];
@@ -461,6 +476,11 @@ async function loadCustomersForList(
     const emailProfileIds = await findProfileIdsByEmailSearch(search!);
     if (emailProfileIds.length > 0) {
       orParts.push(`profile_id.in.(${emailProfileIds.join(",")})`);
+    }
+  } else {
+    const nameProfileIds = await findProfileIdsByNameSearch(client, search!);
+    if (nameProfileIds.length > 0) {
+      orParts.push(`profile_id.in.(${nameProfileIds.join(",")})`);
     }
   }
 

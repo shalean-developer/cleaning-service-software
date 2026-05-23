@@ -1,6 +1,7 @@
 import { serviceSupportsExtraRooms } from "@/features/pricing/server/catalog";
 import { deriveOfficePropertySizeSqm } from "@/features/booking-wizard/officeSizing";
 import { isOfficeCleaningSlug } from "@/features/booking-wizard/officeCleaningDisplay";
+import { showFrequencyForService } from "@/features/booking-wizard/frequencyVisibility";
 import type { PricingInput } from "@/features/pricing/server/types";
 import type { AdminBookingWizardFormState } from "./draftFormState";
 import { resolveAdminPricingFrequency } from "./adminRecurringSchedule";
@@ -21,6 +22,13 @@ export function buildAdminDraftPricingInput(
 ): PricingInput | null {
   if (!state.serviceSlug) return null;
 
+  const frequency = showFrequencyForService(state.serviceSlug)
+    ? resolveAdminPricingFrequency({
+        frequency: state.frequency,
+        recurringIntervalWeeks: state.recurringIntervalWeeks,
+      })
+    : "once";
+
   return {
     serviceSlug: state.serviceSlug,
     bedrooms: state.bedrooms,
@@ -32,10 +40,7 @@ export function buildAdminDraftPricingInput(
     equipmentSupply:
       state.serviceSlug === "regular-cleaning" ? state.equipmentSupply : "customer",
     propertySizeSqm: resolveAdminPropertySizeSqm(state),
-    frequency: resolveAdminPricingFrequency({
-      frequency: state.frequency,
-      recurringIntervalWeeks: state.recurringIntervalWeeks,
-    }),
+    frequency,
     addons: state.addons.length > 0 ? state.addons : undefined,
     teamSize: 1,
     requestedTeamSize: state.serviceSlug === "regular-cleaning" ? state.requestedTeamSize : 1,

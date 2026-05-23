@@ -19,6 +19,7 @@ import {
   showsPrePaymentAssignmentExpectation,
 } from "@/features/bookings/server/paymentFailureDisplay";
 import { assessPaymentRetryEligibility } from "@/features/bookings/server/paymentRetryEligibility";
+import { assessPendingPaymentCheckoutEligibility } from "@/features/bookings/server/paymentPendingCheckoutEligibility";
 import { resolveDeferredDispatchStatus } from "@/features/assignments/server/deferredDispatchStatus";
 import { buildLifecycleTimeline } from "./lifecycleTimeline";
 import type { CustomerBookingDetail, CustomerBookingListItem, PaymentSummary } from "./types";
@@ -305,6 +306,7 @@ export async function getCustomerBookingDetail(
       payments: toPaymentSummaries(paymentList),
       cleanerPreferenceLabel: cleanerPreferenceLabel(display, row.status),
       canRetryPayment: assessPaymentRetryEligibility(row as BookingRow, paymentList),
+      canCompletePayment: assessPendingPaymentCheckoutEligibility(row as BookingRow, paymentList),
     },
   };
 }

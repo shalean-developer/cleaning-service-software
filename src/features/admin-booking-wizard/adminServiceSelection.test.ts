@@ -27,4 +27,19 @@ describe("applyAdminServiceSelection", () => {
     const regular = applyAdminServiceSelection(state, "regular-cleaning");
     expect(regular.addons).toContain("inside-fridge");
   });
+
+  it("clears cadence when switching to a non-recurring service", () => {
+    const state = {
+      ...EMPTY_ADMIN_BOOKING_WIZARD_FORM,
+      serviceSlug: "regular-cleaning" as const,
+      frequency: "weekly" as const,
+      recurringDays: [1, 4],
+      recurringIntervalWeeks: 2,
+    };
+
+    const deep = applyAdminServiceSelection(state, "deep-cleaning");
+    expect(deep.frequency).toBe("once");
+    expect(deep.recurringDays).toEqual([]);
+    expect(deep.recurringIntervalWeeks).toBe(1);
+  });
 });

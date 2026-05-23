@@ -58,7 +58,7 @@ function fail(
   code: Extract<AdminCreateBookingDraftResult, { ok: false }>["code"],
   message: string,
   status: number,
-): AdminCreateBookingDraftResult {
+): Extract<AdminCreateBookingDraftResult, { ok: false }> {
   return { ok: false, code, message, status };
 }
 
@@ -68,7 +68,7 @@ function isScheduleInPast(scheduledStart: string): boolean {
 
 async function assertCustomerExists(
   customerId: string,
-): Promise<AdminCreateBookingDraftResult | null> {
+): Promise<Extract<AdminCreateBookingDraftResult, { ok: false }> | null> {
   const client = requireServiceRoleClient();
   const { data, error } = await client
     .from("customers")

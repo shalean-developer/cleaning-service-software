@@ -4,7 +4,10 @@ export type AdminAssistTimelineGroupId =
   | "draft"
   | "payment"
   | "notification"
-  | "offline";
+  | "offline"
+  | "recurring"
+  | "assignment"
+  | "recovery";
 
 export type AdminAssistTimelineGroup = {
   id: AdminAssistTimelineGroupId;
@@ -22,6 +25,9 @@ const GROUP_LABELS: Record<AdminAssistTimelineGroupId, string> = {
   payment: "Payment lifecycle",
   notification: "Notification lifecycle",
   offline: "Offline payment lifecycle",
+  recurring: "Recurring lifecycle",
+  assignment: "Assignment milestones",
+  recovery: "Recovery actions",
 };
 
 function groupForKind(kind: AdminAssistTimelineEntry["kind"]): AdminAssistTimelineGroupId {
@@ -38,9 +44,15 @@ function groupForKind(kind: AdminAssistTimelineEntry["kind"]): AdminAssistTimeli
     case "payment_request_sent":
       return "notification";
     case "offline_payment_recorded":
+    case "sop_confirmed":
       return "offline";
+    case "recurring_materialized":
+      return "recurring";
     case "assignment_started":
-      return "payment";
+    case "assignment_escalation":
+      return "assignment";
+    case "recovery_action":
+      return "recovery";
     default:
       return "payment";
   }
@@ -70,7 +82,15 @@ export function groupAdminAssistTimelineEntries(
     buckets.set(groupId, list);
   }
 
-  const order: AdminAssistTimelineGroupId[] = ["draft", "payment", "notification", "offline"];
+  const order: AdminAssistTimelineGroupId[] = [
+    "draft",
+    "payment",
+    "notification",
+    "offline",
+    "recurring",
+    "assignment",
+    "recovery",
+  ];
   return order
     .filter((id) => (buckets.get(id)?.length ?? 0) > 0)
     .map((id) => ({

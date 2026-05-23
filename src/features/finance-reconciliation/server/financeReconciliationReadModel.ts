@@ -261,7 +261,7 @@ function buildZohoInvoiceItems(rows: ZohoInvoicePaymentRow[]): FinanceReconcilia
       issueLabel: issue.issueLabel,
       createdAt: row.created_at,
       paidAt: row.paid_at,
-      syncedAt: row.zoho_payment_id ? row.paid_at ?? row.updated_at : null,
+      syncedAt: row.zoho_payment_id ? row.paid_at ?? row.created_at : null,
       actionHint: issue.actionHint,
     };
   });
@@ -315,7 +315,7 @@ function buildSavedCardItems(rows: ZohoInvoiceAuthorizationChargeRow[]): Finance
       issueLabel: issue.issueLabel,
       createdAt: row.created_at,
       paidAt: row.paid_at,
-      syncedAt: row.zoho_payment_id ? row.paid_at ?? row.updated_at : null,
+      syncedAt: row.zoho_payment_id ? row.paid_at ?? row.created_at : null,
       actionHint: issue.actionHint,
     };
   });

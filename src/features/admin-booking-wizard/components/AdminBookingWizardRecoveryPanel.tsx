@@ -165,7 +165,12 @@ export function AdminBookingWizardRecoveryPanel({
 
       <div className="flex flex-wrap gap-2">
         {showExpired ? (
-          <button
+          <>
+            <p className="text-xs text-amber-900" data-testid="admin-booking-link-expiry-guidance">
+              This link is expired in the admin UI. A late Paystack payment may still settle and finalize
+              the booking. Regenerate only if the customer confirms payment was not completed.
+            </p>
+            <button
             type="button"
             disabled={loading !== null}
             onClick={() => void onRegenerate()}
@@ -174,6 +179,7 @@ export function AdminBookingWizardRecoveryPanel({
           >
             {loading === "regenerate" ? "Regenerating…" : "Regenerate expired link"}
           </button>
+          </>
         ) : null}
         {showResendEmail ? (
           <button

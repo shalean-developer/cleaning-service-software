@@ -8,6 +8,7 @@ import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { listProductionRolloutChecklist } from "./productionRolloutChecklistRepository";
 import { logProductionRolloutEvent } from "./productionRolloutLogger";
 import { loadAdminAssistedBookingDiagnostics } from "@/features/bookings/server/admin/adminAssistedBookingDiagnosticsReadModel";
+import { evaluateAdminAssistedRolloutReadiness } from "@/features/bookings/server/admin/adminAssistedRolloutReadiness";
 import {
   buildRolloutRecommendations,
   evaluateProductionEnvironment,
@@ -140,9 +141,12 @@ export async function loadProductionRolloutStatus(
       operationalHealth,
     });
 
+    const adminAssistedReadiness = evaluateAdminAssistedRolloutReadiness(checklist);
+
     logProductionRolloutEvent("production_rollout_loaded", {
       checklistCompleted: checklist.filter((item) => item.completed).length,
       safeForInvoicePayments: rolloutReadiness.safeForInvoicePayments,
+      adminAssistProductionReady: adminAssistedReadiness.productionReady,
     });
 
     return {
@@ -153,6 +157,7 @@ export async function loadProductionRolloutStatus(
       recommendedNextSteps,
       checklist,
       adminAssistedDiagnostics,
+      adminAssistedReadiness,
       featureFlagRecommendations,
     };
   } catch {

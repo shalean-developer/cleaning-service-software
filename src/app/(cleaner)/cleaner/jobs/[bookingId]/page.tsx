@@ -125,6 +125,7 @@ export default async function CleanerJobDetailPage({ params }: PageProps) {
           equipmentSupplyOperationalLabel={job.equipmentSupplyOperationalLabel}
           teamSupportCleanerNote={job.teamSupportCleanerNote}
           specialInstructions={job.specialInstructions}
+          operationalAccessNotes={job.operationalAccessNotes}
           earningsLabel={job.earningsLabel}
           earnings={job.earnings}
           showPayEstimateNote={job.team.viewerRole !== "support"}

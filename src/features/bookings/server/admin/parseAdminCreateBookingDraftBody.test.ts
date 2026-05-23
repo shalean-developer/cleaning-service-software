@@ -83,4 +83,32 @@ describe("parseAdminCreateBookingDraftBody", () => {
       expect(result.message).toContain("not supported yet");
     }
   });
+
+  it("rejects weekly cadence on deep cleaning", () => {
+    const start = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString();
+    const end = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString();
+
+    const result = parseAdminCreateBookingDraftBody({
+      customerId: "11111111-1111-4111-8111-111111111111",
+      idempotencyKey: "valid-key-12345678",
+      scheduledStart: start,
+      scheduledEnd: end,
+      pricingInput: {
+        serviceSlug: "deep-cleaning",
+        bedrooms: 2,
+        bathrooms: 1,
+        frequency: "weekly",
+      },
+      address: {
+        addressLine1: "12 Main Rd",
+        suburb: "Sea Point",
+        city: "Cape Town",
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.message).toContain("once-off");
+    }
+  });
 });

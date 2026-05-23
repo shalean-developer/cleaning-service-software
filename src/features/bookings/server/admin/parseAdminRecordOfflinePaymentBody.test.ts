@@ -8,6 +8,7 @@ const base = {
   evidenceReference: "EV-001",
   reason: "Customer paid in branch",
   idempotencyKey: "offline-key-12345678",
+  sopConfirmed: true as const,
 };
 
 describe("parseAdminRecordOfflinePaymentBody", () => {
@@ -35,6 +36,16 @@ describe("parseAdminRecordOfflinePaymentBody", () => {
       rail: "eft",
       bankReference: "BNK-1",
       receivedAt: "2099-01-01T10:00:00.000Z",
+    });
+    expect(result.ok).toBe(false);
+  });
+
+  it("requires sopConfirmed reconciliation", () => {
+    const result = parseAdminRecordOfflinePaymentBody({
+      ...base,
+      rail: "eft",
+      bankReference: "BNK-123",
+      sopConfirmed: undefined,
     });
     expect(result.ok).toBe(false);
   });

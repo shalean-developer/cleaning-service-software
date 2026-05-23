@@ -79,7 +79,7 @@ function fail(
   code: Extract<AdminRecordOfflinePaymentResult, { ok: false }>["code"],
   message: string,
   status: number,
-): AdminRecordOfflinePaymentResult {
+): Extract<AdminRecordOfflinePaymentResult, { ok: false }> {
   return { ok: false, code, message, status };
 }
 
@@ -477,6 +477,7 @@ export async function adminRecordOfflinePaymentFacade(
       paymentId: pendingPayment.id,
       reason: body.reason.trim(),
       reference: offlineReference,
+      sopConfirmed: body.sopConfirmed,
     }) as Json,
   });
 

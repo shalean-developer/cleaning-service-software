@@ -1,4 +1,5 @@
 import type { AdminAssistedBookingDiagnostics } from "@/features/bookings/server/admin/adminAssistedBookingDiagnosticsReadModel";
+import { AdminAssistedRolloutStageBadge } from "./AdminAssistedRolloutStageBadge";
 
 type Props = {
   diagnostics: AdminAssistedBookingDiagnostics;
@@ -14,7 +15,7 @@ function Metric({ label, value }: { label: string; value: number }) {
 }
 
 export function AdminAssistedBookingDiagnosticsPanel({ diagnostics }: Props) {
-  const { counts, featureFlags, scan } = diagnostics;
+  const { counts, featureFlags, scan, rolloutStage } = diagnostics;
 
   return (
     <section
@@ -29,6 +30,7 @@ export function AdminAssistedBookingDiagnosticsPanel({ diagnostics }: Props) {
             {new Date(diagnostics.generatedAt).toLocaleString("en-ZA")}.
           </p>
         </div>
+        <AdminAssistedRolloutStageBadge stage={rolloutStage} compact />
         <p className="text-xs text-zinc-500">
           Scanned {scan.bookingsScanned} bookings{scan.capped ? " (cap reached)" : ""}.
         </p>
@@ -75,6 +77,10 @@ export function AdminAssistedBookingDiagnosticsPanel({ diagnostics }: Props) {
         <Metric label="Confirmed after assist payment" value={counts.confirmedAfterAssistPayment} />
         <Metric label="Failed payment request emails" value={counts.failedPaymentRequestNotifications} />
         <Metric label="Assignment dispatch attention" value={counts.assignmentDispatchAttention} />
+        <Metric
+          label="Confirmed without assignment dispatch"
+          value={counts.confirmedWithoutAssignmentDispatch}
+        />
       </div>
     </section>
   );

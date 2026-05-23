@@ -914,7 +914,26 @@ export type AdminAssistedOperatorFeedbackRow = {
   payment_succeeded: boolean | null;
   customer_understood: boolean | null;
   notes: string | null;
+  lesson_category: string | null;
+  lesson_tags: string[];
   created_at: string;
+};
+
+export type AdminAssistedIncidentReviewRow = {
+  id: string;
+  incident_key: string;
+  booking_id: string;
+  category: string;
+  status: string;
+  severity: string;
+  owner_profile_id: string | null;
+  root_cause_notes: string | null;
+  resolution_notes: string | null;
+  follow_up_action: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type AdminAssistedQaChecklistRow = {
@@ -996,6 +1015,7 @@ export type Database = {
       admin_booking_assist_idempotency: PublicTable<AdminBookingAssistIdempotencyRow>;
       admin_offline_payment_events: PublicTable<AdminOfflinePaymentEventRow>;
       admin_assisted_operator_feedback: PublicTable<AdminAssistedOperatorFeedbackRow>;
+      admin_assisted_incident_reviews: PublicTable<AdminAssistedIncidentReviewRow>;
       admin_assisted_qa_checklist: PublicTable<AdminAssistedQaChecklistRow>;
     };
     Views: Record<

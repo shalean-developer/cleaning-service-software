@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { AdminAssistedPilotQaPanel } from "@/features/bookings/server/admin/loadAdminAssistedPilotQaPanel";
+import { AdminAssistedBookingAlertsPanel } from "./AdminAssistedBookingAlertsPanel";
 import { AdminAssistedBookingDiagnosticsPanel } from "./AdminAssistedBookingDiagnosticsPanel";
 import { AdminAssistedBookingTrainingAids } from "./AdminAssistedBookingTrainingAids";
+import { AdminAssistedRolloutStageBadge } from "./AdminAssistedRolloutStageBadge";
 
 type Props = {
   panel: AdminAssistedPilotQaPanel;
@@ -32,6 +34,7 @@ export function AdminAssistedPilotQaDashboard({ panel }: Props) {
             Dry-runs, friction signals, and feedback for internal pilot review.
           </p>
         </div>
+        <AdminAssistedRolloutStageBadge stage={panel.diagnostics.rolloutStage} compact />
         <div className="flex flex-wrap gap-2 text-sm">
           <a
             href="/api/admin/bookings/assist-pilot/export?format=csv"
@@ -49,6 +52,8 @@ export function AdminAssistedPilotQaDashboard({ panel }: Props) {
           </a>
         </div>
       </section>
+
+      <AdminAssistedBookingAlertsPanel alerts={panel.diagnostics.alerts} />
 
       <AdminAssistedBookingTrainingAids />
 

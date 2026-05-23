@@ -78,7 +78,19 @@ export function AdminBookingAssistOperatorTimeline({
                     className="absolute -left-[1.3rem] top-1.5 h-2 w-2 rounded-full bg-sky-600"
                     aria-hidden
                   />
-                  <p className="font-medium text-zinc-900">{entry.title}</p>
+                  <p className="font-medium text-zinc-900">
+                    {entry.title}
+                    {entry.milestone ? (
+                      <span className="ml-2 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-sky-800">
+                        Milestone
+                      </span>
+                    ) : null}
+                    {entry.severity ? (
+                      <span className="ml-2 rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-zinc-700">
+                        {entry.severity}
+                      </span>
+                    ) : null}
+                  </p>
                   <p className="text-xs text-zinc-500">
                     {formatAdminAssistRelativeTimestamp(entry.at)}
                     {operator ? ` · ${operator}` : entry.adminProfileId ? " · operator" : ""}

@@ -27,7 +27,10 @@ function samplePanel(): AdminAssistedPilotQaPanel {
         confirmedAfterAssistPayment: 2,
         failedPaymentRequestNotifications: 0,
         assignmentDispatchAttention: 0,
+        confirmedWithoutAssignmentDispatch: 0,
       },
+      alerts: [],
+      rolloutStage: "payment_links",
       analytics: {
         linksGenerated: 1,
         linksRegenerated: 0,
@@ -99,6 +102,8 @@ describe("adminAssistedPilotExport recurring fields", () => {
     expect(csv).toContain("recurring_interval_weeks");
     expect(csv).toContain("recurring_materialization_status");
     expect(csv).toContain("recurring_group_id");
+    expect(csv).toContain("alert_flags");
+    expect(csv).toContain("unresolved_alert_ids");
     expect(csv).toContain("Weekly");
     expect(csv).toContain("Mon · Thu");
     expect(csv).toContain("group-abc");

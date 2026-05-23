@@ -1,4 +1,4 @@
-import type { AdminBookingFlowProgress } from "./adminBookingFlowState";
+import type { AdminBookingFlowProgress } from "../adminBookingFlowState";
 
 type ChecklistItem = {
   key: keyof AdminBookingFlowProgress;

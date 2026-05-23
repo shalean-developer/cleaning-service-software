@@ -3,6 +3,8 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { requirePaystackEnv } from "./paystackEnv";
 import type {
+  PaystackChargeAuthorizationRequest,
+  PaystackChargeAuthorizationResponse,
   PaystackInitializeRequest,
   PaystackInitializeResponse,
   PaystackVerifyResponse,

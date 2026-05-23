@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { loadAdminBookingAssistSummary } from "@/features/bookings/server/admin/loadAdminBookingAssistSummary";
+import {
+  getCachedAssistSummary,
+  setCachedAssistSummary,
+} from "@/features/bookings/server/admin/assistSummaryCache";
 import { isApiAuthFailure, requireApiUser } from "@/features/dashboards/server/apiAuth";
 
 type RouteContext = { params: Promise<{ bookingId: string }> };
@@ -16,6 +20,11 @@ export async function GET(_request: Request, context: RouteContext) {
   const { bookingId } = await context.params;
 
   try {
+    const cached = getCachedAssistSummary(bookingId);
+    if (cached) {
+      return NextResponse.json({ ok: true, summary: cached, cached: true });
+    }
+
     const summary = await loadAdminBookingAssistSummary(bookingId);
     if (!summary) {
       return NextResponse.json(
@@ -23,7 +32,8 @@ export async function GET(_request: Request, context: RouteContext) {
         { status: 404 },
       );
     }
-    return NextResponse.json({ ok: true, summary });
+    setCachedAssistSummary(bookingId, summary);
+    return NextResponse.json({ ok: true, summary, cached: false });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load assist summary.";
     return NextResponse.json({ ok: false, error: "LOAD_FAILED", message }, { status: 500 });

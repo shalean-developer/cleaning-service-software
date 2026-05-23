@@ -24,6 +24,7 @@ export function testBookingDisplayFields(
     cleanerPreferenceMode: "best_available",
     preferredCleanerId: null,
     specialInstructions: null,
+    operationalAccessNotes: null,
     contactPhone: "+27821234567",
     contactPhoneDisplay: "082 123 4567",
     assignmentAttention: null,

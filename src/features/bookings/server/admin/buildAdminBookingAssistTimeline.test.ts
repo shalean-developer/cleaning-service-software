@@ -125,15 +125,36 @@ describe("buildAdminBookingAssistTimeline", () => {
     expect(confirmed?.description).toContain("Offline payment finalized");
   });
 
-  it("adds assignment started after payment on pending_assignment", () => {
+  it("adds assignment escalation when confirmed without dispatch", () => {
     const entries = buildAdminBookingAssistTimeline({
       audits: [],
-      bookingStatus: "pending_assignment",
+      bookingStatus: "confirmed",
       paymentLink: null,
       paymentConfirmedAt: "2026-01-02T09:00:00.000Z",
-      paymentProvider: "paystack",
     });
 
-    expect(entries.some((e) => e.kind === "assignment_started")).toBe(true);
+    expect(entries.some((e) => e.kind === "assignment_escalation")).toBe(true);
+  });
+
+  it("maps offline payment with sop confirmation", () => {
+    const entries = buildAdminBookingAssistTimeline({
+      audits: [
+        {
+          id: "a6",
+          adminProfileId: "admin-1",
+          customerId: "cust-1",
+          bookingId: "book-1",
+          action: "admin_booking_offline_payment_recorded",
+          idempotencyKey: "k6",
+          payload: { rail: "eft", reference: "ref", sopConfirmed: true, evidenceReference: "EV-1" },
+          createdAt: "2026-01-01T13:00:00.000Z",
+        },
+      ],
+      bookingStatus: "confirmed",
+      paymentLink: null,
+      paymentConfirmedAt: "2026-01-01T13:05:00.000Z",
+    });
+
+    expect(entries.some((e) => e.kind === "sop_confirmed")).toBe(true);
   });
 });

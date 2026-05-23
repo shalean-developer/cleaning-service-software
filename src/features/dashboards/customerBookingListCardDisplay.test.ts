@@ -31,6 +31,19 @@ describe("customerBookingListCardLayers", () => {
     expect(layers.ctaLabel).toBe("Complete payment");
   });
 
+  it("uses Complete payment CTA for pending_payment bookings", () => {
+    const layers = customerBookingListCardLayers({
+      status: "pending_payment",
+      paymentStatus: "pending",
+      paymentFailureReason: null,
+      isUpcoming: false,
+      display: baseDisplay,
+      assignedCleanerLabel: null,
+    });
+
+    expect(layers.ctaLabel).toBe("Complete payment");
+  });
+
   it("uses checkout expired on the dominant badge only", () => {
     const layers = customerBookingListCardLayers({
       status: "payment_failed",

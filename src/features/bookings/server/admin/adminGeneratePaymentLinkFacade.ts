@@ -76,7 +76,7 @@ function fail(
   code: Extract<AdminGeneratePaymentLinkResult, { ok: false }>["code"],
   message: string,
   status: number,
-): AdminGeneratePaymentLinkResult {
+): Extract<AdminGeneratePaymentLinkResult, { ok: false }> {
   return { ok: false, code, message, status };
 }
 

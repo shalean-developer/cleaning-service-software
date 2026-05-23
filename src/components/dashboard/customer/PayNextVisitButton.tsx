@@ -1,14 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { startPendingPaymentCheckout } from "@/features/payments/client/pendingPaymentCheckout";
 import { startPaymentRetryCheckout } from "@/features/payments/client/retryPaymentFlow";
 
 type Props = {
   bookingId: string;
   customerEmail: string;
+  checkoutMode?: "pending_payment" | "payment_failed";
 };
 
-export function PayNextVisitButton({ bookingId, customerEmail }: Props) {
+export function PayNextVisitButton({
+  bookingId,
+  customerEmail,
+  checkoutMode = "pending_payment",
+}: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,7 +26,10 @@ export function PayNextVisitButton({ bookingId, customerEmail }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const result = await startPaymentRetryCheckout(bookingId, customerEmail);
+      const result =
+        checkoutMode === "payment_failed"
+          ? await startPaymentRetryCheckout(bookingId, customerEmail)
+          : await startPendingPaymentCheckout(bookingId, customerEmail);
       if (!result.ok) {
         setError(result.message);
         return;

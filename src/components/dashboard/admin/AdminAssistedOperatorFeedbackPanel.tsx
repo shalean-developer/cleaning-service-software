@@ -2,6 +2,14 @@
 
 import { useCallback, useState } from "react";
 
+import {
+  ADMIN_ASSISTED_LESSON_CATEGORIES,
+  ADMIN_ASSISTED_LESSON_CATEGORY_LABELS,
+  ADMIN_ASSISTED_LESSON_TAGS,
+  type AdminAssistedLessonCategory,
+  type AdminAssistedLessonTag,
+} from "@/features/bookings/server/admin/adminAssistedOperatorLessonTypes";
+
 type Props = {
   bookingId: string;
 };
@@ -12,6 +20,8 @@ type FeedbackForm = {
   paymentSucceeded: "" | "yes" | "no";
   customerUnderstood: "" | "yes" | "no";
   notes: string;
+  lessonCategory: "" | AdminAssistedLessonCategory;
+  lessonTags: AdminAssistedLessonTag[];
 };
 
 const EMPTY_FORM: FeedbackForm = {
@@ -20,6 +30,8 @@ const EMPTY_FORM: FeedbackForm = {
   paymentSucceeded: "",
   customerUnderstood: "",
   notes: "",
+  lessonCategory: "",
+  lessonTags: [],
 };
 
 export function AdminAssistedOperatorFeedbackPanel({ bookingId }: Props) {
@@ -47,6 +59,8 @@ export function AdminAssistedOperatorFeedbackPanel({ bookingId }: Props) {
                 ? false
                 : null,
           notes: form.notes.trim() || null,
+          lessonCategory: form.lessonCategory || null,
+          lessonTags: form.lessonTags,
         }),
       });
       const json = (await response.json()) as { ok: boolean; message?: string };
@@ -132,6 +146,55 @@ export function AdminAssistedOperatorFeedbackPanel({ bookingId }: Props) {
             </select>
           </label>
         </div>
+        <label className="block text-sm">
+          <span className="font-medium text-zinc-700">Lesson category (optional)</span>
+          <select
+            className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+            value={form.lessonCategory}
+            onChange={(e) =>
+              setForm((prev) => ({
+                ...prev,
+                lessonCategory: e.target.value as FeedbackForm["lessonCategory"],
+              }))
+            }
+            data-testid="admin-assisted-feedback-lesson-category"
+          >
+            <option value="">Auto-detect from text</option>
+            {ADMIN_ASSISTED_LESSON_CATEGORIES.map((category) => (
+              <option key={category} value={category}>
+                {ADMIN_ASSISTED_LESSON_CATEGORY_LABELS[category]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <fieldset className="text-sm">
+          <legend className="font-medium text-zinc-700">Tags (optional)</legend>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {ADMIN_ASSISTED_LESSON_TAGS.map((tag) => {
+              const checked = form.lessonTags.includes(tag);
+              return (
+                <label
+                  key={tag}
+                  className="inline-flex items-center gap-1 rounded-full border border-zinc-200 px-2 py-1 text-xs"
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        lessonTags: checked
+                          ? prev.lessonTags.filter((value) => value !== tag)
+                          : [...prev.lessonTags, tag],
+                      }))
+                    }
+                  />
+                  {tag}
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
         <label className="block text-sm">
           <span className="font-medium text-zinc-700">Additional notes</span>
           <textarea

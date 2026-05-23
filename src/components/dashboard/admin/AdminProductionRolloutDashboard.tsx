@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminAssistedBookingDiagnosticsPanel } from "@/components/dashboard/admin/AdminAssistedBookingDiagnosticsPanel";
+import { AdminAssistedRolloutStageBadge } from "@/components/dashboard/admin/AdminAssistedRolloutStageBadge";
 import { AdminProductionRolloutChecklistItem } from "@/components/dashboard/admin/AdminProductionRolloutChecklistItem";
 import type {
   FeatureFlagRecommendations,
@@ -86,6 +87,7 @@ export function AdminProductionRolloutDashboard({ data }: Props) {
     featureFlagRecommendations,
     checklist,
     adminAssistedDiagnostics,
+    adminAssistedReadiness,
   } = data;
 
   const exportHref = "/api/admin/production-rollout/export?format=csv";
@@ -162,6 +164,63 @@ export function AdminProductionRolloutDashboard({ data }: Props) {
           <StatusPill ok={rolloutReadiness.safeForSalesSync} label="Sales sync" />
           <StatusPill ok={rolloutReadiness.safeForRefundSync} label="Refund sync" />
           <StatusPill ok={rolloutReadiness.safeForAdminCharges} label="Admin charges" />
+        </div>
+      </section>
+
+      {!adminAssistedReadiness.productionReady ? (
+        <section
+          className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"
+          data-testid="admin-assisted-production-readiness-warning"
+        >
+          <p className="font-semibold">Admin-assisted booking not production-ready</p>
+          <p className="mt-1">
+            Checklist {adminAssistedReadiness.checklistProgress.completed}/
+            {adminAssistedReadiness.checklistProgress.total} complete (
+            {adminAssistedReadiness.checklistProgress.percent}%). Critical{" "}
+            {adminAssistedReadiness.criticalProgress.completed}/
+            {adminAssistedReadiness.criticalProgress.total}.
+          </p>
+          {adminAssistedReadiness.unresolvedBlockers.length > 0 ? (
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
+              {adminAssistedReadiness.unresolvedBlockers.slice(0, 5).map((blocker) => (
+                <li key={blocker}>{blocker}</li>
+              ))}
+              {adminAssistedReadiness.unresolvedBlockers.length > 5 ? (
+                <li>…and {adminAssistedReadiness.unresolvedBlockers.length - 5} more</li>
+              ) : null}
+            </ul>
+          ) : null}
+        </section>
+      ) : (
+        <section
+          className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900"
+          data-testid="admin-assisted-production-ready"
+        >
+          <p className="font-semibold">Admin-assisted booking production-ready</p>
+          {adminAssistedReadiness.lastVerifiedAt ? (
+            <p className="mt-1 text-xs">
+              Last verified {new Date(adminAssistedReadiness.lastVerifiedAt).toLocaleString("en-ZA")}
+              {adminAssistedReadiness.lastVerifiedBy
+                ? ` by ${adminAssistedReadiness.lastVerifiedBy}`
+                : ""}
+              .
+            </p>
+          ) : null}
+        </section>
+      )}
+
+      <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-zinc-900">Admin-assisted rollout governance</h2>
+            <p className="mt-1 text-sm text-zinc-600">
+              Derived from env flags and checklist — flags are not changed from this page.
+            </p>
+          </div>
+          <AdminAssistedRolloutStageBadge
+            stage={adminAssistedReadiness.rolloutStage}
+            description={adminAssistedReadiness.rolloutStageDescription}
+          />
         </div>
       </section>
 

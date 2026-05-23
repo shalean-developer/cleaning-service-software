@@ -7,6 +7,7 @@ import { isAdminAssistedBookingEnabled } from "@/lib/app/adminAssistedBookingFla
 import { isAdminAssistedPaymentLinksActive } from "@/lib/app/adminAssistedPaymentLinksFlag";
 import { isAdminAssistedOfflinePaymentsActive } from "@/lib/app/adminAssistedOfflinePaymentsFlag";
 import { isAdminAssistedBookingPilotMode } from "@/lib/app/adminAssistedBookingPilotFlag";
+import { resolveAdminAssistedBookingRolloutStage } from "@/lib/app/resolveAdminAssistedBookingRolloutStage";
 
 export const metadata: Metadata = {
   title: "Create booking | Admin",
@@ -25,6 +26,7 @@ export default async function AdminBookingsCreatePage({ searchParams }: PageProp
   const paymentLinksEnabled = isAdminAssistedPaymentLinksActive();
   const offlinePaymentsEnabled = isAdminAssistedOfflinePaymentsActive();
   const pilotMode = isAdminAssistedBookingPilotMode();
+  const rolloutStage = resolveAdminAssistedBookingRolloutStage();
   const { customerId } = await searchParams;
 
   return (
@@ -42,6 +44,7 @@ export default async function AdminBookingsCreatePage({ searchParams }: PageProp
         paymentLinksEnabled={paymentLinksEnabled}
         offlinePaymentsEnabled={offlinePaymentsEnabled}
         pilotMode={pilotMode}
+        rolloutStage={rolloutStage}
         initialCustomerId={customerId ?? null}
       />
     </AdminDashboardShell>

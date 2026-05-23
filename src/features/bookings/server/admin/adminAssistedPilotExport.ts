@@ -1,6 +1,7 @@
 import "server-only";
 
 import { formatCsvRow } from "@/features/dashboards/server/adminBookingsExport";
+import type { AdminAssistedBookingAlert } from "./adminAssistedBookingAlerts";
 import type { AdminAssistedPilotQaPanel } from "./loadAdminAssistedPilotQaPanel";
 
 const FORBIDDEN_CSV_SUBSTRINGS = ["sk_live_", "sk_test_", "authorization_code", "access_code"] as const;
@@ -12,6 +13,29 @@ function assertSafeCsv(csv: string): void {
       throw new Error(`Export contains forbidden field: ${forbidden}`);
     }
   }
+}
+
+function bookingAlertFlags(booking: AdminAssistedPilotQaPanel["flaggedBookings"][number]): string[] {
+  const flags: string[] = [];
+  if (booking.flags.includes("stale_pending_payment")) flags.push("stale_booking");
+  if (booking.flags.includes("repeated_link_regenerate")) flags.push("repeated_failures");
+  if (booking.flags.includes("failed_notification")) flags.push("payment_anomaly");
+  if (
+    booking.status === "confirmed" ||
+    booking.flags.includes("recurring_materialization_failed")
+  ) {
+    flags.push("assignment_issue");
+  }
+  if (
+    booking.recurringCadence &&
+    booking.recurringCadence !== "once" &&
+    !booking.recurringGroupId &&
+    booking.status !== "draft" &&
+    booking.status !== "pending_payment"
+  ) {
+    flags.push("recurring_issue");
+  }
+  return flags;
 }
 
 export function buildAdminAssistedPilotExportFilename(now = new Date()): string {
@@ -39,6 +63,8 @@ export function adminAssistedPilotPanelToCsv(panel: AdminAssistedPilotQaPanel): 
     "feedback_slowed_down",
     "feedback_payment_succeeded",
     "feedback_customer_understood",
+    "alert_flags",
+    "unresolved_alert_ids",
     "generated_at",
   ];
 
@@ -47,8 +73,11 @@ export function adminAssistedPilotPanelToCsv(panel: AdminAssistedPilotQaPanel): 
     if (!feedbackByBooking.has(fb.bookingId)) feedbackByBooking.set(fb.bookingId, fb);
   }
 
+  const unresolvedAlertIds = panel.diagnostics.alerts.map((alert) => alert.id);
+
   const rows = panel.flaggedBookings.map((booking) => {
     const fb = feedbackByBooking.get(booking.bookingId);
+    const alertFlags = bookingAlertFlags(booking);
     const paymentPath = booking.flags.includes("offline_payment_used")
       ? "offline"
       : booking.flags.includes("repeated_link_regenerate")
@@ -89,6 +118,8 @@ export function adminAssistedPilotPanelToCsv(panel: AdminAssistedPilotQaPanel): 
       fb?.slowedDownText ?? "",
       fb?.paymentSucceeded == null ? "" : String(fb.paymentSucceeded),
       fb?.customerUnderstood == null ? "" : String(fb.customerUnderstood),
+      alertFlags.join("|"),
+      unresolvedAlertIds.join("|"),
       panel.generatedAt,
     ]);
   });
@@ -104,6 +135,14 @@ export function adminAssistedPilotPanelToJson(panel: AdminAssistedPilotQaPanel):
     generatedAt: panel.generatedAt,
     friction: panel.friction,
     diagnostics: panel.diagnostics,
+    alerts: panel.diagnostics.alerts,
+    rolloutStage: panel.diagnostics.rolloutStage,
+    unresolvedAlerts: panel.diagnostics.alerts.map((alert: AdminAssistedBookingAlert) => ({
+      id: alert.id,
+      severity: alert.severity,
+      title: alert.title,
+      count: alert.count,
+    })),
     flaggedBookings: panel.flaggedBookings,
     dryRunBookings: panel.dryRunBookings,
     recentFeedback: panel.recentFeedback.map((fb) => ({

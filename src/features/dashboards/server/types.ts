@@ -71,6 +71,8 @@ export type CustomerBookingDetail = CustomerBookingListItem & {
   cleanerPreferenceLabel: string;
   /** Same-booking Paystack retry via payment-retry-lock (detail page only). */
   canRetryPayment: boolean;
+  /** Open Paystack checkout for pending_payment (reuses existing pending payment when present). */
+  canCompletePayment: boolean;
 };
 
 export type CleanerJobTeamContext = import("./cleanerTeamJobVisibility").CleanerJobTeamContext;
@@ -120,6 +122,7 @@ export type CleanerJobDetail = CleanerJobListItem & {
   equipmentSupplyOperationalLabel: string | null;
   teamSupportCleanerNote: string | null;
   specialInstructions: string | null;
+  operationalAccessNotes: string | null;
   earnings: CleanerJobEarningSummary[];
   team: CleanerJobTeamContext;
 };

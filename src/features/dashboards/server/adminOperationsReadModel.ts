@@ -914,7 +914,7 @@ export async function getAdminBookingDetail(
           audits: assistAudits,
           bookingStatus: row.status,
           paymentLink: readAdminAssistPaymentLinkMetadata(row.metadata),
-          paymentConfirmedAt: paidPayment?.paid_at ?? paidPayment?.updated_at ?? null,
+          paymentConfirmedAt: paidPayment?.updated_at ?? null,
           paymentProvider: paidPayment?.provider ?? null,
         });
       })(),

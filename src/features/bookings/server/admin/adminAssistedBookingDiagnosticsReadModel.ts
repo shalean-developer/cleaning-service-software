@@ -7,6 +7,7 @@ import {
   isAdminAssistPaymentLinkExpired,
   readAdminAssistPaymentLinkMetadata,
 } from "@/features/bookings/server/admin/adminAssistPaymentLinkMetadata";
+import { ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE } from "@/features/notifications/server/config";
 import type { Database } from "@/lib/database/types";
 import { isAdminAssistedBookingEnabled } from "@/lib/app/adminAssistedBookingFlag";
 import { isAdminAssistedOfflinePaymentsActive } from "@/lib/app/adminAssistedOfflinePaymentsFlag";
@@ -17,7 +18,17 @@ import {
   computeAdminAssistedBookingFriction,
   type AdminAssistedBookingFrictionMetrics,
 } from "@/features/bookings/server/admin/adminAssistedBookingFriction";
+import { computeAdminAssistedBookingAlerts } from "@/features/bookings/server/admin/adminAssistedBookingAlerts";
+import type { AdminAssistedBookingAlert } from "@/features/bookings/server/admin/adminAssistedBookingAlerts";
+import {
+  resolveAdminAssistedBookingRolloutStage,
+  type AdminAssistedBookingRolloutStage,
+} from "@/lib/app/resolveAdminAssistedBookingRolloutStage";
 import { ADMIN_ASSIST_STALE_PENDING_HOURS } from "@/features/bookings/server/admin/loadAdminBookingAssistSummary";
+import {
+  customerLabelFromCustomerFields,
+  withAdminAssistedBookingCustomerFields,
+} from "@/features/bookings/server/admin/adminAssistedBookingCustomerDisplay";
 
 import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 
@@ -55,7 +66,10 @@ export type AdminAssistedBookingDiagnostics = {
     confirmedAfterAssistPayment: number;
     failedPaymentRequestNotifications: number;
     assignmentDispatchAttention: number;
+    confirmedWithoutAssignmentDispatch: number;
   };
+  alerts: AdminAssistedBookingAlert[];
+  rolloutStage: AdminAssistedBookingRolloutStage;
   analytics: AdminAssistedBookingAnalytics;
   friction: AdminAssistedBookingFrictionMetrics;
   operatorFeedbackCount: number;
@@ -82,7 +96,9 @@ export async function loadAdminAssistedBookingDiagnostics(
   ] = await Promise.all([
     client
       .from("bookings")
-      .select("id, status, metadata, cleaner_id, assignment_dispatch_at, updated_at, created_at, customer_name, customer_email")
+      .select(
+        "id, status, metadata, cleaner_id, assignment_dispatch_at, updated_at, created_at, customer_id",
+      )
       .or(
         "metadata->adminAssist->>source.eq.admin_wizard,metadata->adminAssist->>phase.eq.draft_only",
       )
@@ -102,7 +118,7 @@ export async function loadAdminAssistedBookingDiagnostics(
     client
       .from("notification_outbox")
       .select("id", { count: "exact", head: true })
-      .eq("event_name", "admin_assisted_payment_request_sent")
+      .filter("payload->>template", "eq", ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE)
       .eq("status", "failed"),
     client
       .from("admin_booking_assist_audit")
@@ -115,7 +131,7 @@ export async function loadAdminAssistedBookingDiagnostics(
     client
       .from("notification_outbox")
       .select("payload")
-      .eq("event_name", "admin_assisted_payment_request_sent")
+      .filter("payload->>template", "eq", ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE)
       .eq("status", "failed")
       .limit(500),
   ]);
@@ -142,6 +158,7 @@ export async function loadAdminAssistedBookingDiagnostics(
   let stalePendingPayment = 0;
   let confirmedAfterAssistPayment = 0;
   let assignmentDispatchAttention = 0;
+  let confirmedWithoutAssignmentDispatch = 0;
   const paidBookingIds = new Set<string>();
 
   for (const row of bookings) {
@@ -173,6 +190,10 @@ export async function loadAdminAssistedBookingDiagnostics(
     if (row.status === "pending_assignment" && !row.cleaner_id && !row.assignment_dispatch_at) {
       assignmentDispatchAttention += 1;
     }
+
+    if (row.status === "confirmed") {
+      confirmedWithoutAssignmentDispatch += 1;
+    }
   }
 
   const auditEvents = (auditsRes.data ?? []).map((row) => ({
@@ -198,8 +219,10 @@ export async function loadAdminAssistedBookingDiagnostics(
     }
   }
 
-  const { metrics: friction } = computeAdminAssistedBookingFriction(
-    bookings.map((row) => ({
+  const bookingsWithCustomer = await withAdminAssistedBookingCustomerFields(client, bookings);
+
+  const { metrics: friction, flaggedBookings } = computeAdminAssistedBookingFriction(
+    bookingsWithCustomer.map((row) => ({
       id: row.id,
       status: row.status,
       metadata: row.metadata,
@@ -215,6 +238,27 @@ export async function loadAdminAssistedBookingDiagnostics(
       nowMs,
     },
   );
+
+  const alerts = computeAdminAssistedBookingAlerts({
+    counts: {
+      assistedDrafts,
+      pendingPayment,
+      awaitingPayment,
+      paymentLinksActive,
+      paymentLinksExpired,
+      stalePendingPayment,
+      offlinePaymentsRecorded: offlineRecordedRes.count ?? 0,
+      offlinePaymentsFinalized: offlineFinalizedRes.count ?? 0,
+      offlinePaymentsFailed: offlineFailedRes.count ?? 0,
+      confirmedAfterAssistPayment,
+      failedPaymentRequestNotifications: failedNotificationsRes.count ?? 0,
+      assignmentDispatchAttention,
+      confirmedWithoutAssignmentDispatch,
+    },
+    analytics,
+    friction,
+    flaggedBookings,
+  });
 
   return {
     generatedAt,
@@ -237,7 +281,10 @@ export async function loadAdminAssistedBookingDiagnostics(
       confirmedAfterAssistPayment,
       failedPaymentRequestNotifications: failedNotificationsRes.count ?? 0,
       assignmentDispatchAttention,
+      confirmedWithoutAssignmentDispatch,
     },
+    alerts,
+    rolloutStage: resolveAdminAssistedBookingRolloutStage(),
     analytics,
     friction,
     operatorFeedbackCount: feedbackCountRes.count ?? 0,

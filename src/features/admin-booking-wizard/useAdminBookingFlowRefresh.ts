@@ -17,7 +17,7 @@ export function useAdminBookingFlowRefresh(
   flowRef.current = flow;
 
   const inFlightRef = useRef<Promise<void> | null>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceRef = useRef<number | null>(null);
   const pendingBookingIdRef = useRef<string | null>(null);
 
   const runRefresh = useCallback(

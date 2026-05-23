@@ -1,7 +1,10 @@
 import Link from "next/link";
 import type { AdminAssistedBookingDiagnostics } from "@/features/bookings/server/admin/adminAssistedBookingDiagnosticsReadModel";
+import { AdminAssistedAssignmentRecoveryPanel } from "./AdminAssistedAssignmentRecoveryPanel";
+import { AdminAssistedBookingAlertsPanel } from "./AdminAssistedBookingAlertsPanel";
 import { AdminAssistedBookingDiagnosticsPanel } from "./AdminAssistedBookingDiagnosticsPanel";
 import { AdminAssistedBookingTrainingAids } from "./AdminAssistedBookingTrainingAids";
+import { AdminAssistedRolloutStageBadge } from "./AdminAssistedRolloutStageBadge";
 
 type Props = {
   diagnostics: AdminAssistedBookingDiagnostics;
@@ -36,10 +39,21 @@ function formatHours(hours: number | null): string {
 }
 
 export function AdminAssistedBookingOperationsDashboard({ diagnostics }: Props) {
-  const { analytics, counts, friction, operatorFeedbackCount } = diagnostics;
+  const { analytics, counts, friction, operatorFeedbackCount, alerts, rolloutStage } = diagnostics;
 
   return (
     <div className="space-y-6" data-testid="admin-assisted-booking-operations-dashboard">
+      <section className="flex flex-wrap items-start justify-between gap-3">
+        <AdminAssistedRolloutStageBadge stage={rolloutStage} />
+      </section>
+
+      <AdminAssistedBookingAlertsPanel alerts={alerts} />
+
+      <AdminAssistedAssignmentRecoveryPanel
+        assignmentDispatchAttention={counts.assignmentDispatchAttention}
+        confirmedWithoutAssignmentDispatch={counts.confirmedWithoutAssignmentDispatch}
+      />
+
       <section className="rounded-xl border border-amber-200 bg-amber-50/70 p-4">
         <p className="font-semibold text-amber-950">Internal pilot mode</p>
         <p className="mt-1 text-sm text-amber-900">

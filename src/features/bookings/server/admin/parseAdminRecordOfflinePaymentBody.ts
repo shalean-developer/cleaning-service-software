@@ -18,6 +18,9 @@ const baseSchema = z.object({
   terminalReference: z.string().trim().max(200).optional(),
   receiptNumber: z.string().trim().max(200).optional(),
   confirmSupersedesActivePaymentLink: z.boolean().optional(),
+  sopConfirmed: z.literal(true, {
+    message: "SOP reconciliation confirmation is required.",
+  }),
 });
 
 export const adminRecordOfflinePaymentBodySchema = baseSchema.superRefine((data, ctx) => {

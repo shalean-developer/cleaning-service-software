@@ -330,6 +330,7 @@ export async function getCleanerJobDetail(
       equipmentSupplyOperationalLabel: display.equipmentSupplyOperationalLabel,
       teamSupportCleanerNote: display.teamSupportCleanerNote,
       specialInstructions: display.specialInstructions,
+      operationalAccessNotes: display.operationalAccessNotes,
       earnings: ownEarningRows.map((e) => ({
         id: e.id,
         payoutAmountCents: e.payout_amount_cents,

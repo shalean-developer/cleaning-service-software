@@ -41,6 +41,7 @@ type Props = {
   equipmentSupplyOperationalLabel: string | null;
   teamSupportCleanerNote: string | null;
   specialInstructions: string | null;
+  operationalAccessNotes: string | null;
   earningsLabel: string;
   earnings: CleanerJobEarningSummary[];
   /** NF-7E: hide per-cleaner estimate footnote for support roster role. */
@@ -55,6 +56,7 @@ export function CleanerJobDetailsCard({
   equipmentSupplyOperationalLabel,
   teamSupportCleanerNote,
   specialInstructions,
+  operationalAccessNotes,
   earningsLabel,
   earnings,
   showPayEstimateNote = true,
@@ -115,6 +117,15 @@ export function CleanerJobDetailsCard({
           </div>
         ) : null}
       </dl>
+
+      {operationalAccessNotes ? (
+        <section className={`mt-3 ${CLEANER_DETAIL_INSET_CLASS} px-3 py-2.5`}>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">Access notes</h3>
+          <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-zinc-700">
+            {operationalAccessNotes}
+          </p>
+        </section>
+      ) : null}
 
       {specialInstructions || teamSupportCleanerNote ? (
         <section className={`mt-3 ${CLEANER_DETAIL_INSET_CLASS} px-3 py-2.5`}>

@@ -1,4 +1,5 @@
 import { buildWizardSlot } from "@/features/booking-wizard/slot";
+import { showFrequencyForService } from "@/features/booking-wizard/frequencyVisibility";
 import type { CarpetStainSeverity } from "@/features/booking-wizard/carpetCleaningDisplay";
 import type { OfficeSizeTier, OfficeWorkstationTier } from "@/features/booking-wizard/officeSizing";
 import type {
@@ -115,12 +116,14 @@ export function buildAdminDraftRequestBody(
   }
 
   const address = buildAdminDraftAddressPayload(state);
-  const recurringSchedule = buildAdminRecurringScheduleMetadata({
-    frequency: state.frequency,
-    recurringDays: state.recurringDays,
-    recurringIntervalWeeks: state.recurringIntervalWeeks,
-    scheduleDate: state.date,
-  });
+  const recurringSchedule = showFrequencyForService(state.serviceSlug)
+    ? buildAdminRecurringScheduleMetadata({
+        frequency: state.frequency,
+        recurringDays: state.recurringDays,
+        recurringIntervalWeeks: state.recurringIntervalWeeks,
+        scheduleDate: state.date,
+      })
+    : null;
 
   return {
     customerId: state.customerId.trim(),

@@ -63,6 +63,7 @@ export type ProductionRolloutStatus = {
   recommendedNextSteps: string[];
   checklist: ProductionRolloutChecklistItem[];
   adminAssistedDiagnostics: import("@/features/bookings/server/admin/adminAssistedBookingDiagnosticsReadModel").AdminAssistedBookingDiagnostics;
+  adminAssistedReadiness: import("@/features/bookings/server/admin/adminAssistedRolloutReadiness").AdminAssistedRolloutReadiness;
 };
 
 export type RecommendedFeatureFlagChange = {

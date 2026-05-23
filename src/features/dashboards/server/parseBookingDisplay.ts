@@ -36,6 +36,8 @@ export type BookingDisplayFields = {
   cleanerPreferenceMode: string | null;
   preferredCleanerId: string | null;
   specialInstructions: string | null;
+  /** Gate, parking, and access instructions from address.notes — cleaner-facing only. */
+  operationalAccessNotes: string | null;
   /** E.164 snapshot from booking metadata. */
   contactPhone: string | null;
   contactPhoneDisplay: string | null;
@@ -55,6 +57,23 @@ function asRecord(metadata: Json | null | undefined): Record<string, unknown> {
 
 function readNonEmptyString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+/** Reads composed access/gate/parking notes stored on metadata.address.notes. */
+export function readOperationalAccessNotesFromMetadata(
+  metadata: Json | null | undefined,
+): string | null {
+  const record = asRecord(metadata);
+  const address =
+    record.address != null && typeof record.address === "object" && !Array.isArray(record.address)
+      ? (record.address as Record<string, unknown>)
+      : null;
+
+  return (
+    readNonEmptyString(address?.notes) ??
+    readNonEmptyString(address?.locationNotes) ??
+    readNonEmptyString(record.locationNotes)
+  );
 }
 
 function readSlugFromRecord(record: Record<string, unknown>): string | null {
@@ -162,6 +181,7 @@ export function parseBookingDisplay(metadata: Json | null | undefined): BookingD
       typeof record.preferred_cleaner_id === "string" ? record.preferred_cleaner_id : null,
     specialInstructions:
       typeof record.specialInstructions === "string" ? record.specialInstructions : null,
+    operationalAccessNotes: readOperationalAccessNotesFromMetadata(metadata),
     contactPhone,
     contactPhoneDisplay,
     assignmentAttention: assignment?.status ?? null,

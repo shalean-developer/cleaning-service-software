@@ -95,17 +95,6 @@ export async function processZohoInvoiceAuthorizationChargeFailure(
     };
   }
 
-  if (chargeEvent === "duplicate" && chargeRow.status === "failed") {
-    return {
-      ok: true,
-      handled: true,
-      source: "zoho_invoice_authorization_charge",
-      invoiceNumber: chargeRow.invoice_number,
-      status: "failed",
-      idempotent: true,
-    };
-  }
-
   await markAuthorizationChargeFailed(chargeRow.id, {
     paystackStatus: charge.paystackStatus ?? "failed",
     reason: "paystack_charge_failed",

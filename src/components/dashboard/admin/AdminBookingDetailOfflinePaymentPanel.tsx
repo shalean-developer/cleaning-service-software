@@ -77,6 +77,7 @@ export function AdminBookingDetailOfflinePaymentPanel({
         terminalReference: rail === "card_machine" ? terminalReference.trim() : undefined,
         receiptNumber: rail === "cash" ? receiptNumber.trim() : undefined,
         confirmSupersedesActivePaymentLink: hasActiveLink ? confirmActiveLink : undefined,
+        sopConfirmed: true as const,
       });
       if (!result.ok) {
         setError(result.message);
@@ -134,6 +135,7 @@ export function AdminBookingDetailOfflinePaymentPanel({
       <p className="font-medium">Record offline payment</p>
       <p className="mt-1 text-xs text-amber-900/90" data-testid="admin-booking-offline-payment-warning">
         Recording this payment will finalize the booking and start normal assignment after confirmation.
+        Assignment only begins after payment confirmation — never before.
       </p>
 
       {!open ? (
@@ -287,7 +289,11 @@ export function AdminBookingDetailOfflinePaymentPanel({
               data-testid="admin-booking-offline-payment-confirm"
               required
             />
-            <span>I confirm this payment was received and reconciled.</span>
+            <span>
+              I verified this payment against{" "}
+              {rail === "eft" ? "bank records" : rail === "cash" ? "cash/till records" : "card terminal batch"}{" "}
+              before recording.
+            </span>
           </label>
 
           <div className="flex flex-wrap gap-2">

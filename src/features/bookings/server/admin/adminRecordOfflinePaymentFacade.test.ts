@@ -257,6 +257,7 @@ function offlineBody(
     evidenceReference: "EV-001",
     reason: "Received in office",
     idempotencyKey,
+    sopConfirmed: true as const,
   };
   if (rail === "eft") return { ...base, bankReference: "BNK-999" };
   if (rail === "cash") return { ...base, receiptNumber: "RCPT-1" };

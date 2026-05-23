@@ -146,7 +146,7 @@ async function loadZohoAuthorizationChargeSaleSource(
   const { data, error } = await client
     .from("zoho_invoice_authorization_charges")
     .select(
-      "id, invoice_number, zoho_invoice_id, customer_email, amount_cents, currency, paystack_reference, zoho_payment_id, paid_at, updated_at, status",
+      "id, invoice_number, zoho_invoice_id, customer_email, amount_cents, currency, paystack_reference, zoho_payment_id, paid_at, failed_at, created_at, status",
     )
     .eq("id", authorizationChargeId)
     .maybeSingle();
@@ -164,7 +164,7 @@ async function loadZohoAuthorizationChargeSaleSource(
     amountCents: data.amount_cents,
     currency: data.currency,
     paystackReference: data.paystack_reference,
-    paymentDate: data.paid_at ?? data.updated_at,
+    paymentDate: data.paid_at ?? data.failed_at ?? data.created_at,
   };
 }
 

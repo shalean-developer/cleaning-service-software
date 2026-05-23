@@ -56,7 +56,7 @@ function fail(
   code: Extract<AdminCreatePendingPaymentBookingResult, { ok: false }>["code"],
   message: string,
   status: number,
-): AdminCreatePendingPaymentBookingResult {
+): Extract<AdminCreatePendingPaymentBookingResult, { ok: false }> {
   return { ok: false, code, message, status };
 }
 

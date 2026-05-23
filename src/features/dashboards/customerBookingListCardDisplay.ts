@@ -211,7 +211,7 @@ export function customerBookingListCardLayers(
     paymentStatusLine,
     supportingMessage: supportingMessageForBooking(input),
     ctaLabel:
-      input.status === "payment_failed"
+      input.status === "payment_failed" || input.status === "pending_payment"
         ? "Complete payment"
         : serviceCopy?.ctaLabel ?? "View details",
   };

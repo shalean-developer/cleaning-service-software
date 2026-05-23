@@ -6,6 +6,7 @@ import {
   PRICING_FREQUENCIES,
   SERVICE_SLUGS,
 } from "@/features/pricing/server/types";
+import { validateCadenceFrequencyForService, showFrequencyForService } from "@/features/booking-wizard/frequencyVisibility";
 import { validateAdminRecurringScheduleForDraftBody } from "@/features/admin-booking-wizard/adminRecurringSchedule";
 
 const pricingInputSchema = z.object({
@@ -88,6 +89,26 @@ export function parseAdminCreateBookingDraftBody(
       ok: false,
       code: "INVALID_PAYLOAD",
       message: "selectedCleanerId is required when cleanerPreferenceMode is selected.",
+    };
+  }
+
+  const cadenceError = validateCadenceFrequencyForService(
+    parsed.data.pricingInput.serviceSlug,
+    parsed.data.pricingInput.frequency,
+  );
+  if (cadenceError) {
+    return {
+      ok: false,
+      code: "INVALID_PAYLOAD",
+      message: cadenceError,
+    };
+  }
+
+  if (!showFrequencyForService(parsed.data.pricingInput.serviceSlug) && parsed.data.recurringSchedule) {
+    return {
+      ok: false,
+      code: "INVALID_PAYLOAD",
+      message: "Recurring schedule is not supported for this service type.",
     };
   }
 

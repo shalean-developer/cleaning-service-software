@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { ServiceSlug } from "@/features/pricing/server/types";
 import { WIZARD_SERVICE_OPTIONS } from "@/features/booking-wizard/constants";
+import { showFrequencyForService } from "@/features/booking-wizard/frequencyVisibility";
 import { WIZARD_TEXT_MUTED, WIZARD_TEXT_PRIMARY } from "@/features/booking-wizard/wizardTheme";
 import {
   ADMIN_BOOKING_WIZARD_FREQUENCY_OPTIONS,
@@ -120,6 +121,7 @@ export function AdminBookingWizardStepPanel({
     case "service": {
       const recurringValidationError = validateAdminRecurringSchedule(form);
       const showRecurringBuilder = adminWizardShowsRecurringBuilder(form.frequency);
+      const showFrequencyControls = showFrequencyForService(form.serviceSlug);
 
       return (
         <StepShell
@@ -149,46 +151,54 @@ export function AdminBookingWizardStepPanel({
               ))}
             </select>
           </label>
-          <label className="block">
-            <FieldLabel>Frequency</FieldLabel>
-            <select
-              value={form.frequency}
-              onChange={(e) => {
-                const frequency = e.target.value as AdminBookingWizardFrequency;
-                if (frequency === "custom" || frequency === "weekly" || frequency === "biweekly") {
-                  onFormChange({
-                    frequency,
-                    recurringDays: defaultAdminRecurringDaysForSchedule(
-                      form.date,
-                      form.recurringDays,
-                    ),
-                    recurringIntervalWeeks:
-                      frequency === "biweekly"
-                        ? 2
-                        : frequency === "custom"
-                          ? form.recurringIntervalWeeks || 1
-                          : 1,
-                  });
-                  return;
-                }
-                onFormChange({ frequency });
-              }}
-              className="mt-1 w-full min-h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-              data-testid="admin-booking-frequency-select"
-            >
-              {ADMIN_BOOKING_WIZARD_FREQUENCY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          {showRecurringBuilder ? (
-            <AdminBookingWizardRecurringSchedulePanel
-              form={form}
-              onFormChange={onFormChange}
-              validationError={recurringValidationError}
-            />
+          {showFrequencyControls ? (
+            <>
+              <label className="block">
+                <FieldLabel>Frequency</FieldLabel>
+                <select
+                  value={form.frequency}
+                  onChange={(e) => {
+                    const frequency = e.target.value as AdminBookingWizardFrequency;
+                    if (frequency === "custom" || frequency === "weekly" || frequency === "biweekly") {
+                      onFormChange({
+                        frequency,
+                        recurringDays: defaultAdminRecurringDaysForSchedule(
+                          form.date,
+                          form.recurringDays,
+                        ),
+                        recurringIntervalWeeks:
+                          frequency === "biweekly"
+                            ? 2
+                            : frequency === "custom"
+                              ? form.recurringIntervalWeeks || 1
+                              : 1,
+                      });
+                      return;
+                    }
+                    onFormChange({ frequency });
+                  }}
+                  className="mt-1 w-full min-h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                  data-testid="admin-booking-frequency-select"
+                >
+                  {ADMIN_BOOKING_WIZARD_FREQUENCY_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {showRecurringBuilder ? (
+                <AdminBookingWizardRecurringSchedulePanel
+                  form={form}
+                  onFormChange={onFormChange}
+                  validationError={recurringValidationError}
+                />
+              ) : null}
+            </>
+          ) : form.serviceSlug ? (
+            <p className={`text-sm ${WIZARD_TEXT_MUTED}`} data-testid="admin-booking-frequency-once-only">
+              This service is once-off only — recurring visit discounts do not apply.
+            </p>
           ) : null}
           <AdminBookingWizardServiceDetailsSection form={form} onFormChange={onFormChange} />
         </StepShell>

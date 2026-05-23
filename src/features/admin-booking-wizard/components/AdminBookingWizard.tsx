@@ -38,6 +38,7 @@ type Props = {
   paymentLinksEnabled: boolean;
   offlinePaymentsEnabled: boolean;
   pilotMode?: boolean;
+  rolloutStage?: import("@/lib/app/resolveAdminAssistedBookingRolloutStage").AdminAssistedBookingRolloutStage;
   initialCustomerId?: string | null;
   initialCustomerLabel?: string | null;
 };
@@ -67,6 +68,7 @@ export function AdminBookingWizard({
   paymentLinksEnabled,
   offlinePaymentsEnabled,
   pilotMode = false,
+  rolloutStage = "disabled",
   initialCustomerId,
   initialCustomerLabel,
 }: Props) {
@@ -118,7 +120,10 @@ export function AdminBookingWizard({
   return (
     <div className={WIZARD_SHELL_WIDE_WITH_SIDEBAR_CLASS} data-testid="admin-booking-wizard">
       <AdminBookingWizardDesignModeBanner featureEnabled={featureEnabled} />
-      <AdminAssistedBookingPilotBanner pilotMode={featureEnabled && pilotMode} />
+      <AdminAssistedBookingPilotBanner
+        pilotMode={featureEnabled && pilotMode}
+        rolloutStage={featureEnabled ? rolloutStage : "disabled"}
+      />
       {featureEnabled && pilotMode ? (
         <div className="mb-4">
           <AdminAssistedBookingTrainingAids compact />

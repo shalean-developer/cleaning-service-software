@@ -12,7 +12,9 @@ import type { AdminAssistedBookingDiagnostics } from "@/features/bookings/server
 import { loadRecentAdminAssistedOperatorFeedback } from "@/features/bookings/server/admin/loadAdminAssistedOperatorFeedback";
 import type { AdminAssistedOperatorFeedback } from "@/features/bookings/server/admin/loadAdminAssistedOperatorFeedback";
 import { enrichFrictionBookingsWithRecurringMaterialization } from "@/features/bookings/server/admin/enrichFrictionBookingsWithRecurringMaterialization";
+import { withAdminAssistedBookingCustomerFields } from "@/features/bookings/server/admin/adminAssistedBookingCustomerDisplay";
 import { ADMIN_ASSIST_STALE_PENDING_HOURS } from "@/features/bookings/server/admin/loadAdminBookingAssistSummary";
+import { ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE } from "@/features/notifications/server/config";
 import type { Database } from "@/lib/database/types";
 import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 
@@ -40,7 +42,7 @@ export async function loadAdminAssistedPilotQaPanel(
       loadAdminAssistedBookingDiagnostics(client),
       client
         .from("bookings")
-        .select("id, status, metadata, updated_at, created_at, customer_name, customer_email")
+        .select("id, status, metadata, updated_at, created_at, customer_id")
         .or(
           "metadata->adminAssist->>source.eq.admin_wizard,metadata->adminAssist->>phase.eq.draft_only",
         )
@@ -57,7 +59,7 @@ export async function loadAdminAssistedPilotQaPanel(
       client
         .from("notification_outbox")
         .select("payload")
-        .eq("event_name", "admin_assisted_payment_request_sent")
+        .filter("payload->>template", "eq", ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE)
         .eq("status", "failed")
         .limit(500),
     ]);
@@ -67,9 +69,10 @@ export async function loadAdminAssistedPilotQaPanel(
   if (feedbackRes.error) throw new Error(feedbackRes.error.message);
   if (failedNotificationsRes.error) throw new Error(failedNotificationsRes.error.message);
 
-  const bookingRows = (bookingsRes.data ?? []).filter((row) =>
+  const bookingRowsRaw = (bookingsRes.data ?? []).filter((row) =>
     isAdminAssistedBookingMetadata(row.metadata),
   );
+  const bookingRows = await withAdminAssistedBookingCustomerFields(client, bookingRowsRaw);
 
   const failedNotificationBookingIds = new Set<string>();
   for (const row of failedNotificationsRes.data ?? []) {
@@ -92,10 +95,22 @@ export async function loadAdminAssistedPilotQaPanel(
         : {},
   }));
 
-  const { metrics, flaggedBookings } = computeAdminAssistedBookingFriction(bookingRows, auditEvents, {
-    stalePendingHours: ADMIN_ASSIST_STALE_PENDING_HOURS,
-    failedNotificationBookingIds,
-  });
+  const { metrics, flaggedBookings } = computeAdminAssistedBookingFriction(
+    bookingRows.map((row) => ({
+      id: row.id,
+      status: row.status,
+      metadata: row.metadata,
+      updated_at: row.updated_at,
+      created_at: row.created_at,
+      customer_name: row.customer_name,
+      customer_email: row.customer_email,
+    })),
+    auditEvents,
+    {
+      stalePendingHours: ADMIN_ASSIST_STALE_PENDING_HOURS,
+      failedNotificationBookingIds,
+    },
+  );
 
   const dryRunBookings = flaggedBookings.filter((b) => b.pilotDryRun);
   const recentFeedback = await loadRecentAdminAssistedOperatorFeedback(20, client);

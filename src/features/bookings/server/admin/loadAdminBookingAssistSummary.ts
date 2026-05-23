@@ -10,7 +10,9 @@ import { buildAdminBookingAssistTimeline } from "@/features/bookings/server/admi
 import { isAdminAssistedBookingMetadata, isAdminAssistPilotDryRun } from "@/features/bookings/server/admin/adminAssistMetadata";
 import { loadAdminBookingAssistAudits } from "@/features/bookings/server/admin/loadAdminBookingAssistAudits";
 import { resolveAdminAssistNextRecommendedAction } from "@/features/bookings/server/admin/adminAssistOperatorTimeline";
-import type { Database } from "@/lib/database/types";
+import { loadAdminAssistedBookingCustomerFieldsByCustomerId } from "@/features/bookings/server/admin/adminAssistedBookingCustomerDisplay";
+import { ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE } from "@/features/notifications/server/config";
+import type { Database, PaymentStatus } from "@/lib/database/types";
 import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 import type { BookingStatus } from "@/features/bookings/server/types";
 
@@ -55,14 +57,29 @@ export async function loadAdminBookingAssistSummary(
 ): Promise<AdminBookingAssistSummary | null> {
   const { data: row, error } = await client
     .from("bookings")
-    .select(
-      "id, customer_id, status, payment_status, price_cents, metadata, updated_at, customer_name, customer_email, customer_phone",
-    )
+    .select("id, customer_id, status, price_cents, metadata, updated_at")
     .eq("id", bookingId)
     .maybeSingle();
 
   if (error) throw new Error(error.message);
   if (!row || !isAdminAssistedBookingMetadata(row.metadata)) return null;
+
+  const [{ data: paymentRow }, customerFieldsById] = await Promise.all([
+    client
+      .from("payments")
+      .select("status")
+      .eq("booking_id", bookingId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    loadAdminAssistedBookingCustomerFieldsByCustomerId(client, [row.customer_id]),
+  ]);
+
+  const customerFields = customerFieldsById.get(row.customer_id) ?? {
+    customer_name: null,
+    customer_email: null,
+    customer_phone: null,
+  };
 
   const audits = await loadAdminBookingAssistAudits(client, bookingId);
   const paymentLink = readAdminAssistPaymentLinkMetadata(row.metadata);
@@ -104,17 +121,20 @@ export async function loadAdminBookingAssistSummary(
       ? Math.round(((nowMs - Date.parse(row.updated_at)) / 3_600_000) * 10) / 10
       : null;
 
-  const customerEmail = row.customer_email?.trim() || null;
+  const customerEmail = customerFields.customer_email?.trim() || null;
 
   return {
     id: row.id,
     customerId: row.customer_id,
     status: row.status as BookingStatus,
-    paymentStatus: row.payment_status,
+    paymentStatus: (paymentRow?.status as PaymentStatus | undefined) ?? null,
     priceCents: row.price_cents,
-    customerLabel: row.customer_name?.trim() || customerEmail || row.customer_id.slice(0, 8),
+    customerLabel:
+      customerFields.customer_name?.trim() ||
+      customerEmail ||
+      row.customer_id.slice(0, 8),
     customerEmail,
-    customerPhone: row.customer_phone?.trim() || null,
+    customerPhone: customerFields.customer_phone?.trim() || null,
     customerHasEmail: Boolean(customerEmail),
     adminAssistPaymentLink: paymentLink
       ? {
@@ -165,7 +185,7 @@ async function hasFailedPaymentRequestEmail(
   const { count, error } = await client
     .from("notification_outbox")
     .select("id", { count: "exact", head: true })
-    .eq("event_name", "admin_assisted_payment_request_sent")
+    .filter("payload->>template", "eq", ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE)
     .eq("status", "failed")
     .contains("payload", { bookingId });
 

@@ -6,6 +6,8 @@ import { getCustomerBookingDetail } from "@/features/dashboards/server/customerB
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { CustomerDashboardHeaderEndLoader } from "@/components/dashboard/customer/CustomerDashboardHeaderEndLoader";
 import { PaymentIssuePanel } from "@/components/dashboard/PaymentIssuePanel";
+import { CompletePaymentButton } from "@/components/dashboard/customer/CompletePaymentButton";
+import { RetryPaymentButton } from "@/components/dashboard/RetryPaymentButton";
 import { CustomerBookingDetailsCard } from "@/components/dashboard/customer/CustomerBookingDetailsCard";
 import { CustomerBookingStatusHero } from "@/components/dashboard/customer/CustomerBookingStatusHero";
 import { CustomerBookingWhatHappensNext } from "@/components/dashboard/customer/CustomerBookingWhatHappensNext";
@@ -122,6 +124,8 @@ export default async function CustomerBookingDetailPage({ params, searchParams }
             paymentFailureReason={b.paymentFailureReason}
             canRetryPayment={b.canRetryPayment}
           />
+        ) : b.status === "pending_payment" && b.canCompletePayment ? (
+          <CompletePaymentButton bookingId={b.id} customerEmail={customerEmail} />
         ) : (
           <CustomerBookingWhatHappensNext
             status={b.status}

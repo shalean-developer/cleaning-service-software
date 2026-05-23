@@ -1,6 +1,6 @@
 # Admin-assisted booking — production rollout runbook
 
-**Status:** Phase 6 — parity QA and staged rollout  
+**Status:** Phase 10 — production learning + incident review  
 **Last updated:** 2026-05-23
 
 ## Supported flows (when flags enabled)
@@ -63,6 +63,43 @@ Category `admin_assisted_booking` on `/admin/operations/production-rollout`:
 - `admin_assisted_webhook_parity_verified`
 - `admin_assisted_feature_flags_verified`
 
+## Rollout stages (Phase 8)
+
+Derived by `resolveAdminAssistedBookingRolloutStage()` from existing env flags + checklist — **does not replace flags**.
+
+| Stage | Meaning |
+|-------|---------|
+| `disabled` | `ADMIN_ASSISTED_BOOKING_ENABLED=false` |
+| `draft_only` | Booking on; payment links off |
+| `payment_links` | Paystack links + notifications on; offline off |
+| `offline_eft` | Offline on; cash/card checklist items incomplete |
+| `offline_full` | All offline rails enabled per checklist |
+
+Shown on: operations dashboard, pilot QA panel, wizard banner, production rollout page.
+
+Invalid flag combinations (e.g. links on without booking) surface as rollout blockers on `/admin/operations/production-rollout`.
+
+## Production readiness (Phase 8)
+
+- **Checklist progress:** Section E on production rollout dashboard
+- **Critical blockers:** 11 required items before `productionReady=true`
+- **Soft warning banner:** Shown when critical checklist incomplete
+- **Last verified:** Most recent checklist completion timestamp + operator
+
+## Operational alerts (read-only)
+
+Fleet alerts on `/admin/operations/admin-assisted-bookings` and pilot export:
+
+- Stale pending payments (>72h)
+- Failed payment request emails
+- Repeated link regenerations
+- Assignment dispatch failures / orphan confirmed
+- Recurring materialization failures
+- Offline payment anomalies
+- Expired links with pending payment (late Paystack settlement note)
+
+See [admin-assisted-alert-interpretation.md](./admin-assisted-alert-interpretation.md).
+
 ## Test commands
 
 ```powershell
@@ -72,20 +109,54 @@ npx vitest run src/features/bookings/server/admin/customerBookingFlow.regression
 npx vitest run src/features/bookings/server/admin/adminAssistedBooking.phase6.test.ts
 npx vitest run src/features/bookings/server/admin/resolveAdminAssistPaidVia.test.ts
 npx vitest run src/features/bookings/server/admin/buildAdminBookingAssistTimeline.test.ts
-npx vitest run src/tests/security/mutationRouteBoundaryGuard.test.ts
+npx vitest run src/lib/app/resolveAdminAssistedBookingRolloutStage.test.ts
+npx vitest run src/features/bookings/server/admin/adminAssistedRolloutReadiness.test.ts
+npx vitest run src/features/bookings/server/admin/adminAssistedBookingAlerts.test.ts
+npx vitest run src/app/api/admin/bookings/assist-pilot/export/route.test.ts
 ```
 
 ## Observability
 
 - **Fleet diagnostics:** `/admin/operations/admin-assisted-bookings`
 - **Pilot QA panel:** `/admin/operations/admin-assisted-pilot`
-- **API:** `GET /api/admin/bookings/assist-diagnostics`, `GET /api/admin/bookings/assist-pilot/export`
-- **Per booking:** Assist timeline, QA checklist, operator feedback, dry-run banner
+- **Production dashboard:** `/admin/operations/admin-assisted-production` (live metrics + **production learning**)
+- **Weekly export:** `/api/admin/bookings/assist-production/weekly-export`
+- **Learning exports:** `/api/admin/bookings/assist-production/learning-export?export=weekly|incidents|lessons|backlog`
+- **Per booking:** Assist timeline, QA checklist, operator feedback (with lesson category/tags), dry-run banner
 - **List filters:** Admin-assisted, awaiting payment, link sent/expired, paid via offline/Paystack link
+
+## Weekly review process (Phase 10)
+
+1. Open production dashboard → **Production learning** section.
+2. Review weekly metrics and advisory rollout recommendation.
+3. Triage **Incident review queue** — document root cause and resolution; never auto-close.
+4. Scan **Operator lessons** and **Improvement backlog** for repeated themes.
+5. Export CSV/JSON for ops records (`learning-export` endpoints).
+6. Decide next stage manually (see decision criteria below).
+
+## Rollout decision criteria
+
+| Signal | Advisory action |
+|--------|-----------------|
+| Health ≥ 85, low incidents, strong assignment/payment | Continue or enable next stage |
+| `draft_only` stable | Expand payment links |
+| `payment_links` + checklist ready | Enable EFT |
+| Critical incidents, recurring failures, offline anomalies | Hold rollout |
+| Health band critical | Consider rollback |
+
+Decision helper on dashboard is **advisory only** — update env flags per staged order above.
+
+## Operator feedback review
+
+- Submit on booking detail after each assist run (optional).
+- Tag UX, payment, customer, cleaner, recurring, finance, training, or bug.
+- Repeated tags (≥2) appear in generated backlog for weekly triage.
+
+See [admin-assisted-incident-response-sop.md](./admin-assisted-incident-response-sop.md).
 
 ## Operator dry-run SOP (Phase 7B)
 
-1. Enable `ADMIN_ASSISTED_BOOKING_PILOT_MODE=true` (auto-labels new drafts as pilot/dry-run).
+1. Enable `ADMIN_ASSISTED_BOOKING_PILOT_MODE=true` — this shows the pilot banner **and** auto-labels new drafts with `metadata.adminAssist.pilotDryRun=true` (same effect as `ADMIN_ASSISTED_BOOKING_DRY_RUN_LABEL=true`).
 2. Create booking via `/admin/bookings/create` — use real customer and real payment paths.
 3. Complete the **Dry-run QA checklist** on booking detail after each run.
 4. Submit **operator feedback** (optional) — no payment card data.
@@ -101,13 +172,14 @@ Do not bypass payment confirmation or assignment. Use recovery CTAs (regenerate 
 
 - EFT first in pilot; cash/card only after reconciliation SOP signed.
 - Require evidence reference; amount must match `price_cents` exactly.
+- **SOP checkbox required:** operator must confirm `sopConfirmed: true` — “I verified this payment against bank/cash/terminal records.”
 - Active Paystack link requires explicit supersede confirmation.
 
 ## Recovery flows
 
 | Situation | Action |
 |-----------|--------|
-| Expired payment link | Regenerate link (wizard recovery panel or booking detail) |
+| Expired payment link | Link expired in UI; **late Paystack payment may still settle**. Regenerate only if customer confirms payment not completed |
 | Failed email | Resend payment request email |
 | No customer email | Copy WhatsApp message |
 | Stale pending (>72h) | Follow up customer; review friction dashboard |

@@ -36,7 +36,10 @@ const panelFixture: AdminAssistedPilotQaPanel = {
       confirmedAfterAssistPayment: 0,
       failedPaymentRequestNotifications: 0,
       assignmentDispatchAttention: 0,
+      confirmedWithoutAssignmentDispatch: 0,
     },
+    alerts: [],
+    rolloutStage: "payment_links",
     analytics: {
       linksGenerated: 0,
       linksRegenerated: 0,

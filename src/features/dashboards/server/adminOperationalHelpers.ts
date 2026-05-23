@@ -552,7 +552,8 @@ export function matchesAdminBookingFilter(
     | "adminAssisted"
     | "paymentRequestState"
     | "adminAssistPaidVia"
-  >,
+  > &
+    Partial<Pick<AdminBookingListItem, "dispatchNotStarted" | "recoveryEligible" | "observation">>,
   filter: AdminBookingFilter,
 ): boolean {
   const key = item.assignmentVisibilityKey;

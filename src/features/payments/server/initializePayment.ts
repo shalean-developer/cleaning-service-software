@@ -15,7 +15,7 @@ import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isPaystackEnabled } from "./paystackEnv";
 import { completePaystackBookingCheckout } from "./completePaystackBookingCheckout";
-import { findPaymentByIdempotencyKey } from "./paymentRepository";
+import { findPaymentByIdempotencyKey, findPendingPaymentForBooking } from "./paymentRepository";
 
 export type InitializePaymentInput = {
   bookingId: string;
@@ -144,10 +144,17 @@ export async function initializePayment(
     input.paymentIdempotencyKey?.trim() || `paystack:booking:${bookingId}`;
 
   const serviceClient = requireServiceRoleClient();
-  const existingPendingPayment = await findPaymentByIdempotencyKey(
+  let existingPendingPayment = await findPaymentByIdempotencyKey(
     serviceClient,
     paymentIdempotencyKey,
   );
+
+  if (
+    !existingPendingPayment &&
+    booking.status === "pending_payment"
+  ) {
+    existingPendingPayment = await findPendingPaymentForBooking(serviceClient, bookingId);
+  }
 
   if (
     existingPendingPayment &&

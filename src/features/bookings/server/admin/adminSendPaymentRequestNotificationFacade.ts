@@ -68,7 +68,7 @@ function fail(
   code: Extract<AdminSendPaymentRequestNotificationResult, { ok: false }>["code"],
   message: string,
   status: number,
-): AdminSendPaymentRequestNotificationResult {
+): Extract<AdminSendPaymentRequestNotificationResult, { ok: false }> {
   return { ok: false, code, message, status };
 }
 

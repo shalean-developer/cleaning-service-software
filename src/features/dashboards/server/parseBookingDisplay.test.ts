@@ -94,6 +94,21 @@ describe("parseBookingDisplay", () => {
     expect(display.serviceLabel).toBe("Carpet Cleaning");
   });
 
+  it("reads operational access notes from address.notes for cleaner display", () => {
+    const display = parseBookingDisplay({
+      address: {
+        line1: "12 Main Rd",
+        suburb: "Sea Point",
+        city: "Cape Town",
+        notes: "Access: Ring bell\nGate/intercom: 1234\nParking: Visitor bay 2",
+      },
+      specialInstructions: "Pets: friendly dog",
+    });
+    expect(display.operationalAccessNotes).toContain("Ring bell");
+    expect(display.operationalAccessNotes).toContain("Visitor bay 2");
+    expect(display.specialInstructions).toBe("Pets: friendly dog");
+  });
+
   it("shows customer team support dashboard copy from fulfillment metadata", () => {
     const awaiting = parseBookingDisplay({
       quote: { input: { serviceSlug: "regular-cleaning", requestedTeamSize: 2 } },
