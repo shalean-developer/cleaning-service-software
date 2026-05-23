@@ -7,6 +7,7 @@ import { adminBookingOperationalScanLine } from "@/features/dashboards/adminBook
 
 type Props = {
   operational: AdminOperationalStatus;
+  recurringScheduleLabel?: string | null;
   attentionFlags: {
     paymentFailed: boolean;
     deferredAttention: boolean;
@@ -17,6 +18,7 @@ type Props = {
 
 export function AdminBookingOperationalSummary({
   operational,
+  recurringScheduleLabel,
   attentionFlags,
 }: Props) {
   const needsAttention =
@@ -39,6 +41,14 @@ export function AdminBookingOperationalSummary({
       <p className="mt-1 text-sm font-medium leading-snug text-zinc-900">
         {adminBookingOperationalScanLine(operational)}
       </p>
+      {recurringScheduleLabel ? (
+        <p
+          className="mt-1.5 text-sm text-zinc-700"
+          data-testid="admin-booking-ops-recurring-summary"
+        >
+          Recurring: {recurringScheduleLabel}
+        </p>
+      ) : null}
       <p className={`${ADMIN_SECTION_MUTED_CLASS} mt-1.5 text-sm font-medium text-zinc-800`}>
         Next: {operational.nextSuggestedAction}
       </p>

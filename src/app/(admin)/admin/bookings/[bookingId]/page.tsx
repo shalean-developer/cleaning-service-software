@@ -87,6 +87,8 @@ import { AdminAssistedBookingTrainingAids } from "@/components/dashboard/admin/A
 import { loadAdminBookingAssistSummary } from "@/features/bookings/server/admin/loadAdminBookingAssistSummary";
 import { loadAdminAssistQaChecklist } from "@/features/bookings/server/admin/loadAdminAssistQaChecklist";
 import { loadAdminAssistOperatorNames } from "@/features/bookings/server/admin/loadAdminAssistOperatorNames";
+import { loadAdminBookingRecurringVerification } from "@/features/bookings/server/admin/loadAdminBookingRecurringVerification";
+import { AdminBookingRecurringVerificationPanel } from "@/components/dashboard/admin/AdminBookingRecurringVerificationPanel";
 import { isAdminAssistedPaymentLinksActive } from "@/lib/app/adminAssistedPaymentLinksFlag";
 import { isAdminAssistedOfflinePaymentsActive } from "@/lib/app/adminAssistedOfflinePaymentsFlag";
 import { listBookingSupportRequestsForBooking } from "@/features/bookings/server/bookingSupportRequestsService";
@@ -119,6 +121,8 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           b.adminAssistPaymentTimeline.map((e) => e.adminProfileId).filter(Boolean) as string[],
         )
       : {};
+  const recurringVerification = await loadAdminBookingRecurringVerification(bookingId);
+  const recurringScheduleLabel = recurringVerification?.schedule.scheduleSummaryLabel ?? null;
   const paymentFailed = b.status === "payment_failed";
   const teamSupportFollowUp = adminTeamSupportNeedsFollowUp({
     isTwoCleanerRequest: b.observation.isTwoCleanerRequest,
@@ -230,6 +234,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
     customerLabel: b.customerLabel,
     cleanerLabel: b.cleanerLabel,
     priceLabel: b.priceLabel,
+    recurringScheduleLabel,
   });
 
   const { activeOffers, pastOffers } = partitionAdminAssignmentOffers(b.offers);
@@ -253,6 +258,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
     coordinationStatusLabel: b.observation.isTwoCleanerRequest
       ? null
       : b.observation.coordinationStatusLabel,
+    recurringScheduleLabel,
   });
 
   return (
@@ -308,6 +314,10 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           <AdminBookingAssistSupportSummary summary={assistSummary} />
         ) : null}
 
+        {recurringVerification ? (
+          <AdminBookingRecurringVerificationPanel verification={recurringVerification} />
+        ) : null}
+
         {b.adminAssistedDraft ? (
           <>
             <AdminAssistedQaChecklistPanel
@@ -358,6 +368,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
 
         <AdminBookingOperationalSummary
           operational={b.operational}
+          recurringScheduleLabel={recurringScheduleLabel}
           attentionFlags={{
             paymentFailed,
             deferredAttention,

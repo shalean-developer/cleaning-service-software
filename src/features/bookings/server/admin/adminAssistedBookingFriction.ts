@@ -1,5 +1,6 @@
 import type { AdminAssistAuditEvent } from "./adminAssistedBookingAnalytics";
 import { isAdminAssistPilotDryRun } from "./adminAssistMetadata";
+import { parseAdminBookingRecurringScheduleFromMetadata } from "./adminBookingRecurringDisplay";
 import type { Json } from "@/lib/database/types";
 
 export type AdminAssistedBookingFrictionMetrics = {
@@ -24,6 +25,11 @@ export type AdminAssistedBookingFrictionBooking = {
   pendingAgeHours: number | null;
   pilotDryRun: boolean;
   missingCustomerEmail: boolean;
+  recurringCadence: string | null;
+  recurringSelectedDays: string | null;
+  recurringIntervalWeeks: number | null;
+  recurringMaterializationStatus: string | null;
+  recurringGroupId: string | null;
 };
 
 const ABANDONED_DRAFT_HOURS = 48;
@@ -139,6 +145,7 @@ export function computeAdminAssistedBookingFriction(
     }
 
     if (flags.length > 0) {
+      const recurring = parseAdminBookingRecurringScheduleFromMetadata(row.metadata);
       flaggedBookings.push({
         bookingId: row.id,
         status: row.status,
@@ -147,6 +154,15 @@ export function computeAdminAssistedBookingFriction(
         pendingAgeHours,
         pilotDryRun,
         missingCustomerEmail: missingEmail,
+        recurringCadence: recurring.cadenceLabel,
+        recurringSelectedDays: recurring.selectedDaysLabel,
+        recurringIntervalWeeks: recurring.intervalWeeks,
+        recurringMaterializationStatus: recurring.recurringEnabled
+          ? row.status === "draft" || row.status === "pending_payment"
+            ? "pending_payment"
+            : "unknown"
+          : null,
+        recurringGroupId: null,
       });
     }
   }

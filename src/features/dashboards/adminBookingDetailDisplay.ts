@@ -42,9 +42,15 @@ export function buildAdminBookingHeroEssentialRows(input: {
   customerLabel: string;
   cleanerLabel: string | null;
   priceLabel: string;
+  recurringScheduleLabel?: string | null;
 }): AdminBookingHeroRow[] {
-  return [
+  const rows: AdminBookingHeroRow[] = [
     { label: "When", value: input.scheduleLabel },
+  ];
+  if (input.recurringScheduleLabel) {
+    rows.push({ label: "Recurring", value: input.recurringScheduleLabel });
+  }
+  rows.push(
     { label: "Where", value: input.locationSummary },
     { label: "Customer", value: input.customerLabel },
     {
@@ -53,7 +59,8 @@ export function buildAdminBookingHeroEssentialRows(input: {
       valueClassName: input.cleanerLabel ? undefined : "text-zinc-500",
     },
     { label: "Total", value: input.priceLabel },
-  ];
+  );
+  return rows;
 }
 
 /** Secondary booking context. collapsed by default on detail page. */
@@ -67,6 +74,7 @@ export function buildAdminBookingHeroContextRows(input: {
   teamSupportLabel: string | null;
   teamRequestFulfillmentLabel: string | null;
   coordinationStatusLabel: string | null;
+  recurringScheduleLabel?: string | null;
 }): AdminBookingHeroRow[] {
   const rows: AdminBookingHeroRow[] = [
     {
@@ -95,6 +103,9 @@ export function buildAdminBookingHeroContextRows(input: {
   }
   if (input.coordinationStatusLabel) {
     rows.push({ label: "Team coordination", value: input.coordinationStatusLabel });
+  }
+  if (input.recurringScheduleLabel) {
+    rows.push({ label: "Recurring schedule", value: input.recurringScheduleLabel });
   }
 
   if (isAirbnbOperationalBooking(input)) {

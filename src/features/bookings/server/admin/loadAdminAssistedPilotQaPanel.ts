@@ -11,6 +11,7 @@ import { loadAdminAssistedBookingDiagnostics } from "@/features/bookings/server/
 import type { AdminAssistedBookingDiagnostics } from "@/features/bookings/server/admin/adminAssistedBookingDiagnosticsReadModel";
 import { loadRecentAdminAssistedOperatorFeedback } from "@/features/bookings/server/admin/loadAdminAssistedOperatorFeedback";
 import type { AdminAssistedOperatorFeedback } from "@/features/bookings/server/admin/loadAdminAssistedOperatorFeedback";
+import { enrichFrictionBookingsWithRecurringMaterialization } from "@/features/bookings/server/admin/enrichFrictionBookingsWithRecurringMaterialization";
 import { ADMIN_ASSIST_STALE_PENDING_HOURS } from "@/features/bookings/server/admin/loadAdminBookingAssistSummary";
 import type { Database } from "@/lib/database/types";
 import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -99,13 +100,22 @@ export async function loadAdminAssistedPilotQaPanel(
   const dryRunBookings = flaggedBookings.filter((b) => b.pilotDryRun);
   const recentFeedback = await loadRecentAdminAssistedOperatorFeedback(20, client);
 
+  const enrichedFlagged = await enrichFrictionBookingsWithRecurringMaterialization(
+    client,
+    flaggedBookings,
+  );
+  const enrichedDryRun = await enrichFrictionBookingsWithRecurringMaterialization(
+    client,
+    dryRunBookings,
+  );
+
   return {
     generatedAt,
     readOnly: true,
     diagnostics,
     friction: metrics,
-    flaggedBookings: flaggedBookings.slice(0, 50),
-    dryRunBookings: dryRunBookings.slice(0, 50),
+    flaggedBookings: enrichedFlagged.slice(0, 50),
+    dryRunBookings: enrichedDryRun.slice(0, 50),
     recentFeedback,
     feedbackCount: feedbackRes.count ?? 0,
   };

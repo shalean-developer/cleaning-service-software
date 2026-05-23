@@ -10,6 +10,12 @@ import { isAdminAssistedBookingMetadata } from "./adminAssistMetadata";
 import { routePaystackWebhookEvent } from "@/features/payments/server/routePaystackWebhookEvent";
 import type { AdminCreateBookingDraftBody } from "./parseAdminCreateBookingDraftBody";
 import {
+  ADMIN_ASSIST_RECURRING_DRAFT_SCENARIOS,
+  buildRecurringAdminAssistDraftBody,
+  readRecurringScheduleFromBookingMetadata,
+  simulateRecurringMaterialization,
+} from "./adminAssistedRecurringIntegrationHarness";
+import {
   applyPaystackUnitTestEnv,
   restorePaystackTestEnv,
   snapshotPaystackTestEnv,
@@ -20,6 +26,16 @@ const paystackEnvSnapshot = snapshotPaystackTestEnv();
 const completePaystackBookingCheckoutMock = vi.fn();
 const dispatchMock = vi.hoisted(() => ({
   runPostPaymentAssignmentDispatch: vi.fn().mockResolvedValue({ ok: true }),
+}));
+
+const recurringMaterializationMock = vi.hoisted(() => ({
+  runPostPaymentRecurringMaterialization: vi.fn(),
+  materialized: [] as Array<{
+    bookingId: string;
+    selectedDays: number[];
+    groupId: string | null;
+    seriesIds: string[];
+  }>,
 }));
 
 vi.mock("@/lib/app/adminAssistedBookingFlag", () => ({
@@ -64,6 +80,11 @@ vi.mock("@/features/payments/server/paymentRepository", async (importOriginal) =
 
 vi.mock("@/features/payments/server/postPaymentAssignmentDispatch", () => ({
   runPostPaymentAssignmentDispatch: dispatchMock.runPostPaymentAssignmentDispatch,
+}));
+
+vi.mock("@/features/recurring/postPaymentRecurringMaterialization", () => ({
+  runPostPaymentRecurringMaterialization: (...args: unknown[]) =>
+    recurringMaterializationMock.runPostPaymentRecurringMaterialization(...args),
 }));
 
 vi.mock("@/lib/supabase/serviceRole", () => ({
@@ -252,6 +273,16 @@ describe("admin-assisted Paystack payment flow (integration)", () => {
     hoisted.assistClient = createAssistMockClient();
     vi.stubEnv("BOOKING_COMMAND_BACKEND", "memory");
     dispatchMock.runPostPaymentAssignmentDispatch.mockClear();
+    recurringMaterializationMock.materialized = [];
+    recurringMaterializationMock.runPostPaymentRecurringMaterialization.mockImplementation(
+      async (_client, backend, booking) => {
+        const result = simulateRecurringMaterialization(
+          backend as { bookings: Map<string, { id: string; series_id: string | null; metadata: unknown }> },
+          booking as { id: string; metadata: unknown },
+        );
+        if (result) recurringMaterializationMock.materialized.push(result);
+      },
+    );
 
     completePaystackBookingCheckoutMock.mockImplementation(
       async (input: { bookingId: string; payment: PaymentRow }) => {
@@ -358,4 +389,105 @@ describe("admin-assisted Paystack payment flow (integration)", () => {
       0,
     );
   });
+
+  async function runRecurringPaystackFlow(body: AdminCreateBookingDraftBody) {
+    const draft = await adminCreateBookingDraftFacade({ admin: adminUser, body });
+    expect(draft.ok).toBe(true);
+    if (!draft.ok) throw new Error("draft failed");
+    const bookingId = draft.bookingDraft.bookingId;
+
+    const pending = await adminCreatePendingPaymentBookingFacade({
+      admin: adminUser,
+      bookingId,
+      body: {
+        customerId: body.customerId,
+        idempotencyKey: `${body.idempotencyKey}-pending`,
+      },
+    });
+    expect(pending.ok).toBe(true);
+    expect(dispatchMock.runPostPaymentAssignmentDispatch).not.toHaveBeenCalled();
+    expect(recurringMaterializationMock.runPostPaymentRecurringMaterialization).not.toHaveBeenCalled();
+
+    const link = await adminGeneratePaymentLinkFacade({
+      admin: adminUser,
+      bookingId,
+      body: {
+        customerId: body.customerId,
+        idempotencyKey: `${body.idempotencyKey}-plink`,
+        deliveryChannel: "copy_only",
+      },
+    });
+    expect(link.ok).toBe(true);
+    if (!link.ok) throw new Error("link failed");
+
+    const beforePay = hoisted.memoryBackend!.bookings.get(bookingId);
+    expect(beforePay?.status).toBe("pending_payment");
+
+    const pendingPayment = [...hoisted.memoryBackend!.payments.values()].find(
+      (p) => p.booking_id === bookingId,
+    );
+    if (pendingPayment && link.ok) {
+      const synced = {
+        ...pendingPayment,
+        provider_ref: link.paymentLink.reference,
+        amount_cents: beforePay!.price_cents,
+      };
+      hoisted.assistState.paymentsById.set(synced.id, synced);
+      hoisted.assistState.paymentsByRef.set(link.paymentLink.reference, synced);
+    }
+
+    const upsertModule = await import("@/features/payments/server/upsertBookingFromPaystack");
+    vi.spyOn(upsertModule, "processPaystackChargeSuccess").mockImplementation((charge, source) =>
+      upsertModule.processPaystackChargeSuccessWithDeps(
+        hoisted.assistClient,
+        charge,
+        source,
+        hoisted.memoryBackend!,
+      ),
+    );
+
+    const webhook = await routePaystackWebhookEvent({
+      event: "charge.success",
+      data: {
+        id: Math.floor(Math.random() * 100_000),
+        status: "success",
+        reference: link.paymentLink.reference,
+        amount: beforePay!.price_cents,
+        metadata: { source: "admin_assisted", booking_id: bookingId },
+      },
+    });
+
+    expect(webhook.ok).toBe(true);
+    const afterPay = hoisted.memoryBackend!.bookings.get(bookingId);
+    return { bookingId, afterPay, webhook, body };
+  }
+
+  it.each(ADMIN_ASSIST_RECURRING_DRAFT_SCENARIOS)(
+    "recurring Paystack flow preserves metadata and materializes: $label",
+    async (scenario) => {
+      const body = buildRecurringAdminAssistDraftBody(
+        scenario,
+        `recurring-paystack-${scenario.recurringSchedule.selectedDays.join("-")}-${scenario.pricingFrequency}`,
+      );
+
+      const { afterPay } = await runRecurringPaystackFlow(body);
+      expect(afterPay?.status).toBe("confirmed");
+
+      const persisted = readRecurringScheduleFromBookingMetadata(afterPay?.metadata);
+      expect(persisted).toEqual(scenario.recurringSchedule);
+
+      expect(dispatchMock.runPostPaymentAssignmentDispatch).toHaveBeenCalled();
+      expect(recurringMaterializationMock.runPostPaymentRecurringMaterialization).toHaveBeenCalled();
+
+      const materialized = recurringMaterializationMock.materialized.at(-1);
+      expect(materialized?.selectedDays).toEqual(scenario.recurringSchedule.selectedDays);
+      if (scenario.recurringSchedule.selectedDays.length > 1) {
+        expect(materialized?.groupId).toBeTruthy();
+        expect(materialized?.seriesIds.length).toBe(scenario.recurringSchedule.selectedDays.length);
+      } else {
+        expect(materialized?.seriesIds).toHaveLength(1);
+      }
+      expect(afterPay?.series_id).toBeTruthy();
+    },
+  );
 });

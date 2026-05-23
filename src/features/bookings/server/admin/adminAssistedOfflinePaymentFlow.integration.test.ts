@@ -8,9 +8,24 @@ import { adminCreatePendingPaymentBookingFacade } from "./adminCreatePendingPaym
 import { adminRecordOfflinePaymentFacade } from "./adminRecordOfflinePaymentFacade";
 import { isAdminAssistedBookingMetadata } from "./adminAssistMetadata";
 import type { AdminCreateBookingDraftBody } from "./parseAdminCreateBookingDraftBody";
+import {
+  buildRecurringAdminAssistDraftBody,
+  readRecurringScheduleFromBookingMetadata,
+  simulateRecurringMaterialization,
+} from "./adminAssistedRecurringIntegrationHarness";
 
 const dispatchMock = vi.hoisted(() => ({
   runPostPaymentAssignmentDispatch: vi.fn().mockResolvedValue({ ok: true }),
+}));
+
+const recurringMaterializationMock = vi.hoisted(() => ({
+  runPostPaymentRecurringMaterialization: vi.fn(),
+  materialized: [] as Array<{
+    bookingId: string;
+    selectedDays: number[];
+    groupId: string | null;
+    seriesIds: string[];
+  }>,
 }));
 
 vi.mock("@/lib/app/adminAssistedBookingFlag", () => ({
@@ -23,6 +38,11 @@ vi.mock("@/lib/app/adminAssistedOfflinePaymentsFlag", () => ({
 
 vi.mock("@/features/payments/server/postPaymentAssignmentDispatch", () => ({
   runPostPaymentAssignmentDispatch: dispatchMock.runPostPaymentAssignmentDispatch,
+}));
+
+vi.mock("@/features/recurring/postPaymentRecurringMaterialization", () => ({
+  runPostPaymentRecurringMaterialization: (...args: unknown[]) =>
+    recurringMaterializationMock.runPostPaymentRecurringMaterialization(...args),
 }));
 
 const hoisted = vi.hoisted(() => ({
@@ -241,6 +261,16 @@ describe("admin-assisted offline payment flow (integration)", () => {
     hoisted.assistState.offlineEvents = [];
     vi.stubEnv("BOOKING_COMMAND_BACKEND", "memory");
     dispatchMock.runPostPaymentAssignmentDispatch.mockClear();
+    recurringMaterializationMock.materialized = [];
+    recurringMaterializationMock.runPostPaymentRecurringMaterialization.mockImplementation(
+      async (_client, backend, booking) => {
+        const result = simulateRecurringMaterialization(
+          backend as { bookings: Map<string, { id: string; series_id: string | null; metadata: unknown }> },
+          booking as { id: string; metadata: unknown },
+        );
+        if (result) recurringMaterializationMock.materialized.push(result);
+      },
+    );
   });
 
   afterEach(() => {
@@ -304,5 +334,72 @@ describe("admin-assisted offline payment flow (integration)", () => {
     expect(hoisted.memoryBackend!.earnings.filter((e) => e.booking_id === bookingId)).toHaveLength(
       0,
     );
+  });
+
+  it("recurring draft → pending_payment → offline EFT → materializes after finalize", async () => {
+    const body = buildRecurringAdminAssistDraftBody(
+      {
+        label: "custom Mon + Thu weekly offline",
+        pricingFrequency: "weekly",
+        recurringSchedule: {
+          selectedDays: [1, 4],
+          intervalWeeks: 1,
+          configuredVia: "admin_wizard_custom",
+        },
+      },
+      "recurring-offline-mon-thu-12345678",
+    );
+
+    const draft = await adminCreateBookingDraftFacade({ admin: adminUser, body });
+    expect(draft.ok).toBe(true);
+    if (!draft.ok) return;
+    const bookingId = draft.bookingDraft.bookingId;
+
+    const pending = await adminCreatePendingPaymentBookingFacade({
+      admin: adminUser,
+      bookingId,
+      body: {
+        customerId: body.customerId,
+        idempotencyKey: "pending-recurring-offline-12345678",
+      },
+    });
+    expect(pending.ok).toBe(true);
+    expect(dispatchMock.runPostPaymentAssignmentDispatch).not.toHaveBeenCalled();
+    expect(recurringMaterializationMock.runPostPaymentRecurringMaterialization).not.toHaveBeenCalled();
+
+    const priceCents = hoisted.memoryBackend!.bookings.get(bookingId)!.price_cents;
+    const offline = await adminRecordOfflinePaymentFacade({
+      admin: adminUser,
+      bookingId,
+      body: {
+        customerId: body.customerId,
+        amountCents: priceCents,
+        rail: "eft",
+        bankReference: "BNK-RECURRING-OFFLINE",
+        receivedAt: "2026-01-01T10:00:00.000Z",
+        evidenceReference: "EV-RECURRING",
+        reason: "EFT received",
+        idempotencyKey: "offline-recurring-flow-12345678",
+      },
+    });
+
+    expect(offline.ok).toBe(true);
+    if (!offline.ok) return;
+
+    const booking = hoisted.memoryBackend!.bookings.get(bookingId);
+    expect(booking?.status).toBe("confirmed");
+    expect(isAdminAssistedBookingMetadata(booking?.metadata ?? null)).toBe(true);
+
+    const persisted = readRecurringScheduleFromBookingMetadata(booking?.metadata);
+    expect(persisted?.selectedDays).toEqual([1, 4]);
+    expect(persisted?.intervalWeeks).toBe(1);
+
+    expect(dispatchMock.runPostPaymentAssignmentDispatch).toHaveBeenCalled();
+    expect(recurringMaterializationMock.runPostPaymentRecurringMaterialization).toHaveBeenCalled();
+
+    const materialized = recurringMaterializationMock.materialized.at(-1);
+    expect(materialized?.groupId).toBeTruthy();
+    expect(materialized?.seriesIds).toHaveLength(2);
+    expect(booking?.series_id).toBeTruthy();
   });
 });
