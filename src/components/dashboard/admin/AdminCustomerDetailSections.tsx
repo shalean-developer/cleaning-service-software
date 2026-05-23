@@ -6,6 +6,7 @@ import { AdminCustomerBookingFilters } from "@/components/dashboard/admin/AdminC
 import { formatAdminCustomerLastActivity } from "@/features/customers/server/admin/adminCustomersListDisplay";
 import {
   ADMIN_CUSTOMER_ASSISTED_BOOKING_LABEL,
+  ADMIN_CUSTOMER_ASSISTED_BOOKING_PREVIEW_HELPER,
   buildAdminBookingCreateHref,
 } from "@/features/customers/server/admin/adminCustomerBookingAssist";
 import {
@@ -147,16 +148,23 @@ export function AdminCustomerDetailSections({
         description="Read-only booking shortcuts and counts (customer_id ownership)."
         defaultOpen
       >
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          {draftBookingEnabled ? (
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-1.5">
             <Link
               href={buildAdminBookingCreateHref(detail.customerId)}
-              className="inline-flex min-h-10 items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+              className={
+                draftBookingEnabled
+                  ? "inline-flex min-h-10 items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+                  : "inline-flex min-h-10 items-center justify-center rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100"
+              }
               data-testid="admin-customer-create-draft-booking"
             >
               {ADMIN_CUSTOMER_ASSISTED_BOOKING_LABEL}
             </Link>
-          ) : null}
+            {!draftBookingEnabled ? (
+              <p className="text-xs text-zinc-500">{ADMIN_CUSTOMER_ASSISTED_BOOKING_PREVIEW_HELPER}</p>
+            ) : null}
+          </div>
         </div>
 
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

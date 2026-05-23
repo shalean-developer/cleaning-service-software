@@ -28,28 +28,25 @@ export function AdminBookingWizardSummarySidebar({ summary }: Props) {
     >
       <div className="sticky top-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <h2 className={`text-sm font-semibold ${WIZARD_TEXT_PRIMARY}`}>Booking summary</h2>
-        <p className={`mt-0.5 text-xs ${WIZARD_TEXT_MUTED}`}>Preview only — not saved</p>
+        <p className={`mt-0.5 text-xs ${WIZARD_TEXT_MUTED}`}>Live preview — save on confirmation</p>
         <dl className="mt-3">
           <SummaryRow label="Customer" value={summary.customerLabel} />
           <SummaryRow label="Service" value={summary.serviceLabel} />
+          <SummaryRow label="Frequency" value={summary.frequencyLabel} />
+          <SummaryRow label="Extras" value={summary.extrasLabel} />
           <SummaryRow label="Schedule" value={summary.scheduleLabel} />
           <SummaryRow label="Address" value={summary.addressLabel} />
-          <SummaryRow label="Total" value={summary.totalLabel} />
+          <SummaryRow label="Access notes" value={summary.accessNotesLabel} />
+          <SummaryRow label="Special instructions" value={summary.specialInstructionsLabel} />
+          <SummaryRow label="Total (preview)" value={summary.totalLabel} />
           <SummaryRow label="Payment" value={summary.paymentLabel} />
         </dl>
         <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2">
           <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
-            Lifecycle preview
+            Lifecycle
           </p>
-          <p className="mt-1 font-mono text-xs text-slate-700">{summary.lifecyclePreview}</p>
+          <p className="mt-1 text-xs text-slate-700">{summary.lifecyclePreview}</p>
         </div>
-        <p
-          className="mt-3 flex items-center gap-1.5 text-xs text-slate-500"
-          data-testid="admin-booking-audit-indicator"
-        >
-          <span className="inline-block h-2 w-2 rounded-full bg-slate-300" aria-hidden />
-          No audit events (read-only)
-        </p>
       </div>
     </aside>
   );
@@ -71,7 +68,8 @@ export function AdminBookingWizardSummaryMobileSheet({ summary }: Props) {
       <p className={`mt-1 truncate text-xs ${WIZARD_TEXT_MUTED}`}>
         {summary.customerLabel} · {summary.serviceLabel}
       </p>
-      <p className="mt-1 font-mono text-[10px] text-slate-500">{summary.lifecyclePreview}</p>
+      <p className="mt-1 truncate text-xs text-slate-600">{summary.extrasLabel}</p>
+      <p className="mt-1 text-[10px] text-slate-500">{summary.lifecyclePreview}</p>
     </div>
   );
 }

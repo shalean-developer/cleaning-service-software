@@ -1,3 +1,4 @@
+import { isAdminAssistedBookingDraftEnabled } from "@/features/customers/server/admin/adminCustomerBookingAssist";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
@@ -97,7 +98,10 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
 
   return (
     <AdminDashboardShell nav={[...ADMIN_DASHBOARD_NAV]}>
-      <AdminBookingsOperationsHeader shownCount={displayedBookings.length} />
+      <AdminBookingsOperationsHeader
+        shownCount={displayedBookings.length}
+        draftBookingEnabled={isAdminAssistedBookingDraftEnabled()}
+      />
 
       {result.ok ? (
         <AdminBookingsOperationsToolbar

@@ -11,6 +11,7 @@ import {
   EMPTY_ADMIN_BOOKING_WIZARD_FORM,
   type AdminBookingWizardFormState,
 } from "./draftFormState";
+import { adminConfirmationActionsTestProps } from "./adminBookingWizardTestFixtures";
 
 const readyForm: AdminBookingWizardFormState = {
   ...EMPTY_ADMIN_BOOKING_WIZARD_FORM,
@@ -148,6 +149,7 @@ describe("Admin booking wizard Phase 3 UI", () => {
     const html = renderToStaticMarkup(
       <AdminBookingWizardCustomerStep
         form={EMPTY_ADMIN_BOOKING_WIZARD_FORM}
+        {...adminConfirmationActionsTestProps}
         onFormChange={() => {}}
       />,
     );
@@ -176,6 +178,7 @@ describe("Admin booking wizard Phase 3 UI", () => {
         paymentLinksEnabled={false}
         offlinePaymentsEnabled={false}
         form={EMPTY_ADMIN_BOOKING_WIZARD_FORM}
+        {...adminConfirmationActionsTestProps}
       />,
     );
     expect(html).toContain('data-testid="admin-booking-save-draft"');
@@ -189,6 +192,7 @@ describe("Admin booking wizard Phase 3 UI", () => {
         paymentLinksEnabled={false}
         offlinePaymentsEnabled={false}
         form={readyForm}
+        {...adminConfirmationActionsTestProps}
       />,
     );
     const saveButton = html.match(/data-testid="admin-booking-save-draft"[^>]*>/);
@@ -202,10 +206,11 @@ describe("AdminCustomerDetailSections draft CTA", () => {
     "utf8",
   );
 
-  it("gates CTA on draftBookingEnabled prop", () => {
+  it("styles CTA from draftBookingEnabled while keeping the link visible", () => {
     expect(source).toContain("draftBookingEnabled");
     expect(source).toContain('data-testid="admin-customer-create-draft-booking"');
     expect(source).toContain("buildAdminBookingCreateHref");
+    expect(source).toContain("ADMIN_CUSTOMER_ASSISTED_BOOKING_PREVIEW_HELPER");
   });
 
   it("does not link to customer self-serve book flow", () => {

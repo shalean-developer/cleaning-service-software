@@ -13,6 +13,8 @@ import type { AdminBookingWizardFormState, AdminBookingWizardSelectedCustomer } 
 type Props = {
   form: AdminBookingWizardFormState;
   onFormChange: (patch: Partial<AdminBookingWizardFormState>) => void;
+  prefillLoading?: boolean;
+  prefillError?: string | null;
 };
 
 function selectCustomer(
@@ -28,7 +30,12 @@ function selectCustomer(
   onFormChange({ customerId: customer.customerId, selectedCustomer: selected });
 }
 
-export function AdminBookingWizardCustomerStep({ form, onFormChange }: Props) {
+export function AdminBookingWizardCustomerStep({
+  form,
+  onFormChange,
+  prefillLoading,
+  prefillError,
+}: Props) {
   const searchId = useId();
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
@@ -127,6 +134,20 @@ export function AdminBookingWizardCustomerStep({ form, onFormChange }: Props) {
 
   return (
     <div data-testid="admin-booking-customer-step">
+      {prefillLoading ? (
+        <p className="mb-3 text-sm text-slate-600" data-testid="admin-booking-customer-prefill-loading">
+          Loading customer profile…
+        </p>
+      ) : null}
+      {prefillError ? (
+        <p
+          className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+          role="alert"
+          data-testid="admin-booking-customer-prefill-step-error"
+        >
+          {prefillError}
+        </p>
+      ) : null}
       <label htmlFor={searchId} className={`block text-xs font-medium ${WIZARD_TEXT_MUTED}`}>
         Search by name, email, or phone
       </label>

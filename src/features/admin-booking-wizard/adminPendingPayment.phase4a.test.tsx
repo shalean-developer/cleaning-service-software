@@ -7,6 +7,7 @@ import {
   EMPTY_ADMIN_BOOKING_WIZARD_FORM,
   type AdminBookingWizardFormState,
 } from "./draftFormState";
+import { adminConfirmationActionsTestProps } from "./adminBookingWizardTestFixtures";
 
 const wizardDir = path.join(process.cwd(), "src/features/admin-booking-wizard");
 
@@ -56,6 +57,7 @@ describe("Admin booking wizard Phase 4A", () => {
         paymentLinksEnabled={false}
         offlinePaymentsEnabled={false}
         form={readyForm}
+        {...adminConfirmationActionsTestProps}
       />,
     );
     expect(buttonMarkupHasDisabled(html, "admin-booking-create-unpaid")).toBe(true);
@@ -68,6 +70,7 @@ describe("Admin booking wizard Phase 4A", () => {
         paymentLinksEnabled={false}
         offlinePaymentsEnabled={false}
         form={readyForm}
+        {...adminConfirmationActionsTestProps}
       />,
     );
     expect(buttonMarkupHasDisabled(html, "admin-booking-finalize-paid")).toBe(true);
@@ -113,7 +116,7 @@ describe("admin booking detail Phase 4A", () => {
 
   it("shows pending payment badge and ops copy", () => {
     expect(pageSource).toContain("Admin-assisted pending payment");
-    expect(pageSource).toContain("No cleaner assignment starts until payment");
+    expect(pageSource).toContain("Cleaner assignment begins only after successful");
   });
 
   it("still shows draft badge for draft status", () => {

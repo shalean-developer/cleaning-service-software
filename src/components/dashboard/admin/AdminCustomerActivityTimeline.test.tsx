@@ -41,15 +41,15 @@ describe("AdminCustomerDetailSections", () => {
     expect(source).toContain("AdminCustomerActivityTimeline");
   });
 
-  it("includes booking operations panel, filters, and deferred create booking", () => {
+  it("includes booking operations panel, filters, and always-visible create booking CTA", () => {
     const source = readDetailSectionsSource();
     expect(source).toContain("Customer booking operations");
     expect(source).toContain("AdminCustomerBookingFilters");
     expect(source).toContain("AdminCustomerBookingCard");
     expect(source).toContain("Payment support summary");
     expect(source).toContain("customer_id ownership");
-    expect(source).toContain("ADMIN_CUSTOMER_ASSISTED_BOOKING_SUPPORTED");
-    expect(source).toContain("ADMIN_CUSTOMER_ASSISTED_BOOKING_DEFERRED_MESSAGE");
+    expect(source).toContain("ADMIN_CUSTOMER_ASSISTED_BOOKING_PREVIEW_HELPER");
+    expect(source).toContain('data-testid="admin-customer-create-draft-booking"');
     expect(source).not.toContain("mark-paid");
     expect(source).not.toContain("reassign");
   });

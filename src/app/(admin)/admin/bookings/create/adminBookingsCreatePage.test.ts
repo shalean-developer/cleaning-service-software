@@ -13,7 +13,7 @@ describe("/admin/bookings/create (Phase 1)", () => {
 
     const page = readSource("src/app/(admin)/admin/bookings/create/page.tsx");
     expect(page).toContain("AdminBookingWizard");
-    expect(page).toContain("read-only");
+    expect(page).toContain("isAdminAssistedBookingEnabled");
     expect(page).not.toContain("executeBookingCommand");
     expect(page).not.toContain("finalizePaidBooking");
   });

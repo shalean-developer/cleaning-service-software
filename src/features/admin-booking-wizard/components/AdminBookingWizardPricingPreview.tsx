@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import type { PricingBreakdown } from "@/features/pricing/server/types";
-import { WIZARD_SERVICE_OPTIONS } from "@/features/booking-wizard/constants";
+import { TEAM_SUPPORT_STEP_OPTIONS } from "@/features/booking-wizard/constants";
 import type { AdminBookingWizardFormState } from "../draftFormState";
-import { buildAdminDraftPricingInput } from "../draftFormState";
+import { buildAdminDraftPricingInput } from "../adminPricingInput";
+import { formatAdminBookingSummaryExtras } from "../adminBookingSummaryDisplay";
 import { fetchAdminDraftPricingQuote, formatAdminQuoteZar } from "../pricingApi";
+import { WIZARD_SERVICE_OPTIONS } from "@/features/booking-wizard/constants";
 
 type Props = {
   form: AdminBookingWizardFormState;
@@ -59,6 +61,11 @@ export function AdminBookingWizardPricingPreview({ form }: Props) {
     );
   }
 
+  const teamLabel =
+    form.serviceSlug === "regular-cleaning" && form.requestedTeamSize === 2
+      ? (TEAM_SUPPORT_STEP_OPTIONS.find((o) => o.value === 2)?.label ?? "Team of 2")
+      : "Single cleaner";
+
   return (
     <div data-testid="admin-booking-pricing-preview">
       <dl className="mb-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
@@ -74,11 +81,16 @@ export function AdminBookingWizardPricingPreview({ form }: Props) {
           <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Home size</dt>
           <dd>
             {form.bedrooms} bed · {form.bathrooms} bath
+            {form.extraRooms > 0 ? ` · ${form.extraRooms} extra` : ""}
           </dd>
         </div>
         <div>
           <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Team</dt>
-          <dd>Single cleaner (draft default)</dd>
+          <dd>{teamLabel}</dd>
+        </div>
+        <div className="sm:col-span-2">
+          <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Extras</dt>
+          <dd>{formatAdminBookingSummaryExtras(form)}</dd>
         </div>
       </dl>
 

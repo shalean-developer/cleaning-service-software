@@ -3,18 +3,30 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { AdminBookingWizard } from "./components/AdminBookingWizard";
 import { AdminBookingWizardConfirmationActions } from "./components/AdminBookingWizardConfirmationActions";
 import { EMPTY_ADMIN_BOOKING_WIZARD_FORM } from "./draftFormState";
+import { adminConfirmationActionsTestProps } from "./adminBookingWizardTestFixtures";
 
 describe("AdminBookingWizard", () => {
-  it("renders design-mode banner", () => {
+  it("renders preview-mode banner when feature flag is off", () => {
     const html = renderToStaticMarkup(
       <AdminBookingWizard
         featureEnabled={false}
         paymentLinksEnabled={false}
         offlinePaymentsEnabled={false}
-        offlinePaymentsEnabled={false}
       />,
     );
     expect(html).toContain('data-testid="admin-booking-design-mode-banner"');
+    expect(html).toContain("Admin-assisted booking preview mode");
+  });
+
+  it("hides preview banner when feature flag is on", () => {
+    const html = renderToStaticMarkup(
+      <AdminBookingWizard
+        featureEnabled
+        paymentLinksEnabled={false}
+        offlinePaymentsEnabled={false}
+      />,
+    );
+    expect(html).not.toContain('data-testid="admin-booking-design-mode-banner"');
   });
 
   it("disables save draft when feature flag is off", () => {
@@ -39,6 +51,7 @@ describe("AdminBookingWizard", () => {
           suburb: "Sea Point",
           city: "Cape Town",
         }}
+        {...adminConfirmationActionsTestProps}
       />,
     );
     expect(html).toContain('data-testid="admin-booking-save-draft"');
@@ -52,6 +65,7 @@ describe("AdminBookingWizard", () => {
         paymentLinksEnabled={false}
         offlinePaymentsEnabled={false}
         form={EMPTY_ADMIN_BOOKING_WIZARD_FORM}
+        {...adminConfirmationActionsTestProps}
       />,
     );
     expect(html).toContain('data-testid="admin-booking-finalize-paid"');

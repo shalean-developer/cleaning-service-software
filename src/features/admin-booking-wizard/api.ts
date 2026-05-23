@@ -1,3 +1,33 @@
+import {
+  type AdminBookingWizardFlowBookingDetail,
+} from "./adminBookingFlowSync";
+
+export async function fetchAdminBookingWizardFlowDetail(
+  bookingId: string,
+): Promise<
+  | { ok: true; booking: AdminBookingWizardFlowBookingDetail }
+  | { ok: false; message: string }
+> {
+  const trimmed = bookingId.trim();
+  if (!trimmed) {
+    return { ok: false, message: "Booking ID is required." };
+  }
+
+  const response = await fetch(`/api/admin/bookings/${encodeURIComponent(trimmed)}`);
+  const json = (await response.json()) as
+    | { ok: true; booking: AdminBookingWizardFlowBookingDetail }
+    | { ok: false; message?: string };
+
+  if (!response.ok || !json.ok || !("booking" in json)) {
+    return {
+      ok: false,
+      message: "message" in json && json.message ? json.message : "Could not refresh booking state.",
+    };
+  }
+
+  return { ok: true, booking: json.booking };
+}
+
 export type SaveAdminBookingDraftResponse =
   | {
       ok: true;

@@ -9,6 +9,7 @@ import {
   toneForCustomerDomainHealth,
 } from "@/features/customers/server/admin/adminCustomerOperationalDisplay";
 import type { AdminCustomerListItem } from "@/features/customers/server/admin/types";
+import { buildAdminBookingCreateHref } from "@/features/customers/server/admin/adminCustomerBookingAssist";
 import { ADMIN_LIST_CARD_CLASS } from "@/features/dashboards/adminDisplay";
 
 type Props = {
@@ -125,12 +126,13 @@ export function AdminCustomerListTable({ items }: Props) {
                   <Link href={editHref} className={QUICK_ACTION_CLASS}>
                     Edit contact
                   </Link>
-                  <span
-                    className={`${QUICK_ACTION_CLASS} cursor-not-allowed border-dashed text-zinc-400`}
-                    title="Admin-assisted booking coming soon"
+                  <Link
+                    href={buildAdminBookingCreateHref(item.customerId)}
+                    className={QUICK_ACTION_CLASS}
+                    data-testid="admin-customer-list-create-booking"
                   >
                     Create booking
-                  </span>
+                  </Link>
                 </div>
               </article>
             </li>

@@ -25,7 +25,7 @@ describe("admin booking wizard draft form", () => {
     ).toBe(false);
   });
 
-  it("builds request body when form is complete", () => {
+  it("builds request body with composed address notes", () => {
     const future = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     const date = future.toISOString().slice(0, 10);
 
@@ -45,12 +45,17 @@ describe("admin booking wizard draft form", () => {
         addressLine1: "12 Main",
         suburb: "Sea Point",
         city: "Cape Town",
+        accessInstructions: "Ring bell",
+        petNotes: "Cat indoors",
+        addons: ["inside-fridge"],
+        requestedTeamSize: 2,
       },
       "idem-key-12345678",
     );
 
-    expect(body).not.toBeNull();
-    expect(body?.customerId).toBe("11111111-1111-4111-8111-111111111111");
-    expect(body?.pricingInput.serviceSlug).toBe("regular-cleaning");
+    expect(body?.address.locationNotes).toContain("Access: Ring bell");
+    expect(body?.address.specialInstructions).toContain("Pets: Cat indoors");
+    expect(body?.pricingInput.addons).toEqual(["inside-fridge"]);
+    expect(body?.pricingInput.requestedTeamSize).toBe(2);
   });
 });

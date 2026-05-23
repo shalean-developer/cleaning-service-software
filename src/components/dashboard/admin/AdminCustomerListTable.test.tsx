@@ -16,7 +16,8 @@ describe("AdminCustomerListTable", () => {
     expect(source).toContain("View");
     expect(source).toContain("Edit contact");
     expect(source).toContain("Create booking");
-    expect(source).toContain("coming soon");
+    expect(source).toContain("buildAdminBookingCreateHref");
+    expect(source).not.toContain("coming soon");
     expect(source).not.toMatch(/delete/i);
     expect(source).not.toContain("method=\"delete\"");
   });

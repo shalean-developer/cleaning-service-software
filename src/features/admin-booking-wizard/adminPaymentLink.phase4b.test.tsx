@@ -7,6 +7,7 @@ import {
   EMPTY_ADMIN_BOOKING_WIZARD_FORM,
   type AdminBookingWizardFormState,
 } from "./draftFormState";
+import { adminConfirmationActionsTestProps } from "./adminBookingWizardTestFixtures";
 
 const wizardDir = path.join(process.cwd(), "src/features/admin-booking-wizard");
 
@@ -45,6 +46,7 @@ describe("Admin booking wizard Phase 4B", () => {
         paymentLinksEnabled={false}
         offlinePaymentsEnabled={false}
         form={readyForm}
+        {...adminConfirmationActionsTestProps}
       />,
     );
     expect(buttonMarkupHasDisabled(html, "admin-booking-send-payment-request")).toBe(true);
@@ -57,6 +59,7 @@ describe("Admin booking wizard Phase 4B", () => {
         paymentLinksEnabled={true}
         offlinePaymentsEnabled={false}
         form={readyForm}
+        {...adminConfirmationActionsTestProps}
       />,
     );
     expect(buttonMarkupHasDisabled(html, "admin-booking-send-payment-request")).toBe(true);
@@ -69,6 +72,7 @@ describe("Admin booking wizard Phase 4B", () => {
         paymentLinksEnabled={true}
         offlinePaymentsEnabled={false}
         form={readyForm}
+        {...adminConfirmationActionsTestProps}
       />,
     );
     expect(buttonMarkupHasDisabled(html, "admin-booking-finalize-paid")).toBe(true);

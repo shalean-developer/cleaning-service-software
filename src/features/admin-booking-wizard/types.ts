@@ -16,6 +16,10 @@ export type AdminBookingWizardSummary = {
   serviceLabel: string;
   scheduleLabel: string;
   addressLabel: string;
+  extrasLabel: string;
+  accessNotesLabel: string;
+  specialInstructionsLabel: string;
+  frequencyLabel: string;
   totalLabel: string;
   paymentLabel: string;
   lifecyclePreview: string;

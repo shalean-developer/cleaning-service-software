@@ -8,10 +8,14 @@ import { AdminBrandIcon } from "@/components/dashboard/admin/adminNavIcons";
 import {
   ADMIN_DASHBOARD_HOME,
   ADMIN_DASHBOARD_NAV_GROUPS,
+  ADMIN_SIDEBAR_UTILITY_LINKS,
 } from "@/features/dashboards/adminNav";
 
 const SIDEBAR_GROUP_LABEL_CLASS =
   "px-3 pb-1.5 pt-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 first:pt-2";
+
+const SIDEBAR_UTILITY_LINK_CLASS =
+  "inline-flex min-h-8 w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2";
 
 type Props = {
   pathname: string | null;
@@ -67,26 +71,39 @@ export function AdminSidebar({ pathname, onNavigate }: Props) {
         ))}
       </nav>
 
-      <div className="mt-auto border-t border-slate-200/80 px-3 py-4">
-        <div className="mb-3 flex justify-end">
+      <footer className="mt-auto border-t border-slate-200/80 px-3 py-3">
+        <div className="mb-2 flex justify-end">
           <AdminAccountBlock />
         </div>
-        <Link
-          href="/customer/book"
-          onClick={onNavigate}
-          className="inline-flex w-full min-h-10 items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
-        >
-          <Wand2 className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-          Customer booking flow
-        </Link>
+
+        <section aria-label="Tools" className="px-1 pb-2">
+          <p className={SIDEBAR_GROUP_LABEL_CLASS}>Tools</p>
+          <ul className="flex flex-col gap-0.5">
+            {ADMIN_SIDEBAR_UTILITY_LINKS.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  onClick={onNavigate}
+                  className={SIDEBAR_UTILITY_LINK_CLASS}
+                  data-testid="admin-sidebar-customer-booking-flow"
+                  title={item.description}
+                >
+                  <Wand2 className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden />
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
         <Link
           href="/"
           onClick={onNavigate}
-          className="mt-2 block text-center text-xs font-medium text-slate-500 transition-colors hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:rounded"
+          className="block px-2 text-center text-xs font-medium text-slate-500 transition-colors hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:rounded"
         >
           Hub
         </Link>
-      </div>
+      </footer>
     </div>
   );
 }
