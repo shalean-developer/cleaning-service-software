@@ -7,6 +7,7 @@ import type { Database } from "@/lib/database/types";
 import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { listProductionRolloutChecklist } from "./productionRolloutChecklistRepository";
 import { logProductionRolloutEvent } from "./productionRolloutLogger";
+import { loadAdminAssistedBookingDiagnostics } from "@/features/bookings/server/admin/adminAssistedBookingDiagnosticsReadModel";
 import {
   buildRolloutRecommendations,
   evaluateProductionEnvironment,
@@ -112,9 +113,10 @@ export async function loadProductionRolloutStatus(
   client: SupabaseClient<Database> = requireServiceRoleClient(),
 ): Promise<ProductionRolloutStatus & { featureFlagRecommendations: FeatureFlagRecommendations }> {
   try {
-    const [checklist, operationalHealth] = await Promise.all([
+    const [checklist, operationalHealth, adminAssistedDiagnostics] = await Promise.all([
       listProductionRolloutChecklist(client),
       loadOperationalHealth(client),
+      loadAdminAssistedBookingDiagnostics(client),
     ]);
 
     const environment = evaluateProductionEnvironment();
@@ -150,6 +152,7 @@ export async function loadProductionRolloutStatus(
       rolloutReadiness,
       recommendedNextSteps,
       checklist,
+      adminAssistedDiagnostics,
       featureFlagRecommendations,
     };
   } catch {

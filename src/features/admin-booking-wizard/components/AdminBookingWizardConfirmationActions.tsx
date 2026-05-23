@@ -19,12 +19,14 @@ import { WIZARD_BTN_PRIMARY, WIZARD_BTN_SECONDARY } from "@/features/booking-wiz
 type Props = {
   featureEnabled: boolean;
   paymentLinksEnabled: boolean;
+  offlinePaymentsEnabled: boolean;
   form: AdminBookingWizardFormState;
 };
 
 export function AdminBookingWizardConfirmationActions({
   featureEnabled,
   paymentLinksEnabled,
+  offlinePaymentsEnabled,
   form,
 }: Props) {
   const draftIdempotencyRef = useRef<string>(crypto.randomUUID());
@@ -357,6 +359,19 @@ export function AdminBookingWizardConfirmationActions({
       {error ? (
         <p id={errorId} className="text-sm text-red-700" role="alert">
           {error}
+        </p>
+      ) : null}
+      {pendingPayment && offlinePaymentsEnabled && saved?.bookingId ? (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          Record offline payment (EFT, cash, or card machine) from the{" "}
+          <Link
+            href={`/admin/bookings/${saved.bookingId}`}
+            className="font-medium underline-offset-2 hover:underline"
+            data-testid="admin-booking-offline-payment-booking-link"
+          >
+            booking detail page
+          </Link>
+          .
         </p>
       ) : null}
       <button

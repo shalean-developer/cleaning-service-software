@@ -31,6 +31,17 @@ export type AdminBookingPaymentLinkIdempotencyResult = {
   idempotent: boolean;
 };
 
+export type AdminBookingOfflinePaymentIdempotencyResult = {
+  bookingId: string;
+  status: "offline_payment";
+  rail: "eft" | "cash" | "card_machine";
+  reference: string;
+  paymentId: string;
+  priceCents: number;
+  currency: string;
+  idempotent: boolean;
+};
+
 export type AdminBookingPaymentRequestNotificationIdempotencyResult = {
   bookingId: string;
   status: "payment_request_notification";
@@ -47,7 +58,8 @@ export type AdminBookingAssistIdempotencyStoredResult =
   | AdminBookingDraftIdempotencyResult
   | AdminBookingPendingPaymentIdempotencyResult
   | AdminBookingPaymentLinkIdempotencyResult
-  | AdminBookingPaymentRequestNotificationIdempotencyResult;
+  | AdminBookingPaymentRequestNotificationIdempotencyResult
+  | AdminBookingOfflinePaymentIdempotencyResult;
 
 function parseStoredIdempotencyResult(
   raw: unknown,
@@ -58,6 +70,24 @@ function parseStoredIdempotencyResult(
   const row = raw as Record<string, unknown>;
   if (typeof row.bookingId !== "string") {
     return null;
+  }
+
+  if (
+    row.status === "offline_payment" &&
+    (row.rail === "eft" || row.rail === "cash" || row.rail === "card_machine") &&
+    typeof row.reference === "string" &&
+    typeof row.paymentId === "string"
+  ) {
+    return {
+      bookingId: row.bookingId,
+      status: "offline_payment",
+      rail: row.rail,
+      reference: row.reference,
+      paymentId: row.paymentId,
+      priceCents: typeof row.priceCents === "number" ? row.priceCents : 0,
+      currency: typeof row.currency === "string" ? row.currency : "ZAR",
+      idempotent: true,
+    };
   }
 
   if (
@@ -188,6 +218,17 @@ export async function findAdminBookingAssistPaymentRequestNotificationIdempotenc
   return stored;
 }
 
+export async function findAdminBookingAssistOfflinePaymentIdempotency(
+  client: SupabaseClient<Database>,
+  idempotencyKey: string,
+): Promise<AdminBookingOfflinePaymentIdempotencyResult | null> {
+  const stored = await findAdminBookingAssistIdempotencyResult(client, idempotencyKey);
+  if (!stored || stored.status !== "offline_payment") {
+    return null;
+  }
+  return stored;
+}
+
 export async function storeAdminBookingAssistIdempotency(
   client: SupabaseClient<Database>,
   input: {
@@ -232,9 +273,13 @@ export async function storeAdminBookingAssistIdempotencyResult(
           : undefined,
       reference:
         input.result.status === "payment_link" ||
-        input.result.status === "payment_request_notification"
+        input.result.status === "payment_request_notification" ||
+        input.result.status === "offline_payment"
           ? input.result.reference
           : undefined,
+      rail: input.result.status === "offline_payment" ? input.result.rail : undefined,
+      paymentId:
+        input.result.status === "offline_payment" ? input.result.paymentId : undefined,
       expiresAt: input.result.status === "payment_link" ? input.result.expiresAt : undefined,
       deliveryChannel:
         input.result.status === "payment_request_notification"

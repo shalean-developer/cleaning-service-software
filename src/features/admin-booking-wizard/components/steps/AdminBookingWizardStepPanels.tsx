@@ -44,6 +44,7 @@ type Props = {
   step: AdminBookingWizardStep;
   featureEnabled: boolean;
   paymentLinksEnabled: boolean;
+  offlinePaymentsEnabled: boolean;
   form: AdminBookingWizardFormState;
   onFormChange: (patch: Partial<AdminBookingWizardFormState>) => void;
 };
@@ -52,6 +53,7 @@ export function AdminBookingWizardStepPanel({
   step,
   featureEnabled,
   paymentLinksEnabled,
+  offlinePaymentsEnabled,
   form,
   onFormChange,
 }: Props) {
@@ -214,6 +216,7 @@ export function AdminBookingWizardStepPanel({
             <AdminBookingWizardConfirmationActions
               featureEnabled={featureEnabled}
               paymentLinksEnabled={paymentLinksEnabled}
+              offlinePaymentsEnabled={offlinePaymentsEnabled}
               form={form}
             />
           </div>

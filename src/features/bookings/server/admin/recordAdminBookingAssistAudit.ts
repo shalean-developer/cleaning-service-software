@@ -17,6 +17,9 @@ export const ADMIN_BOOKING_ASSIST_AUDIT_ACTIONS = [
   "admin_booking_payment_request_sent",
   "admin_booking_payment_link_rejected",
   "admin_booking_payment_link_idempotency_replayed",
+  "admin_booking_offline_payment_recorded",
+  "admin_booking_offline_payment_rejected",
+  "admin_booking_offline_payment_idempotency_replayed",
 ] as const;
 
 export type AdminBookingAssistAuditAction =

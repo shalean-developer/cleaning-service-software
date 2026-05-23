@@ -14,7 +14,9 @@ export type AdminAssistTimelineEntryKind =
   | "payment_link_expired"
   | "payment_request_copied"
   | "payment_request_sent"
-  | "payment_confirmed";
+  | "offline_payment_recorded"
+  | "payment_confirmed"
+  | "assignment_started";
 
 export type AdminAssistTimelineEntry = {
   id: string;
@@ -142,9 +144,47 @@ function mapAuditToTimelineEntry(row: AdminBookingAssistAuditRow): AdminAssistTi
         previousReference: null,
       };
     }
+    case "admin_booking_offline_payment_recorded": {
+      const rail = payloadString(payload, "rail");
+      return {
+        id: row.id,
+        at: row.createdAt,
+        kind: "offline_payment_recorded",
+        title: "Offline payment recorded",
+        description: rail
+          ? `${rail.replace(/_/g, " ")} payment recorded and booking finalized. Assignment proceeds via normal post-payment flow.`
+          : "Offline payment recorded and booking finalized.",
+        reference: payloadString(payload, "reference"),
+        deliveryChannel: rail,
+        adminProfileId: row.adminProfileId,
+        previousReference: null,
+      };
+    }
     default:
       return null;
   }
+}
+
+const POST_PAYMENT_STATUSES: readonly BookingStatus[] = [
+  "confirmed",
+  "pending_assignment",
+  "assigned",
+  "in_progress",
+  "completed",
+  "payout_ready",
+  "paid_out",
+];
+
+function paymentConfirmedDescription(input: {
+  audits: AdminBookingAssistAuditRow[];
+  paymentProvider: string | null;
+}): string {
+  const hadOffline = input.audits.some((a) => a.action === "admin_booking_offline_payment_recorded");
+  const provider = input.paymentProvider?.trim().toLowerCase() ?? "";
+  if (hadOffline || provider === "eft" || provider === "cash" || provider === "card_machine") {
+    return "Offline payment finalized; booking lifecycle continued via finalizePaidBooking.";
+  }
+  return "Paystack confirmed payment; booking lifecycle continued via finalizePaidBooking.";
 }
 
 export function buildAdminBookingAssistTimeline(input: {
@@ -152,6 +192,7 @@ export function buildAdminBookingAssistTimeline(input: {
   bookingStatus: BookingStatus;
   paymentLink: AdminAssistPaymentLinkMetadata | null;
   paymentConfirmedAt: string | null;
+  paymentProvider?: string | null;
   nowMs?: number;
 }): AdminAssistTimelineEntry[] {
   const nowMs = input.nowMs ?? Date.now();
@@ -180,23 +221,45 @@ export function buildAdminBookingAssistTimeline(input: {
     });
   }
 
-  if (
-    input.paymentConfirmedAt &&
-    (input.bookingStatus === "confirmed" ||
-      input.bookingStatus === "pending_assignment" ||
-      input.bookingStatus === "assigned" ||
-      input.bookingStatus === "in_progress" ||
-      input.bookingStatus === "completed" ||
-      input.bookingStatus === "payout_ready" ||
-      input.bookingStatus === "paid_out")
-  ) {
+  if (input.paymentConfirmedAt && POST_PAYMENT_STATUSES.includes(input.bookingStatus)) {
     entries.push({
       id: `derived-confirmed-${input.paymentConfirmedAt}`,
       at: input.paymentConfirmedAt,
       kind: "payment_confirmed",
       title: "Payment confirmed",
-      description: "Paystack confirmed payment; booking lifecycle continued.",
+      description: paymentConfirmedDescription({
+        audits: input.audits,
+        paymentProvider: input.paymentProvider ?? null,
+      }),
       reference: input.paymentLink?.reference ?? null,
+      deliveryChannel: null,
+      adminProfileId: null,
+      previousReference: null,
+    });
+  }
+
+  if (
+    input.paymentConfirmedAt &&
+    (input.bookingStatus === "pending_assignment" ||
+      input.bookingStatus === "assigned" ||
+      input.bookingStatus === "in_progress")
+  ) {
+    const assignmentAt = new Date(
+      new Date(input.paymentConfirmedAt).getTime() + 1,
+    ).toISOString();
+    entries.push({
+      id: `derived-assignment-${input.paymentConfirmedAt}`,
+      at: assignmentAt,
+      kind: "assignment_started",
+      title:
+        input.bookingStatus === "pending_assignment"
+          ? "Assignment started"
+          : "Assignment in progress",
+      description:
+        input.bookingStatus === "pending_assignment"
+          ? "Post-payment assignment dispatch is running (canonical finalize path)."
+          : "Cleaner assignment progressed after payment confirmation.",
+      reference: null,
       deliveryChannel: null,
       adminProfileId: null,
       previousReference: null,

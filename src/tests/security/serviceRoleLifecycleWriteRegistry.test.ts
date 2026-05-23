@@ -47,6 +47,8 @@ export const ALLOWED_SERVICE_ROLE_LIFECYCLE_IMPORTERS = new Set([
   "features/bookings/server/admin/adminCreatePendingPaymentBookingFacade.ts",
   "features/bookings/server/admin/adminGeneratePaymentLinkFacade.ts",
   "features/bookings/server/admin/adminSendPaymentRequestNotificationFacade.ts",
+  "features/bookings/server/admin/adminRecordOfflinePaymentFacade.ts",
+  "features/bookings/server/admin/adminOfflinePaymentEventRepository.ts",
   "features/bookings/server/admin/adminRecordPaymentLinkCopiedFacade.ts",
   "features/customer-payments/server/customerPaymentHistory.ts",
   "features/production-rollout/server/productionRolloutChecklistRepository.ts",

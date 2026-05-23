@@ -24,7 +24,7 @@ export type FinalizePaidBookingInput = {
   bookingId: string;
   paymentId: string;
   charge: PaystackChargeSuccess;
-  source: "webhook" | "verify";
+  source: "webhook" | "verify" | "offline";
 };
 
 export type FinalizePaidBookingResult =
@@ -93,7 +93,12 @@ export async function finalizePaidBookingWithDeps(
     const recorded = await recordEvent(client, {
       paymentId: payment.id,
       providerEventId: input.charge.providerEventId,
-      eventType: input.source === "webhook" ? "charge.success" : "verify.success",
+      eventType:
+        input.source === "webhook"
+          ? "charge.success"
+          : input.source === "verify"
+            ? "verify.success"
+            : "offline.recorded",
       payload: {
         reference: input.charge.reference,
         transactionId: input.charge.transactionId,
@@ -117,11 +122,21 @@ export async function finalizePaidBookingWithDeps(
     bookingId: input.bookingId,
     paymentId: payment.id,
     idempotencyKey,
-    reason: `Paystack ${input.source}`,
-    metadata: {
-      paystackReference: input.charge.reference,
-      paystackTransactionId: input.charge.transactionId,
-    },
+    reason:
+      input.source === "offline"
+        ? `Offline payment (${String(input.charge.metadata.rail ?? "offline")})`
+        : `Paystack ${input.source}`,
+    metadata:
+      input.source === "offline"
+        ? {
+            offlineReference: input.charge.reference,
+            offlineRail: input.charge.metadata.rail,
+            evidenceReference: input.charge.metadata.evidenceReference,
+          }
+        : {
+            paystackReference: input.charge.reference,
+            paystackTransactionId: input.charge.transactionId,
+          },
   });
 
   if (!commandResult.ok) {

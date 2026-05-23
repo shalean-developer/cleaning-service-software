@@ -46,6 +46,8 @@ export type AdminBookingFilter =
   | "payment_link_sent"
   | "payment_link_expired"
   | "admin_assisted_only"
+  | "paid_via_offline"
+  | "paid_via_paystack_link"
   | "assignment_attention"
   | "dispatch_not_started"
   | "selected_declined"
@@ -549,6 +551,7 @@ export function matchesAdminBookingFilter(
     | "paymentFailureReason"
     | "adminAssisted"
     | "paymentRequestState"
+    | "adminAssistPaidVia"
   >,
   filter: AdminBookingFilter,
 ): boolean {
@@ -566,6 +569,10 @@ export function matchesAdminBookingFilter(
       return item.paymentRequestState === "link_expired";
     case "admin_assisted_only":
       return item.adminAssisted === true;
+    case "paid_via_offline":
+      return item.adminAssistPaidVia === "offline";
+    case "paid_via_paystack_link":
+      return item.adminAssistPaidVia === "paystack_link";
     case "assignment_attention":
       return (
         key === "needs_assignment" ||

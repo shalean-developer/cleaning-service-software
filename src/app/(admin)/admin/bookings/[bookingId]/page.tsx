@@ -77,8 +77,10 @@ import {
 import { AdminBookingSupportRequestsPanel } from "@/components/dashboard/admin/AdminBookingSupportRequestsPanel";
 import { AdminBookingDeleteDangerZone } from "@/components/dashboard/admin/AdminBookingDeleteDangerZone";
 import { AdminBookingDetailPaymentLinkPanel } from "@/components/dashboard/admin/AdminBookingDetailPaymentLinkPanel";
+import { AdminBookingDetailOfflinePaymentPanel } from "@/components/dashboard/admin/AdminBookingDetailOfflinePaymentPanel";
 import { AdminBookingAssistPaymentTimeline } from "@/components/dashboard/admin/AdminBookingAssistPaymentTimeline";
 import { isAdminAssistedPaymentLinksActive } from "@/lib/app/adminAssistedPaymentLinksFlag";
+import { isAdminAssistedOfflinePaymentsActive } from "@/lib/app/adminAssistedOfflinePaymentsFlag";
 import { listBookingSupportRequestsForBooking } from "@/features/bookings/server/bookingSupportRequestsService";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -275,14 +277,23 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
         />
 
         {b.adminAssistedDraft && b.status === "pending_payment" ? (
-          <AdminBookingDetailPaymentLinkPanel
-            bookingId={b.id}
-            customerId={b.customerId}
-            paymentLinksEnabled={isAdminAssistedPaymentLinksActive()}
-            customerHasEmail={b.customerHasEmail}
-            existingLink={b.adminAssistPaymentLink}
-            supersededLinks={b.adminAssistSupersededPaymentLinks}
-          />
+          <>
+            <AdminBookingDetailPaymentLinkPanel
+              bookingId={b.id}
+              customerId={b.customerId}
+              paymentLinksEnabled={isAdminAssistedPaymentLinksActive()}
+              customerHasEmail={b.customerHasEmail}
+              existingLink={b.adminAssistPaymentLink}
+              supersededLinks={b.adminAssistSupersededPaymentLinks}
+            />
+            <AdminBookingDetailOfflinePaymentPanel
+              bookingId={b.id}
+              customerId={b.customerId}
+              amountCents={b.priceCents}
+              offlinePaymentsEnabled={isAdminAssistedOfflinePaymentsActive()}
+              activePaymentLink={b.adminAssistPaymentLink}
+            />
+          </>
         ) : null}
 
         {b.adminAssistedDraft && b.adminAssistPaymentTimeline.length > 0 ? (

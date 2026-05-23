@@ -43,6 +43,7 @@ describe("Admin booking wizard Phase 4B", () => {
       <AdminBookingWizardConfirmationActions
         featureEnabled={true}
         paymentLinksEnabled={false}
+        offlinePaymentsEnabled={false}
         form={readyForm}
       />,
     );
@@ -54,6 +55,7 @@ describe("Admin booking wizard Phase 4B", () => {
       <AdminBookingWizardConfirmationActions
         featureEnabled={true}
         paymentLinksEnabled={true}
+        offlinePaymentsEnabled={false}
         form={readyForm}
       />,
     );
@@ -65,6 +67,7 @@ describe("Admin booking wizard Phase 4B", () => {
       <AdminBookingWizardConfirmationActions
         featureEnabled={true}
         paymentLinksEnabled={true}
+        offlinePaymentsEnabled={false}
         form={readyForm}
       />,
     );

@@ -4,7 +4,8 @@ export type ProductionRolloutChecklistCategory =
   | "core_setup"
   | "live_qa"
   | "controlled_rollout"
-  | "final_enablement";
+  | "final_enablement"
+  | "admin_assisted_booking";
 
 export type ProductionRolloutChecklistItem = {
   id: string;
@@ -61,6 +62,7 @@ export type ProductionRolloutStatus = {
   rolloutReadiness: ProductionRolloutReadiness;
   recommendedNextSteps: string[];
   checklist: ProductionRolloutChecklistItem[];
+  adminAssistedDiagnostics: import("@/features/bookings/server/admin/adminAssistedBookingDiagnosticsReadModel").AdminAssistedBookingDiagnostics;
 };
 
 export type RecommendedFeatureFlagChange = {
@@ -92,6 +94,19 @@ export const PRODUCTION_ROLLOUT_CHECKLIST_KEYS = [
   "refund_sync_rollout_ack",
   "admin_charges_disabled_ack",
   "admin_charge_test_completed",
+  "admin_assisted_booking_draft_tested",
+  "admin_assisted_pending_payment_tested",
+  "admin_assisted_payment_link_tested",
+  "admin_assisted_payment_request_email_tested",
+  "admin_assisted_offline_payment_eft_tested",
+  "admin_assisted_offline_payment_cash_tested",
+  "admin_assisted_offline_payment_card_machine_tested",
+  "admin_assisted_assignment_parity_verified",
+  "admin_assisted_customer_visibility_verified",
+  "admin_assisted_cleaner_visibility_verified",
+  "admin_assisted_payout_safety_verified",
+  "admin_assisted_webhook_parity_verified",
+  "admin_assisted_feature_flags_verified",
 ] as const;
 
 export type ProductionRolloutChecklistKey = (typeof PRODUCTION_ROLLOUT_CHECKLIST_KEYS)[number];

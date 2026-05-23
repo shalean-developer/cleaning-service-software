@@ -146,6 +146,22 @@ describe("adminOperationalHelpers", () => {
     expect(matchesAdminBookingFilter(listItem({ adminAssisted: false }), "admin_assisted_only")).toBe(
       false,
     );
+
+    const paidOffline = listItem({
+      status: "confirmed",
+      adminAssisted: true,
+      adminAssistPaidVia: "offline",
+    });
+    expect(matchesAdminBookingFilter(paidOffline, "paid_via_offline")).toBe(true);
+    expect(matchesAdminBookingFilter(paidOffline, "paid_via_paystack_link")).toBe(false);
+
+    const paidLink = listItem({
+      status: "pending_assignment",
+      adminAssisted: true,
+      adminAssistPaidVia: "paystack_link",
+    });
+    expect(matchesAdminBookingFilter(paidLink, "paid_via_paystack_link")).toBe(true);
+    expect(matchesAdminBookingFilter(paidLink, "paid_via_offline")).toBe(false);
   });
 
   it("filters bookings by payment_failed and search text", () => {

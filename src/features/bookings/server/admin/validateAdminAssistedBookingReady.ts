@@ -145,3 +145,9 @@ export function validateAdminAssistedPendingPaymentForPaymentLink(
 
   return { ok: true };
 }
+
+export function validateAdminAssistedPendingPaymentForOfflineRecord(
+  booking: AdminAssistedBookingRow,
+): AdminAssistedBookingValidationResult {
+  return validateAdminAssistedPendingPaymentForPaymentLink(booking);
+}

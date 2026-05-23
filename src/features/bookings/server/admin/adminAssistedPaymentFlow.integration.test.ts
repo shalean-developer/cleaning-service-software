@@ -6,6 +6,7 @@ import type { InMemoryBookingCommandBackend } from "@/features/bookings/server/c
 import { adminCreateBookingDraftFacade } from "./adminCreateBookingDraftFacade";
 import { adminCreatePendingPaymentBookingFacade } from "./adminCreatePendingPaymentBookingFacade";
 import { adminGeneratePaymentLinkFacade } from "./adminGeneratePaymentLinkFacade";
+import { isAdminAssistedBookingMetadata } from "./adminAssistMetadata";
 import { routePaystackWebhookEvent } from "@/features/payments/server/routePaystackWebhookEvent";
 import type { AdminCreateBookingDraftBody } from "./parseAdminCreateBookingDraftBody";
 import {
@@ -244,6 +245,7 @@ describe("admin-assisted Paystack payment flow (integration)", () => {
     hoisted.memoryBackend = new InMemoryBookingCommandBackend();
     hoisted.memoryBackend.bookings.clear();
     hoisted.memoryBackend.payments.clear();
+    hoisted.memoryBackend.earnings = [];
     hoisted.assistState.idempotency.clear();
     hoisted.assistState.audits = [];
     hoisted.assistState.paymentsByRef.clear();
@@ -350,6 +352,10 @@ describe("admin-assisted Paystack payment flow (integration)", () => {
 
     const afterPay = hoisted.memoryBackend!.bookings.get(bookingId);
     expect(afterPay?.status).toBe("confirmed");
+    expect(isAdminAssistedBookingMetadata(afterPay?.metadata ?? null)).toBe(true);
     expect(dispatchMock.runPostPaymentAssignmentDispatch).toHaveBeenCalled();
+    expect(hoisted.memoryBackend!.earnings.filter((e) => e.booking_id === bookingId)).toHaveLength(
+      0,
+    );
   });
 });

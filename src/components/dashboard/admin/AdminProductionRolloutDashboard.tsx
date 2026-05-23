@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminAssistedBookingDiagnosticsPanel } from "@/components/dashboard/admin/AdminAssistedBookingDiagnosticsPanel";
 import { AdminProductionRolloutChecklistItem } from "@/components/dashboard/admin/AdminProductionRolloutChecklistItem";
 import type {
   FeatureFlagRecommendations,
@@ -26,6 +27,7 @@ const CATEGORY_LABELS: Record<ProductionRolloutChecklistCategory, string> = {
   live_qa: "B. Live QA",
   controlled_rollout: "C. Controlled rollout",
   final_enablement: "D. Final enablement",
+  admin_assisted_booking: "E. Admin-assisted booking",
 };
 
 function StatusPill({ ok, label }: { ok: boolean; label: string }) {
@@ -83,6 +85,7 @@ export function AdminProductionRolloutDashboard({ data }: Props) {
     recommendedNextSteps,
     featureFlagRecommendations,
     checklist,
+    adminAssistedDiagnostics,
   } = data;
 
   const exportHref = "/api/admin/production-rollout/export?format=csv";
@@ -161,6 +164,8 @@ export function AdminProductionRolloutDashboard({ data }: Props) {
           <StatusPill ok={rolloutReadiness.safeForAdminCharges} label="Admin charges" />
         </div>
       </section>
+
+      <AdminAssistedBookingDiagnosticsPanel diagnostics={adminAssistedDiagnostics} />
 
       <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
         <h2 className="text-base font-semibold text-zinc-900">Monitoring</h2>
@@ -245,6 +250,7 @@ export function AdminProductionRolloutDashboard({ data }: Props) {
         <ChecklistSection category="live_qa" items={checklist} />
         <ChecklistSection category="controlled_rollout" items={checklist} />
         <ChecklistSection category="final_enablement" items={checklist} />
+        <ChecklistSection category="admin_assisted_booking" items={checklist} />
       </section>
 
       <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">

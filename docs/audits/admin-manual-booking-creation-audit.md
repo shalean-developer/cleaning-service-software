@@ -2,13 +2,11 @@
 
 **Date:** 2026-05-23  
 **Scope:** Readiness for admin-assisted booking (create on behalf of customer)  
-**Phase 1 status:** Read-only UI shell shipped; mutations deferred.
+**Phase 6 status:** Parity QA, rollout checklist, diagnostics, and staged flag design shipped.
 
 ## Executive summary
 
-Admin booking creation readiness is **2/10** for production mutations. The canonical lifecycle engine, payment finalize path, and assignment/earnings stacks are mature. What is missing is a **safe admin façade** with explicit `onBehalfOfCustomerId`, HTTP entry points, and payment rails that converge on `finalizePaidBooking()`.
-
-Phase 1 adds `/admin/bookings/create` as a **design preview only** — no commands, no API mutations, feature flag off by default.
+Admin booking creation readiness is **8/10** for staged production rollout. Draft, pending payment, Paystack links, payment request notifications, and offline recording all converge on `finalizePaidBooking()`. Remaining work: live QA sign-off via production checklist, phased flag enablement, and Phase 7 analytics/notifications polish.
 
 ## Findings
 
@@ -44,15 +42,17 @@ Phase 1 adds `/admin/bookings/create` as a **design preview only** — no comman
 |------|--------|
 | Paystack online (customer) | Production |
 | Zoho invoice Paystack link | Production (separate table) |
-| EFT / cash / card machine | **Missing** |
-| Admin payment link for booking | **Missing** |
+| EFT / cash / card machine | **Shipped** (Phase 5, flag-gated) |
+| Admin payment link for booking | **Shipped** (Phase 4, flag-gated) |
 | Corporate monthly invoice → booking | **Missing** |
 
 ### Audit and flags
 
 - `ADMIN_CUSTOMER_ASSISTED_BOOKING_SUPPORTED = false` in `adminCustomerBookingAssist.ts`
 - `ADMIN_ASSISTED_BOOKING_ENABLED` env flag — **false by default** (Phase 1)
-- `admin_booking_assist_audit` table — **not yet** (Phase 2+)
+- `admin_booking_assist_audit` table — **shipped** (Phase 2+)
+- `admin_offline_payment_events` table — **shipped** (Phase 5)
+- Phase 6 parity tests + rollout checklist keys — **shipped**
 
 ### Misleading labels (fixed Phase 1)
 
@@ -85,8 +85,9 @@ See [admin-assisted-booking-system.md](../architecture/admin-assisted-booking-sy
 - [x] `adminCreateBookingDraftFacade` → `CREATE_BOOKING_DRAFT` only  
 - [x] `POST /api/admin/bookings/draft` (no `POST /api/admin/bookings`)  
 - [x] Wizard “Save draft” when `ADMIN_ASSISTED_BOOKING_ENABLED=true`  
-- [ ] Payment links / offline record (Phase 4–5)  
-- [ ] `ADMIN_CREATE_BOOKING` full create (Phase 3+)  
+- [x] Payment links / offline record (Phase 4–5)  
+- [x] Phase 6 parity QA + rollout checklist + diagnostics  
+- [ ] `ADMIN_CREATE_BOOKING` full create (Phase 3+) — still deferred  
 
 ## Related code
 

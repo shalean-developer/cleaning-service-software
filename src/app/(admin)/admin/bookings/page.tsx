@@ -34,6 +34,8 @@ const VALID_FILTERS = new Set<AdminBookingFilter>([
   "payment_link_sent",
   "payment_link_expired",
   "admin_assisted_only",
+  "paid_via_offline",
+  "paid_via_paystack_link",
   "assignment_attention",
   "dispatch_not_started",
   "selected_declined",

@@ -87,6 +87,44 @@ export async function sendAdminPaymentRequestNotification(
   return (await response.json()) as SendAdminPaymentRequestNotificationResponse;
 }
 
+export type RecordAdminOfflinePaymentResponse =
+  | {
+      ok: true;
+      payment: {
+        bookingId: string;
+        status: "confirmed";
+        paymentStatus: "paid";
+        rail: "eft" | "cash" | "card_machine";
+        reference: string;
+      };
+    }
+  | { ok: false; error: string; message: string };
+
+export async function recordAdminOfflinePayment(
+  bookingId: string,
+  body: {
+    customerId: string;
+    amountCents: number;
+    rail: "eft" | "cash" | "card_machine";
+    receivedAt: string;
+    evidenceReference: string;
+    reason: string;
+    idempotencyKey: string;
+    bankReference?: string;
+    terminalReference?: string;
+    receiptNumber?: string;
+    notes?: string;
+    confirmSupersedesActivePaymentLink?: boolean;
+  },
+): Promise<RecordAdminOfflinePaymentResponse> {
+  const response = await fetch(`/api/admin/bookings/${bookingId}/offline-payment`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return (await response.json()) as RecordAdminOfflinePaymentResponse;
+}
+
 export async function generateAdminPaymentLink(
   bookingId: string,
   body: {

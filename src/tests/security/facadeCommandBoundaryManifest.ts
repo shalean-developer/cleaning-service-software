@@ -86,6 +86,14 @@ export const FACADE_BOUNDARY_RULES: FacadeBoundaryRule[] = [
     allowedDirectWriteException: false,
   },
   {
+    facadeFile: "features/bookings/server/admin/adminRecordOfflinePaymentFacade.ts",
+    exportSymbols: ["adminRecordOfflinePaymentFacade"],
+    tier: "payment_orchestrator",
+    allowedOrchestratorSymbols: ["finalizePaidBooking"],
+    allowedServiceRoleImport: true,
+    allowedDirectWriteException: false,
+  },
+  {
     facadeFile: "features/bookings/server/lock/createPaymentRetryLock.ts",
     exportSymbols: ["createPaymentRetryLock"],
     tier: "lock_infra",
@@ -339,6 +347,8 @@ export const ROUTE_FACADE_SYMBOL_TO_FILE: Record<string, string> = {
     "features/bookings/server/admin/adminGeneratePaymentLinkFacade.ts",
   adminSendPaymentRequestNotificationFacade:
     "features/bookings/server/admin/adminSendPaymentRequestNotificationFacade.ts",
+  adminRecordOfflinePaymentFacade:
+    "features/bookings/server/admin/adminRecordOfflinePaymentFacade.ts",
   createPaymentRetryLock: "features/bookings/server/lock/createPaymentRetryLock.ts",
   initializePayment: "features/payments/server/initializePayment.ts",
   verifyPayment: "features/payments/server/verifyPayment.ts",

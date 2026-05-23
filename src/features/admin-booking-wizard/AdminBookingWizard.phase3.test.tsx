@@ -174,6 +174,7 @@ describe("Admin booking wizard Phase 3 UI", () => {
       <AdminBookingWizardConfirmationActions
         featureEnabled={true}
         paymentLinksEnabled={false}
+        offlinePaymentsEnabled={false}
         form={EMPTY_ADMIN_BOOKING_WIZARD_FORM}
       />,
     );
@@ -186,6 +187,7 @@ describe("Admin booking wizard Phase 3 UI", () => {
       <AdminBookingWizardConfirmationActions
         featureEnabled={true}
         paymentLinksEnabled={false}
+        offlinePaymentsEnabled={false}
         form={readyForm}
       />,
     );

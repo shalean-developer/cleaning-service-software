@@ -64,7 +64,7 @@ function collectRouteFacadeSymbols(): string[] {
 
 describe("facade command boundary guard (static, 5B-2c-min)", () => {
   it("covers 23 unique route-referenced facade modules", () => {
-    expect(FACADE_BOUNDARY_RULES).toHaveLength(31);
+    expect(FACADE_BOUNDARY_RULES).toHaveLength(32);
   });
 
   it("maps every route facade symbol to a manifest row", () => {

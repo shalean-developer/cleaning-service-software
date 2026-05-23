@@ -881,6 +881,22 @@ export type AdminBookingAssistAuditRow = {
   created_at: string;
 };
 
+export type AdminOfflinePaymentEventRow = {
+  id: string;
+  booking_id: string;
+  customer_id: string;
+  admin_profile_id: string;
+  rail: string;
+  amount_cents: number;
+  currency: string;
+  evidence_reference: string;
+  provider_reference: string;
+  idempotency_key: string;
+  status: string;
+  payload: Json;
+  created_at: string;
+};
+
 export type AdminBookingAssistIdempotencyRow = {
   idempotency_key: string;
   admin_profile_id: string;
@@ -959,6 +975,7 @@ export type Database = {
       admin_delete_audit: PublicTable<AdminDeleteAuditRow>;
       admin_booking_assist_audit: PublicTable<AdminBookingAssistAuditRow>;
       admin_booking_assist_idempotency: PublicTable<AdminBookingAssistIdempotencyRow>;
+      admin_offline_payment_events: PublicTable<AdminOfflinePaymentEventRow>;
     };
     Views: Record<
       string,

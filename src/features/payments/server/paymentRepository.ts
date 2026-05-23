@@ -41,6 +41,59 @@ export async function updatePaymentProviderRef(
   if (error) throw new Error(error.message);
 }
 
+export async function findPendingPaymentForBooking(
+  client: SupabaseClient<Database>,
+  bookingId: string,
+): Promise<PaymentRow | null> {
+  const { data, error } = await client
+    .from("payments")
+    .select("*")
+    .eq("booking_id", bookingId)
+    .in("status", ["pending", "initialized"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function findPaidPaymentForBooking(
+  client: SupabaseClient<Database>,
+  bookingId: string,
+): Promise<PaymentRow | null> {
+  const { data, error } = await client
+    .from("payments")
+    .select("*")
+    .eq("booking_id", bookingId)
+    .eq("status", "paid")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function updatePaymentOfflineProvider(
+  client: SupabaseClient<Database>,
+  paymentId: string,
+  patch: {
+    provider: string;
+    providerRef: string;
+    metadata?: Record<string, unknown>;
+  },
+): Promise<void> {
+  const update: Record<string, unknown> = {
+    provider: patch.provider,
+    provider_ref: patch.providerRef,
+    updated_at: new Date().toISOString(),
+  };
+  if (patch.metadata !== undefined) {
+    update.metadata = patch.metadata;
+  }
+  const { error } = await client.from("payments").update(update).eq("id", paymentId);
+  if (error) throw new Error(error.message);
+}
+
 export async function getPaymentById(
   client: SupabaseClient<Database>,
   paymentId: string,

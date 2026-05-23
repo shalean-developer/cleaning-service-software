@@ -21,6 +21,7 @@ import {
   resolveAdminAssistPaymentRequestVisibility,
 } from "@/features/bookings/server/admin/adminAssistPaymentLinkMetadata";
 import { buildAdminBookingAssistTimeline } from "@/features/bookings/server/admin/buildAdminBookingAssistTimeline";
+import { resolveAdminAssistPaidVia } from "@/features/bookings/server/admin/resolveAdminAssistPaidVia";
 import { loadAdminBookingAssistAudits } from "@/features/bookings/server/admin/loadAdminBookingAssistAudits";
 import { resolveCustomerEmailOrNull } from "@/features/notifications/server/resolveCustomerEmailOrNull";
 import { resolvePaymentFailureReason } from "@/features/bookings/server/paymentFailureDisplay";
@@ -305,6 +306,12 @@ async function buildAdminBookingListItem(
     row.status,
     adminAssisted,
   );
+  const adminAssistPaidVia = resolveAdminAssistPaidVia({
+    metadata: row.metadata,
+    bookingStatus: row.status,
+    paymentStatus: payment?.status ?? null,
+    paymentProvider: payment?.provider ?? null,
+  });
 
   return {
     id: row.id,
@@ -341,6 +348,7 @@ async function buildAdminBookingListItem(
     adminAssisted: paymentRequest.adminAssisted,
     paymentRequestState: paymentRequest.state,
     paymentLinkExpiresAt: paymentRequest.paymentLink?.expiresAt ?? null,
+    adminAssistPaidVia,
     searchText: buildSearchText([
       row.id,
       customerLabel,
@@ -907,6 +915,7 @@ export async function getAdminBookingDetail(
           bookingStatus: row.status,
           paymentLink: readAdminAssistPaymentLinkMetadata(row.metadata),
           paymentConfirmedAt: paidPayment?.paid_at ?? paidPayment?.updated_at ?? null,
+          paymentProvider: paidPayment?.provider ?? null,
         });
       })(),
       cleanerId: row.cleaner_id,

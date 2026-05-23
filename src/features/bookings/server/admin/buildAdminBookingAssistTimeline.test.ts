@@ -100,4 +100,40 @@ describe("buildAdminBookingAssistTimeline", () => {
       "WhatsApp",
     );
   });
+
+  it("maps offline payment recorded audit", () => {
+    const entries = buildAdminBookingAssistTimeline({
+      audits: [
+        {
+          id: "a5",
+          adminProfileId: "admin-1",
+          customerId: "cust-1",
+          bookingId: "book-1",
+          action: "admin_booking_offline_payment_recorded",
+          idempotencyKey: "k5",
+          payload: { rail: "eft", reference: "admin:offline:eft:key" },
+          createdAt: "2026-01-01T13:00:00.000Z",
+        },
+      ],
+      bookingStatus: "confirmed",
+      paymentLink: null,
+      paymentConfirmedAt: "2026-01-01T13:05:00.000Z",
+    });
+
+    expect(entries.some((e) => e.kind === "offline_payment_recorded")).toBe(true);
+    const confirmed = entries.find((e) => e.kind === "payment_confirmed");
+    expect(confirmed?.description).toContain("Offline payment finalized");
+  });
+
+  it("adds assignment started after payment on pending_assignment", () => {
+    const entries = buildAdminBookingAssistTimeline({
+      audits: [],
+      bookingStatus: "pending_assignment",
+      paymentLink: null,
+      paymentConfirmedAt: "2026-01-02T09:00:00.000Z",
+      paymentProvider: "paystack",
+    });
+
+    expect(entries.some((e) => e.kind === "assignment_started")).toBe(true);
+  });
 });

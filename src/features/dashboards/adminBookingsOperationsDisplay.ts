@@ -133,6 +133,12 @@ function deriveAlertLabels(
   if (booking.adminAssisted && booking.status === "pending_payment" && booking.paymentRequestState === "awaiting") {
     alerts.push("Awaiting payment");
   }
+  if (booking.adminAssistPaidVia === "offline") {
+    alerts.push("Paid via offline");
+  }
+  if (booking.adminAssistPaidVia === "paystack_link") {
+    alerts.push("Paid via Paystack link");
+  }
   if (booking.deferredDispatch?.phase === "dispatch_overdue") {
     alerts.push("Late arrival risk");
   }

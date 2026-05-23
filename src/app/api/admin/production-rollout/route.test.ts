@@ -77,6 +77,28 @@ describe("GET /api/admin/production-rollout", () => {
       },
       recommendedNextSteps: ["QA saved methods"],
       checklist: [],
+      adminAssistedDiagnostics: {
+        generatedAt: new Date().toISOString(),
+        readOnly: true,
+        featureFlags: {
+          bookingEnabled: false,
+          paymentLinksEnabled: false,
+          offlinePaymentsEnabled: false,
+        },
+        counts: {
+          assistedDrafts: 0,
+          pendingPayment: 0,
+          paymentLinksActive: 0,
+          paymentLinksExpired: 0,
+          offlinePaymentsRecorded: 0,
+          offlinePaymentsFinalized: 0,
+          offlinePaymentsFailed: 0,
+          confirmedAfterAssistPayment: 0,
+          failedPaymentRequestNotifications: 0,
+          assignmentDispatchAttention: 0,
+        },
+        scan: { bookingsScanned: 0, capped: false },
+      },
       featureFlagRecommendations: {
         currentFlags: {
           invoicePaymentsEnabled: true,

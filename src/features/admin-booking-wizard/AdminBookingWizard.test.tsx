@@ -7,7 +7,12 @@ import { EMPTY_ADMIN_BOOKING_WIZARD_FORM } from "./draftFormState";
 describe("AdminBookingWizard", () => {
   it("renders design-mode banner", () => {
     const html = renderToStaticMarkup(
-      <AdminBookingWizard featureEnabled={false} paymentLinksEnabled={false} />,
+      <AdminBookingWizard
+        featureEnabled={false}
+        paymentLinksEnabled={false}
+        offlinePaymentsEnabled={false}
+        offlinePaymentsEnabled={false}
+      />,
     );
     expect(html).toContain('data-testid="admin-booking-design-mode-banner"');
   });
@@ -17,6 +22,7 @@ describe("AdminBookingWizard", () => {
       <AdminBookingWizardConfirmationActions
         featureEnabled={false}
         paymentLinksEnabled={false}
+        offlinePaymentsEnabled={false}
         form={{
           ...EMPTY_ADMIN_BOOKING_WIZARD_FORM,
           customerId: "11111111-1111-4111-8111-111111111111",
@@ -44,6 +50,7 @@ describe("AdminBookingWizard", () => {
       <AdminBookingWizardConfirmationActions
         featureEnabled={true}
         paymentLinksEnabled={false}
+        offlinePaymentsEnabled={false}
         form={EMPTY_ADMIN_BOOKING_WIZARD_FORM}
       />,
     );

@@ -191,6 +191,8 @@ describe("adminBookingsListQuery", () => {
     expect(needsInMemoryRefinement({ filter: "payment_link_sent" })).toBe(true);
     expect(needsInMemoryRefinement({ filter: "payment_link_expired" })).toBe(true);
     expect(needsInMemoryRefinement({ filter: "admin_assisted_only" })).toBe(true);
+    expect(needsInMemoryRefinement({ filter: "paid_via_offline" })).toBe(true);
+    expect(needsInMemoryRefinement({ filter: "paid_via_paystack_link" })).toBe(true);
     expect(hasServerSideSqlFilters({ search: "acme" })).toBe(true);
     expect(hasServerSideSearch({ search: "ab" })).toBe(false);
     expect(hasServerSideSqlFilters({ filter: "max_attempts" })).toBe(true);

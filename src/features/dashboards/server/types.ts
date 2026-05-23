@@ -15,6 +15,7 @@ import type {
   AdminAssistPaymentLinkMetadata,
   AdminAssistPaymentRequestState,
 } from "@/features/bookings/server/admin/adminAssistPaymentLinkMetadata";
+import type { AdminAssistPaidVia } from "@/features/bookings/server/admin/resolveAdminAssistPaidVia";
 import type { AdminAssistTimelineEntry } from "@/features/bookings/server/admin/buildAdminBookingAssistTimeline";
 import type {
   AdminOperationalLoadSignals,
@@ -168,6 +169,8 @@ export type AdminBookingListItem = {
   /** Derived payment-request visibility for admin-assisted bookings. */
   paymentRequestState?: AdminAssistPaymentRequestState;
   paymentLinkExpiresAt?: string | null;
+  /** Settled rail for paid admin-assisted bookings (read-model only). */
+  adminAssistPaidVia?: AdminAssistPaidVia | null;
 };
 
 export type AdminBookingsListResult = {

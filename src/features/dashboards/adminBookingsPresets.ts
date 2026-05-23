@@ -7,6 +7,8 @@ export type AdminBookingsPresetId =
   | "payment_link_sent"
   | "payment_link_expired"
   | "admin_assisted"
+  | "paid_via_offline"
+  | "paid_via_paystack_link"
   | "paid_no_assignment"
   | "deferred"
   | "team_support"
@@ -25,6 +27,12 @@ export const ADMIN_PAYMENT_REQUEST_PRESETS: readonly AdminBookingsPreset[] = [
   { id: "payment_link_sent", label: "Payment link sent", filter: "payment_link_sent" },
   { id: "payment_link_expired", label: "Link expired", filter: "payment_link_expired" },
   { id: "admin_assisted", label: "Admin-assisted", filter: "admin_assisted_only" },
+  { id: "paid_via_offline", label: "Paid via offline", filter: "paid_via_offline" },
+  {
+    id: "paid_via_paystack_link",
+    label: "Paid via Paystack link",
+    filter: "paid_via_paystack_link",
+  },
 ] as const;
 
 export const ADMIN_BOOKINGS_PRESETS: readonly AdminBookingsPreset[] = [
