@@ -33,6 +33,9 @@ export function AdminBookingWizardSummarySidebar({ summary }: Props) {
           <SummaryRow label="Customer" value={summary.customerLabel} />
           <SummaryRow label="Service" value={summary.serviceLabel} />
           <SummaryRow label="Frequency" value={summary.frequencyLabel} />
+          {summary.recurringScheduleLabel !== "—" ? (
+            <SummaryRow label="Recurring" value={summary.recurringScheduleLabel} />
+          ) : null}
           <SummaryRow label="Extras" value={summary.extrasLabel} />
           <SummaryRow label="Schedule" value={summary.scheduleLabel} />
           <SummaryRow label="Address" value={summary.addressLabel} />

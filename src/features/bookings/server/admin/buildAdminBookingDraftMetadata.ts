@@ -19,6 +19,11 @@ export function buildAdminBookingDraftMetadata(input: {
   address: AdminBookingDraftAddressInput;
   cleanerPreferenceMode?: "best_available" | "selected";
   selectedCleanerId?: string | null;
+  recurringSchedule?: {
+    selectedDays: number[];
+    intervalWeeks?: number;
+    configuredVia: "admin_wizard_custom" | "admin_wizard_preset";
+  } | null;
 }): Record<string, unknown> {
   const quoteMeta = buildBookingQuoteMetadata(input.pricingInput, input.breakdown);
   const suburb = input.address.suburb.trim();
@@ -51,6 +56,17 @@ export function buildAdminBookingDraftMetadata(input: {
     preferred_cleaner_id:
       input.cleanerPreferenceMode === "selected" ? input.selectedCleanerId ?? null : null,
     timezone: "Africa/Johannesburg",
+    ...(input.recurringSchedule
+      ? {
+          recurringSchedule: {
+            selectedDays: input.recurringSchedule.selectedDays,
+            ...(input.recurringSchedule.intervalWeeks !== undefined
+              ? { intervalWeeks: input.recurringSchedule.intervalWeeks }
+              : {}),
+            configuredVia: input.recurringSchedule.configuredVia,
+          },
+        }
+      : {}),
   };
 }
 

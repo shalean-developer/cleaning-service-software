@@ -36,6 +36,14 @@ export function AdminBookingWizardConfirmationReview({ form, compact = false }: 
         <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Service & extras</h3>
         <p className="mt-1 text-sm text-slate-900">{labels.serviceLabel}</p>
         <p className="text-xs capitalize text-slate-500">{labels.frequencyLabel}</p>
+        {labels.recurringScheduleLabel !== "—" ? (
+          <p
+            className="mt-1 text-xs text-slate-600"
+            data-testid="admin-booking-review-recurring-summary"
+          >
+            {labels.recurringScheduleLabel}
+          </p>
+        ) : null}
         <p className="mt-1 text-xs text-slate-600" data-testid="admin-booking-review-extras">
           {extras}
         </p>

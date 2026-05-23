@@ -2,6 +2,7 @@ import type { AdminBookingWizardStep } from "./types";
 import type { AdminBookingWizardFormState } from "./draftFormState";
 import { isAdminDraftFormReadyForSave } from "./draftFormState";
 import { validateAdminSchedule } from "./adminScheduleValidation";
+import { validateAdminRecurringSchedule } from "./adminRecurringSchedule";
 
 export type AdminStepValidation = {
   valid: boolean;
@@ -18,11 +19,16 @@ export function validateAdminWizardStep(
         return { valid: false, message: "Select or create a customer before continuing." };
       }
       return { valid: true, message: null };
-    case "service":
+    case "service": {
       if (!form.serviceSlug) {
         return { valid: false, message: "Select a service before continuing." };
       }
+      const recurringError = validateAdminRecurringSchedule(form);
+      if (recurringError) {
+        return { valid: false, message: recurringError };
+      }
       return { valid: true, message: null };
+    }
     case "schedule": {
       const schedule = validateAdminSchedule(form.date, form.time);
       return { valid: schedule.valid, message: schedule.message };

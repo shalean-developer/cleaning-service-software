@@ -19,4 +19,16 @@ describe("validateAdminWizardStep", () => {
     });
     expect(result.valid).toBe(true);
   });
+
+  it("blocks custom recurring without weekdays", () => {
+    const result = validateAdminWizardStep("service", {
+      ...EMPTY_ADMIN_BOOKING_WIZARD_FORM,
+      serviceSlug: "regular-cleaning",
+      frequency: "custom",
+      recurringDays: [],
+      recurringIntervalWeeks: 1,
+    });
+    expect(result.valid).toBe(false);
+    expect(result.message).toContain("weekday");
+  });
 });

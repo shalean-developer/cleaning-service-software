@@ -58,4 +58,39 @@ describe("admin booking wizard draft form", () => {
     expect(body?.pricingInput.addons).toEqual(["inside-fridge"]);
     expect(body?.pricingInput.requestedTeamSize).toBe(2);
   });
+
+  it("includes recurring schedule metadata for custom weekly cadence", () => {
+    const future = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const date = future.toISOString().slice(0, 10);
+
+    const body = buildAdminDraftRequestBody(
+      {
+        ...EMPTY_ADMIN_BOOKING_WIZARD_FORM,
+        customerId: "11111111-1111-4111-8111-111111111111",
+        selectedCustomer: {
+          customerId: "11111111-1111-4111-8111-111111111111",
+          label: "Test",
+          email: null,
+          phone: null,
+        },
+        serviceSlug: "regular-cleaning",
+        date,
+        time: "09:00",
+        addressLine1: "12 Main",
+        suburb: "Sea Point",
+        city: "Cape Town",
+        frequency: "custom",
+        recurringDays: [1, 4],
+        recurringIntervalWeeks: 1,
+      },
+      "idem-key-12345678",
+    );
+
+    expect(body?.pricingInput.frequency).toBe("weekly");
+    expect(body?.recurringSchedule).toEqual({
+      selectedDays: [1, 4],
+      intervalWeeks: 1,
+      configuredVia: "admin_wizard_custom",
+    });
+  });
 });

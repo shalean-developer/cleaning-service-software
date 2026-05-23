@@ -91,6 +91,7 @@ import { isAdminAssistedPaymentLinksActive } from "@/lib/app/adminAssistedPaymen
 import { isAdminAssistedOfflinePaymentsActive } from "@/lib/app/adminAssistedOfflinePaymentsFlag";
 import { listBookingSupportRequestsForBooking } from "@/features/bookings/server/bookingSupportRequestsService";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 type PageProps = { params: Promise<{ bookingId: string }> };
 
@@ -114,7 +115,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
   const assistOperatorNames =
     b.adminAssistedDraft && b.adminAssistPaymentTimeline.length > 0
       ? await loadAdminAssistOperatorNames(
-          await createSupabaseServerClient(),
+          requireServiceRoleClient(),
           b.adminAssistPaymentTimeline.map((e) => e.adminProfileId).filter(Boolean) as string[],
         )
       : {};

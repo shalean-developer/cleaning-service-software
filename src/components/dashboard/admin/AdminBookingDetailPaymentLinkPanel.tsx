@@ -41,19 +41,7 @@ export function AdminBookingDetailPaymentLinkPanel({
   const [loading, setLoading] = useState(false);
   const [notifyLoading, setNotifyLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [link, setLink] = useState<{
-    paymentUrl: string;
-    reference: string;
-    expiresAt: string;
-  } | null>(
-    existingLink
-      ? {
-          paymentUrl: existingLink.paymentUrl,
-          reference: existingLink.reference,
-          expiresAt: existingLink.expiresAt,
-        }
-      : null,
-  );
+  const [link, setLink] = useState<AdminAssistPaymentLinkMetadata | null>(existingLink);
   const [copied, setCopied] = useState(false);
   const [whatsappCopied, setWhatsappCopied] = useState(false);
   const [lastNotification, setLastNotification] = useState<{
@@ -94,6 +82,10 @@ export function AdminBookingDetailPaymentLinkPanel({
           paymentUrl: result.paymentLink.paymentUrl,
           reference: result.paymentLink.reference,
           expiresAt: result.paymentLink.expiresAt,
+          generatedAt: new Date().toISOString(),
+          generatedByProfileId: existingLink?.generatedByProfileId ?? "",
+          deliveryChannel: "copy_only",
+          paymentId: result.paymentLink.reference,
         });
       } catch {
         setError("Could not generate payment link.");

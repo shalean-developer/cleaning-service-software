@@ -6,6 +6,7 @@ import {
   PRICING_FREQUENCIES,
   SERVICE_SLUGS,
 } from "@/features/pricing/server/types";
+import { validateAdminRecurringScheduleForDraftBody } from "@/features/admin-booking-wizard/adminRecurringSchedule";
 
 const pricingInputSchema = z.object({
   serviceSlug: z.enum(SERVICE_SLUGS),
@@ -18,6 +19,12 @@ const pricingInputSchema = z.object({
   frequency: z.enum(PRICING_FREQUENCIES),
   addons: z.array(z.enum(ADDON_SLUGS)).optional(),
   requestedTeamSize: z.number().int().min(1).max(4).optional(),
+});
+
+const recurringScheduleSchema = z.object({
+  selectedDays: z.array(z.number().int().min(0).max(6)).min(1).max(7),
+  intervalWeeks: z.number().int().min(1).max(12).optional(),
+  configuredVia: z.enum(["admin_wizard_custom", "admin_wizard_preset"]),
 });
 
 const addressSchema = z.object({
@@ -38,6 +45,7 @@ export const adminCreateBookingDraftBodySchema = z.object({
   scheduledStart: z.string().datetime({ offset: true, message: "scheduledStart must be ISO-8601." }),
   scheduledEnd: z.string().datetime({ offset: true, message: "scheduledEnd must be ISO-8601." }),
   pricingInput: pricingInputSchema,
+  recurringSchedule: recurringScheduleSchema.optional(),
   address: addressSchema,
   cleanerPreferenceMode: z.enum(["best_available", "selected"]).optional(),
   selectedCleanerId: z.string().uuid().nullable().optional(),
@@ -80,6 +88,18 @@ export function parseAdminCreateBookingDraftBody(
       ok: false,
       code: "INVALID_PAYLOAD",
       message: "selectedCleanerId is required when cleanerPreferenceMode is selected.",
+    };
+  }
+
+  const recurringError = validateAdminRecurringScheduleForDraftBody({
+    pricingFrequency: parsed.data.pricingInput.frequency,
+    recurringSchedule: parsed.data.recurringSchedule ?? null,
+  });
+  if (recurringError) {
+    return {
+      ok: false,
+      code: "INVALID_PAYLOAD",
+      message: recurringError,
     };
   }
 

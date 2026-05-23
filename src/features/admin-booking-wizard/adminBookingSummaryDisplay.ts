@@ -7,6 +7,10 @@ import type { PricingBreakdown } from "@/features/pricing/server/types";
 import { formatAdminQuoteZar } from "./pricingApi";
 import type { AdminBookingWizardFormState } from "./draftFormState";
 import { composeAdminLocationNotes, composeAdminSpecialInstructions } from "./adminAddressCompose";
+import {
+  formatAdminFrequencyDisplayLabel,
+  formatAdminRecurringScheduleSummary,
+} from "./adminRecurringSchedule";
 
 function serviceLabel(slug: string): string {
   return WIZARD_SERVICE_OPTIONS.find((opt) => opt.slug === slug)?.label ?? slug;
@@ -50,6 +54,13 @@ export function buildAdminBookingSummaryLabels(
   const locationNotes = composeAdminLocationNotes(form);
   const specialInstructions = composeAdminSpecialInstructions(form);
 
+  const recurringScheduleLabel = formatAdminRecurringScheduleSummary({
+    frequency: form.frequency,
+    recurringDays: form.recurringDays,
+    recurringIntervalWeeks: form.recurringIntervalWeeks,
+    time: form.time,
+  });
+
   return {
     customerLabel: form.selectedCustomer?.label ?? "Not selected",
     serviceLabel: form.serviceSlug ? serviceLabel(form.serviceSlug) : "Not selected",
@@ -62,6 +73,10 @@ export function buildAdminBookingSummaryLabels(
     accessNotesLabel: locationNotes || "None",
     specialInstructionsLabel: specialInstructions || "None",
     totalLabel: quote ? formatAdminQuoteZar(quote.totalCents) : "Select service for quote",
-    frequencyLabel: form.frequency.replace(/_/g, " "),
+    frequencyLabel: formatAdminFrequencyDisplayLabel(
+      form.frequency,
+      form.recurringIntervalWeeks,
+    ),
+    recurringScheduleLabel: recurringScheduleLabel ?? "—",
   };
 }

@@ -2,7 +2,13 @@ import type { ReactNode } from "react";
 import type { ServiceSlug } from "@/features/pricing/server/types";
 import { WIZARD_SERVICE_OPTIONS } from "@/features/booking-wizard/constants";
 import { WIZARD_TEXT_MUTED, WIZARD_TEXT_PRIMARY } from "@/features/booking-wizard/wizardTheme";
-import { PRICING_FREQUENCIES } from "@/features/pricing/server/types";
+import {
+  ADMIN_BOOKING_WIZARD_FREQUENCY_OPTIONS,
+  adminWizardShowsRecurringBuilder,
+  defaultAdminRecurringDaysForSchedule,
+  validateAdminRecurringSchedule,
+} from "../../adminRecurringSchedule";
+import type { AdminBookingWizardFrequency } from "../../draftFormState";
 import {
   resolveAdminScheduleBounds,
   resolveAdminScheduleHelperCopy,
@@ -19,6 +25,7 @@ import { AdminBookingWizardCustomerStep } from "../AdminBookingWizardCustomerSte
 import { AdminBookingWizardPaymentStepPanel } from "../AdminBookingWizardPaymentStepPanel";
 import { AdminBookingWizardPricingPreview } from "../AdminBookingWizardPricingPreview";
 import { AdminBookingWizardServiceDetailsSection } from "../AdminBookingWizardServiceDetailsSection";
+import { AdminBookingWizardRecurringSchedulePanel } from "../AdminBookingWizardRecurringSchedulePanel";
 import { AdminBookingWizardOfflinePaymentHandoff } from "../AdminBookingWizardOfflinePaymentHandoff";
 import { AdminBookingWizardRecoveryPanel } from "../AdminBookingWizardRecoveryPanel";
 import { deriveAdminBookingFlowProgress } from "../../adminBookingFlowState";
@@ -110,7 +117,10 @@ export function AdminBookingWizardStepPanel({
           />
         </StepShell>
       );
-    case "service":
+    case "service": {
+      const recurringValidationError = validateAdminRecurringSchedule(form);
+      const showRecurringBuilder = adminWizardShowsRecurringBuilder(form.frequency);
+
       return (
         <StepShell
           title="Service"
@@ -143,23 +153,47 @@ export function AdminBookingWizardStepPanel({
             <FieldLabel>Frequency</FieldLabel>
             <select
               value={form.frequency}
-              onChange={(e) =>
-                onFormChange({
-                  frequency: e.target.value as AdminBookingWizardFormState["frequency"],
-                })
-              }
+              onChange={(e) => {
+                const frequency = e.target.value as AdminBookingWizardFrequency;
+                if (frequency === "custom" || frequency === "weekly" || frequency === "biweekly") {
+                  onFormChange({
+                    frequency,
+                    recurringDays: defaultAdminRecurringDaysForSchedule(
+                      form.date,
+                      form.recurringDays,
+                    ),
+                    recurringIntervalWeeks:
+                      frequency === "biweekly"
+                        ? 2
+                        : frequency === "custom"
+                          ? form.recurringIntervalWeeks || 1
+                          : 1,
+                  });
+                  return;
+                }
+                onFormChange({ frequency });
+              }}
               className="mt-1 w-full min-h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+              data-testid="admin-booking-frequency-select"
             >
-              {PRICING_FREQUENCIES.map((f) => (
-                <option key={f} value={f}>
-                  {f.replace(/_/g, " ")}
+              {ADMIN_BOOKING_WIZARD_FREQUENCY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>
           </label>
+          {showRecurringBuilder ? (
+            <AdminBookingWizardRecurringSchedulePanel
+              form={form}
+              onFormChange={onFormChange}
+              validationError={recurringValidationError}
+            />
+          ) : null}
           <AdminBookingWizardServiceDetailsSection form={form} onFormChange={onFormChange} />
         </StepShell>
       );
+    }
     case "schedule":
       return (
         <StepShell

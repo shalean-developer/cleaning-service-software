@@ -49,7 +49,7 @@ export async function POST(request: Request, context: RouteContext) {
       checklistKey,
       completed: body.completed,
       notes: body.notes,
-      adminProfileId: user.id,
+      adminProfileId: user.profileId,
     });
     return NextResponse.json({ ok: true, item });
   } catch {

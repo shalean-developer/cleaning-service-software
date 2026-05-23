@@ -52,5 +52,5 @@ export async function GET(request: Request) {
     limit: Number.isFinite(limit) ? limit : 50,
   });
 
-  return NextResponse.json({ ok: true, ...result });
+  return NextResponse.json(result);
 }

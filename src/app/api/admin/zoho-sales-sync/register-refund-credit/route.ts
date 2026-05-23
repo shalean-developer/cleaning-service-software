@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     invoiceNumber: body.invoiceNumber?.trim() || null,
     zohoInvoiceId: body.zohoInvoiceId?.trim() || null,
     paystackReference: body.paystackReference?.trim() || null,
-    initiatedByAdminId: user.id,
+    initiatedByAdminId: user.profileId,
   });
 
   if (!result.ok) {

@@ -8,9 +8,15 @@ import type {
   PricingInput,
   ServiceSlug,
 } from "@/features/pricing/server/types";
-import { PRICING_FREQUENCIES } from "@/features/pricing/server/types";
 import { buildAdminDraftAddressPayload } from "./adminAddressCompose";
 import { buildAdminDraftPricingInput } from "./adminPricingInput";
+import {
+  buildAdminRecurringScheduleMetadata,
+  validateAdminRecurringSchedule,
+  type AdminBookingWizardFrequency,
+} from "./adminRecurringSchedule";
+
+export type { AdminBookingWizardFrequency };
 
 export type AdminBookingWizardSelectedCustomer = {
   customerId: string;
@@ -42,7 +48,9 @@ export type AdminBookingWizardFormState = {
   propertySizeSqm: number | null;
   officeSizeTier: OfficeSizeTier | null;
   officeWorkstations: OfficeWorkstationTier | null;
-  frequency: (typeof PRICING_FREQUENCIES)[number];
+  frequency: AdminBookingWizardFrequency;
+  recurringDays: number[];
+  recurringIntervalWeeks: number;
   addons: AddonSlug[];
   carpetStainSeverity: CarpetStainSeverity | null;
   carpetPetStains: boolean;
@@ -74,6 +82,8 @@ export const EMPTY_ADMIN_BOOKING_WIZARD_FORM: AdminBookingWizardFormState = {
   officeSizeTier: null,
   officeWorkstations: null,
   frequency: "once",
+  recurringDays: [],
+  recurringIntervalWeeks: 1,
   addons: [],
   carpetStainSeverity: null,
   carpetPetStains: false,
@@ -87,6 +97,7 @@ export function isAdminDraftFormReadyForSave(state: AdminBookingWizardFormState)
   if (!state.serviceSlug) return false;
   if (!state.date.trim() || !state.time.trim()) return false;
   if (!state.addressLine1.trim() || !state.suburb.trim() || !state.city.trim()) return false;
+  if (validateAdminRecurringSchedule(state)) return false;
   const slot = buildWizardSlot(state.date, state.time);
   return slot !== null;
 }
@@ -104,6 +115,12 @@ export function buildAdminDraftRequestBody(
   }
 
   const address = buildAdminDraftAddressPayload(state);
+  const recurringSchedule = buildAdminRecurringScheduleMetadata({
+    frequency: state.frequency,
+    recurringDays: state.recurringDays,
+    recurringIntervalWeeks: state.recurringIntervalWeeks,
+    scheduleDate: state.date,
+  });
 
   return {
     customerId: state.customerId.trim(),
@@ -111,6 +128,7 @@ export function buildAdminDraftRequestBody(
     scheduledStart: slot.scheduledStart,
     scheduledEnd: slot.scheduledEnd,
     pricingInput,
+    ...(recurringSchedule ? { recurringSchedule } : {}),
     address: {
       addressLine1: address.addressLine1,
       suburb: address.suburb,

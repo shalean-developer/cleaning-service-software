@@ -30,13 +30,20 @@ export async function GET(_request: Request, context: RouteContext) {
       );
     }
 
+    if ("status" in result) {
+      return NextResponse.json(
+        {
+          ok: false,
+          status: result.status,
+          message: result.message,
+        },
+        { status: httpStatusForFailure(result.status) },
+      );
+    }
+
     return NextResponse.json(
-      {
-        ok: false,
-        status: result.status,
-        message: result.message,
-      },
-      { status: httpStatusForFailure(result.status) },
+      { ok: false, message: result.message },
+      { status: 502 },
     );
   }
 

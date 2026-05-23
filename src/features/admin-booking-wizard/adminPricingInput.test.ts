@@ -43,4 +43,16 @@ describe("buildAdminDraftPricingInput", () => {
   it("returns null without a service slug", () => {
     expect(buildAdminDraftPricingInput(EMPTY_ADMIN_BOOKING_WIZARD_FORM)).toBeNull();
   });
+
+  it("maps custom weekly cadence to weekly pricing frequency", () => {
+    const input = buildAdminDraftPricingInput({
+      ...EMPTY_ADMIN_BOOKING_WIZARD_FORM,
+      serviceSlug: "regular-cleaning",
+      frequency: "custom",
+      recurringIntervalWeeks: 2,
+      recurringDays: [5],
+    });
+
+    expect(input?.frequency).toBe("biweekly");
+  });
 });
