@@ -25,7 +25,7 @@ export type MutationRouteRule = {
   mayImportServiceRole?: boolean;
 };
 
-/** Lifecycle-mutating POST routes (29). */
+/** Lifecycle-mutating POST routes (36). */
 export const MUTATION_ROUTE_RULES: MutationRouteRule[] = [
   {
     routeFile: "bookings/lock/route.ts",
@@ -105,6 +105,21 @@ export const MUTATION_ROUTE_RULES: MutationRouteRule[] = [
     routeFile: "admin/bookings/draft/route.ts",
     category: "admin",
     requiredFacadeImports: ["adminCreateBookingDraftFacade"],
+  },
+  {
+    routeFile: "admin/bookings/[bookingId]/pending-payment/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["adminCreatePendingPaymentBookingFacade"],
+  },
+  {
+    routeFile: "admin/bookings/[bookingId]/payment-link/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["adminGeneratePaymentLinkFacade"],
+  },
+  {
+    routeFile: "admin/bookings/[bookingId]/payment-request/send/route.ts",
+    category: "admin",
+    requiredFacadeImports: ["adminSendPaymentRequestNotificationFacade"],
   },
   {
     routeFile: "admin/bookings/[bookingId]/mark-paid-out/route.ts",
@@ -247,6 +262,9 @@ export const CLEANER_POST_ALLOWLIST = [
 /** Matches 5B-2a `adminApiRoutes.test.ts` (paths relative to `admin/`). */
 export const ADMIN_POST_ALLOWLIST = [
   "bookings/draft/route.ts",
+  "bookings/[bookingId]/pending-payment/route.ts",
+  "bookings/[bookingId]/payment-link/route.ts",
+  "bookings/[bookingId]/payment-request/send/route.ts",
   "zoho-invoice-payments/audit-export/route.ts",
   "zoho-invoice-payments/charge-saved-card/route.ts",
   "zoho-invoice-payments/payment-methods/[paymentMethodId]/revoke/route.ts",

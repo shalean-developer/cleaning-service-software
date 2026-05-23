@@ -43,6 +43,7 @@ function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
 type Props = {
   step: AdminBookingWizardStep;
   featureEnabled: boolean;
+  paymentLinksEnabled: boolean;
   form: AdminBookingWizardFormState;
   onFormChange: (patch: Partial<AdminBookingWizardFormState>) => void;
 };
@@ -50,6 +51,7 @@ type Props = {
 export function AdminBookingWizardStepPanel({
   step,
   featureEnabled,
+  paymentLinksEnabled,
   form,
   onFormChange,
 }: Props) {
@@ -209,7 +211,11 @@ export function AdminBookingWizardStepPanel({
         >
           <AdminBookingWizardConfirmationReview form={form} />
           <div className="mt-4 border-t border-slate-100 pt-4">
-            <AdminBookingWizardConfirmationActions featureEnabled={featureEnabled} form={form} />
+            <AdminBookingWizardConfirmationActions
+              featureEnabled={featureEnabled}
+              paymentLinksEnabled={paymentLinksEnabled}
+              form={form}
+            />
           </div>
         </StepShell>
       );

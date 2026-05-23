@@ -187,6 +187,10 @@ describe("adminBookingsListQuery", () => {
 
   it("classifies server-side vs in-memory refinement", () => {
     expect(hasServerSideSqlFilters({ filter: "payment_failed" })).toBe(true);
+    expect(hasServerSideSqlFilters({ filter: "awaiting_payment" })).toBe(true);
+    expect(needsInMemoryRefinement({ filter: "payment_link_sent" })).toBe(true);
+    expect(needsInMemoryRefinement({ filter: "payment_link_expired" })).toBe(true);
+    expect(needsInMemoryRefinement({ filter: "admin_assisted_only" })).toBe(true);
     expect(hasServerSideSqlFilters({ search: "acme" })).toBe(true);
     expect(hasServerSideSearch({ search: "ab" })).toBe(false);
     expect(hasServerSideSqlFilters({ filter: "max_attempts" })).toBe(true);

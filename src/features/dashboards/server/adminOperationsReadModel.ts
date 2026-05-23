@@ -15,6 +15,14 @@ import { mapAdminOperationalAuditRow } from "@/features/admin/server/mapAdminOpe
 import { listNotificationsForBooking } from "@/features/notifications/server/listNotificationsForBooking";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import { isAdminAssistedBookingMetadata } from "@/features/bookings/server/admin/adminAssistMetadata";
+import {
+  readAdminAssistPaymentLinkMetadata,
+  readAdminAssistSupersededPaymentLinks,
+  resolveAdminAssistPaymentRequestVisibility,
+} from "@/features/bookings/server/admin/adminAssistPaymentLinkMetadata";
+import { buildAdminBookingAssistTimeline } from "@/features/bookings/server/admin/buildAdminBookingAssistTimeline";
+import { loadAdminBookingAssistAudits } from "@/features/bookings/server/admin/loadAdminBookingAssistAudits";
+import { resolveCustomerEmailOrNull } from "@/features/notifications/server/resolveCustomerEmailOrNull";
 import { resolvePaymentFailureReason } from "@/features/bookings/server/paymentFailureDisplay";
 import { buildLifecycleTimeline } from "./lifecycleTimeline";
 import {
@@ -291,6 +299,12 @@ async function buildAdminBookingListItem(
     .filter((r): r is string => typeof r === "string");
 
   const observation = buildAdminBookingObservation(row.metadata, display);
+  const adminAssisted = isAdminAssistedBookingMetadata(row.metadata);
+  const paymentRequest = resolveAdminAssistPaymentRequestVisibility(
+    row.metadata,
+    row.status,
+    adminAssisted,
+  );
 
   return {
     id: row.id,
@@ -324,6 +338,9 @@ async function buildAdminBookingListItem(
     recoveryEligible: eligibility === "eligible",
     deferredDispatch,
     updatedAt: row.updated_at,
+    adminAssisted: paymentRequest.adminAssisted,
+    paymentRequestState: paymentRequest.state,
+    paymentLinkExpiresAt: paymentRequest.paymentLink?.expiresAt ?? null,
     searchText: buildSearchText([
       row.id,
       customerLabel,
@@ -836,6 +853,8 @@ export async function getAdminBookingDetail(
 
   const customerLabel = await resolveCustomerLabel(client, row.customer_id);
   const customerPhone = await resolveCustomerPhone(client, row.customer_id, row.metadata);
+  const customerEmail = await resolveCustomerEmailOrNull(row.customer_id);
+  const customerHasEmail = Boolean(customerEmail?.trim());
 
   const notifications = await listNotificationsForBooking(client, row.id);
   const teamRosterFoundation = await listTeamRosterFoundationForBooking(client, row.id);
@@ -875,7 +894,21 @@ export async function getAdminBookingDetail(
       paymentStatus: payment?.status ?? null,
       paymentFailureReason,
       customerId: row.customer_id,
+      customerHasEmail,
       adminAssistedDraft: isAdminAssistedBookingMetadata(row.metadata),
+      adminAssistPaymentLink: readAdminAssistPaymentLinkMetadata(row.metadata),
+      adminAssistSupersededPaymentLinks: readAdminAssistSupersededPaymentLinks(row.metadata),
+      adminAssistPaymentTimeline: await (async () => {
+        if (!isAdminAssistedBookingMetadata(row.metadata)) return [];
+        const assistAudits = await loadAdminBookingAssistAudits(client, row.id);
+        const paidPayment = paymentList.find((p) => p.status === "paid");
+        return buildAdminBookingAssistTimeline({
+          audits: assistAudits,
+          bookingStatus: row.status,
+          paymentLink: readAdminAssistPaymentLinkMetadata(row.metadata),
+          paymentConfirmedAt: paidPayment?.paid_at ?? paidPayment?.updated_at ?? null,
+        });
+      })(),
       cleanerId: row.cleaner_id,
       customerLabel,
       customerPhone: customerPhone.display,

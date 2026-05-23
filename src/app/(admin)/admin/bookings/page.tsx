@@ -30,6 +30,10 @@ export const metadata: Metadata = {
 const VALID_FILTERS = new Set<AdminBookingFilter>([
   "payment_failed",
   "pending_assignment",
+  "awaiting_payment",
+  "payment_link_sent",
+  "payment_link_expired",
+  "admin_assisted_only",
   "assignment_attention",
   "dispatch_not_started",
   "selected_declined",

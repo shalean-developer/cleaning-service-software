@@ -53,3 +53,28 @@ export async function getPaymentById(
   if (error) throw new Error(error.message);
   return data;
 }
+
+export async function updatePaymentLinkMetadata(
+  client: SupabaseClient<Database>,
+  paymentId: string,
+  patch: {
+    providerRef?: string;
+    paymentLinkExpiresAt?: string | null;
+    metadata?: Record<string, unknown>;
+  },
+): Promise<void> {
+  const update: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
+  if (patch.providerRef !== undefined) {
+    update.provider_ref = patch.providerRef;
+  }
+  if (patch.paymentLinkExpiresAt !== undefined) {
+    update.payment_link_expires_at = patch.paymentLinkExpiresAt;
+  }
+  if (patch.metadata !== undefined) {
+    update.metadata = patch.metadata;
+  }
+  const { error } = await client.from("payments").update(update).eq("id", paymentId);
+  if (error) throw new Error(error.message);
+}

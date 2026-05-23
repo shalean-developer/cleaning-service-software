@@ -173,6 +173,7 @@ describe("Admin booking wizard Phase 3 UI", () => {
     const html = renderToStaticMarkup(
       <AdminBookingWizardConfirmationActions
         featureEnabled={true}
+        paymentLinksEnabled={false}
         form={EMPTY_ADMIN_BOOKING_WIZARD_FORM}
       />,
     );
@@ -182,7 +183,11 @@ describe("Admin booking wizard Phase 3 UI", () => {
 
   it("enables save draft when form ready and flag on", () => {
     const html = renderToStaticMarkup(
-      <AdminBookingWizardConfirmationActions featureEnabled={true} form={readyForm} />,
+      <AdminBookingWizardConfirmationActions
+        featureEnabled={true}
+        paymentLinksEnabled={false}
+        form={readyForm}
+      />,
     );
     const saveButton = html.match(/data-testid="admin-booking-save-draft"[^>]*>/);
     expect(saveButton?.[0]).not.toContain("disabled");

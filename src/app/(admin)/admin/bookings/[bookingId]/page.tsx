@@ -76,6 +76,9 @@ import {
 } from "@/features/bookings/server/statusLabels";
 import { AdminBookingSupportRequestsPanel } from "@/components/dashboard/admin/AdminBookingSupportRequestsPanel";
 import { AdminBookingDeleteDangerZone } from "@/components/dashboard/admin/AdminBookingDeleteDangerZone";
+import { AdminBookingDetailPaymentLinkPanel } from "@/components/dashboard/admin/AdminBookingDetailPaymentLinkPanel";
+import { AdminBookingAssistPaymentTimeline } from "@/components/dashboard/admin/AdminBookingAssistPaymentTimeline";
+import { isAdminAssistedPaymentLinksActive } from "@/lib/app/adminAssistedPaymentLinksFlag";
 import { listBookingSupportRequestsForBooking } from "@/features/bookings/server/bookingSupportRequestsService";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -137,8 +140,11 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
 
   const heroBadges = dedupeAdminBookingListBadgesByLabel([
     { label: labelForBookingStatus(b.status), tone: toneForBookingStatus(b.status) },
-    ...(b.adminAssistedDraft
+    ...(b.adminAssistedDraft && b.status === "draft"
       ? [{ label: "Admin-assisted draft", tone: "info" as const }]
+      : []),
+    ...(b.adminAssistedDraft && b.status === "pending_payment"
+      ? [{ label: "Admin-assisted pending payment", tone: "info" as const }]
       : []),
     ...getAirbnbAdminListBadges({
       serviceLabel: b.serviceLabel,
@@ -250,7 +256,12 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           contextRows={contextRows}
           contextSectionTitle={opsDetail?.contextSectionTitle}
           paymentAlert={
-            paymentFailed ? (
+            b.adminAssistedDraft && b.status === "pending_payment" ? (
+              <AdminPaymentFailureInset>
+                Awaiting payment from customer. Cleaner assignment begins only after successful
+                payment confirmation.
+              </AdminPaymentFailureInset>
+            ) : paymentFailed ? (
               <AdminPaymentFailureInset>
                 {opsDetail?.paymentFailedNote ??
                   "Payment did not complete. No assignment or earnings until payment succeeds."}
@@ -262,6 +273,26 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           }
           footer={<AdminPayoutActions bookingId={b.id} status={b.status} />}
         />
+
+        {b.adminAssistedDraft && b.status === "pending_payment" ? (
+          <AdminBookingDetailPaymentLinkPanel
+            bookingId={b.id}
+            customerId={b.customerId}
+            paymentLinksEnabled={isAdminAssistedPaymentLinksActive()}
+            customerHasEmail={b.customerHasEmail}
+            existingLink={b.adminAssistPaymentLink}
+            supersededLinks={b.adminAssistSupersededPaymentLinks}
+          />
+        ) : null}
+
+        {b.adminAssistedDraft && b.adminAssistPaymentTimeline.length > 0 ? (
+          <AdminDetailSection
+            title="Payment request history"
+            description="Admin-assisted payment request and Paystack link activity."
+          >
+            <AdminBookingAssistPaymentTimeline entries={b.adminAssistPaymentTimeline} />
+          </AdminDetailSection>
+        ) : null}
 
         <AdminBookingOperationalSummary
           operational={b.operational}

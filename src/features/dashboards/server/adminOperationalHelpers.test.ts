@@ -118,6 +118,36 @@ describe("adminOperationalHelpers", () => {
     expect(row.displayDescription).toContain("before the cleaner accepted");
   });
 
+  it("matches payment request visibility filters", () => {
+    const awaiting = listItem({
+      status: "pending_payment",
+      adminAssisted: true,
+      paymentRequestState: "awaiting",
+    });
+    expect(matchesAdminBookingFilter(awaiting, "awaiting_payment")).toBe(true);
+    expect(matchesAdminBookingFilter(awaiting, "payment_link_sent")).toBe(false);
+
+    const linkSent = listItem({
+      status: "pending_payment",
+      adminAssisted: true,
+      paymentRequestState: "link_active",
+    });
+    expect(matchesAdminBookingFilter(linkSent, "payment_link_sent")).toBe(true);
+
+    const expired = listItem({
+      status: "pending_payment",
+      adminAssisted: true,
+      paymentRequestState: "link_expired",
+    });
+    expect(matchesAdminBookingFilter(expired, "payment_link_expired")).toBe(true);
+
+    const assisted = listItem({ adminAssisted: true, status: "draft" });
+    expect(matchesAdminBookingFilter(assisted, "admin_assisted_only")).toBe(true);
+    expect(matchesAdminBookingFilter(listItem({ adminAssisted: false }), "admin_assisted_only")).toBe(
+      false,
+    );
+  });
+
   it("filters bookings by payment_failed and search text", () => {
     const items = [
       { ...listItem({ id: "a", status: "payment_failed" }), searchText: "a acme" },

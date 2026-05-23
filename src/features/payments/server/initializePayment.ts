@@ -13,14 +13,9 @@ import type { CurrentUser } from "@/lib/auth/types";
 import { resolveActorScope } from "@/lib/auth/resolveActorScope";
 import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getServerPaystackPaymentSuccessCallbackUrl } from "@/lib/app/appBaseUrl";
-import { paystackInitializeTransaction } from "./paystackClient";
 import { isPaystackEnabled } from "./paystackEnv";
-import {
-  findPaymentByIdempotencyKey,
-  getPaymentById,
-  updatePaymentProviderRef,
-} from "./paymentRepository";
+import { completePaystackBookingCheckout } from "./completePaystackBookingCheckout";
+import { findPaymentByIdempotencyKey } from "./paymentRepository";
 
 export type InitializePaymentInput = {
   bookingId: string;
@@ -56,11 +51,6 @@ export type InitializePaymentFailure = {
 };
 
 export type InitializePaymentResult = InitializePaymentSuccess | InitializePaymentFailure;
-
-function buildPaystackReference(bookingId: string, paymentId: string): string {
-  const suffix = paymentId.replace(/-/g, "").slice(0, 12);
-  return `bk_${bookingId.replace(/-/g, "").slice(0, 8)}_${suffix}`;
-}
 
 export async function initializePayment(
   user: CurrentUser,
@@ -173,15 +163,31 @@ export async function initializePayment(
       };
     }
 
-    return completePaystackInitialize({
-      booking,
+    const checkout = await completePaystackBookingCheckout({
       bookingId,
       payment: existingPendingPayment,
       email: input.email,
       callbackUrl: input.callbackUrl,
       lockId: input.lockId ?? null,
-      serviceClient,
+      metadataSource: "booking",
     });
+    if (!checkout.ok) {
+      return {
+        ok: false,
+        code: checkout.code,
+        message: checkout.message,
+        status: checkout.status,
+      };
+    }
+    return {
+      ok: true,
+      bookingId: checkout.bookingId,
+      paymentId: checkout.paymentId,
+      status: checkout.status,
+      authorizationUrl: checkout.authorizationUrl,
+      accessCode: checkout.accessCode,
+      reference: checkout.reference,
+    };
   }
 
   let lockExpiresAt: string | null = null;
@@ -300,82 +306,29 @@ export async function initializePayment(
     };
   }
 
-  return completePaystackInitialize({
-    booking,
+  const checkout = await completePaystackBookingCheckout({
     bookingId,
     payment,
     email: input.email,
     callbackUrl: input.callbackUrl,
     lockId: input.lockId ?? null,
-    serviceClient,
+    metadataSource: "booking",
   });
-}
-
-async function completePaystackInitialize(params: {
-  booking: NonNullable<Awaited<ReturnType<ReturnType<typeof createBookingCommandBackend>["getBooking"]>>>;
-  bookingId: string;
-  payment: NonNullable<Awaited<ReturnType<typeof findPaymentByIdempotencyKey>>>;
-  email: string;
-  callbackUrl?: string;
-  lockId: string | null;
-  serviceClient: ReturnType<typeof requireServiceRoleClient>;
-}): Promise<InitializePaymentResult> {
-  const { booking, bookingId, payment, email, callbackUrl, lockId, serviceClient } =
-    params;
-
-  const paystackAmount = booking.price_cents;
-  if (payment.amount_cents !== paystackAmount) {
+  if (!checkout.ok) {
     return {
       ok: false,
-      code: "QUOTE_MISMATCH",
-      message: "Payment amount does not match locked booking price.",
-      status: 500,
+      code: checkout.code,
+      message: checkout.message,
+      status: checkout.status,
     };
   }
-
-  const reference =
-    payment.provider_ref?.trim() || buildPaystackReference(bookingId, payment.id);
-
-  const resolvedCallbackUrl =
-    callbackUrl?.trim() || getServerPaystackPaymentSuccessCallbackUrl();
-  if (!resolvedCallbackUrl) {
-    return {
-      ok: false,
-      code: "CALLBACK_URL_MISSING",
-      message:
-        "Paystack callback URL is not configured. Set APP_BASE_URL or NEXT_PUBLIC_APP_URL (e.g. http://localhost:3000).",
-      status: 503,
-    };
-  }
-
-  const paystack = await paystackInitializeTransaction({
-    email,
-    amount: paystackAmount,
-    reference,
-    currency: booking.currency,
-    callback_url: resolvedCallbackUrl,
-    metadata: {
-      source: "booking",
-      booking_id: bookingId,
-      payment_id: payment.id,
-      customer_id: booking.customer_id,
-      lock_id: lockId,
-    },
-  });
-
-  if (payment.provider_ref !== paystack.data.reference) {
-    await updatePaymentProviderRef(serviceClient, payment.id, paystack.data.reference);
-  }
-
-  const refreshed = await getPaymentById(serviceClient, payment.id);
-
   return {
     ok: true,
-    bookingId,
-    paymentId: refreshed?.id ?? payment.id,
-    status: "pending_payment",
-    authorizationUrl: paystack.data.authorization_url,
-    accessCode: paystack.data.access_code,
-    reference: paystack.data.reference,
+    bookingId: checkout.bookingId,
+    paymentId: checkout.paymentId,
+    status: checkout.status,
+    authorizationUrl: checkout.authorizationUrl,
+    accessCode: checkout.accessCode,
+    reference: checkout.reference,
   };
 }

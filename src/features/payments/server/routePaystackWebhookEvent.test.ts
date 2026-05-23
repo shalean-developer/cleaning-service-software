@@ -218,6 +218,41 @@ describe("routePaystackWebhookEvent", () => {
     vi.restoreAllMocks();
   });
 
+  it("routes admin_assisted metadata.source to booking success handler", async () => {
+    const backend = new InMemoryBookingCommandBackend();
+    const customerId = crypto.randomUUID();
+    const reference = "bk_admin_assist_ref_123";
+    const { bookingId, payment } = await seedPendingBooking(backend, customerId, reference);
+    const { client } = createCombinedStoreMock({ payment });
+    requireServiceRoleClientMock.mockReturnValue(client);
+    vi.stubEnv("BOOKING_COMMAND_BACKEND", "memory");
+
+    const upsertModule = await import("./upsertBookingFromPaystack");
+    vi.spyOn(upsertModule, "processPaystackChargeSuccess").mockImplementation((charge, source) =>
+      upsertModule.processPaystackChargeSuccessWithDeps(client, charge, source, backend),
+    );
+
+    const result = await routePaystackWebhookEvent({
+      event: "charge.success",
+      data: {
+        id: 9002,
+        status: "success",
+        reference,
+        amount: payment.amount_cents,
+        metadata: { source: "admin_assisted", booking_id: bookingId },
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok && result.handled) {
+      expect(result.source).toBe("booking");
+      expect(result.bookingId).toBe(bookingId);
+      expect(result.status).toBe("confirmed");
+    }
+    const booking = backend.bookings.get(bookingId);
+    expect(booking?.status).toBe("confirmed");
+  });
+
   it("routes booking metadata.source to booking success handler", async () => {
     const backend = new InMemoryBookingCommandBackend();
     const customerId = crypto.randomUUID();

@@ -177,7 +177,9 @@ export function applyAdminBookingsSqlFilters<T extends AdminBookingsSqlFilterabl
   let q = builder;
   const normalized = normalizeAdminBookingsQuery(query);
 
-  if (
+  if (normalized.filter === "awaiting_payment") {
+    q = q.eq("status", "pending_payment") as T;
+  } else if (
     normalized.filter &&
     SERVER_SIDE_STATUS_FILTERS.has(normalized.filter)
   ) {
@@ -210,6 +212,7 @@ export function hasServerSideSqlFilters(query: AdminBookingsQuery = {}): boolean
   const normalized = normalizeAdminBookingsQuery(query);
   return (
     isServerSideAdminBookingFilter(normalized.filter) ||
+    normalized.filter === "awaiting_payment" ||
     Boolean(normalized.scheduledFrom) ||
     Boolean(normalized.scheduledTo) ||
     Boolean(normalized.search)

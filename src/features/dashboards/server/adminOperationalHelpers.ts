@@ -42,6 +42,10 @@ const SENSITIVE_METADATA_KEYS = new Set([
 export type AdminBookingFilter =
   | "payment_failed"
   | "pending_assignment"
+  | "awaiting_payment"
+  | "payment_link_sent"
+  | "payment_link_expired"
+  | "admin_assisted_only"
   | "assignment_attention"
   | "dispatch_not_started"
   | "selected_declined"
@@ -53,6 +57,9 @@ export type AdminBookingFilter =
   | "team_fully_coordinated"
   | "high_operational_load"
   | "team_high_risk_combo";
+
+export type AdminBookingPaymentRequestState =
+  import("@/features/bookings/server/admin/adminAssistPaymentLinkMetadata").AdminAssistPaymentRequestState;
 
 export type AdminBookingsQuery = {
   filter?: AdminBookingFilter;
@@ -536,12 +543,13 @@ export function buildAdminOperationalStatus(input: {
 export function matchesAdminBookingFilter(
   item: Pick<
     AdminBookingListItem,
-    "status" | "assignmentVisibilityKey" | "assignmentAttention" | "paymentFailureReason"
-  > & {
-    observation?: AdminBookingListItem["observation"];
-    dispatchNotStarted?: boolean;
-    recoveryEligible?: boolean;
-  },
+    | "status"
+    | "assignmentVisibilityKey"
+    | "assignmentAttention"
+    | "paymentFailureReason"
+    | "adminAssisted"
+    | "paymentRequestState"
+  >,
   filter: AdminBookingFilter,
 ): boolean {
   const key = item.assignmentVisibilityKey;
@@ -550,6 +558,14 @@ export function matchesAdminBookingFilter(
       return item.status === "payment_failed";
     case "pending_assignment":
       return item.status === "pending_assignment";
+    case "awaiting_payment":
+      return item.status === "pending_payment";
+    case "payment_link_sent":
+      return item.paymentRequestState === "link_active";
+    case "payment_link_expired":
+      return item.paymentRequestState === "link_expired";
+    case "admin_assisted_only":
+      return item.adminAssisted === true;
     case "assignment_attention":
       return (
         key === "needs_assignment" ||

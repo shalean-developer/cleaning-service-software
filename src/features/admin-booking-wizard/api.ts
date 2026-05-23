@@ -12,6 +12,115 @@ export type SaveAdminBookingDraftResponse =
     }
   | { ok: false; error: string; message: string };
 
+export type CreateAdminPendingPaymentResponse =
+  | {
+      ok: true;
+      booking: {
+        bookingId: string;
+        status: "pending_payment";
+        paymentStatus: "pending";
+        priceCents: number;
+        currency: string;
+        idempotent: boolean;
+      };
+    }
+  | { ok: false; error: string; message: string };
+
+export type GenerateAdminPaymentLinkResponse =
+  | {
+      ok: true;
+      paymentLink: {
+        bookingId: string;
+        paymentUrl: string;
+        reference: string;
+        expiresAt: string;
+        idempotent: boolean;
+      };
+    }
+  | { ok: false; error: string; message: string };
+
+export async function recordAdminPaymentLinkCopied(
+  bookingId: string,
+  body: { customerId: string; idempotencyKey: string },
+): Promise<{ ok: true; recorded: true } | { ok: false; error: string; message: string }> {
+  const response = await fetch(`/api/admin/bookings/${bookingId}/payment-link/copy`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return (await response.json()) as
+    | { ok: true; recorded: true }
+    | { ok: false; error: string; message: string };
+}
+
+export type SendAdminPaymentRequestNotificationResponse =
+  | {
+      ok: true;
+      notification: {
+        bookingId: string;
+        deliveryChannel: "email" | "whatsapp_copy";
+        status: "queued" | "copied";
+        paymentUrl: string;
+        copiedText?: string;
+      };
+    }
+  | { ok: false; error: string; message: string };
+
+export async function sendAdminPaymentRequestNotification(
+  bookingId: string,
+  body: {
+    customerId: string;
+    deliveryChannel: "email" | "whatsapp_copy";
+    idempotencyKey: string;
+    message?: string;
+    reason?: string;
+  },
+): Promise<SendAdminPaymentRequestNotificationResponse> {
+  const response = await fetch(
+    `/api/admin/bookings/${bookingId}/payment-request/send`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+  return (await response.json()) as SendAdminPaymentRequestNotificationResponse;
+}
+
+export async function generateAdminPaymentLink(
+  bookingId: string,
+  body: {
+    customerId: string;
+    idempotencyKey: string;
+    deliveryChannel?: "email" | "sms" | "whatsapp" | "copy_only";
+    reason?: string;
+    regenerate?: boolean;
+  },
+): Promise<GenerateAdminPaymentLinkResponse> {
+  const response = await fetch(`/api/admin/bookings/${bookingId}/payment-link`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  const json = (await response.json()) as GenerateAdminPaymentLinkResponse;
+  return json;
+}
+
+export async function createAdminPendingPaymentBooking(
+  bookingId: string,
+  body: { customerId: string; idempotencyKey: string; reason?: string },
+): Promise<CreateAdminPendingPaymentResponse> {
+  const response = await fetch(`/api/admin/bookings/${bookingId}/pending-payment`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  const json = (await response.json()) as CreateAdminPendingPaymentResponse;
+  return json;
+}
+
 export async function saveAdminBookingDraft(
   body: Record<string, unknown>,
 ): Promise<SaveAdminBookingDraftResponse> {

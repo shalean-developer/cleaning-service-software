@@ -2,6 +2,7 @@ import {
   ASSIGNMENT_OFFER_TEMPLATE,
   PAYMENT_CONFIRMED_TEMPLATE,
   PAYMENT_FAILED_TEMPLATE,
+  ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE,
 } from "./config";
 import type { Json, NotificationOutboxRow } from "@/lib/database/types";
 import type { AdminNotificationOutboxEntry } from "@/features/dashboards/server/types";
@@ -57,7 +58,8 @@ export function deriveNotificationRecipientType(
   if (template === ASSIGNMENT_OFFER_TEMPLATE) return "cleaner";
   if (
     template === PAYMENT_CONFIRMED_TEMPLATE ||
-    template === PAYMENT_FAILED_TEMPLATE
+    template === PAYMENT_FAILED_TEMPLATE ||
+    template === ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE
   ) {
     return "customer";
   }

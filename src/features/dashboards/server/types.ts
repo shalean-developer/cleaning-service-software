@@ -12,6 +12,11 @@ import type {
 import type { LifecycleEvent } from "./lifecycleTimeline";
 import type { BookingDisplayFields } from "./parseBookingDisplay";
 import type {
+  AdminAssistPaymentLinkMetadata,
+  AdminAssistPaymentRequestState,
+} from "@/features/bookings/server/admin/adminAssistPaymentLinkMetadata";
+import type { AdminAssistTimelineEntry } from "@/features/bookings/server/admin/buildAdminBookingAssistTimeline";
+import type {
   AdminOperationalLoadSignals,
   TeamRequestFulfillment,
   TeamSupportOps,
@@ -158,6 +163,11 @@ export type AdminBookingListItem = {
   deferredDispatch?: DeferredDispatchStatus;
   latestProviderRef?: string | null;
   updatedAt: string;
+  /** Admin wizard / assist metadata present on booking. */
+  adminAssisted?: boolean;
+  /** Derived payment-request visibility for admin-assisted bookings. */
+  paymentRequestState?: AdminAssistPaymentRequestState;
+  paymentLinkExpiresAt?: string | null;
 };
 
 export type AdminBookingsListResult = {
@@ -262,6 +272,11 @@ export type AdminBookingDetail = AdminBookingListItem & {
   customerId: string;
   /** True when metadata.adminAssist marks an admin wizard draft. */
   adminAssistedDraft: boolean;
+  adminAssistPaymentLink: AdminAssistPaymentLinkMetadata | null;
+  adminAssistSupersededPaymentLinks: AdminAssistPaymentLinkMetadata[];
+  adminAssistPaymentTimeline: AdminAssistTimelineEntry[];
+  /** True when customer auth profile has an email (admin payment request email). */
+  customerHasEmail: boolean;
   cleanerId: string | null;
   /** NF-7C display-only roster rows when booking_cleaners has data. */
   teamRosterFoundation: TeamRosterFoundationRow[];

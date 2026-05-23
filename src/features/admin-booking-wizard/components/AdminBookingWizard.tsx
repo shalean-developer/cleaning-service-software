@@ -22,6 +22,7 @@ import { AdminBookingWizardStepPanel } from "./steps/AdminBookingWizardStepPanel
 
 type Props = {
   featureEnabled: boolean;
+  paymentLinksEnabled: boolean;
   initialCustomerId?: string | null;
   initialCustomerLabel?: string | null;
 };
@@ -64,6 +65,7 @@ function buildInitialForm(
 
 export function AdminBookingWizard({
   featureEnabled,
+  paymentLinksEnabled,
   initialCustomerId,
   initialCustomerLabel,
 }: Props) {
@@ -103,6 +105,7 @@ export function AdminBookingWizard({
             <AdminBookingWizardStepPanel
               step={step}
               featureEnabled={featureEnabled}
+              paymentLinksEnabled={paymentLinksEnabled}
               form={form}
               onFormChange={onFormChange}
             />

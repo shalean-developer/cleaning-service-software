@@ -357,6 +357,7 @@ describe("buildDeliverableOutboxTemplateOrFilter", () => {
     expect(filter).toContain("channel.eq.email");
     expect(filter).toContain("payment_confirmed");
     expect(filter).toContain("payment_failed");
+    expect(filter).toContain("admin_assisted_payment_request_sent");
     expect(filter).toContain("support_request_created");
     expect(filter).toContain("support_request_admin_urgent");
     expect(filter).toContain("channel.eq.push");

@@ -6,6 +6,8 @@ export type NotificationEmailProvider = "dry_run" | "resend";
 
 export const PAYMENT_CONFIRMED_TEMPLATE = "payment_confirmed" as const;
 export const PAYMENT_FAILED_TEMPLATE = "payment_failed" as const;
+export const ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE =
+  "admin_assisted_payment_request_sent" as const;
 export const ASSIGNMENT_OFFER_TEMPLATE = "assignment_offer" as const;
 
 export const SUPPORT_REQUEST_CREATED_TEMPLATE = "support_request_created" as const;
@@ -29,6 +31,7 @@ export type SupportNotificationTemplateName =
 export const DELIVERABLE_NOTIFICATION_SPECS = [
   { template: PAYMENT_CONFIRMED_TEMPLATE, channel: "email" as const },
   { template: PAYMENT_FAILED_TEMPLATE, channel: "email" as const },
+  { template: ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE, channel: "email" as const },
   { template: ASSIGNMENT_OFFER_TEMPLATE, channel: "push" as const },
   { template: SUPPORT_REQUEST_CREATED_TEMPLATE, channel: "email" as const },
   { template: SUPPORT_REQUEST_ACKNOWLEDGED_TEMPLATE, channel: "email" as const },
@@ -44,7 +47,7 @@ export const DELIVERABLE_NOTIFICATION_SPECS = [
 export function buildDeliverableOutboxTemplateOrFilter(): string {
   const supportEmailTemplates = SUPPORT_NOTIFICATION_TEMPLATES.join(",");
   return [
-    `and(channel.eq.email,payload->>template.in.(${PAYMENT_CONFIRMED_TEMPLATE},${PAYMENT_FAILED_TEMPLATE},${supportEmailTemplates}))`,
+    `and(channel.eq.email,payload->>template.in.(${PAYMENT_CONFIRMED_TEMPLATE},${PAYMENT_FAILED_TEMPLATE},${ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE},${supportEmailTemplates}))`,
     `and(channel.eq.push,payload->>template.eq.${ASSIGNMENT_OFFER_TEMPLATE})`,
   ].join(",");
 }

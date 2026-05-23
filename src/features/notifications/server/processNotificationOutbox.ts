@@ -13,6 +13,7 @@ import {
   buildDeliverableOutboxTemplateOrFilter,
   PAYMENT_CONFIRMED_TEMPLATE,
   PAYMENT_FAILED_TEMPLATE,
+  ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE,
 } from "./config";
 import { canDeliverSupportNotification } from "@/features/support/server/canDeliverSupportNotification";
 import { parseSupportOutboxPayload } from "@/features/support/server/parseSupportOutboxPayload";
@@ -30,6 +31,11 @@ import { resolveCustomerEmail } from "./resolveCustomerEmail";
 import { buildAssignmentOfferEmail } from "./templates/assignmentOffer";
 import { buildPaymentConfirmedEmail } from "./templates/paymentConfirmed";
 import { buildPaymentFailedEmail } from "./templates/paymentFailed";
+import { buildAdminAssistedPaymentRequestEmail } from "./templates/adminAssistedPaymentRequest";
+import {
+  isAdminAssistPaymentLinkActive,
+  readAdminAssistPaymentLinkMetadata,
+} from "@/features/bookings/server/admin/adminAssistPaymentLinkMetadata";
 import {
   buildDryRunDeliveryPreview,
   markOutboxSentAfterDelivery,
@@ -89,10 +95,22 @@ function readOfferId(payload: Json): string | null {
   return typeof offerId === "string" && offerId.trim() ? offerId.trim() : null;
 }
 
+function readPayloadString(payload: Json, key: string): string | null {
+  if (payload == null || typeof payload !== "object" || Array.isArray(payload)) {
+    return null;
+  }
+  const value = (payload as Record<string, unknown>)[key];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 /** Defense-in-depth gate aligned with {@link buildDeliverableOutboxTemplateOrFilter}. */
 export function isDeliverableOutboxRow(row: NotificationOutboxRow): boolean {
   const template = readTemplate(row.payload);
-  if (template === PAYMENT_CONFIRMED_TEMPLATE || template === PAYMENT_FAILED_TEMPLATE) {
+  if (
+    template === PAYMENT_CONFIRMED_TEMPLATE ||
+    template === PAYMENT_FAILED_TEMPLATE ||
+    template === ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE
+  ) {
     return row.channel === "email";
   }
   if (isSupportNotificationTemplate(template)) {
@@ -348,6 +366,99 @@ async function processAssignmentOfferRow(
   return { outcome: "sent", dryRunPreview: preview };
 }
 
+async function processAdminAssistedPaymentRequestRow(
+  client: SupabaseClient<Database>,
+  row: NotificationOutboxRow,
+  emailSender: EmailSender,
+  now: Date,
+): Promise<RowProcessResult> {
+  const bookingId = readBookingId(row.payload);
+  const paymentUrl = readPayloadString(row.payload, "paymentUrl");
+  const reference = readPayloadString(row.payload, "reference");
+  const expiresAt = readPayloadString(row.payload, "expiresAt");
+  if (!bookingId || !paymentUrl || !reference || !expiresAt) {
+    return {
+      outcome: "failed",
+      code: "INVALID_PAYLOAD",
+      message: "Missing payment request fields in payload.",
+    };
+  }
+
+  const { data: booking, error: bookingError } = await client
+    .from("bookings")
+    .select("id, status, scheduled_start, scheduled_end, price_cents, currency, metadata")
+    .eq("id", bookingId)
+    .maybeSingle();
+
+  if (bookingError || !booking) {
+    return { outcome: "failed", code: "BOOKING_NOT_FOUND", message: "Booking not found." };
+  }
+
+  if (booking.status !== "pending_payment") {
+    await markOutboxFailure(
+      client,
+      row,
+      "Booking no longer pending_payment",
+      false,
+      now,
+    );
+    return { outcome: "skipped" };
+  }
+
+  const activeLink = readAdminAssistPaymentLinkMetadata(booking.metadata);
+  if (!activeLink || activeLink.reference !== reference || !isAdminAssistPaymentLinkActive(activeLink)) {
+    await markOutboxFailure(
+      client,
+      row,
+      "Payment link expired or superseded",
+      false,
+      now,
+    );
+    return { outcome: "skipped" };
+  }
+
+  const resolved = await resolveCustomerEmail(client, row.recipient);
+  if (!resolved.ok) {
+    return {
+      outcome: "failed",
+      code: resolved.code,
+      message:
+        resolved.code === "NO_EMAIL"
+          ? "Customer has no email address."
+          : "Customer not found for recipient.",
+    };
+  }
+
+  const config = getNotificationDeliveryConfig();
+  const content = buildAdminAssistedPaymentRequestEmail({
+    booking,
+    customerDisplayName: resolved.recipient.displayName,
+    paymentUrl,
+    expiresAt,
+    supportEmail: config.supportEmail,
+    optionalMessage: readPayloadString(row.payload, "optionalMessage"),
+  });
+
+  const sendResult: SendEmailResult = await emailSender({
+    to: resolved.recipient.email,
+    subject: content.subject,
+    html: content.html,
+    text: content.text,
+  });
+
+  if (!sendResult.ok) {
+    await markOutboxFailure(client, row, sendResult.error, sendResult.retryable, now);
+    return { outcome: "failed", code: "SEND_FAILED", message: sendResult.error };
+  }
+
+  const deliveryOutcome = await markOutboxSentAfterDelivery(client, row, now);
+  const preview = isNotificationDryRunProvider() ? buildDryRunDeliveryPreview(row) : undefined;
+  if (deliveryOutcome === "dry_run_preview") {
+    return { outcome: "skipped", dryRunPreview: preview };
+  }
+  return { outcome: "sent", dryRunPreview: preview };
+}
+
 async function processPaymentFailedRow(
   client: SupabaseClient<Database>,
   row: NotificationOutboxRow,
@@ -482,9 +593,11 @@ async function processOneRow(
         ? await processAssignmentOfferRow(client, row, emailSender, now)
         : template === PAYMENT_FAILED_TEMPLATE
           ? await processPaymentFailedRow(client, row, emailSender, now)
-          : template === PAYMENT_CONFIRMED_TEMPLATE
-            ? await processPaymentConfirmedRow(client, row, emailSender, now)
-            : { outcome: "skipped" as const };
+          : template === ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE
+            ? await processAdminAssistedPaymentRequestRow(client, row, emailSender, now)
+            : template === PAYMENT_CONFIRMED_TEMPLATE
+              ? await processPaymentConfirmedRow(client, row, emailSender, now)
+              : { outcome: "skipped" as const };
 
     if (result.outcome === "sent") {
       return { outcome: "sent", dryRunPreview: result.dryRunPreview };

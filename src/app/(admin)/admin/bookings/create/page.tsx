@@ -4,6 +4,7 @@ import { AdminBookingWizard } from "@/features/admin-booking-wizard/components/A
 import { ADMIN_DASHBOARD_NAV } from "@/features/dashboards/adminNav";
 import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboardShell";
 import { isAdminAssistedBookingEnabled } from "@/lib/app/adminAssistedBookingFlag";
+import { isAdminAssistedPaymentLinksActive } from "@/lib/app/adminAssistedPaymentLinksFlag";
 
 export const metadata: Metadata = {
   title: "Create booking | Admin",
@@ -19,6 +20,7 @@ export default async function AdminBookingsCreatePage({ searchParams }: PageProp
   if (!user) return null;
 
   const featureEnabled = isAdminAssistedBookingEnabled();
+  const paymentLinksEnabled = isAdminAssistedPaymentLinksActive();
   const { customerId } = await searchParams;
 
   return (
@@ -33,6 +35,7 @@ export default async function AdminBookingsCreatePage({ searchParams }: PageProp
     >
       <AdminBookingWizard
         featureEnabled={featureEnabled}
+        paymentLinksEnabled={paymentLinksEnabled}
         initialCustomerId={customerId ?? null}
       />
     </AdminDashboardShell>

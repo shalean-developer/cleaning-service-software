@@ -21,7 +21,7 @@ export function detectPaystackWebhookPaymentSource(
     return "zoho_invoice_authorization_charge";
   }
   if (source === "zoho_invoice") return "zoho_invoice";
-  if (source === "booking") return "booking";
+  if (source === "booking" || source === "admin_assisted") return "booking";
   if (reference.startsWith("zia_")) return "zoho_invoice_authorization_charge";
   if (reference.startsWith("zi_")) return "zoho_invoice";
   if (reference.startsWith("bk_")) return "booking";

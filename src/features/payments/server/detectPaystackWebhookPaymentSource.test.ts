@@ -12,6 +12,15 @@ describe("detectPaystackWebhookPaymentSource", () => {
     ).toBe("booking");
   });
 
+  it("routes metadata.source admin_assisted to booking handler", () => {
+    expect(
+      detectPaystackWebhookPaymentSource(
+        { source: "admin_assisted", booking_id: "b1" },
+        "bk_admin_assisted_ref",
+      ),
+    ).toBe("booking");
+  });
+
   it("routes metadata.source zoho_invoice to Zoho handler", () => {
     expect(
       detectPaystackWebhookPaymentSource({ source: "zoho_invoice" }, "bk_test_ref"),

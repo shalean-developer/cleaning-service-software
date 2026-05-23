@@ -1,6 +1,6 @@
 # Admin-assisted booking system — architecture
 
-**Status:** Phase 2 — draft-only backend (`ADMIN_CREATE_BOOKING` via facade + `CREATE_BOOKING_DRAFT`)  
+**Status:** Phase 4D — payment request notifications (email queue, WhatsApp copy)  
 **Last updated:** 2026-05-23
 
 ## Purpose
@@ -24,7 +24,9 @@ Admin/customer facades
 | **1** | Read-only wizard, docs, flag, nav fixes | None |
 | **2** | `adminCreateBookingDraftFacade`, audit + idempotency tables, `POST /api/admin/bookings/draft` | Draft only (shipped) |
 | **3** | Full wizard wiring | Create pending |
-| **4** | Payment links | Paystack init |
+| **4** | Payment links | Paystack init (shipped) |
+| **4C** | Payment request visibility | List filters, assist audit timeline, regenerate/supersede (shipped) |
+| **4D** | Payment request notifications | Email outbox, WhatsApp copy-only, resend, audit (shipped) |
 | **5** | Offline payments | → `finalizePaidBooking` |
 | **6** | Parity QA | — |
 | **7** | Notifications / analytics | — |
@@ -51,6 +53,7 @@ type AdminBookingAssistContext = {
 | `POST /api/admin/bookings/draft` | 2 |
 | `POST /api/admin/bookings` | 2–3 |
 | `POST /api/admin/bookings/[id]/payment-link` | 4 |
+| `POST /api/admin/bookings/[id]/payment-request/send` | 4D |
 | `POST /api/admin/bookings/[id]/offline-payment` | 5 |
 
 Customer routes (`/api/bookings/lock`, `/api/paystack/*`) remain **unchanged**.
@@ -110,9 +113,10 @@ All **paid** rails → `finalizePaidBooking()` → `FINALIZE_PAYMENT_SUCCESS` �
 ```bash
 # .env — server only
 ADMIN_ASSISTED_BOOKING_ENABLED=false
+ADMIN_ASSISTED_PAYMENT_LINKS_ENABLED=false
 ```
 
-Phase 1: UI visible to admins regardless; flag documents when Phase 2+ mutations may be enabled in production.
+Payment links require both flags. Phase 4D queues **email** via `notification_outbox` (`admin_assisted_payment_request_sent`); WhatsApp is **copy-only** until a provider exists. Resend reuses the active link (new idempotency key); expired links require regenerate first.
 
 ## UI (Phase 1)
 

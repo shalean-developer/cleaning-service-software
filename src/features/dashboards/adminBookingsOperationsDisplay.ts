@@ -124,6 +124,15 @@ function deriveAlertLabels(
   booking: AdminBookingListItem,
 ): string[] {
   const alerts: string[] = [];
+  if (booking.paymentRequestState === "link_active") {
+    alerts.push("Payment link sent");
+  }
+  if (booking.paymentRequestState === "link_expired") {
+    alerts.push("Payment link expired");
+  }
+  if (booking.adminAssisted && booking.status === "pending_payment" && booking.paymentRequestState === "awaiting") {
+    alerts.push("Awaiting payment");
+  }
   if (booking.deferredDispatch?.phase === "dispatch_overdue") {
     alerts.push("Late arrival risk");
   }

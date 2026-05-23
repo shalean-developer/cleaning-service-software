@@ -3,6 +3,7 @@ import {
   ASSIGNMENT_OFFER_TEMPLATE,
   PAYMENT_CONFIRMED_TEMPLATE,
   PAYMENT_FAILED_TEMPLATE,
+  ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE,
 } from "./config";
 
 export function readNotificationPayloadString(payload: Json, key: string): string | null {
@@ -20,7 +21,11 @@ export function isDeliverableNotificationRow(row: {
   payload: Json;
 }): boolean {
   const template = readNotificationPayloadString(row.payload, "template");
-  if (template === PAYMENT_CONFIRMED_TEMPLATE || template === PAYMENT_FAILED_TEMPLATE) {
+  if (
+    template === PAYMENT_CONFIRMED_TEMPLATE ||
+    template === PAYMENT_FAILED_TEMPLATE ||
+    template === ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE
+  ) {
     return row.channel === "email";
   }
   if (template === ASSIGNMENT_OFFER_TEMPLATE) {

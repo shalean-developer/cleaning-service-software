@@ -64,6 +64,28 @@ export const FACADE_BOUNDARY_RULES: FacadeBoundaryRule[] = [
     allowedDirectWriteException: false,
   },
   {
+    facadeFile: "features/bookings/server/admin/adminCreatePendingPaymentBookingFacade.ts",
+    exportSymbols: ["adminCreatePendingPaymentBookingFacade"],
+    tier: "command_required",
+    allowedServiceRoleImport: true,
+    allowedDirectWriteException: false,
+  },
+  {
+    facadeFile: "features/bookings/server/admin/adminGeneratePaymentLinkFacade.ts",
+    exportSymbols: ["adminGeneratePaymentLinkFacade"],
+    tier: "payment_orchestrator",
+    allowedOrchestratorSymbols: ["completePaystackBookingCheckout"],
+    allowedServiceRoleImport: true,
+    allowedDirectWriteException: false,
+  },
+  {
+    facadeFile: "features/bookings/server/admin/adminSendPaymentRequestNotificationFacade.ts",
+    exportSymbols: ["adminSendPaymentRequestNotificationFacade"],
+    tier: "lock_infra",
+    allowedServiceRoleImport: true,
+    allowedDirectWriteException: false,
+  },
+  {
     facadeFile: "features/bookings/server/lock/createPaymentRetryLock.ts",
     exportSymbols: ["createPaymentRetryLock"],
     tier: "lock_infra",
@@ -311,6 +333,12 @@ export const ROUTE_FACADE_SYMBOL_TO_FILE: Record<string, string> = {
   createBookingPaymentLock: "features/bookings/server/lock/createBookingPaymentLock.ts",
   adminCreateBookingDraftFacade:
     "features/bookings/server/admin/adminCreateBookingDraftFacade.ts",
+  adminCreatePendingPaymentBookingFacade:
+    "features/bookings/server/admin/adminCreatePendingPaymentBookingFacade.ts",
+  adminGeneratePaymentLinkFacade:
+    "features/bookings/server/admin/adminGeneratePaymentLinkFacade.ts",
+  adminSendPaymentRequestNotificationFacade:
+    "features/bookings/server/admin/adminSendPaymentRequestNotificationFacade.ts",
   createPaymentRetryLock: "features/bookings/server/lock/createPaymentRetryLock.ts",
   initializePayment: "features/payments/server/initializePayment.ts",
   verifyPayment: "features/payments/server/verifyPayment.ts",
