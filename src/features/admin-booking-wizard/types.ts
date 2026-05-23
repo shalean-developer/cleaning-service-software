@@ -23,5 +23,6 @@ export type AdminBookingWizardSummary = {
   recurringScheduleLabel: string;
   totalLabel: string;
   paymentLabel: string;
+  billingModeLabel: string;
   lifecyclePreview: string;
 };

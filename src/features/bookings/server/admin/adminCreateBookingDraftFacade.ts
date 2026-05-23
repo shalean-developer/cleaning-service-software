@@ -24,6 +24,7 @@ import {
 import type { AdminCreateBookingDraftBody } from "./parseAdminCreateBookingDraftBody";
 import { recordAdminBookingAssistAudit } from "./recordAdminBookingAssistAudit";
 import { validateAdminRecurringScheduleForDraftBody } from "@/features/admin-booking-wizard/adminRecurringSchedule";
+import { validateAdminWizardBillingMode } from "./validateAdminWizardBillingMode";
 
 export type AdminCreateBookingDraftInput = {
   admin: CurrentUser;
@@ -229,6 +230,24 @@ export async function adminCreateBookingDraftFacade(
     return rejection;
   }
 
+  const billingValidation = await validateAdminWizardBillingMode({
+    customerId: onBehalfOfCustomerId,
+    adminProfileId: admin.profileId,
+    billing: body.billing ?? { mode: "paystack_link" },
+  });
+  if (!billingValidation.ok) {
+    const rejection = fail("INVALID_PAYLOAD", billingValidation.message, 422);
+    await recordRejectionAudit({
+      adminProfileId: admin.profileId,
+      customerId: onBehalfOfCustomerId,
+      idempotencyKey,
+      reasonCode: rejection.code,
+      message: rejection.message,
+      payload: { billingMode: body.billing.mode },
+    });
+    return rejection;
+  }
+
   const quoteResult = calculateQuote(body.pricingInput);
   if (!quoteResult.ok) {
     const rejection = fail("QUOTE_FAILED", quoteResult.message, 422);
@@ -252,6 +271,7 @@ export async function adminCreateBookingDraftFacade(
     cleanerPreferenceMode: body.cleanerPreferenceMode,
     selectedCleanerId: body.selectedCleanerId,
     recurringSchedule: body.recurringSchedule ?? null,
+    billing: billingValidation.billing,
   });
 
   const backend = createBookingCommandBackend();

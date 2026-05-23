@@ -35,6 +35,7 @@ export interface BookingCommandBackend {
     key: string | null | undefined,
   ): Promise<BookingStateAuditRow[]>;
   hasPaidPaymentForBooking(bookingId: string): Promise<boolean>;
+  hasFinancialClearanceForCompletion(bookingId: string): Promise<boolean>;
   getCleanerLifecycleSnapshot(
     cleanerId: string,
   ): Promise<CleanerLifecycleSnapshot | null>;

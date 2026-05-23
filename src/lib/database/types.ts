@@ -966,6 +966,250 @@ export type ProductionRolloutChecklistRow = {
   created_at: string;
 };
 
+export const BILLING_MODES = [
+  "pay_now",
+  "paystack_link",
+  "offline_payment",
+  "monthly_account",
+] as const;
+export type BillingMode = (typeof BILLING_MODES)[number];
+
+export const MONTHLY_INVOICE_BATCH_STATUSES = [
+  "draft",
+  "generated",
+  "sent",
+  "paid",
+  "overdue",
+  "void",
+] as const;
+export type MonthlyInvoiceBatchStatus = (typeof MONTHLY_INVOICE_BATCH_STATUSES)[number];
+
+export const MONTHLY_INVOICE_BATCH_ITEM_STATUSES = [
+  "accrued",
+  "included",
+  "invoiced",
+  "paid",
+  "void",
+  "excluded",
+] as const;
+export type MonthlyInvoiceBatchItemStatus = (typeof MONTHLY_INVOICE_BATCH_ITEM_STATUSES)[number];
+
+export const CUSTOMER_BILLING_ACCOUNT_AUDIT_ACTIONS = [
+  "monthly_account_enabled",
+  "monthly_account_disabled",
+  "billing_terms_updated",
+  "zoho_customer_linked",
+  "billing_account_viewed",
+  "monthly_service_authorized",
+  "monthly_invoice_item_accrued",
+  "monthly_invoice_generated",
+  "monthly_invoice_generation_failed",
+  "monthly_invoice_payment_sync_checked",
+  "monthly_invoice_paid",
+  "monthly_invoice_overdue",
+  "monthly_invoice_void",
+  "monthly_invoice_payment_sync_failed",
+  "monthly_invoice_sent",
+  "monthly_invoice_reminder_sent",
+  "monthly_invoice_marked_overdue",
+  "monthly_invoice_auto_sent",
+  "monthly_invoice_auto_send_failed",
+  "monthly_invoice_finance_review",
+  "monthly_invoice_disputed",
+  "monthly_invoice_reminder_scheduled",
+  "monthly_collections_note_added",
+  "monthly_invoice_dispute_requested",
+  "monthly_account_governance_state_changed",
+  "monthly_account_credit_limit_updated",
+  "monthly_account_override_granted",
+] as const;
+
+export const MONTHLY_SERVICE_AUTHORIZATION_STATUSES = ["authorized", "revoked"] as const;
+export type MonthlyServiceAuthorizationStatus =
+  (typeof MONTHLY_SERVICE_AUTHORIZATION_STATUSES)[number];
+
+export type MonthlyServiceAuthorizationRow = {
+  id: string;
+  booking_id: string;
+  customer_id: string;
+  admin_profile_id: string;
+  monthly_account_id: string;
+  amount_cents: number;
+  status: MonthlyServiceAuthorizationStatus;
+  reason: string;
+  idempotency_key: string;
+  payload: Json;
+  created_at: string;
+  revoked_at: string | null;
+  revoked_by_admin_id: string | null;
+  revoked_reason: string | null;
+};
+export type CustomerBillingAccountAuditAction = (typeof CUSTOMER_BILLING_ACCOUNT_AUDIT_ACTIONS)[number];
+
+export const MONTHLY_ACCOUNT_GOVERNANCE_STATES = [
+  "approved",
+  "account_review_required",
+  "finance_hold",
+  "disputed",
+  "suspended",
+] as const;
+
+export type MonthlyAccountGovernanceState = (typeof MONTHLY_ACCOUNT_GOVERNANCE_STATES)[number];
+
+export const MONTHLY_ACCOUNT_FINANCE_REVIEW_STATUSES = [
+  "open",
+  "resolved",
+  "dismissed",
+] as const;
+
+export type MonthlyAccountFinanceReviewStatus =
+  (typeof MONTHLY_ACCOUNT_FINANCE_REVIEW_STATUSES)[number];
+
+export type CustomerBillingAccountRow = {
+  id: string;
+  customer_id: string;
+  billing_mode: BillingMode;
+  zoho_customer_id: string | null;
+  billing_email: string;
+  billing_terms: string;
+  is_monthly_account_enabled: boolean;
+  approved_by_admin_id: string | null;
+  approved_at: string | null;
+  approval_reason: string | null;
+  disabled_at: string | null;
+  disabled_by_admin_id: string | null;
+  governance_state: MonthlyAccountGovernanceState;
+  credit_limit_cents: number | null;
+  manual_override_until: string | null;
+  suspended_at: string | null;
+  suspended_by_admin_id: string | null;
+  suspension_reason: string | null;
+  last_finance_review_at: string | null;
+  last_finance_review_by: string | null;
+  finance_review_status: MonthlyAccountFinanceReviewStatus | null;
+  finance_review_owner_admin_id: string | null;
+  finance_review_follow_up_date: string | null;
+  finance_review_resolution: string | null;
+  metadata: Json;
+  created_at: string;
+  updated_at: string;
+};
+
+export const CUSTOMER_BILLING_ACCOUNT_GOVERNANCE_AUDIT_ACTIONS = [
+  "governance_state_changed",
+  "account_suspended",
+  "account_unsuspended",
+  "finance_review_started",
+  "finance_review_completed",
+  "finance_review_assigned",
+  "finance_review_resolved",
+  "finance_review_dismissed",
+  "credit_limit_updated",
+  "override_granted",
+] as const;
+
+export type CustomerBillingAccountGovernanceAuditAction =
+  (typeof CUSTOMER_BILLING_ACCOUNT_GOVERNANCE_AUDIT_ACTIONS)[number];
+
+export type CustomerBillingAccountGovernanceAuditRow = {
+  id: string;
+  account_id: string;
+  customer_id: string;
+  admin_profile_id: string;
+  action: CustomerBillingAccountGovernanceAuditAction;
+  previous_state: string | null;
+  next_state: string | null;
+  reason: string;
+  exposure_snapshot: Json;
+  outstanding_balance_snapshot: number | null;
+  idempotency_key: string | null;
+  created_at: string;
+};
+
+export type CustomerBillingAccountAuditRow = {
+  id: string;
+  account_id: string | null;
+  customer_id: string | null;
+  admin_profile_id: string | null;
+  action: CustomerBillingAccountAuditAction;
+  payload: Json;
+  created_at: string;
+};
+
+export const MONTHLY_ACCOUNT_COLLECTIONS_NOTE_TYPES = [
+  "reminder_call",
+  "finance_review",
+  "payment_arrangement",
+  "dispute",
+  "escalation",
+  "follow_up",
+  "governance_review",
+  "credit_limit_review",
+  "suspension_reason",
+  "override_approval",
+  "dispute_resolution",
+  "finance_hold",
+] as const;
+
+export type MonthlyAccountCollectionsNoteType =
+  (typeof MONTHLY_ACCOUNT_COLLECTIONS_NOTE_TYPES)[number];
+
+export type MonthlyAccountCollectionsNoteRow = {
+  id: string;
+  customer_id: string;
+  batch_id: string | null;
+  admin_profile_id: string;
+  note_type: MonthlyAccountCollectionsNoteType;
+  content: string;
+  review_owner_admin_id: string | null;
+  follow_up_date: string | null;
+  resolution: string | null;
+  created_at: string;
+};
+
+export type MonthlyInvoiceBatchRow = {
+  id: string;
+  customer_id: string;
+  billing_month: string;
+  status: MonthlyInvoiceBatchStatus;
+  zoho_invoice_id: string | null;
+  zoho_invoice_number: string | null;
+  total_cents: number;
+  currency: string;
+  generated_by_admin_id: string | null;
+  generated_at: string | null;
+  sent_at: string | null;
+  paid_at: string | null;
+  idempotency_key: string | null;
+  zoho_reference_number: string | null;
+  metadata: Json;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MonthlyInvoiceBatchItemRow = {
+  id: string;
+  batch_id: string;
+  booking_id: string;
+  visit_date: string;
+  service_slug: string;
+  amount_cents: number;
+  status: MonthlyInvoiceBatchItemStatus;
+  zoho_line_item_id: string | null;
+  metadata: Json;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CustomerBillingAccountIdempotencyRow = {
+  idempotency_key: string;
+  customer_id: string;
+  admin_profile_id: string;
+  action: CustomerBillingAccountAuditAction;
+  result: Json;
+  created_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -1017,6 +1261,14 @@ export type Database = {
       admin_assisted_operator_feedback: PublicTable<AdminAssistedOperatorFeedbackRow>;
       admin_assisted_incident_reviews: PublicTable<AdminAssistedIncidentReviewRow>;
       admin_assisted_qa_checklist: PublicTable<AdminAssistedQaChecklistRow>;
+      customer_billing_accounts: PublicTable<CustomerBillingAccountRow>;
+      customer_billing_account_audit: PublicTable<CustomerBillingAccountAuditRow>;
+      customer_billing_account_governance_audit: PublicTable<CustomerBillingAccountGovernanceAuditRow>;
+      monthly_invoice_batches: PublicTable<MonthlyInvoiceBatchRow>;
+      monthly_invoice_batch_items: PublicTable<MonthlyInvoiceBatchItemRow>;
+      monthly_account_collections_notes: PublicTable<MonthlyAccountCollectionsNoteRow>;
+      customer_billing_account_idempotency: PublicTable<CustomerBillingAccountIdempotencyRow>;
+      monthly_service_authorizations: PublicTable<MonthlyServiceAuthorizationRow>;
     };
     Views: Record<
       string,

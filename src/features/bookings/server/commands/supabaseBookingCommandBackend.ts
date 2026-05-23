@@ -117,6 +117,17 @@ export class SupabaseBookingCommandBackend implements BookingCommandBackend {
     return (count ?? 0) > 0;
   }
 
+  async hasFinancialClearanceForCompletion(bookingId: string): Promise<boolean> {
+    if (await this.hasPaidPaymentForBooking(bookingId)) return true;
+    const { count, error } = await this.client
+      .from("monthly_service_authorizations")
+      .select("*", { count: "exact", head: true })
+      .eq("booking_id", bookingId)
+      .eq("status", "authorized");
+    if (error) throw new Error(error.message);
+    return (count ?? 0) > 0;
+  }
+
   async getCleanerLifecycleSnapshot(
     cleanerId: string,
   ): Promise<CleanerLifecycleSnapshot | null> {

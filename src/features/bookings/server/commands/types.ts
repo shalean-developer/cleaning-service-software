@@ -16,6 +16,7 @@ export const BOOKING_COMMAND_TYPES = [
   "CREATE_BOOKING_DRAFT",
   "MARK_PAYMENT_PENDING",
   "FINALIZE_PAYMENT_SUCCESS",
+  "CONFIRM_SERVICE_AUTHORIZED",
   "MARK_PAYMENT_FAILED",
   "MOVE_TO_PENDING_ASSIGNMENT",
   "OFFER_TO_CLEANER",
@@ -93,6 +94,15 @@ export type FinalizePaymentSuccessCommand = BaseCommand & {
   paymentId: string;
   /** Required. duplicate finalize must reuse the same key (e.g. provider event id). */
   idempotencyKey: string;
+};
+
+/** Admin-only. monthly_account draft → confirmed without payment finalization. */
+export type ConfirmServiceAuthorizedCommand = BaseCommand & {
+  type: "CONFIRM_SERVICE_AUTHORIZED";
+  bookingId: BookingId;
+  /** Required. dedupe admin authorization retries. */
+  idempotencyKey: string;
+  reason: string;
 };
 
 export type MarkPaymentFailedCommand = BaseCommand & {
@@ -246,6 +256,7 @@ export type BookingCommand =
   | CreateBookingDraftCommand
   | MarkPaymentPendingCommand
   | FinalizePaymentSuccessCommand
+  | ConfirmServiceAuthorizedCommand
   | MarkPaymentFailedCommand
   | MoveToPendingAssignmentCommand
   | OfferToCleanerCommand

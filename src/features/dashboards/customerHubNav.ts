@@ -6,6 +6,7 @@ const HUB_ICON_BY_HREF = {
   "/customer/bookings/recurring": "recurring",
   "/customer/payment-methods": "payment-methods",
   "/customer/payments": "payments",
+  "/customer/invoices": "payments",
   "/customer/book": "book",
 } as const satisfies Record<
   (typeof CUSTOMER_DASHBOARD_NAV)[number]["href"],

@@ -17,6 +17,7 @@ describe("Admin booking wizard P0 operational readiness", () => {
         featureEnabled
         paymentLinksEnabled
         offlinePaymentsEnabled={false}
+        monthlyBillingEnabled={false}
         form={EMPTY_ADMIN_BOOKING_WIZARD_FORM}
         flow={EMPTY_ADMIN_BOOKING_FLOW}
         onFormChange={() => {}}
@@ -35,7 +36,10 @@ describe("Admin booking wizard P0 operational readiness", () => {
         featureEnabled
         paymentLinksEnabled
         offlinePaymentsEnabled
+        monthlyBillingEnabled={false}
+        form={EMPTY_ADMIN_BOOKING_WIZARD_FORM}
         flow={EMPTY_ADMIN_BOOKING_FLOW}
+        onFormChange={() => {}}
       />,
     );
     expect(html).toContain("Save draft");

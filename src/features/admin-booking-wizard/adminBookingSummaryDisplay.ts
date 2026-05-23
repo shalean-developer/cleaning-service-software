@@ -7,6 +7,7 @@ import type { PricingBreakdown } from "@/features/pricing/server/types";
 import { formatAdminQuoteZar } from "./pricingApi";
 import type { AdminBookingWizardFormState } from "./draftFormState";
 import { composeAdminLocationNotes, composeAdminSpecialInstructions } from "./adminAddressCompose";
+import { formatAdminWizardBillingModeLabel } from "./adminBillingMode";
 import {
   formatAdminFrequencyDisplayLabel,
   formatAdminRecurringScheduleSummary,
@@ -78,5 +79,6 @@ export function buildAdminBookingSummaryLabels(
       form.recurringIntervalWeeks,
     ),
     recurringScheduleLabel: recurringScheduleLabel ?? "—",
+    billingModeLabel: formatAdminWizardBillingModeLabel(form.billingMode),
   };
 }

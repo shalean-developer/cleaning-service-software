@@ -47,6 +47,8 @@ function commandActorPolicy(
       return customerOrAdmin;
     case "FINALIZE_PAYMENT_SUCCESS":
       return systemish;
+    case "CONFIRM_SERVICE_AUTHORIZED":
+      return adminOnly;
     case "MARK_PAYMENT_FAILED":
       return systemish;
     case "MOVE_TO_PENDING_ASSIGNMENT":
@@ -101,6 +103,13 @@ export function assertActorAuthorizedForCommand(
       message: "ADMIN_OVERRIDE_STATUS requires a non-empty reason.",
     };
   }
+  if (cmd.type === "CONFIRM_SERVICE_AUTHORIZED" && !cmd.reason?.trim()) {
+    return {
+      ok: false,
+      code: "INVALID_PAYLOAD",
+      message: "CONFIRM_SERVICE_AUTHORIZED requires a non-empty reason.",
+    };
+  }
   return null;
 }
 
@@ -124,6 +133,8 @@ export function nextStatusForCommand(
     }
     case "FINALIZE_PAYMENT_SUCCESS":
       return current === "pending_payment" ? "confirmed" : null;
+    case "CONFIRM_SERVICE_AUTHORIZED":
+      return current === "draft" ? "confirmed" : null;
     case "MARK_PAYMENT_FAILED":
       return current === "pending_payment" ? "payment_failed" : null;
     case "MOVE_TO_PENDING_ASSIGNMENT":

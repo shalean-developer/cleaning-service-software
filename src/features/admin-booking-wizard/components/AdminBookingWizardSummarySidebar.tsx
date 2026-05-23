@@ -42,6 +42,7 @@ export function AdminBookingWizardSummarySidebar({ summary }: Props) {
           <SummaryRow label="Access notes" value={summary.accessNotesLabel} />
           <SummaryRow label="Special instructions" value={summary.specialInstructionsLabel} />
           <SummaryRow label="Total (preview)" value={summary.totalLabel} />
+          <SummaryRow label="Billing mode" value={summary.billingModeLabel} />
           <SummaryRow label="Payment" value={summary.paymentLabel} />
         </dl>
         <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2">

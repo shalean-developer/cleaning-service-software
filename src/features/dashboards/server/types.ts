@@ -1,4 +1,4 @@
-import type { AssignmentOfferStatus, PaymentStatus } from "@/lib/database/types";
+import type { AssignmentOfferStatus, PaymentStatus, Json } from "@/lib/database/types";
 import type { PaymentFailureReason } from "@/features/bookings/server/paymentFailureDisplay";
 import type { BookingStatus } from "@/features/bookings/server/types";
 import type { NotificationOutboxStatus } from "@/lib/database/types";
@@ -276,6 +276,8 @@ export type TeamRosterFoundationRow = import("./bookingCleanersReadModel").TeamR
 
 export type AdminBookingDetail = AdminBookingListItem & {
   customerId: string;
+  /** Raw booking metadata for billing mode and admin assist panels. */
+  metadata: Json;
   /** True when metadata.adminAssist marks an admin wizard draft. */
   adminAssistedDraft: boolean;
   adminAssistPaymentLink: AdminAssistPaymentLinkMetadata | null;

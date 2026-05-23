@@ -29,6 +29,8 @@ import { AdminBookingWizardServiceDetailsSection } from "../AdminBookingWizardSe
 import { AdminBookingWizardRecurringSchedulePanel } from "../AdminBookingWizardRecurringSchedulePanel";
 import { AdminBookingWizardOfflinePaymentHandoff } from "../AdminBookingWizardOfflinePaymentHandoff";
 import { AdminBookingWizardRecoveryPanel } from "../AdminBookingWizardRecoveryPanel";
+import { AdminBookingWizardCustomerBillingStatus } from "../AdminBookingWizardCustomerBillingStatus";
+import { AdminBookingWizardBillingModePanel } from "../AdminBookingWizardBillingModePanel";
 import { deriveAdminBookingFlowProgress } from "../../adminBookingFlowState";
 
 function StepShell({
@@ -77,10 +79,14 @@ type Props = {
   featureEnabled: boolean;
   paymentLinksEnabled: boolean;
   offlinePaymentsEnabled: boolean;
+  monthlyBillingEnabled: boolean;
+  monthlyServiceAuthorizationEnabled?: boolean;
   form: AdminBookingWizardFormState;
   flow: AdminBookingFlowSnapshot;
   customerPrefillLoading?: boolean;
   customerPrefillError?: string | null;
+  customerBillingLoading?: boolean;
+  customerBillingError?: string | null;
   onFormChange: (patch: Partial<AdminBookingWizardFormState>) => void;
   onFlowChange: (flow: AdminBookingFlowSnapshot) => void;
   onFlowRefresh: () => Promise<void>;
@@ -91,10 +97,14 @@ export function AdminBookingWizardStepPanel({
   featureEnabled,
   paymentLinksEnabled,
   offlinePaymentsEnabled,
+  monthlyBillingEnabled,
+  monthlyServiceAuthorizationEnabled = false,
   form,
   flow,
   customerPrefillLoading,
   customerPrefillError,
+  customerBillingLoading,
+  customerBillingError,
   onFormChange,
   onFlowChange,
   onFlowRefresh,
@@ -116,6 +126,13 @@ export function AdminBookingWizardStepPanel({
             prefillLoading={customerPrefillLoading}
             prefillError={customerPrefillError}
           />
+          {form.selectedCustomer ? (
+            <AdminBookingWizardCustomerBillingStatus
+              snapshot={form.customerBillingAccount}
+              loading={customerBillingLoading}
+              error={customerBillingError}
+            />
+          ) : null}
         </StepShell>
       );
     case "service": {
@@ -351,7 +368,10 @@ export function AdminBookingWizardStepPanel({
             featureEnabled={featureEnabled}
             paymentLinksEnabled={paymentLinksEnabled}
             offlinePaymentsEnabled={offlinePaymentsEnabled}
+            monthlyBillingEnabled={monthlyBillingEnabled}
+            form={form}
             flow={flow}
+            onFormChange={onFormChange}
           />
           {pendingBookingId &&
           (flow.pendingPayment?.bookingId || flow.serverStatus?.status === "pending_payment") ? (
@@ -410,6 +430,8 @@ export function AdminBookingWizardStepPanel({
                 featureEnabled={featureEnabled}
                 paymentLinksEnabled={paymentLinksEnabled}
                 offlinePaymentsEnabled={offlinePaymentsEnabled}
+                monthlyBillingEnabled={monthlyBillingEnabled}
+                monthlyServiceAuthorizationEnabled={monthlyServiceAuthorizationEnabled}
                 form={form}
                 flow={flow}
                 onFlowChange={onFlowChange}

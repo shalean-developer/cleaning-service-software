@@ -22,6 +22,16 @@ import {
 } from "./zohoInvoicePaymentRepository";
 import { captureReusableAuthorization } from "./captureReusableAuthorization";
 
+async function triggerMonthlyBatchPaymentSyncAfterPaid(input: {
+  invoiceNumber: string;
+  zohoInvoiceId: string;
+}): Promise<void> {
+  const { runPostZohoInvoicePaymentMonthlyBatchSync } = await import(
+    "@/features/monthly-billing/server/runPostZohoInvoicePaymentMonthlyBatchSync"
+  );
+  await runPostZohoInvoicePaymentMonthlyBatchSync(input).catch(() => undefined);
+}
+
 export type ProcessZohoInvoiceChargeSuccessResult =
   | {
       ok: true;
@@ -310,6 +320,11 @@ export async function processZohoInvoiceChargeSuccess(
       idempotent: true,
     });
 
+    await triggerMonthlyBatchPaymentSyncAfterPaid({
+      invoiceNumber: paymentRow.invoice_number,
+      zohoInvoiceId: paymentRow.zoho_invoice_id,
+    });
+
     return {
       ok: true,
       handled: true,
@@ -373,6 +388,11 @@ export async function processZohoInvoiceChargeSuccess(
     zohoInvoicePaymentId: paymentRow.id,
     zohoPaymentId: zohoResult.zohoPaymentId,
     idempotent: false,
+  });
+
+  await triggerMonthlyBatchPaymentSyncAfterPaid({
+    invoiceNumber: paymentRow.invoice_number,
+    zohoInvoiceId: paymentRow.zoho_invoice_id,
   });
 
   return {

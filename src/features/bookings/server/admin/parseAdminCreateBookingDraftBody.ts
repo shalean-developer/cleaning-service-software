@@ -8,6 +8,7 @@ import {
 } from "@/features/pricing/server/types";
 import { validateCadenceFrequencyForService, showFrequencyForService } from "@/features/booking-wizard/frequencyVisibility";
 import { validateAdminRecurringScheduleForDraftBody } from "@/features/admin-booking-wizard/adminRecurringSchedule";
+import { ADMIN_WIZARD_BILLING_MODES } from "@/features/admin-booking-wizard/adminBillingMode";
 
 const pricingInputSchema = z.object({
   serviceSlug: z.enum(SERVICE_SLUGS),
@@ -36,6 +37,47 @@ const addressSchema = z.object({
   specialInstructions: z.string().trim().max(4000).nullable().optional(),
 });
 
+const billingSchema = z
+  .object({
+    mode: z.enum(ADMIN_WIZARD_BILLING_MODES),
+    monthlyAccountId: z.string().uuid().optional(),
+    zohoCustomerId: z.string().trim().min(1).optional(),
+    billingEmail: z.string().trim().email().optional(),
+    billingTerms: z.string().trim().min(1).optional(),
+  })
+  .superRefine((billing, ctx) => {
+    if (billing.mode !== "monthly_account") return;
+
+    if (!billing.monthlyAccountId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "monthlyAccountId is required when billing mode is monthly_account.",
+        path: ["monthlyAccountId"],
+      });
+    }
+    if (!billing.zohoCustomerId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "zohoCustomerId is required when billing mode is monthly_account.",
+        path: ["zohoCustomerId"],
+      });
+    }
+    if (!billing.billingEmail) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "billingEmail is required when billing mode is monthly_account.",
+        path: ["billingEmail"],
+      });
+    }
+    if (!billing.billingTerms) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "billingTerms is required when billing mode is monthly_account.",
+        path: ["billingTerms"],
+      });
+    }
+  });
+
 export const adminCreateBookingDraftBodySchema = z.object({
   customerId: z.string().uuid("customerId must be a valid UUID."),
   idempotencyKey: z
@@ -51,6 +93,7 @@ export const adminCreateBookingDraftBodySchema = z.object({
   cleanerPreferenceMode: z.enum(["best_available", "selected"]).optional(),
   selectedCleanerId: z.string().uuid().nullable().optional(),
   serviceId: z.string().uuid().nullable().optional(),
+  billing: billingSchema.default({ mode: "paystack_link" }),
 });
 
 export type AdminCreateBookingDraftBody = z.infer<typeof adminCreateBookingDraftBodySchema>;

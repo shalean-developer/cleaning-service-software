@@ -4,6 +4,8 @@ import {
   PAYMENT_CONFIRMED_TEMPLATE,
   PAYMENT_FAILED_TEMPLATE,
   ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE,
+  MONTHLY_INVOICE_SENT_TEMPLATE,
+  MONTHLY_INVOICE_REMINDER_TEMPLATE,
 } from "./config";
 
 export function readNotificationPayloadString(payload: Json, key: string): string | null {
@@ -24,7 +26,9 @@ export function isDeliverableNotificationRow(row: {
   if (
     template === PAYMENT_CONFIRMED_TEMPLATE ||
     template === PAYMENT_FAILED_TEMPLATE ||
-    template === ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE
+    template === ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE ||
+    template === MONTHLY_INVOICE_SENT_TEMPLATE ||
+    template === MONTHLY_INVOICE_REMINDER_TEMPLATE
   ) {
     return row.channel === "email";
   }

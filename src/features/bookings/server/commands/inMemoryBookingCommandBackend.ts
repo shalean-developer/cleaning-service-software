@@ -88,6 +88,14 @@ export class InMemoryBookingCommandBackend implements BookingCommandBackend {
     return false;
   }
 
+  /** booking ids with active monthly service authorization (tests). */
+  monthlyServiceAuthorizedBookingIds = new Set<string>();
+
+  async hasFinancialClearanceForCompletion(bookingId: string): Promise<boolean> {
+    if (await this.hasPaidPaymentForBooking(bookingId)) return true;
+    return this.monthlyServiceAuthorizedBookingIds.has(bookingId);
+  }
+
   setCleanerLifecycle(cleanerId: string, snapshot: CleanerLifecycleSnapshot): void {
     this.cleanerLifecycleById.set(cleanerId, snapshot);
   }

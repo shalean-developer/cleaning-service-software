@@ -257,6 +257,13 @@ async function retrySingleRow(
       invoiceNumber: fresh.invoice_number,
       zohoInvoicePaymentId: fresh.id,
     });
+    const { runPostZohoInvoicePaymentMonthlyBatchSync } = await import(
+      "@/features/monthly-billing/server/runPostZohoInvoicePaymentMonthlyBatchSync"
+    );
+    await runPostZohoInvoicePaymentMonthlyBatchSync({
+      invoiceNumber: fresh.invoice_number,
+      zohoInvoiceId: fresh.zoho_invoice_id,
+    }).catch(() => undefined);
     return "paid";
   }
 

@@ -16,6 +16,11 @@ import {
   validateAdminRecurringSchedule,
   type AdminBookingWizardFrequency,
 } from "./adminRecurringSchedule";
+import {
+  DEFAULT_ADMIN_WIZARD_BILLING_MODE,
+  type AdminWizardBillingMode,
+  type AdminWizardCustomerBillingSnapshot,
+} from "./adminBillingMode";
 
 export type { AdminBookingWizardFrequency };
 
@@ -57,6 +62,9 @@ export type AdminBookingWizardFormState = {
   carpetPetStains: boolean;
   carpetGoodDryingAirflow: boolean;
   specialInstructions: string;
+  billingMode: AdminWizardBillingMode;
+  customerBillingAccount: AdminWizardCustomerBillingSnapshot | null;
+  billingModeResetMessage: string | null;
 };
 
 export const EMPTY_ADMIN_BOOKING_WIZARD_FORM: AdminBookingWizardFormState = {
@@ -90,6 +98,9 @@ export const EMPTY_ADMIN_BOOKING_WIZARD_FORM: AdminBookingWizardFormState = {
   carpetPetStains: false,
   carpetGoodDryingAirflow: false,
   specialInstructions: "",
+  billingMode: DEFAULT_ADMIN_WIZARD_BILLING_MODE,
+  customerBillingAccount: null,
+  billingModeResetMessage: null,
 };
 
 export function isAdminDraftFormReadyForSave(state: AdminBookingWizardFormState): boolean {
@@ -125,6 +136,17 @@ export function buildAdminDraftRequestBody(
       })
     : null;
 
+  const billing =
+    state.billingMode === "monthly_account" && state.customerBillingAccount?.accountId
+      ? {
+          mode: state.billingMode,
+          monthlyAccountId: state.customerBillingAccount.accountId,
+          zohoCustomerId: state.customerBillingAccount.zohoCustomerId ?? undefined,
+          billingEmail: state.customerBillingAccount.billingEmail ?? undefined,
+          billingTerms: state.customerBillingAccount.billingTerms ?? undefined,
+        }
+      : { mode: state.billingMode };
+
   return {
     customerId: state.customerId.trim(),
     idempotencyKey,
@@ -140,6 +162,7 @@ export function buildAdminDraftRequestBody(
       specialInstructions: address.specialInstructions,
     },
     cleanerPreferenceMode: "best_available" as const,
+    billing,
   };
 }
 

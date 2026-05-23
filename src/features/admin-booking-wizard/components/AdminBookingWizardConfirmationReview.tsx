@@ -6,6 +6,7 @@ import {
   formatAdminBookingSummaryExtras,
 } from "../adminBookingSummaryDisplay";
 import { composeAdminLocationNotes, composeAdminSpecialInstructions } from "../adminAddressCompose";
+import { formatAdminWizardBillingModeLabel } from "../adminBillingMode";
 import { AdminBookingWizardPricingPreview } from "./AdminBookingWizardPricingPreview";
 
 type Props = {
@@ -32,8 +33,22 @@ export function AdminBookingWizardConfirmationReview({ form, compact = false }: 
         ) : null}
       </section>
 
+      <section data-testid="admin-booking-review-billing">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Billing mode</h3>
+        <p className="mt-1 text-sm text-slate-900">
+          {formatAdminWizardBillingModeLabel(form.billingMode)}
+        </p>
+        {form.billingMode === "monthly_account" && form.customerBillingAccount?.billingTerms ? (
+          <p className="mt-1 whitespace-pre-wrap text-xs text-slate-600">
+            {form.customerBillingAccount.billingTerms}
+          </p>
+        ) : null}
+      </section>
+
       <section>
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Service & extras</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Service & extras
+        </h3>
         <p className="mt-1 text-sm text-slate-900">{labels.serviceLabel}</p>
         <p className="text-xs capitalize text-slate-500">{labels.frequencyLabel}</p>
         {labels.recurringScheduleLabel !== "—" ? (

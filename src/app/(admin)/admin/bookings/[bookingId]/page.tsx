@@ -92,6 +92,13 @@ import { AdminBookingRecurringVerificationPanel } from "@/components/dashboard/a
 import { isAdminAssistedPaymentLinksActive } from "@/lib/app/adminAssistedPaymentLinksFlag";
 import { isAdminAssistedOfflinePaymentsActive } from "@/lib/app/adminAssistedOfflinePaymentsFlag";
 import { listBookingSupportRequestsForBooking } from "@/features/bookings/server/bookingSupportRequestsService";
+import { AdminBookingBillingBadge, isMonthlyAccountBillingMetadata } from "@/features/monthly-billing/server/bookingBillingMetadataDisplay";
+import { AdminBookingAuthorizeServicePanel } from "@/components/dashboard/admin/AdminBookingAuthorizeServicePanel";
+import { AdminBookingInvoiceAccrualStatus } from "@/components/dashboard/admin/AdminMonthlyBillingAccrualSection";
+import { loadBookingInvoiceAccrualStatus } from "@/features/monthly-billing/server/loadMonthlyInvoiceAccrualDiagnostics";
+import { parseMonthlyAccountBillingMetadata } from "@/features/bookings/server/admin/monthlyAccountBookingMetadata";
+import { isZohoMonthlyAccountBillingEnabled } from "@/lib/app/zohoMonthlyAccountBillingFlag";
+import { isZohoMonthlyServiceAuthorizationEnabled } from "@/lib/app/zohoMonthlyServiceAuthorizationFlag";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 
@@ -124,6 +131,18 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
   const recurringVerification = await loadAdminBookingRecurringVerification(bookingId);
   const recurringScheduleLabel = recurringVerification?.schedule.scheduleSummaryLabel ?? null;
   const paymentFailed = b.status === "payment_failed";
+  const monthlyAccountBilling = isMonthlyAccountBillingMetadata(b.metadata);
+  const monthlyBillingMeta = monthlyAccountBilling
+    ? parseMonthlyAccountBillingMetadata(b.metadata)
+    : null;
+  const monthlyServiceAuthorizationEnabled = isZohoMonthlyServiceAuthorizationEnabled();
+  const monthlyBillingSetupEnabled = isZohoMonthlyAccountBillingEnabled();
+  const invoiceAccrualStatus =
+    monthlyAccountBilling && b.status === "completed"
+      ? await loadBookingInvoiceAccrualStatus(bookingId)
+      : null;
+  const showAssistPaymentPanels =
+    b.adminAssistedDraft && b.status === "pending_payment" && !monthlyAccountBilling;
   const teamSupportFollowUp = adminTeamSupportNeedsFollowUp({
     isTwoCleanerRequest: b.observation.isTwoCleanerRequest,
     teamRequestFulfillment: b.observation.teamRequestFulfillment,
@@ -304,6 +323,34 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           footer={<AdminPayoutActions bookingId={b.id} status={b.status} />}
         />
 
+        <AdminBookingBillingBadge metadata={b.metadata} />
+
+        {monthlyAccountBilling &&
+        b.status === "draft" &&
+        monthlyBillingMeta?.monthlyAccountId &&
+        !monthlyBillingMeta.serviceAuthorization?.authorized ? (
+          <AdminBookingAuthorizeServicePanel
+            bookingId={b.id}
+            customerId={b.customerId}
+            monthlyAccountId={monthlyBillingMeta.monthlyAccountId}
+            serviceAuthorizationEnabled={monthlyServiceAuthorizationEnabled}
+            accountEnabled={monthlyBillingSetupEnabled}
+          />
+        ) : null}
+
+        {monthlyAccountBilling && b.status === "completed" && invoiceAccrualStatus ? (
+          <AdminBookingInvoiceAccrualStatus
+            accrued={invoiceAccrualStatus.accrued}
+            batchId={invoiceAccrualStatus.batchId}
+            billingMonth={invoiceAccrualStatus.billingMonth}
+            amountCents={invoiceAccrualStatus.amountCents}
+            itemStatus={invoiceAccrualStatus.itemStatus}
+            batchStatus={invoiceAccrualStatus.batchStatus}
+            zohoInvoiceId={invoiceAccrualStatus.zohoInvoiceId}
+            zohoInvoiceNumber={invoiceAccrualStatus.zohoInvoiceNumber}
+          />
+        ) : null}
+
         {b.adminAssistedDraft && assistSummary?.pilotDryRun ? (
           <AdminAssistedPilotDryRunBanner pilotDryRun />
         ) : null}
@@ -328,7 +375,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
           </>
         ) : null}
 
-        {b.adminAssistedDraft && b.status === "pending_payment" ? (
+        {showAssistPaymentPanels ? (
           <>
             <AdminBookingDetailPaymentLinkPanel
               bookingId={b.id}

@@ -22,6 +22,7 @@ import { validateAdminWizardStep } from "../adminStepValidation";
 import type { AdminBookingWizardStep, AdminBookingWizardSummary } from "../types";
 import { useAdminBookingFlowRefresh } from "../useAdminBookingFlowRefresh";
 import { useAdminBookingQuote } from "../useAdminBookingQuote";
+import { useAdminCustomerBillingAccount } from "../useAdminCustomerBillingAccount";
 import { useAdminCustomerPrefill } from "../useAdminCustomerPrefill";
 import { AdminAssistedBookingTrainingAids } from "@/components/dashboard/admin/AdminAssistedBookingTrainingAids";
 import { AdminAssistedBookingPilotBanner } from "./AdminAssistedBookingPilotBanner";
@@ -37,6 +38,8 @@ type Props = {
   featureEnabled: boolean;
   paymentLinksEnabled: boolean;
   offlinePaymentsEnabled: boolean;
+  monthlyBillingEnabled: boolean;
+  monthlyServiceAuthorizationEnabled?: boolean;
   pilotMode?: boolean;
   rolloutStage?: import("@/lib/app/resolveAdminAssistedBookingRolloutStage").AdminAssistedBookingRolloutStage;
   initialCustomerId?: string | null;
@@ -67,6 +70,8 @@ export function AdminBookingWizard({
   featureEnabled,
   paymentLinksEnabled,
   offlinePaymentsEnabled,
+  monthlyBillingEnabled,
+  monthlyServiceAuthorizationEnabled = false,
   pilotMode = false,
   rolloutStage = "disabled",
   initialCustomerId,
@@ -88,6 +93,16 @@ export function AdminBookingWizard({
     onFormChange,
   );
 
+  const {
+    loading: customerBillingLoading,
+    error: customerBillingError,
+  } = useAdminCustomerBillingAccount(
+    form.customerId,
+    form.billingMode,
+    monthlyBillingEnabled,
+    onFormChange,
+  );
+
   const { refresh: refreshFlow } = useAdminBookingFlowRefresh(flow, setFlow, {
     pollWhileAwaitingPayment: step === "confirmation" || step === "payment",
   });
@@ -100,6 +115,7 @@ export function AdminBookingWizard({
     return {
       ...labels,
       paymentLabel: resolveAdminPaymentSummaryLabel(flow),
+      billingModeLabel: labels.billingModeLabel,
       lifecyclePreview: resolveAdminBookingFlowPhaseLabel(phase),
     };
   }, [form, quote, flow]);
@@ -153,10 +169,14 @@ export function AdminBookingWizard({
               featureEnabled={featureEnabled}
               paymentLinksEnabled={paymentLinksEnabled}
               offlinePaymentsEnabled={offlinePaymentsEnabled}
+              monthlyBillingEnabled={monthlyBillingEnabled}
+              monthlyServiceAuthorizationEnabled={monthlyServiceAuthorizationEnabled}
               form={form}
               flow={flow}
               customerPrefillLoading={customerPrefillLoading}
               customerPrefillError={customerPrefillError}
+              customerBillingLoading={customerBillingLoading}
+              customerBillingError={customerBillingError}
               onFormChange={onFormChange}
               onFlowChange={setFlow}
               onFlowRefresh={refreshFlow}

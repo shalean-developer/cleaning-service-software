@@ -40,6 +40,8 @@ import { isCleanerEligibleForAssignment } from "@/features/assignments/server/el
 import { persistAssignmentDispatchAt } from "@/features/payments/server/postPaymentAssignmentDispatch";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database/types";
+import { isMonthlyAccountBillingMetadata } from "../admin/monthlyAccountBookingMetadata";
+import { runPostCompletionMonthlyInvoiceAccrual } from "@/features/monthly-billing/server/runPostCompletionMonthlyInvoiceAccrual";
 
 export type BookingCommandRunContext = {
   /**
@@ -342,6 +344,44 @@ export async function executeBookingCommand(
       }
     }
 
+    case "CONFIRM_SERVICE_AUTHORIZED": {
+      if (!cmd.idempotencyKey?.trim()) {
+        return fail("IDEMPOTENCY_REQUIRED", "CONFIRM_SERVICE_AUTHORIZED requires idempotencyKey.");
+      }
+      const booking = await backend.getBooking(cmd.bookingId);
+      if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
+      if (
+        (await backend.findAuditsByBookingAndKey(cmd.bookingId, cmd.idempotencyKey)).length > 0
+      ) {
+        return ok(booking.id, booking.status, true);
+      }
+      if (!isMonthlyAccountBillingMetadata(booking.metadata)) {
+        return fail(
+          "INVALID_PAYLOAD",
+          "CONFIRM_SERVICE_AUTHORIZED only applies to monthly_account bookings.",
+        );
+      }
+      const shape = assertTransitionShape(cmd, booking.status);
+      if (shape) return shape;
+
+      try {
+        const r = await backend.applyTransition(cmd, booking.id, "draft", "confirmed");
+        await enqueueNotificationWhenNotIdempotent(
+          backend,
+          r.idempotent,
+          "email",
+          booking.customer_id,
+          {
+            template: "booking_confirmed",
+            bookingId: booking.id,
+          },
+        );
+        return ok(booking.id, r.status, r.idempotent);
+      } catch {
+        return fail("PERSISTENCE_ERROR", "Service authorization confirmation failed.");
+      }
+    }
+
     case "MARK_PAYMENT_FAILED": {
       const booking = await backend.getBooking(cmd.bookingId);
       if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
@@ -375,10 +415,10 @@ export async function executeBookingCommand(
       if (!booking) return fail("BOOKING_NOT_FOUND", "Booking not found.");
       const shape = assertTransitionShape(cmd, booking.status);
       if (shape) return shape;
-      if (!(await backend.hasPaidPaymentForBooking(booking.id))) {
+      if (!(await backend.hasFinancialClearanceForCompletion(booking.id))) {
         return fail(
           "PAYMENT_NOT_PAID",
-          "Cannot enter pending_assignment until at least one payment is paid for this booking.",
+          "Cannot enter pending_assignment until payment is confirmed or monthly service is authorized.",
         );
       }
       try {
@@ -790,10 +830,10 @@ export async function executeBookingCommand(
         const cln = assertCleanerIs(cmd, booking.cleaner_id, ctx);
         if (cln) return cln;
       }
-      if (!(await backend.hasPaidPaymentForBooking(booking.id))) {
+      if (!(await backend.hasFinancialClearanceForCompletion(booking.id))) {
         return fail(
           "PAYMENT_NOT_PAID",
-          "Cannot complete booking until payment is confirmed.",
+          "Cannot complete booking until payment is confirmed or monthly service is authorized.",
         );
       }
       if (!Number.isFinite(booking.price_cents) || booking.price_cents <= 0) {
@@ -808,6 +848,9 @@ export async function executeBookingCommand(
         if (!earnings.ok) {
           return fail(earnings.code as BookingCommandFailure["code"], earnings.message);
         }
+        if (isMonthlyAccountBillingMetadata(booking.metadata)) {
+          await runPostCompletionMonthlyInvoiceAccrual(booking).catch(() => undefined);
+        }
         return ok(booking.id, booking.status, true);
       }
 
@@ -820,6 +863,9 @@ export async function executeBookingCommand(
         const earnings = await recordEarningsForBooking(backend, fresh);
         if (!earnings.ok) {
           return fail(earnings.code as BookingCommandFailure["code"], earnings.message);
+        }
+        if (isMonthlyAccountBillingMetadata(fresh.metadata)) {
+          await runPostCompletionMonthlyInvoiceAccrual(fresh).catch(() => undefined);
         }
         return ok(booking.id, r.status, r.idempotent);
       } catch {
@@ -1223,7 +1269,7 @@ export async function executeBookingCommand(
           cmd.newScheduledStart,
           cmd.newScheduledEnd,
         );
-        if (await backend.hasPaidPaymentForBooking(booking.id)) {
+        if (await backend.hasFinancialClearanceForCompletion(booking.id)) {
           await persistAssignmentDispatchAt(backend, booking.id, cmd.newScheduledStart);
         }
         const executionMeta = {

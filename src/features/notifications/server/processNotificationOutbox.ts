@@ -14,6 +14,8 @@ import {
   PAYMENT_CONFIRMED_TEMPLATE,
   PAYMENT_FAILED_TEMPLATE,
   ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE,
+  MONTHLY_INVOICE_SENT_TEMPLATE,
+  MONTHLY_INVOICE_REMINDER_TEMPLATE,
 } from "./config";
 import { canDeliverSupportNotification } from "@/features/support/server/canDeliverSupportNotification";
 import { parseSupportOutboxPayload } from "@/features/support/server/parseSupportOutboxPayload";
@@ -32,6 +34,7 @@ import { buildAssignmentOfferEmail } from "./templates/assignmentOffer";
 import { buildPaymentConfirmedEmail } from "./templates/paymentConfirmed";
 import { buildPaymentFailedEmail } from "./templates/paymentFailed";
 import { buildAdminAssistedPaymentRequestEmail } from "./templates/adminAssistedPaymentRequest";
+import { processMonthlyInvoiceNotificationRow } from "./processMonthlyInvoiceNotificationRow";
 import {
   isAdminAssistPaymentLinkActive,
   readAdminAssistPaymentLinkMetadata,
@@ -109,7 +112,9 @@ export function isDeliverableOutboxRow(row: NotificationOutboxRow): boolean {
   if (
     template === PAYMENT_CONFIRMED_TEMPLATE ||
     template === PAYMENT_FAILED_TEMPLATE ||
-    template === ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE
+    template === ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE ||
+    template === MONTHLY_INVOICE_SENT_TEMPLATE ||
+    template === MONTHLY_INVOICE_REMINDER_TEMPLATE
   ) {
     return row.channel === "email";
   }
@@ -595,7 +600,10 @@ async function processOneRow(
           ? await processPaymentFailedRow(client, row, emailSender, now)
           : template === ADMIN_ASSISTED_PAYMENT_REQUEST_SENT_TEMPLATE
             ? await processAdminAssistedPaymentRequestRow(client, row, emailSender, now)
-            : template === PAYMENT_CONFIRMED_TEMPLATE
+            : template === MONTHLY_INVOICE_SENT_TEMPLATE ||
+                template === MONTHLY_INVOICE_REMINDER_TEMPLATE
+              ? await processMonthlyInvoiceNotificationRow(client, row, emailSender, now)
+              : template === PAYMENT_CONFIRMED_TEMPLATE
               ? await processPaymentConfirmedRow(client, row, emailSender, now)
               : { outcome: "skipped" as const };
 

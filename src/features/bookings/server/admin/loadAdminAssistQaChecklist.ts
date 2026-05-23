@@ -9,6 +9,17 @@ import {
 import type { Database } from "@/lib/database/types";
 import { requireServiceRoleClient } from "@/lib/supabase/serviceRole";
 
+function isMissingTableError(error: { code?: string; message?: string }): boolean {
+  const message = (error.message ?? "").toLowerCase();
+  return (
+    message.includes("schema cache") ||
+    message.includes("does not exist") ||
+    message.includes("could not find the table") ||
+    error.code === "PGRST205" ||
+    error.code === "42P01"
+  );
+}
+
 export async function loadAdminAssistQaChecklist(
   bookingId: string,
   client: SupabaseClient<Database> = requireServiceRoleClient(),
@@ -19,7 +30,10 @@ export async function loadAdminAssistQaChecklist(
     .eq("booking_id", bookingId)
     .maybeSingle();
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (isMissingTableError(error)) return null;
+    throw new Error(error.message);
+  }
   if (!data) return null;
 
   return {

@@ -4,6 +4,8 @@ import {
   resolveAdminBookingFlowPhaseLabel,
   type AdminBookingFlowSnapshot,
 } from "../adminBookingFlowState";
+import type { AdminBookingWizardFormState } from "../draftFormState";
+import { AdminBookingWizardBillingModePanel } from "./AdminBookingWizardBillingModePanel";
 
 const LIFECYCLE_STEPS = [
   "Save draft",
@@ -18,21 +20,34 @@ type Props = {
   featureEnabled: boolean;
   paymentLinksEnabled: boolean;
   offlinePaymentsEnabled: boolean;
+  monthlyBillingEnabled: boolean;
+  form: AdminBookingWizardFormState;
   flow: AdminBookingFlowSnapshot;
+  onFormChange: (patch: Partial<AdminBookingWizardFormState>) => void;
 };
 
 export function AdminBookingWizardPaymentStepPanel({
   featureEnabled,
   paymentLinksEnabled,
   offlinePaymentsEnabled,
+  monthlyBillingEnabled,
+  form,
   flow,
+  onFormChange,
 }: Props) {
   const phase = resolveAdminBookingFlowPhase(flow);
   const phaseLabel = resolveAdminBookingFlowPhaseLabel(phase);
   const progress = deriveAdminBookingFlowProgress(flow);
+  const monthlyMetadataOnly = form.billingMode === "monthly_account";
 
   return (
     <div className="space-y-4" data-testid="admin-booking-payment-step">
+      <AdminBookingWizardBillingModePanel
+        form={form}
+        monthlyBillingEnabled={monthlyBillingEnabled}
+        onFormChange={onFormChange}
+      />
+
       <section className="rounded-lg border border-slate-200 bg-white px-3 py-3">
         <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
           Payment lifecycle
@@ -53,6 +68,9 @@ export function AdminBookingWizardPaymentStepPanel({
           <li>Draft saved: {progress.draftSaved ? "Yes" : "Not yet"}</li>
           <li>Pending payment: {progress.pendingPaymentCreated ? "Yes" : "Not yet"}</li>
           <li>Payment link: {progress.paymentLinkGenerated ? "Generated" : "Not yet"}</li>
+          {monthlyMetadataOnly ? (
+            <li>Monthly account: Metadata only — payment actions disabled</li>
+          ) : null}
           {paymentLinksEnabled ? (
             <li>Email request: {progress.emailRequestSent ? "Sent" : "Not sent"}</li>
           ) : (
@@ -73,6 +91,11 @@ export function AdminBookingWizardPaymentStepPanel({
         >
           Admin-assisted booking is in preview mode. Actions on the confirmation step remain disabled
           until the feature flag is enabled.
+        </p>
+      ) : monthlyMetadataOnly ? (
+        <p className="text-xs text-slate-600">
+          Save the draft to persist monthly account billing metadata. Unpaid booking, payment links,
+          and offline payment remain disabled until service authorization is added in a later phase.
         </p>
       ) : (
         <p className="text-xs text-slate-600">

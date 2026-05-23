@@ -66,6 +66,7 @@ export function buildRecurringAdminAssistDraftBody(
       city: "Cape Town",
     },
     cleanerPreferenceMode: "best_available",
+    billing: { mode: "paystack_link" },
   };
 }
 

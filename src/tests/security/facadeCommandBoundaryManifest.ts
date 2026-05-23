@@ -64,6 +64,14 @@ export const FACADE_BOUNDARY_RULES: FacadeBoundaryRule[] = [
     allowedDirectWriteException: false,
   },
   {
+    facadeFile: "features/bookings/server/admin/authorizeMonthlyAccountServiceFacade.ts",
+    exportSymbols: ["authorizeMonthlyAccountServiceFacade"],
+    tier: "command_required",
+    allowedOrchestratorSymbols: ["runPostServiceAuthorizationAssignmentDispatch"],
+    allowedServiceRoleImport: true,
+    allowedDirectWriteException: false,
+  },
+  {
     facadeFile: "features/bookings/server/admin/adminCreatePendingPaymentBookingFacade.ts",
     exportSymbols: ["adminCreatePendingPaymentBookingFacade"],
     tier: "command_required",
@@ -341,6 +349,8 @@ export const ROUTE_FACADE_SYMBOL_TO_FILE: Record<string, string> = {
   createBookingPaymentLock: "features/bookings/server/lock/createBookingPaymentLock.ts",
   adminCreateBookingDraftFacade:
     "features/bookings/server/admin/adminCreateBookingDraftFacade.ts",
+  authorizeMonthlyAccountServiceFacade:
+    "features/bookings/server/admin/authorizeMonthlyAccountServiceFacade.ts",
   adminCreatePendingPaymentBookingFacade:
     "features/bookings/server/admin/adminCreatePendingPaymentBookingFacade.ts",
   adminGeneratePaymentLinkFacade:

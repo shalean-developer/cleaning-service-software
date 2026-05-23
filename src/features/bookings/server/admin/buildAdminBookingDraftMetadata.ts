@@ -2,6 +2,7 @@ import { buildBookingQuoteMetadata } from "@/features/pricing/server/metadata";
 import type { PricingBreakdown, PricingInput } from "@/features/pricing/server/types";
 import { normalizeAreaSlug } from "@/features/cleaners/server/eligibility/normalize";
 import { isAdminAssistedBookingDryRunLabelingEnabled } from "@/lib/app/adminAssistedBookingDryRunFlag";
+import type { AdminWizardBillingMetadata } from "./validateAdminWizardBillingMode";
 
 export type AdminBookingDraftAddressInput = {
   addressLine1: string;
@@ -24,6 +25,7 @@ export function buildAdminBookingDraftMetadata(input: {
     intervalWeeks?: number;
     configuredVia: "admin_wizard_custom" | "admin_wizard_preset";
   } | null;
+  billing: AdminWizardBillingMetadata;
 }): Record<string, unknown> {
   const quoteMeta = buildBookingQuoteMetadata(input.pricingInput, input.breakdown);
   const suburb = input.address.suburb.trim();
@@ -67,6 +69,7 @@ export function buildAdminBookingDraftMetadata(input: {
           },
         }
       : {}),
+    billing: input.billing,
   };
 }
 

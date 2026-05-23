@@ -17,11 +17,15 @@ import {
 } from "../draftFormState";
 import { formatAdminQuoteZar } from "../pricingApi";
 import { WIZARD_BTN_PRIMARY, WIZARD_BTN_SECONDARY } from "@/features/booking-wizard/wizardTheme";
+import { AdminBookingAuthorizeServicePanel } from "@/components/dashboard/admin/AdminBookingAuthorizeServicePanel";
+import { isCustomerEligibleForMonthlyAccountWizard } from "../adminBillingMode";
 
 type Props = {
   featureEnabled: boolean;
   paymentLinksEnabled: boolean;
   offlinePaymentsEnabled: boolean;
+  monthlyBillingEnabled?: boolean;
+  monthlyServiceAuthorizationEnabled?: boolean;
   form: AdminBookingWizardFormState;
   flow: AdminBookingFlowSnapshot;
   onFlowChange: (flow: AdminBookingFlowSnapshot) => void;
@@ -41,6 +45,8 @@ export function AdminBookingWizardConfirmationActions({
   featureEnabled,
   paymentLinksEnabled,
   offlinePaymentsEnabled,
+  monthlyBillingEnabled = false,
+  monthlyServiceAuthorizationEnabled = false,
   form,
   flow,
   onFlowChange,
@@ -68,22 +74,41 @@ export function AdminBookingWizardConfirmationActions({
     featureEnabled && formReady && !saving && !hasDraft && !hasPendingPayment;
 
   const canCreateUnpaid =
-    featureEnabled && hasDraft && !pendingSaving && !hasPendingPayment && Boolean(form.selectedCustomer?.customerId);
+    featureEnabled &&
+    hasDraft &&
+    !pendingSaving &&
+    !hasPendingPayment &&
+    form.billingMode !== "monthly_account" &&
+    Boolean(form.selectedCustomer?.customerId);
 
   const activeBookingId = flow.pendingPayment?.bookingId ?? flow.saved?.bookingId;
 
   const canSendPaymentRequest =
-    paymentLinksEnabled && hasPendingPayment && Boolean(form.selectedCustomer?.customerId) && !linkSaving && !hasPaymentLink;
+    paymentLinksEnabled &&
+    hasPendingPayment &&
+    form.billingMode !== "monthly_account" &&
+    Boolean(form.selectedCustomer?.customerId) &&
+    !linkSaving &&
+    !hasPaymentLink;
+
+  const isMonthlyAccount = form.billingMode === "monthly_account";
+  const monthlyAccountEnabled = isCustomerEligibleForMonthlyAccountWizard(
+    form.customerBillingAccount,
+    monthlyBillingEnabled,
+  );
 
   const actionContext = {
     featureEnabled,
     paymentLinksEnabled,
     offlinePaymentsEnabled,
+    monthlyServiceAuthorizationEnabled,
     formReady,
     hasDraft,
     hasPendingPayment,
     hasPaymentLink,
     hasCustomerEmail: Boolean(form.selectedCustomer?.email?.trim()),
+    billingMode: form.billingMode,
+    monthlyAccountEnabled,
   };
 
   const saveDraftReason = resolveAdminDisabledActionReason("save_draft", actionContext);
@@ -308,18 +333,33 @@ export function AdminBookingWizardConfirmationActions({
           </div>
         ) : null}
 
-        <button
-          type="button"
-          disabled={!canCreateUnpaid}
-          onClick={() => void onCreateUnpaid()}
-          className={`min-h-11 w-full rounded-xl px-4 text-sm font-medium ${
-            canCreateUnpaid ? WIZARD_BTN_SECONDARY : "border border-slate-200 bg-slate-100 text-slate-500"
-          }`}
-          data-testid="admin-booking-create-unpaid"
-        >
-          {pendingSaving ? "Creating…" : "2. Create unpaid booking"}
-        </button>
-        {!canCreateUnpaid ? <DisabledReason reason={createUnpaidReason} /> : null}
+        {!isMonthlyAccount ? (
+          <>
+            <button
+              type="button"
+              disabled={!canCreateUnpaid}
+              onClick={() => void onCreateUnpaid()}
+              className={`min-h-11 w-full rounded-xl px-4 text-sm font-medium ${
+                canCreateUnpaid ? WIZARD_BTN_SECONDARY : "border border-slate-200 bg-slate-100 text-slate-500"
+              }`}
+              data-testid="admin-booking-create-unpaid"
+            >
+              {pendingSaving ? "Creating…" : "2. Create unpaid booking"}
+            </button>
+            {!canCreateUnpaid ? <DisabledReason reason={createUnpaidReason} /> : null}
+          </>
+        ) : null}
+
+        {isMonthlyAccount && hasDraft && flow.saved?.bookingId && form.selectedCustomer?.customerId ? (
+          <AdminBookingAuthorizeServicePanel
+            bookingId={flow.saved.bookingId}
+            customerId={form.selectedCustomer.customerId}
+            monthlyAccountId={form.customerBillingAccount?.accountId ?? ""}
+            serviceAuthorizationEnabled={monthlyServiceAuthorizationEnabled}
+            accountEnabled={monthlyAccountEnabled}
+            onSuccess={() => void onFlowRefresh?.()}
+          />
+        ) : null}
 
         {flow.pendingPayment ? (
           <p
@@ -330,20 +370,24 @@ export function AdminBookingWizardConfirmationActions({
           </p>
         ) : null}
 
-        <button
-          type="button"
-          disabled={!canSendPaymentRequest}
-          onClick={() => void onSendPaymentRequest()}
-          className={`min-h-11 w-full rounded-xl px-4 text-sm font-medium ${
-            canSendPaymentRequest
-              ? WIZARD_BTN_SECONDARY
-              : "border border-slate-200 bg-slate-100 text-slate-500"
-          }`}
-          data-testid="admin-booking-send-payment-request"
-        >
-          {linkSaving ? "Generating…" : "3. Generate payment link"}
-        </button>
-        {!canSendPaymentRequest ? <DisabledReason reason={paymentLinkReason} /> : null}
+        {!isMonthlyAccount ? (
+          <>
+            <button
+              type="button"
+              disabled={!canSendPaymentRequest}
+              onClick={() => void onSendPaymentRequest()}
+              className={`min-h-11 w-full rounded-xl px-4 text-sm font-medium ${
+                canSendPaymentRequest
+                  ? WIZARD_BTN_SECONDARY
+                  : "border border-slate-200 bg-slate-100 text-slate-500"
+              }`}
+              data-testid="admin-booking-send-payment-request"
+            >
+              {linkSaving ? "Generating…" : "3. Generate payment link"}
+            </button>
+            {!canSendPaymentRequest ? <DisabledReason reason={paymentLinkReason} /> : null}
+          </>
+        ) : null}
       </section>
 
       {flow.paymentLink ? (

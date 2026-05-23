@@ -902,6 +902,7 @@ export async function getAdminBookingDetail(
       paymentStatus: payment?.status ?? null,
       paymentFailureReason,
       customerId: row.customer_id,
+      metadata: row.metadata,
       customerHasEmail,
       adminAssistedDraft: isAdminAssistedBookingMetadata(row.metadata),
       adminAssistPaymentLink: readAdminAssistPaymentLinkMetadata(row.metadata),

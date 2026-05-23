@@ -16,6 +16,10 @@ import { getCustomerOperationalTimeline } from "@/features/customers/server/admi
 import { parseAdminCustomerDetailQueryParams } from "@/features/customers/server/admin/parseAdminCustomerDetailQuery";
 import { dashboardFetchErrorTitle } from "@/lib/app/dashboardEcosystemDisplay";
 import { isAdminAssistedBookingDraftEnabled } from "@/features/customers/server/admin/adminCustomerBookingAssist";
+import { loadCustomerBillingAccountReadModel } from "@/features/monthly-billing/server/customerBillingAccountReadModel";
+import { loadCustomerGovernancePanelContext } from "@/features/monthly-billing/server/loadCustomerGovernancePanelContext";
+import { isZohoMonthlyAccountBillingEnabled } from "@/lib/app/zohoMonthlyAccountBillingFlag";
+import { AdminCustomerBillingAccountPanel } from "@/components/dashboard/admin/AdminCustomerBillingAccountPanel";
 
 type PageProps = {
   params: Promise<{ customerId: string }>;
@@ -63,9 +67,11 @@ export default async function AdminCustomerDetailPage({ params, searchParams }: 
     );
   }
 
-  const [result, timelineResult] = await Promise.all([
+  const [result, timelineResult, billingAccount, governanceContext] = await Promise.all([
     getAdminCustomerDetail(user, customerId),
     getCustomerOperationalTimeline(user, customerId),
+    loadCustomerBillingAccountReadModel(customerId),
+    loadCustomerGovernancePanelContext(customerId),
   ]);
 
   if (!result.ok) {
@@ -109,6 +115,13 @@ export default async function AdminCustomerDetailPage({ params, searchParams }: 
           }
           bookingFilter={bookingFilter}
           draftBookingEnabled={isAdminAssistedBookingDraftEnabled()}
+        />
+
+        <AdminCustomerBillingAccountPanel
+          billing={billingAccount}
+          setupEnabled={isZohoMonthlyAccountBillingEnabled()}
+          defaultBillingEmail={detail.authEmail}
+          governanceContext={governanceContext}
         />
 
         <AdminCustomerDeleteDangerZone

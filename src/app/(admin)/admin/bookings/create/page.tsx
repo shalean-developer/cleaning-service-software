@@ -6,6 +6,8 @@ import { AdminDashboardShell } from "@/components/dashboard/admin/AdminDashboard
 import { isAdminAssistedBookingEnabled } from "@/lib/app/adminAssistedBookingFlag";
 import { isAdminAssistedPaymentLinksActive } from "@/lib/app/adminAssistedPaymentLinksFlag";
 import { isAdminAssistedOfflinePaymentsActive } from "@/lib/app/adminAssistedOfflinePaymentsFlag";
+import { isZohoMonthlyAccountBillingEnabled } from "@/lib/app/zohoMonthlyAccountBillingFlag";
+import { isZohoMonthlyServiceAuthorizationEnabled } from "@/lib/app/zohoMonthlyServiceAuthorizationFlag";
 import { isAdminAssistedBookingPilotMode } from "@/lib/app/adminAssistedBookingPilotFlag";
 import { resolveAdminAssistedBookingRolloutStage } from "@/lib/app/resolveAdminAssistedBookingRolloutStage";
 
@@ -25,6 +27,8 @@ export default async function AdminBookingsCreatePage({ searchParams }: PageProp
   const featureEnabled = isAdminAssistedBookingEnabled();
   const paymentLinksEnabled = isAdminAssistedPaymentLinksActive();
   const offlinePaymentsEnabled = isAdminAssistedOfflinePaymentsActive();
+  const monthlyBillingEnabled = isZohoMonthlyAccountBillingEnabled();
+  const monthlyServiceAuthorizationEnabled = isZohoMonthlyServiceAuthorizationEnabled();
   const pilotMode = isAdminAssistedBookingPilotMode();
   const rolloutStage = resolveAdminAssistedBookingRolloutStage();
   const { customerId } = await searchParams;
@@ -43,6 +47,8 @@ export default async function AdminBookingsCreatePage({ searchParams }: PageProp
         featureEnabled={featureEnabled}
         paymentLinksEnabled={paymentLinksEnabled}
         offlinePaymentsEnabled={offlinePaymentsEnabled}
+        monthlyBillingEnabled={monthlyBillingEnabled}
+        monthlyServiceAuthorizationEnabled={monthlyServiceAuthorizationEnabled}
         pilotMode={pilotMode}
         rolloutStage={rolloutStage}
         initialCustomerId={customerId ?? null}
