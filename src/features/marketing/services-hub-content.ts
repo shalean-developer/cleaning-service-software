@@ -7,9 +7,13 @@ import {
   marketingBookPath,
 } from "./constants";
 import type { ServiceSlug } from "@/features/pricing/server/types";
+import {
+  CORE_SERVICE_CATALOGUE,
+  type CoreServiceSlug,
+} from "@/features/services/catalog";
 
 export type ServicesHubOfferingCard = {
-  id: string;
+  id: CoreServiceSlug;
   title: string;
   description: string;
   benefit: string;
@@ -36,8 +40,6 @@ export type ServicesHubUseCase = {
   links: { label: string; href: string }[];
 };
 
-const movePath = SERVICE_SEO_PATHS["moving-cleaning"];
-
 /** Services hub hero. distinct from homepage hero copy. */
 export const SERVICES_HUB_HERO = {
   eyebrow: "Service directory",
@@ -47,67 +49,46 @@ export const SERVICES_HUB_HERO = {
   trustLine: "6 live services · vetted teams · instant online quotes",
 } as const;
 
-/** Full service ecosystem grid (live + coming soon). */
-export const SERVICES_HUB_ECOSYSTEM: ServicesHubOfferingCard[] = [
-  {
-    id: "standard-home-cleaning",
-    title: "Standard Home Cleaning",
-    description: "Routine home cleaning for kitchens, bathrooms, and living spaces.",
-    benefit: "Ideal for busy households",
-    ctaLabel: "Explore standard home cleaning",
-    iconSlug: "regular-cleaning",
-    href: SERVICE_SEO_PATHS["regular-cleaning"],
-    bookHref: marketingBookPath("regular-cleaning"),
-  },
-  {
-    id: "deep-cleaning",
-    title: "Deep Cleaning",
-    description: "Intensive top-to-bottom refresh for seasonal and neglected areas.",
-    benefit: "Best before events or handovers",
-    ctaLabel: "Explore deep cleaning",
-    iconSlug: "deep-cleaning",
-    href: SERVICE_SEO_PATHS["deep-cleaning"],
-    bookHref: marketingBookPath("deep-cleaning"),
-  },
-  {
-    id: "move-in-move-out-cleaning",
-    title: "Move In / Move Out Cleaning",
-    description: "Handover-ready cleaning for tenants, landlords, and property managers.",
-    benefit: "Perfect for rental handovers",
-    ctaLabel: "Explore move cleaning",
-    iconSlug: "moving-cleaning",
-    href: movePath,
-    bookHref: marketingBookPath("moving-cleaning"),
-  },
-  {
-    id: "office-cleaning",
-    title: "Office Cleaning",
-    description: "Professional workspace cleaning for offices, studios, and teams.",
-    benefit: "Flexible commercial schedules",
-    ctaLabel: "Explore office cleaning",
-    iconSlug: "office-cleaning",
-    href: SERVICE_SEO_PATHS["office-cleaning"],
-    bookHref: marketingBookPath("office-cleaning"),
-  },
-  {
-    id: "carpet-cleaning",
-    title: "Carpet Cleaning",
-    description: "Targeted carpet and upholstery care for high-traffic zones.",
-    benefit: "Refresh without full deep clean",
-    ctaLabel: "Explore carpet cleaning",
-    iconSlug: "carpet-cleaning",
-    href: SERVICE_SEO_PATHS["carpet-cleaning"],
-    bookHref: marketingBookPath("carpet-cleaning"),
-  },
-  {
-    id: "post-construction-cleaning",
-    title: "Post-Construction Cleaning",
-    description: "Dust, debris, and builder-residue removal for newly finished spaces.",
-    benefit: "Quote-ready foundation",
-    ctaLabel: "View post-construction cleaning",
-    href: "/services/post-construction-cleaning-cape-town",
-  },
-];
+const SERVICE_HUB_ICON_SLUGS: Partial<Record<CoreServiceSlug, ServiceSlug>> = {
+  "standard-home-cleaning": "regular-cleaning",
+  "deep-cleaning": "deep-cleaning",
+  "move-in-move-out-cleaning": "moving-cleaning",
+  "office-cleaning": "office-cleaning",
+  "carpet-cleaning": "carpet-cleaning",
+};
+
+const SERVICE_HUB_BENEFITS: Record<CoreServiceSlug, string> = {
+  "standard-home-cleaning": "Ideal for busy households",
+  "deep-cleaning": "Best before events or handovers",
+  "move-in-move-out-cleaning": "Perfect for rental handovers",
+  "office-cleaning": "Flexible commercial schedules",
+  "carpet-cleaning": "Refresh without full deep clean",
+  "post-construction-cleaning": "Quote-ready foundation",
+};
+
+const SERVICE_HUB_CTA_LABELS: Record<CoreServiceSlug, string> = {
+  "standard-home-cleaning": "Explore standard home cleaning",
+  "deep-cleaning": "Explore deep cleaning",
+  "move-in-move-out-cleaning": "Explore move cleaning",
+  "office-cleaning": "Explore office cleaning",
+  "carpet-cleaning": "Explore carpet cleaning",
+  "post-construction-cleaning": "View post-construction cleaning",
+};
+
+/** Full service ecosystem grid derived from the central six-service catalogue. */
+export const SERVICES_HUB_ECOSYSTEM: ServicesHubOfferingCard[] =
+  CORE_SERVICE_CATALOGUE.map((service) => ({
+    id: service.slug,
+    title: service.title,
+    description: service.shortDescription,
+    benefit: SERVICE_HUB_BENEFITS[service.slug],
+    ctaLabel: SERVICE_HUB_CTA_LABELS[service.slug],
+    iconSlug: SERVICE_HUB_ICON_SLUGS[service.slug],
+    href: service.seoPath,
+    bookHref: service.availableForBooking
+      ? (service.bookingPath ?? undefined)
+      : undefined,
+  }));
 
 export const SERVICES_HUB_POPULAR: ServicesHubPopularCard[] = [
   {
