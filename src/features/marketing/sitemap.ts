@@ -15,6 +15,9 @@ import { getMarketingSiteUrl } from "./siteUrl";
 
 /** Public pricing hub URL. */
 export const PRICING_SITEMAP_PATH = "/cleaning-prices-cape-town" as const;
+export const BOOKING_START_SITEMAP_PATH = "/book" as const;
+export const POST_CONSTRUCTION_SERVICE_SITEMAP_PATH =
+  "/services/post-construction-cleaning-cape-town" as const;
 
 const SITEMAP_SERVICE_SLUGS = [
   "regular-cleaning",
@@ -76,8 +79,20 @@ export function buildMarketingSitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}${BOOKING_START_SITEMAP_PATH}`,
+      lastModified,
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
     servicesHubEntry,
     ...serviceEntries,
+    {
+      url: `${baseUrl}${POST_CONSTRUCTION_SERVICE_SITEMAP_PATH}`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
     {
       url: `${baseUrl}${ABOUT_PAGE_PATH}`,
       lastModified,
@@ -123,7 +138,9 @@ export const SITEMAP_ENTRY_COUNT =
   1 +
   1 +
   1 +
+  1 +
   SITEMAP_SERVICE_SLUGS.length +
+  1 +
   5 +
   LEGAL_PAGE_PATHS.length +
   1 +

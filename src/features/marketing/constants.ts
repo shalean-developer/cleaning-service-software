@@ -444,8 +444,8 @@ export const MARKETING_NAV_PATHS = {
 /** Canonical 12 SEO suburb display names. sourced from location registry. */
 export { SEO_LOCATION_NAMES as CAPE_TOWN_AREAS } from "@/features/locations/locationRegistry";
 
-/** Unauthenticated users are sent to sign-in with this path preserved after login. */
-export const BOOKING_PATH = "/customer/book" as const;
+/** Public booking start page; selected bookable services continue into the customer wizard. */
+export const BOOKING_PATH = "/book" as const;
 
 /** Product-first platform navigation (desktop center + mobile primary). */
 export const HEADER_PRIMARY_NAV: readonly HeaderNavLink[] = [
@@ -470,7 +470,7 @@ export const HEADER_SECONDARY_NAV: readonly HeaderNavLink[] = [
   { label: "Blog", enabled: false },
 ];
 
-/** Canonical customer booking entry (proxy redirects unauthenticated users to sign-in). */
+/** Canonical customer booking entry for a selected service. */
 export function marketingBookPath(serviceSlug?: ServiceSlug): string {
   return serviceSlug ? `/customer/book/${serviceSlug}` : BOOKING_PATH;
 }
